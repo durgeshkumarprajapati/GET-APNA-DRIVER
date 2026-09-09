@@ -1,0 +1,1219 @@
+// Phase 1 (bootstrap): PostgreSQL extensions only.
+// Phase 2A (identity foundation): core User identity, RBAC, audit log, and outbox.
+// Further domain models are introduced incrementally, phase by phase, per project rules.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [pgcrypto, postgis, citext]
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+/// Account lifecycle status. Deliberately separate from role assignment and
+/// from authentication-provider concerns (see UserIdentity).
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  DELETED
+
+  @@map("account_status")
+}
+
+/// Coarse category of an authentication identity. `providerName` carries the
+/// exact source (e.g. "email", "phone", "google") so new OAuth providers can
+/// be added without a schema migration.
+enum IdentityProviderType {
+  EMAIL
+  PHONE
+  OAUTH
+
+  @@map("identity_provider_type")
+}
+
+/// Core human account. Intentionally minimal: profile data belongs to the
+/// future Customer/Driver domains, and authentication credentials belong to
+/// UserIdentity. A single User can hold multiple roles and multiple
+/// authentication identities.
+model User {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountStatus AccountStatus @default(PENDING) @map("account_status")
+
+  // Soft delete: the row is never physically removed. Financial, booking,
+  // and audit references must survive account deletion.
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  identities UserIdentity[]
+  roles      UserRole[]       @relation("UserRoleUser")
+
+  rolesAssigned UserRole[] @relation("UserRoleAssignedBy")
+  rolesRevoked  UserRole[] @relation("UserRoleRevokedBy")
+
+  credentials             UserCredential?
+  sessions                UserSession[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  customerProfile         CustomerProfile?
+  savedLocations          SavedLocation[]
+  customerPreference      CustomerPreference?
+  customerCurrentLocation CustomerCurrentLocation?
+  driverProfile           DriverProfile?
+  customerBookings        Booking[]                @relation("CustomerBookings")
+  payments                Payment[]
+
+  @@index([accountStatus])
+  @@index([createdAt])
+  @@map("users")
+}
+
+/// One authentication identity a User can sign in with. A User has one row
+/// per identity (email, phone, or an OAuth provider); the same person is
+/// never duplicated into multiple Users just because they add another
+/// supported sign-in method.
+model UserIdentity {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  providerType IdentityProviderType @map("provider_type")
+  /// Exact source: "email", "phone", "google", etc. Always populated (never
+  /// null) so the (providerName, providerSubject) unique constraint below
+  /// works correctly — a nullable discriminator would let Postgres treat
+  /// every NULL as distinct and silently allow duplicate email/phone rows.
+  providerName String @map("provider_name")
+  /// Canonical identifier within that provider's namespace: normalized
+  /// lowercase email, normalized E.164 phone, or the OAuth `sub` claim.
+  providerSubject String @map("provider_subject")
+
+  /// Populated for EMAIL identities (canonical) and optionally for OAuth
+  /// identities that supplied a verified email, so a Google sign-in that
+  /// matches an existing email identity can be detected instead of silently
+  /// creating a duplicate account. citext makes lookups case-insensitive at
+  /// the database level (defense in depth alongside app-level normalization).
+  email String? @db.Citext
+  /// Populated for PHONE identities, stored pre-normalized to E.164.
+  phoneNumber String? @map("phone_number")
+
+  verifiedAt DateTime? @map("verified_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  emailVerificationTokens EmailVerificationToken[]
+
+  @@unique([providerName, providerSubject], name: "provider_identity_unique")
+  @@unique([email])
+  @@unique([phoneNumber])
+  @@map("user_identities")
+}
+
+// ---------------------------------------------------------------------------
+// RBAC
+// ---------------------------------------------------------------------------
+
+/// A system role. Stored as data (not a Prisma enum) so new roles can be
+/// introduced by an admin/seed without a schema migration.
+model Role {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String  @unique
+  name        String
+  description String?
+  /// System roles (CUSTOMER/DRIVER/ADMINISTRATOR) are seeded and must not be
+  /// deletable through future admin tooling.
+  isSystem Boolean @default(false) @map("is_system")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+}
+
+/// A single server-enforceable permission, named `domain.resource.action`.
+model Permission {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String  @unique
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+/// Role -> Permission grant. A pure join table with no independent identity,
+/// so it uses a composite primary key instead of a surrogate UUID.
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+/// User -> Role assignment. Unlike RolePermission this carries its own
+/// lifecycle (who assigned/revoked it and when), so it gets a surrogate id.
+/// A revoked assignment is kept (not deleted) and reused on re-assignment —
+/// `revokedAt IS NULL` is the single source of truth for "currently active".
+/// Full historical detail (assigned, revoked, re-assigned...) lives in
+/// AuditLog, which is append-only; this table only reflects current state.
+model UserRole {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  roleId String @map("role_id") @db.Uuid
+
+  user User @relation("UserRoleUser", fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  assignedBy     String?   @map("assigned_by") @db.Uuid
+  assignedByUser User?     @relation("UserRoleAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+  assignedAt     DateTime  @default(now()) @map("assigned_at") @db.Timestamptz(6)
+  revokedBy      String?   @map("revoked_by") @db.Uuid
+  revokedByUser  User?     @relation("UserRoleRevokedBy", fields: [revokedBy], references: [id], onDelete: SetNull)
+  revokedAt      DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+// ---------------------------------------------------------------------------
+// Cross-cutting: audit + outbox
+// ---------------------------------------------------------------------------
+
+/// Append-only record of an important administrative or business action.
+/// Never updated or deleted; there is deliberately no `updatedAt`/soft-delete.
+model AuditLog {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Null means system-initiated (no human/service actor), not "unknown".
+  actorUserId String? @map("actor_user_id") @db.Uuid
+
+  action     String
+  entityType String @map("entity_type")
+  /// Stored as text (not a foreign key) so one audit table can reference any
+  /// entity type across the whole application.
+  entityId String @map("entity_id")
+
+  beforeState     Json? @map("before_state") @db.JsonB
+  afterState      Json? @map("after_state") @db.JsonB
+  requestMetadata Json? @map("request_metadata") @db.JsonB
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum OutboxEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+
+  @@map("outbox_event_status")
+}
+
+/// Reliable-event foundation: written in the same transaction as the domain
+/// change it describes, consumed asynchronously later. No worker processes
+/// this table yet (introduced when the first async consumer needs it).
+model OutboxEvent {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventType     String            @map("event_type")
+  aggregateType String            @map("aggregate_type")
+  aggregateId   String            @map("aggregate_id")
+  payload       Json              @db.JsonB
+  status        OutboxEventStatus @default(PENDING)
+  attempts      Int               @default(0)
+  lastError     String?           @map("last_error")
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2: Credentials, Sessions, Tokens & OTP
+// ---------------------------------------------------------------------------
+
+/// Password credentials for password-authenticated users. Hashed using
+/// Argon2id / PBKDF2 with unique per-user salt. Passwords are never stored
+/// or logged in plaintext.
+model UserCredential {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @unique @map("user_id") @db.Uuid
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passwordHash    String   @map("password_hash")
+  algorithm       String   @default("argon2id")
+  passwordVersion Int      @default(1) @map("password_version")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("user_credentials")
+}
+
+/// Server-authoritative user sessions. Raw session tokens are never stored
+/// in plaintext; only the SHA-256 hash is persisted.
+model UserSession {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionTokenHash String    @unique @map("session_token_hash")
+  ipAddress        String?   @map("ip_address")
+  userAgent        String?   @map("user_agent")
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  lastUsedAt       DateTime  @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, revokedAt, expiresAt])
+  @@map("user_sessions")
+}
+
+/// Single-use email verification tokens.
+model EmailVerificationToken {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String       @map("user_id") @db.Uuid
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identityId String       @map("identity_id") @db.Uuid
+  identity   UserIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  tokenHash  String       @unique @map("token_hash")
+  expiresAt  DateTime     @map("expires_at") @db.Timestamptz(6)
+  usedAt     DateTime?    @map("used_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([tokenHash])
+  @@map("email_verification_tokens")
+}
+
+/// Single-use password reset tokens.
+model PasswordResetToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([tokenHash])
+  @@map("password_reset_tokens")
+}
+
+/// OTP verification challenges for phone authentication.
+model OtpChallenge {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneNumber String    @map("phone_number")
+  otpHash     String    @map("otp_hash")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5) @map("max_attempts")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(6)
+  verifiedAt  DateTime? @map("verified_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([phoneNumber, createdAt])
+  @@map("otp_challenges")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3: System Configuration, Customer Profile, Saved Locations, Preferences
+// ---------------------------------------------------------------------------
+
+enum ConfigValueType {
+  STRING
+  INTEGER
+  DECIMAL
+  BOOLEAN
+  JSON
+
+  @@map("config_value_type")
+}
+
+enum ThemePreference {
+  SYSTEM
+  LIGHT
+  DARK
+
+  @@map("theme_preference")
+}
+
+/// Centralized database-backed system configuration parameters.
+model SystemConfiguration {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String          @unique
+  value       String
+  valueType   ConfigValueType @default(STRING) @map("value_type")
+  description String?
+  category    String          @default("system")
+  isPublic    Boolean         @default(false) @map("is_public")
+  updatedBy   String?         @map("updated_by") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([category])
+  @@map("system_configurations")
+}
+
+/// Customer profile data linked 1-to-1 with core User account.
+model CustomerProfile {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @unique @map("user_id") @db.Uuid
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName         String?   @map("first_name")
+  lastName          String?   @map("last_name")
+  displayName       String?   @map("display_name")
+  avatarUrl         String?   @map("avatar_url")
+  dateOfBirth       DateTime? @map("date_of_birth") @db.Timestamptz(6)
+  defaultLocationId String?   @map("default_location_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("customer_profiles")
+}
+
+/// Persistent user-saved locations with spatial coordinates for routing & PostGIS.
+model SavedLocation {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String   // e.g. "Home", "Work", "Gym"
+  addressLine1 String   @map("address_line1")
+  addressLine2 String?  @map("address_line2")
+  city         String
+  state        String
+  country      String   @default("India")
+  postalCode   String   @map("postal_code")
+  latitude     Float
+  longitude    Float
+  isDefault    Boolean  @default(false) @map("is_default")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, isDefault])
+  @@map("saved_locations")
+}
+
+/// Extensible customer-specific preferences.
+model CustomerPreference {
+  id                        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                    String          @unique @map("user_id") @db.Uuid
+  user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                     ThemePreference @default(SYSTEM)
+  language                  String          @default("en")
+  pushNotificationsEnabled  Boolean         @default(true) @map("push_notifications_enabled")
+  smsNotificationsEnabled   Boolean         @default(true) @map("sms_notifications_enabled")
+  emailNotificationsEnabled Boolean         @default(true) @map("email_notifications_enabled")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("customer_preferences")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4: Driver Domain, Onboarding, Documents, Verification, Approval & Availability
+// ---------------------------------------------------------------------------
+
+enum DriverOnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  COMPLETED
+
+  @@map("driver_onboarding_status")
+}
+
+enum DriverVerificationStatus {
+  NOT_VERIFIED
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+
+  @@map("driver_verification_status")
+}
+
+enum DriverApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+
+  @@map("driver_approval_status")
+}
+
+enum DriverAvailabilityStatus {
+  OFFLINE
+  AVAILABLE
+  BUSY
+  UNAVAILABLE
+
+  @@map("driver_availability_status")
+}
+
+enum DriverDocumentType {
+  DRIVING_LICENSE
+  AADHAAR_CARD
+  PROFILE_PHOTO
+  BACKGROUND_VERIFICATION
+  POLICE_VERIFICATION
+  ADDRESS_PROOF
+
+  @@map("driver_document_type")
+}
+
+enum DriverDocumentStatus {
+  UPLOADED
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+  EXPIRED
+  SUPERSEDED
+
+  @@map("driver_document_status")
+}
+
+/// Driver profile data linked 1-to-1 with core User account.
+model DriverProfile {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String                   @unique @map("user_id") @db.Uuid
+  user                   User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName              String?                  @map("first_name")
+  lastName               String?                  @map("last_name")
+  displayName            String?                  @map("display_name")
+  profileImageUrl        String?                  @map("profile_image_url")
+  dateOfBirth            DateTime?                @map("date_of_birth") @db.Timestamptz(6)
+  gender                 String?
+  bio                    String?
+  drivingExperienceYears Int                      @default(0) @map("driving_experience_years")
+  primaryServiceArea     String?                  @map("primary_service_area")
+  onboardingStatus       DriverOnboardingStatus   @default(NOT_STARTED) @map("onboarding_status")
+  verificationStatus     DriverVerificationStatus @default(NOT_VERIFIED) @map("verification_status")
+  approvalStatus         DriverApprovalStatus     @default(PENDING) @map("approval_status")
+  availabilityStatus     DriverAvailabilityStatus @default(OFFLINE) @map("availability_status")
+  rejectionReason        String?                  @map("rejection_reason")
+  changesRequestedReason String?                  @map("changes_requested_reason")
+  approvedAt             DateTime?                @map("approved_at") @db.Timestamptz(6)
+  approvedBy             String?                  @map("approved_by") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  documents          DriverDocument[]
+  onboardingLogs     DriverOnboardingLog[]
+  currentLocation    DriverCurrentLocation?
+  locationHistory    DriverLocationHistory[]
+  assignedBookings   Booking[]                @relation("DriverBookings")
+  assignmentAttempts BookingAssignmentAttempt[]
+  wallet             DriverWallet?
+  settlements        DriverSettlement[]
+
+  @@index([onboardingStatus])
+  @@index([verificationStatus])
+  @@index([approvalStatus])
+  @@index([availabilityStatus])
+  @@map("driver_profiles")
+}
+
+/// Driver document records for identity, license, and compliance verification.
+model DriverDocument {
+  id               String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId  String               @map("driver_profile_id") @db.Uuid
+  driverProfile    DriverProfile        @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  documentType     DriverDocumentType   @map("document_type")
+  documentNumber   String?              @map("document_number")
+  storageKey       String               @map("storage_key")
+  originalFileName String               @map("original_file_name")
+  contentType      String               @map("content_type")
+  fileSizeBytes    Int                  @map("file_size_bytes")
+  checksum         String?
+  status           DriverDocumentStatus @default(UPLOADED)
+  rejectionReason  String?              @map("rejection_reason")
+  verifiedAt       DateTime?            @map("verified_at") @db.Timestamptz(6)
+  verifiedBy       String?              @map("verified_by") @db.Uuid
+  expiresAt        DateTime?            @map("expires_at") @db.Timestamptz(6)
+  version          Int                  @default(1)
+  isCurrent        Boolean              @default(true) @map("is_current")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([driverProfileId, documentType])
+  @@index([status])
+  @@map("driver_documents")
+}
+
+/// Append-only audit history of driver onboarding and status transitions.
+model DriverOnboardingLog {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  actorUserId     String?       @map("actor_user_id") @db.Uuid
+  fromStatus      String        @map("from_status")
+  toStatus        String        @map("to_status")
+  action          String
+  reason          String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([driverProfileId, createdAt])
+  @@map("driver_onboarding_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5: Location Intelligence, Live Driver Location & Nearby Discovery
+// ---------------------------------------------------------------------------
+
+enum LocationSource {
+  BROWSER_GPS
+  MAP_SELECTION
+  SAVED_LOCATION
+  MOBILE_GPS
+
+  @@map("location_source")
+}
+
+/// Authoritative PostgreSQL + PostGIS driver last known location.
+model DriverCurrentLocation {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @unique @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  latitude        Float
+  longitude       Float
+  accuracy        Float?
+  heading         Float?
+  speed           Float?
+  source          LocationSource @default(BROWSER_GPS)
+  capturedAt      DateTime      @map("captured_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([updatedAt])
+  @@map("driver_current_locations")
+}
+
+/// Sampled driver location telemetry history.
+model DriverLocationHistory {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  latitude        Float
+  longitude       Float
+  accuracy        Float?
+  heading         Float?
+  speed           Float?
+  source          LocationSource @default(BROWSER_GPS)
+  capturedAt      DateTime      @map("captured_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([driverProfileId, capturedAt])
+  @@map("driver_location_histories")
+}
+
+/// Transient customer current device/session location.
+model CustomerCurrentLocation {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String         @unique @map("user_id") @db.Uuid
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latitude  Float
+  longitude Float
+  accuracy  Float?
+  address   String?
+  source    LocationSource @default(BROWSER_GPS)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("customer_current_locations")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: Booking Domain, Driver Matching, Assignment & Booking State Machine
+// ---------------------------------------------------------------------------
+
+enum BookingStatus {
+  DRAFT
+  SEARCHING_DRIVER
+  DRIVER_ASSIGNED
+  DRIVER_EN_ROUTE
+  DRIVER_ARRIVED
+  TRIP_IN_PROGRESS
+  TRIP_COMPLETED
+  CANCELLED
+  EXPIRED
+
+  @@map("booking_status")
+}
+
+enum BookingType {
+  ONE_WAY
+  ROUND_TRIP
+  HOURLY
+  FULL_DAY
+  MULTI_DAY
+
+  @@map("booking_type")
+}
+
+enum AssignmentAttemptStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+
+  @@map("assignment_attempt_status")
+}
+
+/// Core marketplace booking record. Stores customer booking snapshot, status,
+/// location snapshot, driver assignment reference, and lifecycle metadata.
+model Booking {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  idempotencyKey String?       @unique @map("idempotency_key")
+  customerId     String        @map("customer_id") @db.Uuid
+  customer       User          @relation("CustomerBookings", fields: [customerId], references: [id], onDelete: Cascade)
+
+  driverProfileId String?        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile? @relation("DriverBookings", fields: [driverProfileId], references: [id], onDelete: SetNull)
+
+  status      BookingStatus @default(DRAFT)
+  bookingType BookingType   @default(ONE_WAY) @map("booking_type")
+
+  // Pickup location snapshot for historical correctness
+  pickupLatitude  Float   @map("pickup_latitude")
+  pickupLongitude Float   @map("pickup_longitude")
+  pickupAddress   String  @map("pickup_address")
+  pickupLabel     String? @map("pickup_label")
+
+  requestedStartTime       DateTime? @map("requested_start_time") @db.Timestamptz(6)
+  estimatedDurationMinutes Int?      @map("estimated_duration_minutes")
+  customerNotes            String?   @map("customer_notes")
+
+  requestedAt        DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  searchStartedAt    DateTime? @map("search_started_at") @db.Timestamptz(6)
+  assignedAt         DateTime? @map("assigned_at") @db.Timestamptz(6)
+  driverEnRouteAt    DateTime? @map("driver_en_route_at") @db.Timestamptz(6)
+  driverArrivedAt    DateTime? @map("driver_arrived_at") @db.Timestamptz(6)
+  tripStartedAt      DateTime? @map("trip_started_at") @db.Timestamptz(6)
+  tripCompletedAt    DateTime? @map("trip_completed_at") @db.Timestamptz(6)
+  cancelledAt        DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  cancelledBy        String?   @map("cancelled_by") @db.Uuid
+  cancellationReason String?   @map("cancellation_reason")
+  expiresAt          DateTime? @map("expires_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  assignmentAttempts BookingAssignmentAttempt[]
+  bookingLogs        BookingLog[]
+  payments           Payment[]
+
+  @@index([customerId, status])
+  @@index([driverProfileId, status])
+  @@index([status, createdAt])
+  @@map("bookings")
+}
+
+/// Explicit entity representing a driver assignment offer attempt for a booking.
+model BookingAssignmentAttempt {
+  id              String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId       String                  @map("booking_id") @db.Uuid
+  booking         Booking                 @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  driverProfileId String                  @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile           @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  attemptNumber   Int                     @map("attempt_number")
+  status          AssignmentAttemptStatus @default(PENDING)
+  offeredAt       DateTime                @default(now()) @map("offered_at") @db.Timestamptz(6)
+  respondedAt     DateTime?               @map("responded_at") @db.Timestamptz(6)
+  expiresAt       DateTime                @map("expires_at") @db.Timestamptz(6)
+  rejectionReason String?                 @map("rejection_reason")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([bookingId, attemptNumber])
+  @@index([driverProfileId, status])
+  @@index([status, expiresAt])
+  @@map("booking_assignment_attempts")
+}
+
+/// Append-only transition log for bookings.
+model BookingLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId   String   @map("booking_id") @db.Uuid
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  fromStatus  String   @map("from_status")
+  toStatus    String   @map("to_status")
+  action      String
+  reason      String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([bookingId, createdAt])
+  @@map("booking_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 8: Payments, Razorpay, Commission, Financial Ledger, Wallet & Settlement
+//
+// Chart of accounts (seeded as LedgerAccount rows, see prisma/seed.ts):
+//   PAYMENT_PROVIDER_CLEARING   (asset)     Funds Razorpay holds/has settled to the
+//                                           platform on the platform's behalf.
+//                                           Debited on capture, credited on refund.
+//   PLATFORM_REVENUE_COMMISSION (revenue)   Platform's earned commission. Credited on
+//                                           capture, debited (reversed) on refund.
+//   DRIVER_PAYABLE               (liability) What the platform owes drivers for
+//                                           completed, paid trips. Credited on capture,
+//                                           debited on refund (clawback) and on
+//                                           settlement creation (moves to clearing).
+//   SETTLEMENT_CLEARING          (liability) Driver-payable amounts earmarked for
+//                                           payout. Credited (increased) when a
+//                                           settlement is created, debited when that
+//                                           settlement is confirmed paid or reversed
+//                                           (released back to DRIVER_PAYABLE) if it fails.
+//   PLATFORM_BANK_ACCOUNT        (asset)     The platform's operating bank account.
+//                                           Credited (decreased) when a settlement is
+//                                           confirmed paid. Razorpay's own settlement of
+//                                           collected funds into this account is out of
+//                                           scope (no bank reconciliation in this phase).
+//
+// One payment capture posts a single balanced FinancialTransaction:
+//   Dr PAYMENT_PROVIDER_CLEARING          amount
+//       Cr PLATFORM_REVENUE_COMMISSION        commissionAmount
+//       Cr DRIVER_PAYABLE                     driverEarningsAmount
+// A refund posts the exact proportional reversal (see refund-service.ts).
+// A settlement posts Dr DRIVER_PAYABLE / Cr SETTLEMENT_CLEARING on creation;
+// Dr SETTLEMENT_CLEARING / Cr PLATFORM_BANK_ACCOUNT when confirmed paid; or
+// the exact reversal of the creation posting if it fails/is cancelled before
+// being paid. Ledger entries and FinancialTransaction rows are never updated
+// or deleted after posting — see ledger-service.ts.
+// ---------------------------------------------------------------------------
+
+/// A Payment's own refund-in-progress state is intentionally NOT modeled
+/// here (no REFUND_PENDING) — an individual Refund already tracks its own
+/// PENDING/PROCESSING/PROCESSED/FAILED lifecycle (RefundStatus below), and a
+/// Payment can have several Refunds over time, so "pending" is a property of
+/// one Refund, not of the Payment as a whole.
+enum PaymentStatus {
+  CREATED
+  PROCESSING
+  CAPTURED
+  FAILED
+  CANCELLED
+  PARTIALLY_REFUNDED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+enum PaymentAttemptStatus {
+  INITIATED
+  SUCCEEDED
+  FAILED
+
+  @@map("payment_attempt_status")
+}
+
+enum WebhookProcessingStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+  IGNORED
+
+  @@map("webhook_processing_status")
+}
+
+enum LedgerBalanceSide {
+  DEBIT
+  CREDIT
+
+  @@map("ledger_balance_side")
+}
+
+enum FinancialTransactionType {
+  PAYMENT_CAPTURED
+  PAYMENT_REFUNDED
+  SETTLEMENT_CREATED
+  SETTLEMENT_PAID
+  SETTLEMENT_REVERSED
+
+  @@map("financial_transaction_type")
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+
+  @@map("settlement_status")
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+
+  @@map("refund_status")
+}
+
+enum WalletChangeType {
+  EARNING_RECOGNIZED
+  EARNING_REVERSED
+  SETTLEMENT_RESERVED
+  SETTLEMENT_RELEASED
+  SETTLEMENT_COMPLETED
+
+  @@map("wallet_change_type")
+}
+
+/// Business-level payment for a booking. A booking may have more than one
+/// Payment row over time (a FAILED/CANCELLED attempt does not block retrying),
+/// but application code enforces at most one non-terminal Payment per booking.
+model Payment {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId  String  @map("booking_id") @db.Uuid
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  customerId String  @map("customer_id") @db.Uuid
+  customer   User    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  /// Snapshot of which driver earns from this payment (copied from
+  /// booking.driverProfileId at capture time). A loose reference, not a
+  /// relation — consistent with other actor/reference columns in this schema
+  /// (e.g. Booking.cancelledBy) that intentionally don't force a back-relation.
+  driverProfileId String? @map("driver_profile_id") @db.Uuid
+
+  amount   Decimal @db.Decimal(19, 4)
+  currency String  @default("INR")
+  status   PaymentStatus @default(CREATED)
+
+  provider          String  @default("razorpay")
+  providerOrderId   String? @map("provider_order_id")
+  providerPaymentId String? @map("provider_payment_id")
+
+  /// Client-supplied key for the "create payment order" request. Prevents
+  /// creating two orders for the same checkout attempt on retry/double-click.
+  idempotencyKey String? @unique @map("idempotency_key")
+
+  /// Commission snapshot, fixed at capture time so a later SystemConfiguration
+  /// change never retroactively changes an already-captured payment's split.
+  commissionPercentageSnapshot Decimal? @map("commission_percentage_snapshot") @db.Decimal(7, 4)
+  commissionAmount             Decimal? @map("commission_amount") @db.Decimal(19, 4)
+  driverEarningsAmount         Decimal? @map("driver_earnings_amount") @db.Decimal(19, 4)
+
+  failureReason String?   @map("failure_reason")
+  capturedAt    DateTime? @map("captured_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  attempts PaymentAttempt[]
+  refunds  Refund[]
+
+  @@index([bookingId])
+  @@index([customerId, status])
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+/// One provider interaction (order creation, verification, or fetch) for a
+/// Payment. A Payment may have several attempts (e.g. a failed try followed
+/// by a retry that succeeds). Only a sanitized response snapshot is kept —
+/// never raw card/PAN data.
+model PaymentAttempt {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentId String  @map("payment_id") @db.Uuid
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  provider          String
+  providerOrderId   String? @map("provider_order_id")
+  providerPaymentId String? @map("provider_payment_id")
+  status            PaymentAttemptStatus @default(INITIATED)
+
+  failureCode   String? @map("failure_code")
+  failureReason String? @map("failure_reason")
+  /// Sanitized snapshot only (status/ids/amount) — never the full raw
+  /// provider payload, which may carry more than is safe to retain.
+  responseSnapshot Json? @map("response_snapshot") @db.JsonB
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([paymentId, createdAt])
+  @@map("payment_attempts")
+}
+
+/// Every relevant incoming Razorpay webhook, persisted before processing.
+/// providerEventId is the `x-razorpay-event-id` header when present, else a
+/// content hash of the raw body (see webhook-service.ts) — either way it is
+/// stable across Razorpay's own retries of the same delivery, which is what
+/// the unique constraint relies on for duplicate-safe, idempotent processing.
+model PaymentWebhookEvent {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider        String  @default("razorpay")
+  providerEventId String  @map("provider_event_id")
+  eventType       String  @map("event_type")
+  payload         Json    @db.JsonB
+  signatureVerified Boolean @map("signature_verified")
+
+  processingStatus WebhookProcessingStatus @default(RECEIVED) @map("processing_status")
+  processedAt      DateTime?               @map("processed_at") @db.Timestamptz(6)
+  errorDetails     String?                 @map("error_details")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([provider, providerEventId])
+  @@index([processingStatus, createdAt])
+  @@map("payment_webhook_events")
+}
+
+/// Chart-of-accounts metadata only — an account's balance is always derived
+/// by summing its LedgerEntry rows, never stored directly on this row.
+model LedgerAccount {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String            @unique
+  name          String
+  description   String
+  normalBalance LedgerBalanceSide @map("normal_balance")
+  /// Seeded system accounts (see chart of accounts above); not
+  /// creatable/deletable through admin tooling.
+  isSystem Boolean @default(true) @map("is_system")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  entries LedgerEntry[]
+
+  @@map("ledger_accounts")
+}
+
+/// One logical, balanced accounting event (e.g. "payment captured"). Immutable
+/// once created: never updated, never deleted. A correction is a new
+/// FinancialTransaction whose `reversesTransactionId` points back at this one
+/// — the original's rows are never touched.
+model FinancialTransaction {
+  id              String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transactionType FinancialTransactionType @map("transaction_type")
+
+  /// What business entity this transaction was posted for (e.g. "Payment",
+  /// "DriverSettlement") — a loose polymorphic reference, matching AuditLog's
+  /// entityType/entityId, not a hard per-type FK.
+  referenceEntityType String @map("reference_entity_type")
+  referenceEntityId   String @map("reference_entity_id") @db.Uuid
+
+  /// Prevents double-posting the same logical event (e.g. the same webhook
+  /// delivery processed twice must never post two FinancialTransactions).
+  idempotencyKey String? @unique @map("idempotency_key")
+
+  description String
+  /// Self-reference: set only on a compensating/reversing transaction.
+  reversesTransactionId String? @map("reverses_transaction_id") @db.Uuid
+  metadata              Json?   @db.JsonB
+
+  postedAt  DateTime @default(now()) @map("posted_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  entries            LedgerEntry[]
+  walletTransactions WalletTransaction[]
+
+  @@index([referenceEntityType, referenceEntityId])
+  @@index([transactionType, postedAt])
+  @@map("financial_transactions")
+}
+
+/// One debit or credit line of a FinancialTransaction. Exactly one of
+/// debitAmount/creditAmount is non-zero per row (enforced in
+/// ledger-service.ts and by the deferred trigger in
+/// prisma/sql/001_ledger_balance_trigger.sql, which also enforces
+/// SUM(debits) = SUM(credits) per financial_transaction_id at commit time).
+model LedgerEntry {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  financialTransactionId String               @map("financial_transaction_id") @db.Uuid
+  financialTransaction   FinancialTransaction @relation(fields: [financialTransactionId], references: [id], onDelete: Restrict)
+  ledgerAccountId        String               @map("ledger_account_id") @db.Uuid
+  ledgerAccount          LedgerAccount        @relation(fields: [ledgerAccountId], references: [id], onDelete: Restrict)
+
+  debitAmount  Decimal @default(0) @map("debit_amount") @db.Decimal(19, 4)
+  creditAmount Decimal @default(0) @map("credit_amount") @db.Decimal(19, 4)
+  currency     String  @default("INR")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([financialTransactionId])
+  @@index([ledgerAccountId])
+  @@map("ledger_entries")
+}
+
+/// Driver balance projection. Read model only — the ledger remains
+/// authoritative. Never updated directly by an API; every change is derived
+/// from a FinancialTransaction and recorded as a WalletTransaction in the
+/// same DB transaction (see wallet-service.ts).
+model DriverWallet {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @unique @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Restrict)
+
+  /// Eligible for settlement. In this phase, newly recognized earnings are
+  /// credited here directly (no hold period yet — see wallet-service.ts).
+  availableBalance Decimal @default(0) @map("available_balance") @db.Decimal(19, 4)
+  /// Reserved for future use by a hold-period policy; not populated by any
+  /// code path in this phase (always 0). Kept so that policy can be added
+  /// later without a schema migration.
+  pendingBalance Decimal @default(0) @map("pending_balance") @db.Decimal(19, 4)
+  /// Earmarked by an in-flight (PENDING/PROCESSING) settlement.
+  reservedBalance Decimal @default(0) @map("reserved_balance") @db.Decimal(19, 4)
+  totalEarned     Decimal @default(0) @map("total_earned") @db.Decimal(19, 4)
+  totalSettled    Decimal @default(0) @map("total_settled") @db.Decimal(19, 4)
+  currency        String  @default("INR")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  transactions WalletTransaction[]
+  settlements  DriverSettlement[]
+
+  @@map("driver_wallets")
+}
+
+/// Append-only explanation of why a driver's wallet balance changed. Snapshots
+/// all three balances *after* the change for straightforward auditing/debugging.
+model WalletTransaction {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverWalletId         String               @map("driver_wallet_id") @db.Uuid
+  driverWallet           DriverWallet         @relation(fields: [driverWalletId], references: [id], onDelete: Cascade)
+  financialTransactionId String               @map("financial_transaction_id") @db.Uuid
+  financialTransaction   FinancialTransaction @relation(fields: [financialTransactionId], references: [id], onDelete: Restrict)
+
+  changeType WalletChangeType @map("change_type")
+  /// Signed per-bucket deltas (positive increases, negative decreases). Kept
+  /// separate rather than collapsed into one "amount" because a single
+  /// change can move money *between* buckets (e.g. settlement reservation:
+  /// availableDelta -100, reservedDelta +100) — netting those into one
+  /// number would misleadingly show 0 for a real 100 movement.
+  availableDelta Decimal @default(0) @map("available_delta") @db.Decimal(19, 4)
+  pendingDelta   Decimal @default(0) @map("pending_delta") @db.Decimal(19, 4)
+  reservedDelta  Decimal @default(0) @map("reserved_delta") @db.Decimal(19, 4)
+
+  balanceAfterAvailable Decimal @map("balance_after_available") @db.Decimal(19, 4)
+  balanceAfterPending   Decimal @map("balance_after_pending") @db.Decimal(19, 4)
+  balanceAfterReserved  Decimal @map("balance_after_reserved") @db.Decimal(19, 4)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  /// Guarantees applyWalletChange is safe to call twice for the same
+  /// FinancialTransaction (e.g. a webhook and a client-verify call racing to
+  /// capture the same payment) — the second call's insert is rejected at the
+  /// database level, not just by an application-level check-then-act guard.
+  @@unique([driverWalletId, financialTransactionId])
+  @@index([driverWalletId, createdAt])
+  @@map("wallet_transactions")
+}
+
+/// Driver payout lifecycle. Creating a settlement reserves funds (moves them
+/// from availableBalance to reservedBalance and posts DRIVER_PAYABLE ->
+/// SETTLEMENT_CLEARING); there is no unconstrained "mark paid" — every
+/// transition goes through settlement-service.ts's state machine.
+model DriverSettlement {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Restrict)
+  driverWalletId  String        @map("driver_wallet_id") @db.Uuid
+  driverWallet    DriverWallet  @relation(fields: [driverWalletId], references: [id], onDelete: Restrict)
+
+  amount      Decimal          @db.Decimal(19, 4)
+  amountPaid  Decimal?         @map("amount_paid") @db.Decimal(19, 4)
+  currency    String           @default("INR")
+  status      SettlementStatus @default(PENDING)
+
+  /// "manual" in this phase (no automated payout provider is configured yet
+  /// — see settlement-service.ts); ready for a future real payout provider.
+  payoutProvider  String? @map("payout_provider")
+  payoutReference String? @map("payout_reference")
+
+  /// Loose references (not relations), consistent with other actor columns.
+  requestedBy String? @map("requested_by") @db.Uuid
+  processedBy String? @map("processed_by") @db.Uuid
+
+  /// Loose references to the reserving/reversing FinancialTransaction rows.
+  financialTransactionId         String? @map("financial_transaction_id") @db.Uuid
+  reversalFinancialTransactionId String? @map("reversal_financial_transaction_id") @db.Uuid
+
+  failureReason String?   @map("failure_reason")
+  initiatedAt   DateTime? @map("initiated_at") @db.Timestamptz(6)
+  completedAt   DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([driverProfileId, status])
+  @@index([status, createdAt])
+  @@map("driver_settlements")
+}
+
+/// Full or partial refund of a captured Payment. Never mutates the original
+/// Payment/ledger rows — always creates a compensating FinancialTransaction.
+model Refund {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentId String  @map("payment_id") @db.Uuid
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  amount   Decimal      @db.Decimal(19, 4)
+  currency String       @default("INR")
+  status   RefundStatus @default(PENDING)
+  reason   String?
+
+  /// Optional client-supplied key guarding against an accidental duplicate
+  /// refund request; the maximum-refundable-amount check (in
+  /// refund-service.ts) is the primary defense against over-refunding.
+  idempotencyKey String? @unique @map("idempotency_key")
+
+  providerRefundId String? @map("provider_refund_id")
+  /// Loose reference to the actor (admin) who initiated this refund.
+  initiatedBy String @map("initiated_by") @db.Uuid
+  /// Loose reference to the compensating FinancialTransaction once posted.
+  financialTransactionId String? @map("financial_transaction_id") @db.Uuid
+
+  failureReason String?   @map("failure_reason")
+  processedAt   DateTime? @map("processed_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([paymentId, status])
+  @@map("refunds")
+}
+

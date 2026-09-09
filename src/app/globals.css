@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Centralized design tokens for Get Apna Driver landing page & application UI.
+ */
+:root {
+  --color-background: #0f131c;
+  --color-surface: #0f131c;
+  --color-surface-container-lowest: #0a0e16;
+  --color-surface-container-low: #181c24;
+  --color-surface-container: #1c2028;
+  --color-surface-container-high: #262a33;
+  --color-surface-container-highest: #31353e;
+
+  --color-on-surface: #dfe2ee;
+  --color-on-surface-variant: #bccac0;
+
+  --color-primary: #68dba9;
+  --color-primary-hover: #85f8c4;
+  --color-on-primary: #003825;
+
+  --color-secondary: #b4c5ff;
+  --color-secondary-container: #0053db;
+
+  --color-tertiary: #4edea3;
+  --color-border: #3d4a42;
+  --color-outline: #87948b;
+
+  --font-space-grotesk: 'Space Grotesk', sans-serif;
+  --font-geist: 'Geist', sans-serif;
+}
+
+.dark {
+  --color-background: #0f131c;
+  --color-surface: #0f131c;
+  --color-surface-container-lowest: #0a0e16;
+  --color-surface-container-low: #181c24;
+  --color-surface-container: #1c2028;
+  --color-surface-container-high: #262a33;
+  --color-surface-container-highest: #31353e;
+
+  --color-on-surface: #dfe2ee;
+  --color-on-surface-variant: #bccac0;
+
+  --color-primary: #68dba9;
+  --color-primary-hover: #85f8c4;
+  --color-on-primary: #003825;
+
+  --color-secondary: #b4c5ff;
+  --color-tertiary: #4edea3;
+}
+
+@theme inline {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+
+  --color-on-surface: var(--color-on-surface);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-on-primary: var(--color-on-primary);
+
+  --color-secondary: var(--color-secondary);
+  --color-tertiary: var(--color-tertiary);
+  --color-border: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  font-family: var(--font-geist);
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3,
+.font-display,
+.font-headline,
+.font-stat {
+  font-family: var(--font-space-grotesk);
+}
+
+/* Custom scrollbar hiding */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Keyframe for Radar Sweep Animation */
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 8s linear infinite;
+  transform-origin: bottom right;
+}
