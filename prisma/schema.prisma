@@ -745,6 +745,24 @@ model Booking {
   pickupAddress   String  @map("pickup_address")
   pickupLabel     String? @map("pickup_label")
 
+  // Dropoff location snapshot (optional for flexible trips / required for one-way)
+  dropoffLatitude  Float?  @map("dropoff_latitude")
+  dropoffLongitude Float?  @map("dropoff_longitude")
+  dropoffAddress   String? @map("dropoff_address")
+  dropoffLabel     String? @map("dropoff_label")
+
+  // Booking package & pricing parameters
+  numberOfDays       Int?      @map("number_of_days")
+  hourlyPackageHours Int?      @map("hourly_package_hours")
+  returnDate         DateTime? @map("return_date") @db.Timestamptz(6)
+
+  // Fare calculation and route snapshot
+  estimatedDistanceKm   Float?   @map("estimated_distance_km")
+  estimatedFareAmount   Decimal? @map("estimated_fare_amount") @db.Decimal(12, 4)
+  finalFareAmount       Decimal? @map("final_fare_amount") @db.Decimal(12, 4)
+  pricingSnapshot       Json?    @map("pricing_snapshot")
+  routeEstimateSnapshot Json?    @map("route_estimate_snapshot")
+
   requestedStartTime       DateTime? @map("requested_start_time") @db.Timestamptz(6)
   estimatedDurationMinutes Int?      @map("estimated_duration_minutes")
   customerNotes            String?   @map("customer_notes")

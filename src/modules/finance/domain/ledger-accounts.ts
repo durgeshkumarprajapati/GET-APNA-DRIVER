@@ -14,6 +14,7 @@ export const LEDGER_ACCOUNT_CODES = {
   DRIVER_PAYABLE: 'DRIVER_PAYABLE',
   SETTLEMENT_CLEARING: 'SETTLEMENT_CLEARING',
   PLATFORM_BANK_ACCOUNT: 'PLATFORM_BANK_ACCOUNT',
+  MARKETING_REFERRAL_EXPENSE: 'MARKETING_REFERRAL_EXPENSE',
 } as const;
 
 export type LedgerAccountCode = (typeof LEDGER_ACCOUNT_CODES)[keyof typeof LEDGER_ACCOUNT_CODES];
@@ -59,6 +60,13 @@ export const LEDGER_ACCOUNT_CATALOG: readonly LedgerAccountSeedDefinition[] = [
     name: 'Platform Bank Account',
     description:
       "The platform's operating bank account. Credited (decreased) when a driver settlement is confirmed paid. Razorpay's own settlement of collected funds into this account is out of scope for this phase (no bank reconciliation yet), so this account is not expected to balance against a real statement — it exists to close the settlement double-entry correctly, not to model cash inflows.",
+    normalBalance: 'DEBIT',
+  },
+  {
+    code: LEDGER_ACCOUNT_CODES.MARKETING_REFERRAL_EXPENSE,
+    name: 'Marketing & Referral Expense',
+    description:
+      'Platform promotional expenses for customer and driver referral milestone rewards. Debited when referral rewards are granted.',
     normalBalance: 'DEBIT',
   },
 ];

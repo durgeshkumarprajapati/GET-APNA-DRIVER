@@ -27,6 +27,21 @@ const mockDb = {
           rewardAmount: 200,
         }),
       },
+      financialTransaction: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({ id: 'ft-1' }),
+      },
+      ledgerAccount: {
+        findUnique: jest
+          .fn()
+          .mockImplementation(({ where }: { where: { code: string } }) =>
+            Promise.resolve({ id: `acc-${where.code}`, code: where.code, normalBalance: 'DEBIT' }),
+          ),
+      },
+      ledgerEntry: {
+        create: jest.fn(),
+        createMany: jest.fn(),
+      },
     }),
   ),
 };

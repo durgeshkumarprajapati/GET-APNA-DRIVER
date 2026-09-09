@@ -45,6 +45,9 @@ jest.mock('@/shared/outbox/outbox-service', () => ({
 jest.mock('@/shared/config/configuration-service', () => ({
   getInteger: jest.fn().mockResolvedValue(300),
   getBoolean: jest.fn().mockResolvedValue(true),
+  getString: jest
+    .fn()
+    .mockImplementation((_key, defaultVal) => Promise.resolve(defaultVal ?? '100.0000')),
 }));
 
 jest.mock('@/modules/booking/application/matching-service', () => ({

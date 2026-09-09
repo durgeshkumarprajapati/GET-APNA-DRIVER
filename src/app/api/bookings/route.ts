@@ -33,10 +33,21 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
           address: body.pickupLocation.address,
           label: body.pickupLocation.label,
         },
+        dropoffLocation: body.dropoffLocation
+          ? {
+              latitude: body.dropoffLocation.latitude,
+              longitude: body.dropoffLocation.longitude,
+              address: body.dropoffLocation.address,
+              label: body.dropoffLocation.label,
+            }
+          : null,
         bookingType: body.bookingType,
         requestedStartTime: body.requestedStartTime,
         estimatedDurationMinutes: body.estimatedDurationMinutes,
         customerNotes: body.customerNotes,
+        numberOfDays: body.numberOfDays,
+        hourlyPackageHours: body.hourlyPackageHours,
+        returnDate: body.returnDate,
       },
       idempotencyKey,
     );

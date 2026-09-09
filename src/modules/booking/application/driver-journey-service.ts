@@ -8,6 +8,8 @@ import { validateBookingStatusTransition } from '../domain/booking-state-machine
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
+import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
+import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 import { BookingNotFoundError } from '../domain/errors';
 
 export interface DriverBookingSummary {
@@ -275,12 +277,45 @@ export async function completeTrip(
 
   const now = new Date();
 
+  // Calculate actual duration and final fare snapshot
+  let actualDurationMinutes = booking.estimatedDurationMinutes ?? 15;
+  if (booking.tripStartedAt) {
+    const elapsedMs = now.getTime() - new Date(booking.tripStartedAt).getTime();
+    actualDurationMinutes = Math.max(5, Math.ceil(elapsedMs / (1000 * 60)));
+  }
+
+  const finalFareResult = await calculateFinalFare(
+    {
+      bookingType: booking.bookingType,
+      pickup: {
+        latitude: booking.pickupLatitude,
+        longitude: booking.pickupLongitude,
+        address: booking.pickupAddress,
+        label: booking.pickupLabel,
+      },
+      dropoff:
+        booking.dropoffLatitude && booking.dropoffLongitude && booking.dropoffAddress
+          ? {
+              latitude: booking.dropoffLatitude,
+              longitude: booking.dropoffLongitude,
+              address: booking.dropoffAddress,
+              label: booking.dropoffLabel,
+            }
+          : null,
+      actualDurationMinutes,
+      numberOfDays: booking.numberOfDays,
+      hourlyPackageHours: booking.hourlyPackageHours,
+    },
+    db,
+  );
+
   await db.$transaction(async (tx) => {
     await tx.booking.update({
       where: { id: booking.id },
       data: {
         status: BookingStatus.TRIP_COMPLETED,
         tripCompletedAt: now,
+        finalFareAmount: finalFareResult.breakdown.totalFareAmount,
       },
     });
 
@@ -310,10 +345,24 @@ export async function completeTrip(
       payload: {
         bookingId: booking.id,
         driverProfileId: profile.id,
+        finalFareAmount: finalFareResult.breakdown.totalFareAmount,
         tripCompletedAt: now.toISOString(),
       },
     });
   });
+
+  // Evaluate & qualify customer referral milestone on first completed trip
+  try {
+    await evaluateAndQualifyReferral(
+      {
+        userId: booking.customerId,
+        trigger: 'CUSTOMER_FIRST_TRIP',
+      },
+      db,
+    );
+  } catch {
+    // Non-blocking milestone evaluation
+  }
 
   // Re-index driver in Redis GEO set if driver is eligible & available
   const eligibility = await evaluateDriverEligibility(profile.id, db);
