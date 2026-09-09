@@ -225,6 +225,33 @@ export function registerNotificationEventHandlers(): void {
     },
   );
 
+  eventHandlerRegistry.register(
+    'booking.search.expired',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const bookingId = payload.bookingId as string;
+      if (!bookingId) return;
+      const client = db ?? prisma;
+
+      const booking = await client.booking.findUnique({
+        where: { id: bookingId },
+        select: { customerId: true },
+      });
+      if (!booking) return;
+
+      await createNotification(
+        {
+          userId: booking.customerId,
+          type: NotificationType.BOOKING_EXPIRED,
+          title: 'No Chauffeur Found',
+          body: 'We could not find an available chauffeur in time. Please try booking again.',
+          data: { bookingId },
+          idempotencyKey: `${event.id}-search-expired`,
+        },
+        client,
+      );
+    },
+  );
+
   // -------------------------------------------------------------------------
   // Payment & Finance Events
   // -------------------------------------------------------------------------
@@ -314,6 +341,64 @@ export function registerNotificationEventHandlers(): void {
           db ?? prisma,
         );
       }
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'settlement.created',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const driverProfileId = payload.driverProfileId as string;
+      const amount = payload.amount as string | number;
+      if (!driverProfileId) return;
+      const client = db ?? prisma;
+
+      const profile = await client.driverProfile.findUnique({
+        where: { id: driverProfileId },
+        select: { userId: true },
+      });
+      if (!profile) return;
+
+      await createNotification(
+        {
+          userId: profile.userId,
+          type: NotificationType.SETTLEMENT_CREATED,
+          title: 'Settlement Reserved',
+          body: `A settlement of ₹${amount} has been reserved and is awaiting payout.`,
+          data: payload,
+          idempotencyKey: `${event.id}-settlement-created`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'settlement.failed',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const driverProfileId = payload.driverProfileId as string;
+      const reason = payload.reason as string | undefined;
+      if (!driverProfileId) return;
+      const client = db ?? prisma;
+
+      const profile = await client.driverProfile.findUnique({
+        where: { id: driverProfileId },
+        select: { userId: true },
+      });
+      if (!profile) return;
+
+      await createNotification(
+        {
+          userId: profile.userId,
+          type: NotificationType.SETTLEMENT_FAILED,
+          title: 'Settlement Failed',
+          body: reason
+            ? `Your settlement payout failed: ${reason}`
+            : 'Your settlement payout failed and is being reviewed.',
+          data: payload,
+          idempotencyKey: `${event.id}-settlement-failed`,
+        },
+        client,
+      );
     },
   );
 

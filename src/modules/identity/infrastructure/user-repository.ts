@@ -112,3 +112,42 @@ export async function markIdentityVerified(db: Db, identityId: string): Promise<
     data: { verifiedAt: new Date() },
   });
 }
+
+export interface UserContactInfo {
+  email: string | null;
+  phoneNumber: string | null;
+}
+
+/**
+ * Bulk-resolves the display email/phone for a set of users from their
+ * UserIdentity rows (User itself carries no contact fields — those live on
+ * UserIdentity, one row per sign-in method). Used by admin-facing views that
+ * need to show a user's contact info alongside their profile.
+ */
+export async function getContactInfoForUsers(
+  db: Db,
+  userIds: string[],
+): Promise<Map<string, UserContactInfo>> {
+  const result = new Map<string, UserContactInfo>();
+  if (userIds.length === 0) {
+    return result;
+  }
+
+  const identities = await db.userIdentity.findMany({
+    where: { userId: { in: userIds }, providerName: { in: ['email', 'phone'] } },
+    select: { userId: true, providerName: true, email: true, phoneNumber: true },
+  });
+
+  for (const identity of identities) {
+    const existing = result.get(identity.userId) ?? { email: null, phoneNumber: null };
+    if (identity.providerName === 'email' && identity.email) {
+      existing.email = identity.email;
+    }
+    if (identity.providerName === 'phone' && identity.phoneNumber) {
+      existing.phoneNumber = identity.phoneNumber;
+    }
+    result.set(identity.userId, existing);
+  }
+
+  return result;
+}

@@ -179,7 +179,7 @@ export function ControlStationLayout({
                   <span>Today&apos;s Earnings</span>
                 </Link>
                 <Link
-                  href="/admin/drivers"
+                  href="/admin/live-ops-console"
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
                     activePath === 'admin-live-ops-map'
                       ? 'bg-[#25a475] text-[#00311f] font-bold'
@@ -319,7 +319,7 @@ export function ControlStationLayout({
                   Driver Radar
                 </Link>
                 <Link
-                  href="/admin/drivers"
+                  href="/admin/live-ops-console"
                   onClick={() => setSearchModalOpen(false)}
                   className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
                 >

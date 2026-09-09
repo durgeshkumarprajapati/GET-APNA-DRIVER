@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function SOSAndDisputesPage() {
   return (
-    <AdminLayout activePath="sos-and-disputes">
+    <AdminLayout>
       <div className="flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between bg-[#0a0e16] p-4 rounded-xl border border-[#93000a]/50">
           <div>

@@ -11,11 +11,12 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { getJson } from '@/shared/config/configuration-service';
+import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
 import {
   DriverProfileNotFoundError,
   InvalidDriverStatusTransitionError,
 } from '../../domain/errors';
-import { getOrCreateDriverProfile } from './driver-profile-service';
+import { getOrCreateDriverProfile, type DriverProfileWithContact } from './driver-profile-service';
 
 /**
  * Submits driver profile and documents for administrative review.
@@ -432,29 +433,79 @@ export async function suspendDriver(
   });
 }
 
+export interface ListDriverApplicationsFilters {
+  onboardingStatus?: DriverOnboardingStatus;
+  approvalStatus?: DriverApprovalStatus;
+  verificationStatus?: DriverVerificationStatus;
+  availabilityStatus?: DriverAvailabilityStatus;
+  /** Matches against first name, last name, and display name (case-insensitive). */
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ListDriverApplicationsResult {
+  drivers: DriverProfileWithContact[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 /**
- * Administrative query listing driver applications with optional status filters.
+ * Administrative query listing driver applications/profiles with status
+ * filters, name search, and pagination — the backing query for the admin
+ * driver directory. Enriches each result with contact info (see
+ * getContactInfoForUsers) in one bulk lookup rather than N+1 queries.
  */
 export async function listDriverApplications(
-  filters?: {
-    onboardingStatus?: DriverOnboardingStatus;
-    approvalStatus?: DriverApprovalStatus;
-    verificationStatus?: DriverVerificationStatus;
-  },
+  filters: ListDriverApplicationsFilters = {},
   db: Db = prisma,
-): Promise<DriverProfile[]> {
-  return await db.driverProfile.findMany({
-    where: {
-      ...(filters?.onboardingStatus ? { onboardingStatus: filters.onboardingStatus } : {}),
-      ...(filters?.approvalStatus ? { approvalStatus: filters.approvalStatus } : {}),
-      ...(filters?.verificationStatus ? { verificationStatus: filters.verificationStatus } : {}),
-    },
-    include: {
-      user: true,
-      documents: {
-        where: { isCurrent: true },
+): Promise<ListDriverApplicationsResult> {
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize = filters.pageSize && filters.pageSize > 0 ? Math.min(filters.pageSize, 100) : 25;
+
+  const where = {
+    ...(filters.onboardingStatus ? { onboardingStatus: filters.onboardingStatus } : {}),
+    ...(filters.approvalStatus ? { approvalStatus: filters.approvalStatus } : {}),
+    ...(filters.verificationStatus ? { verificationStatus: filters.verificationStatus } : {}),
+    ...(filters.availabilityStatus ? { availabilityStatus: filters.availabilityStatus } : {}),
+    ...(filters.search
+      ? {
+          OR: [
+            { firstName: { contains: filters.search, mode: 'insensitive' as const } },
+            { lastName: { contains: filters.search, mode: 'insensitive' as const } },
+            { displayName: { contains: filters.search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {}),
+  };
+
+  const [drivers, total] = await Promise.all([
+    db.driverProfile.findMany({
+      where,
+      include: { user: true, documents: { where: { isCurrent: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    db.driverProfile.count({ where }),
+  ]);
+
+  const contactByUserId = await getContactInfoForUsers(
+    db,
+    drivers.map((driver) => driver.userId),
+  );
+
+  return {
+    drivers: drivers.map((driver) => ({
+      ...driver,
+      user: {
+        ...driver.user,
+        ...(contactByUserId.get(driver.userId) ?? { email: null, phoneNumber: null }),
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+    })),
+    total,
+    page,
+    pageSize,
+  };
 }

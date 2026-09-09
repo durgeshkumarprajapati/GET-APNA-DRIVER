@@ -18,6 +18,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
+    "worker": "tsx src/worker/index.ts",
     "db:up": "docker compose up -d postgres redis",
     "db:down": "docker compose down"
   },

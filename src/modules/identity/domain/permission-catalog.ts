@@ -25,6 +25,7 @@ export const PERMISSIONS = {
   ADMIN_DRIVER_SUSPEND: 'admin.driver.suspend',
   ADMIN_DRIVER_DOCUMENT_READ: 'admin.driver_document.read',
   ADMIN_DRIVER_DOCUMENT_VERIFY: 'admin.driver_document.verify',
+  ADMIN_DASHBOARD_READ: 'admin.dashboard.read',
 
   // Bookings (near-future domain)
   BOOKINGS_READ: 'bookings.read',
@@ -100,6 +101,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_DRIVER_DOCUMENT_VERIFY,
     description: 'Verify or reject driver documents.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_DASHBOARD_READ,
+    description: 'View admin operations dashboard metrics.',
   },
 
   { code: PERMISSIONS.BOOKINGS_READ, description: 'View bookings.' },

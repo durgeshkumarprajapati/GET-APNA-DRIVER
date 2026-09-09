@@ -19,7 +19,7 @@ export default function TreasuryAndSettlementsPage() {
   };
 
   return (
-    <AdminLayout activePath="treasury-and-settlements">
+    <AdminLayout>
       <div className="flex flex-col w-full gap-6">
         {/* Toast Notification Banner */}
         {notificationMsg && (

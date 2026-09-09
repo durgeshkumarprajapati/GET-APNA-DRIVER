@@ -3,6 +3,7 @@ import {
   approveDriver,
   rejectDriver,
   suspendDriver,
+  listDriverApplications,
 } from '@/modules/driver/application/services/driver-onboarding-service';
 import {
   DriverApprovalStatus,
@@ -31,6 +32,8 @@ jest.mock('@/shared/database/prisma', () => ({
     driverProfile: {
       findUnique: jest.fn(),
       update: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
     },
   },
 }));
@@ -51,7 +54,13 @@ jest.mock('@/modules/driver/application/services/driver-eligibility-service', ()
   evaluateDriverEligibility: jest.fn(),
 }));
 
+jest.mock('@/modules/identity/infrastructure/user-repository', () => ({
+  getContactInfoForUsers: jest.fn(),
+}));
+
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
+import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
+import { prisma } from '@/shared/database/prisma';
 
 describe('DriverOnboardingService', () => {
   beforeEach(() => {
@@ -199,6 +208,47 @@ describe('DriverOnboardingService', () => {
       const res = await suspendDriver('admin-1', 'dp-1', 'Policy violation');
 
       expect(res.approvalStatus).toBe(DriverApprovalStatus.SUSPENDED);
+    });
+  });
+
+  describe('listDriverApplications', () => {
+    const mockFindMany = prisma.driverProfile.findMany as jest.Mock;
+    const mockCount = prisma.driverProfile.count as jest.Mock;
+
+    it('paginates, applies filters, and enriches results with contact info', async () => {
+      mockFindMany.mockResolvedValue([
+        { id: 'dp-1', userId: 'user-1', user: { id: 'user-1' } },
+        { id: 'dp-2', userId: 'user-2', user: { id: 'user-2' } },
+      ]);
+      mockCount.mockResolvedValue(2);
+      (getContactInfoForUsers as jest.Mock).mockResolvedValue(
+        new Map([['user-1', { email: 'a@example.com', phoneNumber: null }]]),
+      );
+
+      const result = await listDriverApplications({
+        approvalStatus: DriverApprovalStatus.PENDING,
+        search: 'John',
+        page: 2,
+        pageSize: 10,
+      });
+
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(2);
+      expect(result.pageSize).toBe(10);
+      expect(result.drivers[0].user.email).toBe('a@example.com');
+      expect(result.drivers[1].user.email).toBeNull();
+      expect(mockFindMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 10, take: 10 }));
+    });
+
+    it('caps pageSize at 100 to avoid unbounded queries', async () => {
+      mockFindMany.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+      (getContactInfoForUsers as jest.Mock).mockResolvedValue(new Map());
+
+      const result = await listDriverApplications({ pageSize: 5000 });
+
+      expect(result.pageSize).toBe(100);
+      expect(mockFindMany).toHaveBeenCalledWith(expect.objectContaining({ take: 100 }));
     });
   });
 });

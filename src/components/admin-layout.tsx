@@ -1,33 +1,140 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { NotificationCenter } from './notification-center';
 
 interface AdminLayoutProps {
   children: ReactNode;
-  activePath?:
-    | 'mission-dashboard'
-    | 'live-fleet-radar'
-    | 'analytics-and-bi'
-    | 'customers'
-    | 'driver-directory'
-    | 'verification-queue'
-    | 'admin-access-and-rbac'
-    | 'live-bookings'
-    | 'sos-and-disputes'
-    | 'dispatch-overrides'
-    | 'treasury-and-settlements'
-    | 'payout-rails'
-    | 'commission-matrix'
-    | 'tax-invoices'
-    | 'coupons'
-    | 'referral-engines'
-    | 'audit-logs'
-    | 'system-config';
+  userEmail?: string | null;
 }
 
-export function AdminLayout({ children, activePath = 'mission-dashboard' }: AdminLayoutProps) {
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  badge?: number;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+interface DashboardBadgeCounts {
+  pendingDocumentVerifications: number;
+}
+
+export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [badgeCounts, setBadgeCounts] = useState<DashboardBadgeCounts | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/admin/dashboard');
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setBadgeCounts({
+            pendingDocumentVerifications: data.drivers?.pendingDocumentVerifications ?? 0,
+          });
+        }
+      } catch {
+        // Ignore — badges simply stay unset.
+      }
+    };
+    void load();
+    const interval = setInterval(() => void load(), 30000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      router.push('/login');
+    }
+  };
+
+  const navGroups: NavGroup[] = [
+    {
+      label: 'Overview',
+      items: [
+        { href: '/admin/mission-dashboard', label: 'Mission Dashboard', icon: 'grid_view' },
+        { href: '/admin/live-fleet-radar', label: 'Live Fleet Radar', icon: 'radar' },
+        { href: '/admin/analytics-and-bi', label: 'Analytics & BI', icon: 'insights' },
+      ],
+    },
+    {
+      label: 'User Mgmt',
+      items: [
+        { href: '/admin/customers', label: 'Customers', icon: 'groups' },
+        { href: '/admin/drivers', label: 'Driver Directory', icon: 'id_card' },
+        {
+          href: '/admin/verification-queue',
+          label: 'Verification Queue',
+          icon: 'verified_user',
+          badge: badgeCounts?.pendingDocumentVerifications,
+        },
+        {
+          href: '/admin/admin-access-and-rbac',
+          label: 'Admin Access & RBAC',
+          icon: 'admin_panel_settings',
+        },
+      ],
+    },
+    {
+      label: 'Operations',
+      items: [
+        { href: '/admin/live-bookings', label: 'Live Bookings', icon: 'local_taxi' },
+        { href: '/admin/sos-and-disputes', label: 'SOS & Disputes', icon: 'crisis_alert' },
+        {
+          href: '/admin/dispatch-overrides',
+          label: 'Dispatch Overrides',
+          icon: 'published_with_changes',
+        },
+      ],
+    },
+    {
+      label: 'Finance & Audit',
+      items: [
+        { href: '/admin/payments', label: 'Payments', icon: 'credit_card' },
+        { href: '/admin/settlements', label: 'Driver Settlements', icon: 'payments' },
+        {
+          href: '/admin/finance/transactions',
+          label: 'Ledger Transactions',
+          icon: 'account_balance',
+        },
+        {
+          href: '/admin/treasury-and-settlements',
+          label: 'Treasury & Settlements',
+          icon: 'account_balance_wallet',
+        },
+        { href: '/admin/payout-rails', label: 'Payout Rails', icon: 'currency_rupee' },
+        { href: '/admin/commission-matrix', label: 'Commission Matrix', icon: 'percent' },
+        { href: '/admin/tax-invoices', label: 'Tax Invoices', icon: 'receipt_long' },
+      ],
+    },
+    {
+      label: 'Governance',
+      items: [
+        { href: '/admin/audit-logs', label: 'Audit Logs', icon: 'history_edu' },
+        { href: '/admin/system-config', label: 'System Config', icon: 'tune' },
+      ],
+    },
+  ];
+
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/admin' && pathname?.startsWith(`${href}/`));
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
@@ -50,269 +157,36 @@ export function AdminLayout({ children, activePath = 'mission-dashboard' }: Admi
           </Link>
         </div>
 
-        {/* Latency Ticker Strip */}
-        <div className="px-4 py-2 border-b border-[#262a33] bg-[#181c24]/40 flex items-center justify-between font-mono text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#68dba9]" />
-            </span>
-            <span className="text-[#bccac0] text-[10px] uppercase font-bold">SYS_LATENCY</span>
-          </div>
-          <span className="text-[#68dba9] font-bold text-[10px]">14ms • SECURE</span>
-        </div>
-
         {/* Navigation Section */}
         <nav className="flex-1 px-3 py-4 space-y-4">
-          {/* Overview */}
-          <div className="space-y-1">
-            <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
-              Overview
-            </span>
-            <Link
-              href="/admin/mission-dashboard"
-              data-path="mission-dashboard"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'mission-dashboard'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">grid_view</span>
-              <span>Mission Dashboard</span>
-            </Link>
-
-            <Link
-              href="/admin/live-fleet-radar"
-              data-path="live-fleet-radar"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'live-fleet-radar'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">radar</span>
-              <span>Live Fleet Radar</span>
-            </Link>
-
-            <Link
-              href="/admin/analytics-and-bi"
-              data-path="analytics-and-bi"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'analytics-and-bi'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">insights</span>
-              <span>Analytics &amp; BI</span>
-            </Link>
-          </div>
-
-          {/* User Mgmt */}
-          <div className="space-y-1">
-            <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
-              User Mgmt
-            </span>
-            <Link
-              href="/admin/customers"
-              data-path="customers"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'customers'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">groups</span>
-              <span>Customers</span>
-            </Link>
-
-            <Link
-              href="/admin/driver-directory"
-              data-path="driver-directory"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'driver-directory'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">id_card</span>
-              <span>Driver Directory</span>
-            </Link>
-
-            <Link
-              href="/admin/verification-queue"
-              data-path="verification-queue"
-              className={`flex items-center justify-between px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'verification-queue'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                <span>Verification Queue</span>
-              </div>
-              <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] font-mono text-[10px] font-bold">
-                18
+          {navGroups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
+                {group.label}
               </span>
-            </Link>
-
-            <Link
-              href="/admin/admin-access-and-rbac"
-              data-path="admin-access-and-rbac"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'admin-access-and-rbac'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-              <span>Admin Access &amp; RBAC</span>
-            </Link>
-          </div>
-
-          {/* Operations */}
-          <div className="space-y-1">
-            <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
-              Operations
-            </span>
-            <Link
-              href="/admin/live-bookings"
-              data-path="live-bookings"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'live-bookings'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">local_taxi</span>
-              <span>Live Bookings</span>
-            </Link>
-
-            <Link
-              href="/admin/sos-and-disputes"
-              data-path="sos-and-disputes"
-              className={`flex items-center justify-between px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'sos-and-disputes'
-                  ? 'bg-[#93000a] text-[#ffdad6] font-bold'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-[18px] text-[#ffb4ab]">
-                  crisis_alert
-                </span>
-                <span>SOS &amp; Disputes</span>
-              </div>
-              <span className="px-1.5 py-0.5 rounded bg-[#93000a]/40 text-[#ffb4ab] font-mono text-[9px] font-bold animate-pulse">
-                2 ACTIVE
-              </span>
-            </Link>
-
-            <Link
-              href="/admin/dispatch-overrides"
-              data-path="dispatch-overrides"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'dispatch-overrides'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">published_with_changes</span>
-              <span>Dispatch Overrides</span>
-            </Link>
-          </div>
-
-          {/* Finance & Audit */}
-          <div className="space-y-1">
-            <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
-              Finance &amp; Audit
-            </span>
-            <Link
-              href="/admin/treasury-and-settlements"
-              data-path="treasury-and-settlements"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'treasury-and-settlements'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">account_balance</span>
-              <span>Treasury &amp; Settlements</span>
-            </Link>
-
-            <Link
-              href="/admin/payout-rails"
-              data-path="payout-rails"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'payout-rails'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">currency_rupee</span>
-              <span>Payout Rails</span>
-            </Link>
-
-            <Link
-              href="/admin/commission-matrix"
-              data-path="commission-matrix"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'commission-matrix'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">percent</span>
-              <span>Commission Matrix</span>
-            </Link>
-
-            <Link
-              href="/admin/tax-invoices"
-              data-path="tax-invoices"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'tax-invoices'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-              <span>Tax Invoices</span>
-            </Link>
-          </div>
-
-          {/* Governance & Config */}
-          <div className="space-y-1">
-            <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
-              Governance
-            </span>
-            <Link
-              href="/admin/audit-logs"
-              data-path="audit-logs"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'audit-logs'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">history_edu</span>
-              <span>Audit Logs</span>
-            </Link>
-
-            <Link
-              href="/admin/system-config"
-              data-path="system-config"
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                activePath === 'system-config'
-                  ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                  : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">tune</span>
-              <span>System Config</span>
-            </Link>
-          </div>
+              {group.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center justify-between gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
+                    isActive(item.href)
+                      ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
+                      : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </span>
+                  {!!item.badge && (
+                    <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] font-mono text-[10px] font-bold">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          ))}
         </nav>
 
         {/* Footer Security Badge */}
@@ -335,11 +209,7 @@ export function AdminLayout({ children, activePath = 'mission-dashboard' }: Admi
           <div className="flex items-center gap-3">
             <div className="px-3 py-1 rounded bg-[#181c24] border border-[#262a33] flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-[#68dba9] animate-pulse" />
-              <span className="font-mono text-xs text-[#68dba9] font-bold">PROD-DELHI-CORE</span>
-            </div>
-            <div className="hidden xl:flex items-center gap-1.5 text-[#bccac0] font-mono text-xs border-l border-[#262a33] pl-4">
-              <span className="material-symbols-outlined text-[16px] text-[#87948b]">schedule</span>
-              <span>IST 14:48:02 UTC+5:30</span>
+              <span className="font-mono text-xs text-[#68dba9] font-bold">SYSTEM ONLINE</span>
             </div>
           </div>
 
@@ -352,44 +222,41 @@ export function AdminLayout({ children, activePath = 'mission-dashboard' }: Admi
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search drivers, bookings, telematics, txns... ⌘K"
-                className="w-full h-9 pl-10 pr-12 rounded-lg bg-[#181c24] border border-[#262a33] font-mono text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9] focus:ring-1 focus:ring-[#68dba9] transition-all"
+                placeholder="Search drivers, bookings, transactions..."
+                className="w-full h-9 pl-10 pr-3 rounded-lg bg-[#181c24] border border-[#262a33] font-mono text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9] focus:ring-1 focus:ring-[#68dba9] transition-all"
               />
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-[#262a33] border border-[#3d4a42] font-mono text-[10px] text-[#bccac0]">
-                ⌘K
-              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <button
-              type="button"
-              title="Operational SOS & Alerts"
-              className="relative p-2 rounded-lg bg-[#181c24] hover:bg-[#262a33] border border-[#262a33] text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#93000a] text-[#ffdad6] font-mono text-[10px] font-bold">
-                4
-              </span>
-            </button>
+            <NotificationCenter />
 
             <div className="h-6 w-px bg-[#262a33]" />
 
             <div className="flex items-center gap-2">
               <div className="text-right hidden md:block">
                 <div className="font-bold text-[10px] text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
-                  SUPER ADMIN - LEVEL 4
+                  Administrator
                 </div>
-                <div className="text-xs text-[#dfe2ee] font-semibold leading-tight font-['Space_Grotesk']">
-                  Vikramaditya S.
+                <div className="text-xs text-[#dfe2ee] font-semibold leading-tight font-['Space_Grotesk'] max-w-[160px] truncate">
+                  {userEmail ?? 'Admin'}
                 </div>
               </div>
               <div className="relative">
                 <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border-2 border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9] font-['Space_Grotesk']">
-                  VS
+                  {(userEmail ?? 'A').charAt(0).toUpperCase()}
                 </div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] border-2 border-[#0a0e16]" />
               </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                title="Log out"
+                className="p-2 rounded-lg bg-[#181c24] hover:bg-[#262a33] border border-[#262a33] text-[#bccac0] hover:text-[#ffb4ab] transition-colors disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+              </button>
             </div>
           </div>
         </header>

@@ -20,7 +20,7 @@ export default function LiveFleetRadarPage() {
   };
 
   return (
-    <AdminLayout activePath="live-fleet-radar">
+    <AdminLayout>
       <div className="flex flex-col w-full gap-4">
         {/* Toast Notification Banner */}
         {notificationMsg && (

@@ -17,7 +17,7 @@ export default function VerificationQueuePage() {
   };
 
   return (
-    <AdminLayout activePath="verification-queue">
+    <AdminLayout>
       <div className="flex flex-col w-full gap-6">
         {/* Toast Notification Banner */}
         {notificationMsg && (

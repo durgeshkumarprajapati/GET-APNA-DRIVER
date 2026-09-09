@@ -28,7 +28,7 @@ export default function DriverRatingsPage() {
   ];
 
   return (
-    <DriverLayout activePath="ratings-and-reviews">
+    <DriverLayout>
       <div className="flex flex-col w-full px-6 py-6 gap-6">
         <div className="flex items-center justify-between p-6 rounded-xl bg-[#181c24] border border-[#262a33]">
           <div>

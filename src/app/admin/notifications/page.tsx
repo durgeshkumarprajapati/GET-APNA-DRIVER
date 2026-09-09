@@ -123,7 +123,7 @@ export default function AdminNotificationCampaignsPage() {
   };
 
   return (
-    <AdminLayout activePath="system-config">
+    <AdminLayout>
       <div className="flex flex-col gap-6 w-full">
         {notificationMsg && (
           <div className="fixed top-20 right-8 z-50 bg-[#25a475] text-[#00311f] px-4 py-3 rounded-lg shadow-2xl font-semibold text-sm flex items-center gap-2 border border-[#68dba9]">

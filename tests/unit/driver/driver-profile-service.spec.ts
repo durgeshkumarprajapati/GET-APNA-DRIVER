@@ -37,7 +37,12 @@ jest.mock('@/shared/config/configuration-service', () => ({
   getInteger: jest.fn().mockResolvedValue(18),
 }));
 
+jest.mock('@/modules/identity/infrastructure/user-repository', () => ({
+  getContactInfoForUsers: jest.fn(),
+}));
+
 import { prisma } from '@/shared/database/prisma';
+import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
 
 describe('DriverProfileService', () => {
   const mockFindUnique = prisma.driverProfile.findUnique as jest.Mock;
@@ -103,6 +108,38 @@ describe('DriverProfileService', () => {
     it('throws DriverProfileNotFoundError if profile does not exist', async () => {
       mockFindUnique.mockResolvedValue(null);
       await expect(getDriverProfileById('dp-99')).rejects.toThrow(DriverProfileNotFoundError);
+    });
+
+    it('enriches the returned user with contact info from UserIdentity', async () => {
+      mockFindUnique.mockResolvedValue({
+        id: 'dp-1',
+        userId: 'user-1',
+        user: { id: 'user-1', accountStatus: 'ACTIVE' },
+        documents: [],
+      });
+      (getContactInfoForUsers as jest.Mock).mockResolvedValue(
+        new Map([['user-1', { email: 'driver@example.com', phoneNumber: '+919876543210' }]]),
+      );
+
+      const result = await getDriverProfileById('dp-1');
+
+      expect(result.user.email).toBe('driver@example.com');
+      expect(result.user.phoneNumber).toBe('+919876543210');
+    });
+
+    it('returns null contact fields when the user has no email/phone identity yet', async () => {
+      mockFindUnique.mockResolvedValue({
+        id: 'dp-1',
+        userId: 'user-1',
+        user: { id: 'user-1', accountStatus: 'ACTIVE' },
+        documents: [],
+      });
+      (getContactInfoForUsers as jest.Mock).mockResolvedValue(new Map());
+
+      const result = await getDriverProfileById('dp-1');
+
+      expect(result.user.email).toBeNull();
+      expect(result.user.phoneNumber).toBeNull();
     });
   });
 });

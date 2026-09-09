@@ -46,7 +46,11 @@ describe('OutboxDispatcherService', () => {
 
     mockDb.$queryRaw.mockResolvedValue(mockEvents);
 
-    const claimed = await dispatcher.claimEvents(10, 300, mockDb as unknown as Parameters<typeof dispatcher.claimEvents>[2]);
+    const claimed = await dispatcher.claimEvents(
+      10,
+      300,
+      mockDb as unknown as Parameters<typeof dispatcher.claimEvents>[2],
+    );
 
     expect(claimed).toEqual(mockEvents);
     expect(mockDb.$queryRaw).toHaveBeenCalledTimes(1);
@@ -76,7 +80,11 @@ describe('OutboxDispatcherService', () => {
 
     mockDb.outboxEvent.update.mockResolvedValue({ ...event, status: OutboxEventStatus.PROCESSED });
 
-    const success = await dispatcher.processEvent(event, { maxAttempts: 5 }, mockDb as unknown as Parameters<typeof dispatcher.processEvent>[2]);
+    const success = await dispatcher.processEvent(
+      event,
+      { maxAttempts: 5 },
+      mockDb as unknown as Parameters<typeof dispatcher.processEvent>[2],
+    );
 
     expect(success).toBe(true);
     expect(handler).toHaveBeenCalledWith(

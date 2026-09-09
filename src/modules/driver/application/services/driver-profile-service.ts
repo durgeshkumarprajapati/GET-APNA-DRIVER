@@ -1,10 +1,26 @@
 import 'server-only';
-import { DriverOnboardingStatus, type DriverProfile } from '@prisma/client';
+import {
+  DriverOnboardingStatus,
+  type DriverDocument,
+  type DriverProfile,
+  type User,
+} from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { getInteger } from '@/shared/config/configuration-service';
+import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
 import { DriverProfileNotFoundError } from '../../domain/errors';
+
+/**
+ * A DriverProfile as returned to admin views: the account (`user`) enriched
+ * with its display email/phone, since `User` itself carries no contact
+ * fields — those live on UserIdentity (see getContactInfoForUsers).
+ */
+export type DriverProfileWithContact = DriverProfile & {
+  user: User & { email: string | null; phoneNumber: string | null };
+  documents: DriverDocument[];
+};
 
 export interface UpdateDriverProfileInput {
   firstName?: string | null;
@@ -133,7 +149,7 @@ export async function updateDriverProfile(
 export async function getDriverProfileById(
   driverProfileId: string,
   db: Db = prisma,
-): Promise<DriverProfile> {
+): Promise<DriverProfileWithContact> {
   const profile = await db.driverProfile.findUnique({
     where: { id: driverProfileId },
     include: {
@@ -148,5 +164,8 @@ export async function getDriverProfileById(
     throw new DriverProfileNotFoundError(driverProfileId);
   }
 
-  return profile;
+  const contactByUserId = await getContactInfoForUsers(db, [profile.userId]);
+  const contact = contactByUserId.get(profile.userId) ?? { email: null, phoneNumber: null };
+
+  return { ...profile, user: { ...profile.user, ...contact } };
 }
