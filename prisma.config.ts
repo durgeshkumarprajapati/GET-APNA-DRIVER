@@ -13,6 +13,12 @@ export default defineConfig({
     url: process.env.DATABASE_URL,
   },
   migrations: {
-    seed: 'tsx prisma/seed.ts',
+    // `--conditions=react-server` makes every `import 'server-only'` guard
+    // in the shared/application modules resolve to that package's no-op
+    // export instead of throwing — the same export condition Next.js's own
+    // server bundler activates, which is why this never surfaces from
+    // `next dev`/`build`. A bare `tsx` process run outside Next (this seed
+    // script, and `npm run worker`) doesn't set it by default.
+    seed: 'NODE_OPTIONS=--conditions=react-server tsx prisma/seed.ts',
   },
 });

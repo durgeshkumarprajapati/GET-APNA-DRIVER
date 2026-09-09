@@ -7,9 +7,6 @@ CREATE EXTENSION IF NOT EXISTS "citext";
 -- CreateExtension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "postgis";
-
 -- CreateEnum
 CREATE TYPE "account_status" AS ENUM ('PENDING', 'ACTIVE', 'SUSPENDED', 'DEACTIVATED', 'DELETED');
 

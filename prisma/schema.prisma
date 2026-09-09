@@ -8,8 +8,15 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  extensions = [pgcrypto, postgis, citext]
+  provider = "postgresql"
+  // postgis is intentionally not enabled: no column in this schema uses a
+  // geography/geometry type yet (all location fields are plain Float
+  // latitude/longitude columns). Add it back — with an actual geography
+  // column — when a real PostGIS-backed feature needs it; declaring it
+  // unused requires every environment to have the postgis OS package
+  // installed just to run `prisma migrate deploy`, which isn't worth paying
+  // for a capability nothing exercises today.
+  extensions = [pgcrypto, citext]
 }
 
 // ---------------------------------------------------------------------------

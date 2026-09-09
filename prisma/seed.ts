@@ -1,10 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+// Must run before any import that transitively reaches `env.ts` — this
+// script is also invoked directly (`tsx prisma/seed.ts`), not only through
+// the Prisma CLI (which loads `.env` itself via prisma.config.ts), so it
+// cannot assume its caller already populated process.env.
+import 'dotenv/config';
+import { prisma } from '../src/shared/database/prisma';
 import { SYSTEM_ROLES } from '../src/modules/identity/domain/role-catalog';
 import { PERMISSION_CATALOG } from '../src/modules/identity/domain/permission-catalog';
 import { ROLE_PERMISSION_MAP } from '../src/modules/identity/domain/rbac-seed-data';
 import { LEDGER_ACCOUNT_CATALOG } from '../src/modules/finance/domain/ledger-accounts';
-
-const prisma = new PrismaClient();
 
 /**
  * Deterministic, idempotent RBAC seed: system roles, the permission catalog,

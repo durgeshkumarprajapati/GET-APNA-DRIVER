@@ -1,3 +1,7 @@
+// Must run before any import that transitively reaches `env.ts` — this
+// process is started directly (`tsx src/worker/index.ts`), not through the
+// Prisma CLI or Next.js, neither of which loads `.env` for it.
+import 'dotenv/config';
 import { logger } from '@/shared/logging/logger';
 import { outboxDispatcherService } from './outbox/outbox-dispatcher-service';
 import { registerNotificationEventHandlers } from './jobs/notification-event-handlers';
