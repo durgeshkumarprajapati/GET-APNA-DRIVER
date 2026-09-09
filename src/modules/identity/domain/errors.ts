@@ -45,6 +45,16 @@ export class SelfRoleEscalationError extends AppError {
   }
 }
 
+export class LastAdministratorError extends AppError {
+  constructor() {
+    super(
+      'Cannot revoke the ADMINISTRATOR role from the last remaining administrator',
+      409,
+      'IDENTITY_LAST_ADMINISTRATOR',
+    );
+  }
+}
+
 export class InvalidEmailError extends AppError {
   constructor() {
     super('Invalid email address', 422, 'IDENTITY_INVALID_EMAIL');

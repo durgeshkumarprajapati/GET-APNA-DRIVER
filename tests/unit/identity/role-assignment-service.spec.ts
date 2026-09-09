@@ -19,6 +19,7 @@ jest.mock('@/modules/identity/infrastructure/rbac-repository', () => ({
   findUserRoleAssignment: jest.fn(),
   upsertRoleAssignment: jest.fn(),
   revokeRoleAssignment: jest.fn(),
+  countActiveRoleAssignments: jest.fn(),
 }));
 
 import {
@@ -33,6 +34,7 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import {
   ForbiddenError,
+  LastAdministratorError,
   RoleNotAssignedError,
   RoleNotFoundError,
   SelfRoleEscalationError,
@@ -45,6 +47,7 @@ const mockedFindRoleByCode = rbacRepository.findRoleByCode as jest.Mock;
 const mockedFindUserRoleAssignment = rbacRepository.findUserRoleAssignment as jest.Mock;
 const mockedUpsertRoleAssignment = rbacRepository.upsertRoleAssignment as jest.Mock;
 const mockedRevokeRoleAssignment = rbacRepository.revokeRoleAssignment as jest.Mock;
+const mockedCountActiveRoleAssignments = rbacRepository.countActiveRoleAssignments as jest.Mock;
 const mockedRecordAuditLog = recordAuditLog as jest.Mock;
 const mockedInsertOutboxEvent = insertOutboxEvent as jest.Mock;
 
@@ -180,5 +183,41 @@ describe('revokeRole', () => {
         actor: customerPrincipal,
       }),
     ).rejects.toThrow(ForbiddenError);
+  });
+
+  it('throws LastAdministratorError instead of revoking the sole remaining ADMINISTRATOR', async () => {
+    mockedFindRoleByCode.mockResolvedValue({
+      id: 'role-admin',
+      code: SYSTEM_ROLE_CODES.ADMINISTRATOR,
+    });
+    mockedFindUserRoleAssignment.mockResolvedValue({ id: 'assignment-1', revokedAt: null });
+    mockedCountActiveRoleAssignments.mockResolvedValue(1);
+
+    await expect(
+      revokeRole({
+        userId: 'user-1',
+        roleCode: SYSTEM_ROLE_CODES.ADMINISTRATOR,
+        actor: adminPrincipal,
+      }),
+    ).rejects.toThrow(LastAdministratorError);
+    expect(mockedRevokeRoleAssignment).not.toHaveBeenCalled();
+  });
+
+  it('allows revoking ADMINISTRATOR when other administrators remain', async () => {
+    mockedFindRoleByCode.mockResolvedValue({
+      id: 'role-admin',
+      code: SYSTEM_ROLE_CODES.ADMINISTRATOR,
+    });
+    mockedFindUserRoleAssignment.mockResolvedValue({ id: 'assignment-1', revokedAt: null });
+    mockedCountActiveRoleAssignments.mockResolvedValue(2);
+    mockedRevokeRoleAssignment.mockResolvedValue({ id: 'assignment-1', revokedAt: new Date() });
+
+    const result = await revokeRole({
+      userId: 'user-1',
+      roleCode: SYSTEM_ROLE_CODES.ADMINISTRATOR,
+      actor: adminPrincipal,
+    });
+
+    expect(result.revokedAt).not.toBeNull();
   });
 });

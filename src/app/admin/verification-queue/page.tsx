@@ -1,537 +1,306 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AdminLayout } from '@/components/admin-layout';
 
-export default function VerificationQueuePage() {
-  const [activeTab, setActiveTab] = useState<'PENDING' | 'OCR' | 'APPROVED' | 'FRAUD' | 'EXPIRED'>(
-    'PENDING',
-  );
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [isInverted, setIsInverted] = useState(false);
-  const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+type DocumentStatus = 'UPLOADED' | 'PENDING_VERIFICATION' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
 
-  const showNotification = (msg: string) => {
-    setNotificationMsg(msg);
-    setTimeout(() => setNotificationMsg(null), 4000);
+interface QueueDocument {
+  id: string;
+  documentType: string;
+  documentNumber: string | null;
+  status: DocumentStatus;
+  originalFileName: string;
+  rejectionReason: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  driverProfile: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    displayName: string | null;
+    user: { email: string | null; phoneNumber: string | null };
   };
+}
+
+interface QueueResponse {
+  documents: QueueDocument[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+const STATUS_FILTERS: (DocumentStatus | 'ALL')[] = [
+  'ALL',
+  'PENDING_VERIFICATION',
+  'UPLOADED',
+  'VERIFIED',
+  'REJECTED',
+  'EXPIRED',
+];
+
+function driverDisplayName(driver: QueueDocument['driverProfile']): string {
+  if (driver.displayName) return driver.displayName;
+  const combined = [driver.firstName, driver.lastName].filter(Boolean).join(' ');
+  return combined || driver.user.email || 'Unnamed Driver';
+}
+
+function statusBadgeClass(status: string): string {
+  if (status === 'VERIFIED') return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
+  if (status === 'REJECTED' || status === 'EXPIRED') {
+    return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
+  }
+  return 'bg-[#3a2f00] text-[#f5c04a] border border-[#5c4a00]';
+}
+
+const PAGE_SIZE = 20;
+
+export default function VerificationQueuePage() {
+  const [data, setData] = useState<QueueResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] =
+    useState<(typeof STATUS_FILTERS)[number]>('PENDING_VERIFICATION');
+  const [page, setPage] = useState(1);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+    if (statusFilter !== 'ALL') params.set('status', statusFilter);
+
+    fetch(`/api/admin/driver-documents?${params.toString()}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((json: QueueResponse) => {
+        if (isMounted) setData(json);
+      })
+      .catch(() => {
+        if (isMounted) setData(null);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [statusFilter, page, refreshKey]);
+
+  const handleVerify = async (documentId: string) => {
+    try {
+      const res = await fetch(`/api/admin/driver-documents/${documentId}/verify`, {
+        method: 'POST',
+      });
+      const resData = await res.json();
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Document verified.' });
+        setRefreshKey((k) => k + 1);
+      } else {
+        setMessage({ type: 'error', text: resData.message ?? 'Failed to verify document.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error connecting to server.' });
+    }
+  };
+
+  const handleReject = async (documentId: string) => {
+    const reason = prompt('Enter rejection reason for this document:');
+    if (!reason?.trim()) return;
+    try {
+      const res = await fetch(`/api/admin/driver-documents/${documentId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      const resData = await res.json();
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Document rejected.' });
+        setRefreshKey((k) => k + 1);
+      } else {
+        setMessage({ type: 'error', text: resData.message ?? 'Failed to reject document.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error connecting to server.' });
+    }
+  };
+
+  const handleDownload = async (documentId: string) => {
+    try {
+      const res = await fetch(`/api/admin/driver-documents/${documentId}/download-url`);
+      const resData = await res.json();
+      if (res.ok && resData.downloadUrl) {
+        window.open(resData.downloadUrl, '_blank');
+      } else {
+        setMessage({ type: 'error', text: resData.message ?? 'Failed to fetch document link.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error downloading document.' });
+    }
+  };
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
     <AdminLayout>
-      <div className="flex flex-col w-full gap-6">
-        {/* Toast Notification Banner */}
-        {notificationMsg && (
-          <div className="fixed top-20 right-8 z-50 bg-[#25a475] text-[#00311f] px-4 py-3 rounded-lg shadow-2xl font-semibold text-sm flex items-center gap-2 border border-[#68dba9]">
-            <span className="material-symbols-outlined">check_circle</span>
-            <span>{notificationMsg}</span>
+      <div className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+              <span className="material-symbols-outlined text-[16px]">verified_user</span>
+              <span>DOCUMENT VERIFICATION QUEUE</span>
+            </div>
+            <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+              Verification Queue
+            </h1>
+            <p className="text-xs text-[#87948b] mt-0.5">
+              {data ? `${data.total} document${data.total === 1 ? '' : 's'}` : '—'}
+            </p>
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as (typeof STATUS_FILTERS)[number]);
+              setPage(1);
+            }}
+            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          >
+            {STATUS_FILTERS.map((status) => (
+              <option key={status} value={status}>
+                {status === 'ALL' ? 'All Statuses' : status.replace(/_/g, ' ')}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {message && (
+          <div
+            className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-[#00311f]/50 border-[#25a475] text-[#68dba9]' : 'bg-[#93000a]/20 border-[#93000a] text-[#ffb4ab]'}`}
+          >
+            <p className="text-sm font-medium">{message.text}</p>
           </div>
         )}
 
-        {/* TOP SYSTEM HEADER STRIP */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#68dba9] animate-pulse" />
-              <span className="font-mono text-xs text-[#68dba9] font-bold">
-                KYC ORCHESTRATION ENGINE • v4.19_PROD
+        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+          {loading ? (
+            <div className="py-16 text-center text-[#87948b] text-sm">Loading documents…</div>
+          ) : !data || data.documents.length === 0 ? (
+            <div className="py-16 text-center text-[#87948b] text-sm">
+              No documents match the current filter.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-sans text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                    <th className="py-3 px-4">Driver</th>
+                    <th className="py-3 px-4">Document Type</th>
+                    <th className="py-3 px-4">File</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Uploaded</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#262a33] font-mono">
+                  {data.documents.map((doc) => (
+                    <tr key={doc.id} className="hover:bg-[#181c24]/60 transition-colors">
+                      <td className="py-3 px-4">
+                        <Link
+                          href={`/admin/drivers/${doc.driverProfile.id}`}
+                          className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors"
+                        >
+                          {driverDisplayName(doc.driverProfile)}
+                        </Link>
+                        <span className="block text-[10px] text-[#87948b]">
+                          {doc.driverProfile.user.email ?? '—'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-[#bccac0]">
+                        {doc.documentType.replace(/_/g, ' ')}
+                        {doc.documentNumber && (
+                          <span className="block text-[10px] text-[#87948b]">
+                            #{doc.documentNumber}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-[#87948b]">{doc.originalFileName}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(doc.status)}`}
+                        >
+                          {doc.status.replace(/_/g, ' ')}
+                        </span>
+                        {doc.rejectionReason && (
+                          <span className="block text-[10px] text-[#ffb4ab] mt-0.5">
+                            {doc.rejectionReason}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-[#bccac0]">
+                        {new Date(doc.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(doc.id)}
+                            className="px-2.5 py-1 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] rounded text-[11px]"
+                          >
+                            View
+                          </button>
+                          {doc.status !== 'VERIFIED' && (
+                            <button
+                              type="button"
+                              onClick={() => handleVerify(doc.id)}
+                              className="px-2.5 py-1 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold rounded text-[11px]"
+                            >
+                              Verify
+                            </button>
+                          )}
+                          {doc.status !== 'REJECTED' && (
+                            <button
+                              type="button"
+                              onClick={() => handleReject(doc.id)}
+                              className="px-2.5 py-1 bg-[#93000a]/80 hover:bg-[#690005] text-[#ffdad6] rounded text-[11px]"
+                            >
+                              Reject
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {data && data.total > 0 && (
+            <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+              <span>
+                Page {data.page} of {totalPages}
               </span>
-            </div>
-            <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] tracking-tight mt-1">
-              Driver Credential Ingestion &amp; Governance
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-3 flex-wrap font-mono text-xs">
-            <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-[#bccac0]">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9]" />
-              <span>MORTH SARATHI:</span>
-              <span className="text-[#68dba9] font-bold">99.9%</span>
-            </div>
-            <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-[#bccac0]">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9]" />
-              <span>UIDAI DIGILOCKER:</span>
-              <span className="text-[#68dba9] font-bold">18ms</span>
-            </div>
-            <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-[#bccac0]">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9]" />
-              <span>NCR POLICE CCTNS:</span>
-              <span className="text-[#68dba9] font-bold">AUTH</span>
-            </div>
-            <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-[#bccac0]">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9]" />
-              <span>ICICI ESCORT:</span>
-              <span className="text-[#68dba9] font-bold">ACTIVE</span>
-            </div>
-          </div>
-        </div>
-
-        {/* METRIC TABS STRIP */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono text-xs">
-          <button
-            onClick={() => setActiveTab('PENDING')}
-            className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-              activeTab === 'PENDING'
-                ? 'bg-[#25a475] text-[#00311f] border-[#68dba9] font-bold shadow-lg'
-                : 'bg-[#0a0e16] text-[#bccac0] border-[#262a33] hover:bg-[#181c24]'
-            }`}
-          >
-            <span>PENDING REVIEW</span>
-            <span className="text-lg font-bold">08</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('OCR')}
-            className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-              activeTab === 'OCR'
-                ? 'bg-[#25a475] text-[#00311f] border-[#68dba9] font-bold shadow-lg'
-                : 'bg-[#0a0e16] text-[#bccac0] border-[#262a33] hover:bg-[#181c24]'
-            }`}
-          >
-            <span>ACTIVE OCR</span>
-            <span className="text-lg font-bold">14</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('APPROVED')}
-            className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-              activeTab === 'APPROVED'
-                ? 'bg-[#25a475] text-[#00311f] border-[#68dba9] font-bold shadow-lg'
-                : 'bg-[#0a0e16] text-[#bccac0] border-[#262a33] hover:bg-[#181c24]'
-            }`}
-          >
-            <span>APPROVED TODAY</span>
-            <span className="text-lg font-bold">42</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('FRAUD')}
-            className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-              activeTab === 'FRAUD'
-                ? 'bg-[#93000a] text-[#ffdad6] border-[#ffb4ab] font-bold shadow-lg'
-                : 'bg-[#0a0e16] text-[#ffb4ab] border-[#93000a]/50 hover:bg-[#181c24]'
-            }`}
-          >
-            <span>FRAUD ALERTS</span>
-            <span className="text-lg font-bold">03</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('EXPIRED')}
-            className={`p-3 rounded-xl border transition-all text-left flex items-center justify-between ${
-              activeTab === 'EXPIRED'
-                ? 'bg-[#25a475] text-[#00311f] border-[#68dba9] font-bold shadow-lg'
-                : 'bg-[#0a0e16] text-[#bccac0] border-[#262a33] hover:bg-[#181c24]'
-            }`}
-          >
-            <span>EXPIRED DOCS</span>
-            <span className="text-lg font-bold">19</span>
-          </button>
-        </div>
-
-        {/* MAIN SPLIT VIEWPORT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT COLUMN: Applicant Dossier & Statutory Checklist (5 Cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* Applicant Profile Dossier Card */}
-            <div className="bg-[#0a0e16] rounded-xl p-5 border border-[#262a33] shadow-xl flex flex-col gap-4">
-              <div className="flex items-start justify-between border-b border-[#262a33] pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-xl bg-[#25a475]/20 border-2 border-[#68dba9] flex items-center justify-center font-bold text-xl text-[#68dba9] font-['Space_Grotesk']">
-                    MS
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                        Manpreet Singh
-                      </h2>
-                      <span className="px-2 py-0.5 rounded bg-[#25a475]/20 text-[#68dba9] font-mono text-[9px] font-bold border border-[#25a475]">
-                        VIP CLASS
-                      </span>
-                    </div>
-                    <div className="text-xs font-mono text-[#87948b] mt-0.5">
-                      APPLICANT_ID: DL-88421-VIP
-                    </div>
-                    <div className="text-xs font-mono text-[#b4c5ff] mt-1">
-                      Tier Clearance: Mercedes S-Class &amp; BMW 7-Series Certified
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* SLA Countdown Timer Box */}
-              <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex items-center justify-between">
-                <span className="text-xs font-mono text-[#87948b]">SLA EXPIRES IN:</span>
-                <span className="text-2xl font-bold font-mono text-[#68dba9] tracking-widest animate-pulse">
-                  00:14:32
-                </span>
-              </div>
-
-              {/* Driver Stats */}
-              <div className="grid grid-cols-3 gap-2 font-mono text-center">
-                <div className="bg-[#181c24] p-2.5 rounded-lg border border-[#262a33]">
-                  <div className="text-[9px] text-[#87948b]">DRIVING EXP</div>
-                  <div className="text-base font-bold text-[#dfe2ee]">8.4 YRS</div>
-                </div>
-                <div className="bg-[#181c24] p-2.5 rounded-lg border border-[#262a33]">
-                  <div className="text-[9px] text-[#87948b]">SAFETY INDEX</div>
-                  <div className="text-base font-bold text-[#68dba9]">99.8%</div>
-                </div>
-                <div className="bg-[#181c24] p-2.5 rounded-lg border border-[#262a33]">
-                  <div className="text-[9px] text-[#87948b]">INCIDENTS</div>
-                  <div className="text-base font-bold text-[#dfe2ee]">00</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Statutory Compliance Checklist Card */}
-            <div className="bg-[#0a0e16] rounded-xl p-5 border border-[#262a33] shadow-xl flex flex-col gap-3">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9] text-[20px]">
-                    fact_check
-                  </span>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    Statutory Compliance Check
-                  </h3>
-                </div>
-                <span className="bg-[#25a475]/20 text-[#68dba9] font-mono text-[10px] px-2 py-0.5 rounded font-bold border border-[#25a475]">
-                  5/5 VALIDATED
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2 font-mono text-xs">
-                {/* Step 1 */}
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33] flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-[18px]">
-                      fingerprint
-                    </span>
-                    <div>
-                      <div className="text-[#dfe2ee] font-bold">
-                        UIDAI DigiLocker Biometric e-KYC
-                      </div>
-                      <div className="text-[10px] text-[#87948b]">Masked: XXXX-XXXX-9142</div>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-[#25a475]/20 text-[#68dba9] text-[10px] font-bold">
-                    100% CONFIRMED
-                  </span>
-                </div>
-
-                {/* Step 2 */}
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33] flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-[18px]">
-                      badge
-                    </span>
-                    <div>
-                      <div className="text-[#dfe2ee] font-bold">
-                        MoRTH Commercial License (LMV-TR)
-                      </div>
-                      <div className="text-[10px] text-[#87948b]">
-                        DL-042021009182 • Exp: 18-NOV-2029
-                      </div>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-[#25a475]/20 text-[#68dba9] text-[10px] font-bold">
-                    SARATHI MATCH
-                  </span>
-                </div>
-
-                {/* Step 3 */}
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33] flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-[18px]">
-                      local_police
-                    </span>
-                    <div>
-                      <div className="text-[#dfe2ee] font-bold">
-                        Police Clearance Certificate (PCC)
-                      </div>
-                      <div className="text-[10px] text-[#87948b]">
-                        Connaught Place Secretariat #PCC-881
-                      </div>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-[#25a475]/20 text-[#68dba9] text-[10px] font-bold">
-                    NO CRIMINAL REC
-                  </span>
-                </div>
-
-                {/* Step 4 */}
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33] flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-[18px]">
-                      medical_services
-                    </span>
-                    <div>
-                      <div className="text-[#dfe2ee] font-bold">
-                        Breathalyzer &amp; Medical Fitness (Form 1A)
-                      </div>
-                      <div className="text-[10px] text-[#87948b]">
-                        Blood Group: O+ • Visual Acuity 6/6 Clear
-                      </div>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-[#25a475]/20 text-[#68dba9] text-[10px] font-bold">
-                    SUBMITTED &amp; SIGNED
-                  </span>
-                </div>
-
-                {/* Step 5 */}
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33] flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-[18px]">
-                      sports_score
-                    </span>
-                    <div>
-                      <div className="text-[#dfe2ee] font-bold">
-                        VIP Automatic Transmission Track Test
-                      </div>
-                      <div className="text-[10px] text-[#87948b]">
-                        Evaluator: Master Trainer V. Verma (NCR Track 2)
-                      </div>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-[#25a475]/20 text-[#68dba9] text-[10px] font-bold">
-                    9.8 / 10 DISTINCTION
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Up Next Pipeline Strip */}
-            <div className="bg-[#0a0e16] p-3 rounded-xl border border-[#262a33] flex items-center justify-between font-mono text-xs">
-              <span className="text-[#87948b]">UP NEXT IN PIPELINE:</span>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-[#181c24] text-[#dfe2ee] border border-[#262a33]">
-                  Amit K. Yadav (DL-09923)
-                </span>
-                <span className="px-2 py-0.5 rounded bg-[#181c24] text-[#dfe2ee] border border-[#262a33]">
-                  Rohit Sharma (DL-44612)
-                </span>
-              </div>
-            </div>
-
-            {/* ACTION BUTTONS ROW */}
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-3 gap-2 font-mono text-xs">
                 <button
-                  onClick={() => showNotification('Re-upload request sent to candidate SMS')}
-                  className="bg-[#181c24] hover:bg-[#262a33] text-[#dfe2ee] p-2.5 rounded-lg border border-[#262a33] transition-colors"
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
                 >
-                  Request Re-upload
+                  Previous
                 </button>
                 <button
-                  onClick={() => showNotification('Escalated to Senior Auditor Level 4')}
-                  className="bg-[#181c24] hover:bg-[#262a33] text-[#b4c5ff] p-2.5 rounded-lg border border-[#262a33] transition-colors"
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
                 >
-                  Escalate to Senior
-                </button>
-                <button
-                  onClick={() => showNotification('Applicant Rejected & Suspended')}
-                  className="bg-[#93000a]/30 hover:bg-[#93000a] text-[#ffdad6] p-2.5 rounded-lg border border-[#93000a] transition-colors font-bold"
-                >
-                  Reject &amp; Suspend
-                </button>
-              </div>
-
-              <button
-                onClick={() => showNotification('Applicant Approved! Dispatch Tier-1 Activated.')}
-                className="w-full bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-sm py-3 px-4 rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all font-['Space_Grotesk']"
-              >
-                <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                Approve &amp; Activate Dispatch Tier-1
-              </button>
-
-              <div className="flex items-center justify-between pt-2 border-t border-[#262a33] font-mono text-xs">
-                <button
-                  onClick={() => showNotification('Batch Approval Executed for 6 Candidates')}
-                  className="bg-[#181c24] hover:bg-[#262a33] text-[#68dba9] px-3 py-1.5 rounded-lg border border-[#262a33] font-bold"
-                >
-                  BATCH APPROVE 6 VERIFIED CANDIDATES
-                </button>
-                <button
-                  onClick={() => showNotification('Audit CSV exported to downloads')}
-                  className="text-[#87948b] hover:text-[#dfe2ee] underline"
-                >
-                  Export Audit CSV
+                  Next
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* RIGHT COLUMN: Document Verification Viewport & Facial Cross-Match (7 Cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
-            {/* MoRTH Commercial License Inspection Viewport */}
-            <div className="bg-[#0a0e16] rounded-xl p-5 border border-[#262a33] shadow-xl flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9] text-[20px]">
-                    article
-                  </span>
-                  <div>
-                    <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      MoRTH Form 6 Commercial Driver License
-                    </h3>
-                    <span className="text-[10px] font-mono text-[#87948b]">
-                      SARATHI-REGISTRY-HASH: 8f2b604e3c99a...
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 font-mono text-xs">
-                  <button
-                    onClick={() => setZoomLevel((z) => (z === 100 ? 150 : 100))}
-                    className="px-2.5 py-1 rounded bg-[#181c24] border border-[#262a33] text-[#dfe2ee]"
-                  >
-                    Zoom {zoomLevel}%
-                  </button>
-                  <button
-                    onClick={() => setIsInverted(!isInverted)}
-                    className="px-2.5 py-1 rounded bg-[#181c24] border border-[#262a33] text-[#dfe2ee]"
-                  >
-                    {isInverted ? 'Normal' : 'Invert Layer'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Document Display Box with OCR Overlays */}
-              <div
-                className={`relative w-full h-80 rounded-xl bg-[#181c24] border border-[#262a33] overflow-hidden flex items-center justify-center p-4 transition-all ${
-                  isInverted ? 'invert grayscale' : ''
-                }`}
-              >
-                {/* Visual License Graphic Card */}
-                <div className="relative w-full max-w-lg h-full bg-[#1c2028] rounded-xl border border-[#3d4a42] p-4 flex flex-col justify-between shadow-2xl overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-[#262a33] pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-[#68dba9]" />
-                      <span className="font-mono text-xs font-bold text-[#dfe2ee]">
-                        INDIAN UNION DRIVING LICENSE (COMMERCIAL)
-                      </span>
-                    </div>
-                    <span className="font-mono text-[10px] text-[#68dba9] bg-[#25a475]/20 px-2 py-0.5 rounded font-bold border border-[#25a475]">
-                      SHA-256 CHECKSUM PASSED
-                    </span>
-                  </div>
-
-                  {/* License Content Body with Highlight Bounding Boxes */}
-                  <div className="grid grid-cols-12 gap-3 my-2 items-center">
-                    <div className="col-span-4 bg-[#0a0e16] h-28 rounded-lg border border-[#68dba9] p-1 flex items-center justify-center relative overflow-hidden">
-                      <div className="w-full h-full bg-[#25a475]/20 flex flex-col items-center justify-center text-[#68dba9]">
-                        <span className="material-symbols-outlined text-4xl">person</span>
-                        <span className="text-[9px] font-mono">PORTRAIT OK</span>
-                      </div>
-                      <span className="absolute top-1 left-1 bg-[#68dba9] text-[#00311f] font-mono text-[8px] font-bold px-1 rounded">
-                        CONF: 99.8%
-                      </span>
-                    </div>
-
-                    <div className="col-span-8 flex flex-col gap-1.5 font-mono text-xs">
-                      <div className="p-1.5 rounded bg-[#0a0e16] border border-[#68dba9]/60">
-                        <span className="text-[9px] text-[#87948b] block">NAME:</span>
-                        <span className="text-[#dfe2ee] font-bold">MANPREET SINGH</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-[#0a0e16] border border-[#68dba9]/60">
-                        <span className="text-[9px] text-[#87948b] block">DOB / CLASS:</span>
-                        <span className="text-[#dfe2ee] font-bold">14/06/1988 • CAT: LMV-TR</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-[#0a0e16] border border-[#68dba9]/60">
-                        <span className="text-[9px] text-[#87948b] block">
-                          PSV BADGE AUTHORIZED:
-                        </span>
-                        <span className="text-[#68dba9] font-bold">
-                          DL-TR-4401 (HEAVY CHAUFFEUR)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between font-mono text-[10px] text-[#87948b] border-t border-[#262a33] pt-2">
-                    <span>ISSUE: 18-NOV-2009</span>
-                    <span className="text-[#68dba9] font-bold">VALIDITY OK EXP: 18-NOV-2029</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Verification Metrics Footer */}
-              <div className="grid grid-cols-3 gap-3 font-mono text-xs">
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <div className="text-[9px] text-[#87948b]">EDGE TAMPER ANALYSIS</div>
-                  <div className="text-sm font-bold text-[#68dba9] mt-0.5">CLEAR</div>
-                  <div className="text-[10px] text-[#87948b] mt-1 leading-tight">
-                    No digital clone, splicing, or artifacting detected along card perimeters.
-                  </div>
-                </div>
-
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <div className="text-[9px] text-[#87948b]">FONT KERNING CHECK</div>
-                  <div className="text-sm font-bold text-[#68dba9] mt-0.5">OFFICIAL STD</div>
-                  <div className="text-[10px] text-[#87948b] mt-1 leading-tight">
-                    Type metrics conform precisely with MoRTH Government Press specification.
-                  </div>
-                </div>
-
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <div className="text-[9px] text-[#87948b]">STATE REGISTRY SYNC</div>
-                  <div className="text-sm font-bold text-[#68dba9] mt-0.5">DELHI RTO 04</div>
-                  <div className="text-[10px] text-[#87948b] mt-1 leading-tight">
-                    Real-time Sarathi database matches vehicle classes and endorsement date.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Biometric Facial Cross-Match Card */}
-            <div className="bg-[#0a0e16] rounded-xl p-5 border border-[#262a33] shadow-xl flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9] text-[20px]">
-                    face_5
-                  </span>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    Biometric Facial Cross-Match (Liveness v/s Gov Scan)
-                  </h3>
-                </div>
-                <span className="text-lg font-bold font-mono text-[#68dba9]">
-                  CONFIDENCE: 99.4%
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Frame A */}
-                <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex flex-col gap-2">
-                  <div className="text-[10px] font-mono font-bold text-[#87948b]">
-                    FRAME A: TELEMETRIC LIVE SELFIE (GEO-TAGGED NCR)
-                  </div>
-                  <div className="w-full h-44 rounded-lg bg-[#0a0e16] border border-[#68dba9] p-2 flex flex-col items-center justify-center relative overflow-hidden">
-                    <div className="w-24 h-24 rounded-full bg-[#25a475]/20 border-2 border-[#68dba9] flex items-center justify-center text-[#68dba9]">
-                      <span className="material-symbols-outlined text-5xl">person</span>
-                    </div>
-                    <span className="absolute bottom-2 left-2 right-2 text-center bg-[#25a475]/90 text-[#00311f] font-mono text-[9px] font-bold py-1 rounded">
-                      3D Liveness Confirmed (Blink + Head Turn)
-                    </span>
-                  </div>
-                </div>
-
-                {/* Frame B */}
-                <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex flex-col gap-2">
-                  <div className="text-[10px] font-mono font-bold text-[#87948b]">
-                    FRAME B: EXTRACTED GOVT CARD PORTRAIT
-                  </div>
-                  <div className="w-full h-44 rounded-lg bg-[#0a0e16] border border-[#68dba9] p-2 flex flex-col items-center justify-center relative overflow-hidden">
-                    <div className="w-24 h-24 rounded-full bg-[#0053db]/20 border-2 border-[#b4c5ff] flex items-center justify-center text-[#b4c5ff]">
-                      <span className="material-symbols-outlined text-5xl">account_box</span>
-                    </div>
-                    <span className="absolute bottom-2 left-2 right-2 text-center bg-[#0053db]/90 text-[#dfe2ee] font-mono text-[9px] font-bold py-1 rounded">
-                      128 Landmark Points Mapped &amp; Reconciled
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </AdminLayout>

@@ -1,5 +1,5 @@
 import 'server-only';
-import type { Role, UserRole } from '@prisma/client';
+import type { Permission, Role, RolePermission, UserRole } from '@prisma/client';
 import type { Db } from '@/shared/database/prisma';
 
 export interface UserRbacSnapshot {
@@ -7,8 +7,25 @@ export interface UserRbacSnapshot {
   permissionCodes: string[];
 }
 
+export type RoleWithPermissions = Role & {
+  rolePermissions: (RolePermission & { permission: Permission })[];
+};
+
 export async function findRoleByCode(db: Db, code: string): Promise<Role | null> {
   return db.role.findUnique({ where: { code } });
+}
+
+/** Read-only: the full role catalog with each role's granted permissions. */
+export async function listRolesWithPermissions(db: Db): Promise<RoleWithPermissions[]> {
+  return db.role.findMany({
+    include: { rolePermissions: { include: { permission: true } } },
+    orderBy: { name: 'asc' },
+  });
+}
+
+/** Read-only: the full permission catalog as persisted in the database. */
+export async function listPermissions(db: Db): Promise<Permission[]> {
+  return db.permission.findMany({ orderBy: { code: 'asc' } });
 }
 
 export async function findUserRoleAssignment(
@@ -33,6 +50,11 @@ export async function upsertRoleAssignment(
       revokedBy: null,
     },
   });
+}
+
+/** Counts currently-active (non-revoked) assignments of a role, for lockout guards. */
+export async function countActiveRoleAssignments(db: Db, roleId: string): Promise<number> {
+  return db.userRole.count({ where: { roleId, revokedAt: null } });
 }
 
 export async function revokeRoleAssignment(

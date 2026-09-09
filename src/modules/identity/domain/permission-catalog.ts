@@ -9,10 +9,14 @@ export const PERMISSIONS = {
   IDENTITY_USERS_READ: 'identity.users.read',
   IDENTITY_USERS_STATUS_MANAGE: 'identity.users.status.manage',
   IDENTITY_USERS_ROLES_MANAGE: 'identity.users.roles.manage',
+  IDENTITY_ROLES_READ: 'identity.roles.read',
 
   // Users (self-service profile, shared by every role)
   USERS_PROFILE_READ: 'users.profile.read',
   USERS_PROFILE_UPDATE: 'users.profile.update',
+
+  // Customers (admin)
+  ADMIN_CUSTOMER_READ: 'admin.customer.read',
 
   // Drivers (Phase 4 domain & admin)
   DRIVER_PROFILE_MANAGE: 'driver.profile.manage',
@@ -60,6 +64,9 @@ export const PERMISSIONS = {
 
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
+
+  // Governance
+  AUDIT_LOG_READ: 'audit.log.read',
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -79,9 +86,15 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.IDENTITY_USERS_ROLES_MANAGE,
     description: 'Assign or revoke roles for any user.',
   },
+  {
+    code: PERMISSIONS.IDENTITY_ROLES_READ,
+    description: 'View the role/permission catalog and which users hold which roles.',
+  },
 
   { code: PERMISSIONS.USERS_PROFILE_READ, description: 'View own user profile.' },
   { code: PERMISSIONS.USERS_PROFILE_UPDATE, description: 'Update own user profile.' },
+
+  { code: PERMISSIONS.ADMIN_CUSTOMER_READ, description: 'View customer accounts and history.' },
 
   { code: PERMISSIONS.DRIVER_PROFILE_MANAGE, description: 'Manage own driver profile.' },
   { code: PERMISSIONS.DRIVER_DOCUMENT_UPLOAD, description: 'Upload driver documents.' },
@@ -162,4 +175,6 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
+
+  { code: PERMISSIONS.AUDIT_LOG_READ, description: 'View the platform audit log (read-only).' },
 ];

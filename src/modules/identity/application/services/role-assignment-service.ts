@@ -9,6 +9,7 @@ import { requirePermission } from '../../authorization/authorization-service';
 import { PERMISSIONS } from '../../domain/permission-catalog';
 import { SYSTEM_ROLE_CODES } from '../../domain/role-catalog';
 import {
+  LastAdministratorError,
   RoleNotAssignedError,
   RoleNotFoundError,
   SelfRoleEscalationError,
@@ -102,6 +103,13 @@ export async function revokeRole(input: RevokeRoleInput): Promise<UserRole> {
     const existing = await rbacRepository.findUserRoleAssignment(tx, userId, role.id);
     if (!existing || existing.revokedAt !== null) {
       throw new RoleNotAssignedError(roleCode);
+    }
+
+    if (roleCode === SYSTEM_ROLE_CODES.ADMINISTRATOR) {
+      const activeAdminCount = await rbacRepository.countActiveRoleAssignments(tx, role.id);
+      if (activeAdminCount <= 1) {
+        throw new LastAdministratorError();
+      }
     }
 
     const revoked = await rbacRepository.revokeRoleAssignment(tx, {

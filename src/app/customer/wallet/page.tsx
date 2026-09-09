@@ -29,7 +29,9 @@ export default function CustomerWalletPage() {
   const [instantReceipts, setInstantReceipts] = useState<boolean>(true);
 
   // Ledger state
-  const [activeTab, setActiveTab] = useState<'all' | 'rides' | 'reloads' | 'fastag' | 'refunds'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'rides' | 'reloads' | 'fastag' | 'refunds'>(
+    'all',
+  );
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -198,8 +200,8 @@ export default function CustomerWalletPage() {
               Wallet &amp; Corporate Payment Hub
             </h1>
             <p className="text-sm text-[#bccac0] max-w-2xl mt-1">
-              Manage your mobility liquidity, automated trip debits, corporate billing profiles,
-              and FASTag toll escrow.
+              Manage your mobility liquidity, automated trip debits, corporate billing profiles, and
+              FASTag toll escrow.
             </p>
           </div>
           <div className="flex items-center gap-3 self-start md:self-auto">
@@ -676,7 +678,7 @@ export default function CustomerWalletPage() {
                     onClick={() => {
                       setZeroClickSettlement(!zeroClickSettlement);
                       showToast(
-                        `Zero-click settlement ${!zeroClickSettlement ? 'enabled' : 'disabled'}`
+                        `Zero-click settlement ${!zeroClickSettlement ? 'enabled' : 'disabled'}`,
                       );
                     }}
                     className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 flex-shrink-0 ${
@@ -706,7 +708,7 @@ export default function CustomerWalletPage() {
                     onClick={() => {
                       setInstantReceipts(!instantReceipts);
                       showToast(
-                        `Instant digital receipts ${!instantReceipts ? 'enabled' : 'disabled'}`
+                        `Instant digital receipts ${!instantReceipts ? 'enabled' : 'disabled'}`,
                       );
                     }}
                     className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 flex-shrink-0 ${
@@ -775,9 +777,7 @@ export default function CustomerWalletPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      showToast('Consolidated GST tax invoices exported to PDF/Excel')
-                    }
+                    onClick={() => showToast('Consolidated GST tax invoices exported to PDF/Excel')}
                     className="flex items-center gap-1 bg-[#68dba9] text-[#003825] hover:bg-[#85f8c4] px-3 py-1.5 rounded-xl transition-colors font-mono text-xs font-bold"
                   >
                     <span className="material-symbols-outlined text-sm">receipt</span>
