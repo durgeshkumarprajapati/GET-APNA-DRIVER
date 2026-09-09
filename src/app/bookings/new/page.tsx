@@ -154,7 +154,11 @@ export default function BookDriverPage() {
                 ? 'MULTI_DAY'
                 : 'ONE_WAY',
           estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
-          customerNotes: `Driver preference: ${selectedDriver.name} (${vehicleClass.toUpperCase()} ${transmission.toUpperCase()})`,
+          // Vehicle class/transmission and the sample driver preview above
+          // are not real, honored preferences — the backend has no
+          // preferred/requested-driver concept (matching is purely
+          // nearest-available), so we deliberately do not fabricate a
+          // "driver preference" note implying otherwise.
         }),
       });
 
@@ -461,19 +465,23 @@ export default function BookDriverPage() {
               </div>
             </div>
 
-            {/* Available Drivers List */}
+            {/* Sample Drivers List — illustrative only; see disclaimer below */}
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between px-1">
+              <div className="flex items-center justify-between px-1 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                    Available Chauffeurs
+                    Sample Chauffeurs Near You
                   </h3>
-                  <span className="bg-[#68dba9]/20 text-[#68dba9] font-mono text-[10px] px-2 py-0.5 rounded-full">
-                    3 Ready for Dispatch
+                  <span className="bg-[#262a33] text-[#87948b] font-mono text-[10px] px-2 py-0.5 rounded-full">
+                    Illustrative
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-[#bccac0]">Live Radian Sort</span>
               </div>
+              <p className="text-[10px] text-[#87948b] px-1">
+                These profiles are for illustration only. After you confirm, we automatically match
+                you with the nearest available driver — this preview does not reserve or guarantee a
+                specific chauffeur.
+              </p>
 
               {drivers.map((drv) => {
                 const isSelected = selectedDriverId === drv.id;
@@ -637,7 +645,7 @@ export default function BookDriverPage() {
                 ) : (
                   <span className="material-symbols-outlined text-base">rocket_launch</span>
                 )}
-                <span>Confirm & Dispatch {selectedDriver.name}</span>
+                <span>Confirm Booking Request</span>
               </button>
             </div>
           </section>
@@ -845,8 +853,8 @@ export default function BookDriverPage() {
                         .map((n) => n[0])
                         .join('')}
                     </div>
-                    <span className="absolute -top-1 -left-1 bg-[#68dba9] text-[#003825] text-[9px] font-bold px-1 py-0.2 rounded">
-                      TOP PICK
+                    <span className="absolute -top-1 -left-1 bg-[#262a33] text-[#87948b] text-[9px] font-bold px-1 py-0.2 rounded">
+                      SAMPLE
                     </span>
                   </div>
                   <div className="min-w-0">
@@ -889,8 +897,8 @@ export default function BookDriverPage() {
                     disabled={loading}
                     className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs flex items-center gap-1.5 transition-colors shadow font-['Space_Grotesk']"
                   >
-                    <span className="material-symbols-outlined text-base">lock</span>
-                    <span>Lock {selectedDriver.name.split(' ')[0]}</span>
+                    <span className="material-symbols-outlined text-base">rocket_launch</span>
+                    <span>Confirm Booking Request</span>
                   </button>
                 </div>
               </div>
