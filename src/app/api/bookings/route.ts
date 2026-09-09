@@ -1,59 +1,61 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { BookingType } from '@prisma/client';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { createBooking, listCustomerBookings } from '@/modules/booking/application/booking-service';
 import { DuplicateBookingIdempotencyError } from '@/modules/booking/domain/errors';
 
+const locationSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  address: z.string().trim().min(1).max(500),
+  label: z.string().trim().max(200).nullable().optional(),
+});
+
+const createBookingSchema = z.object({
+  pickupLocation: locationSchema,
+  dropoffLocation: locationSchema.nullable().optional(),
+  bookingType: z.enum(BookingType).optional(),
+  requestedStartTime: z.string().datetime().nullable().optional(),
+  estimatedDurationMinutes: z.number().int().min(0).max(10_080).nullable().optional(),
+  customerNotes: z.string().trim().max(2000).nullable().optional(),
+  numberOfDays: z.number().int().min(1).max(60).nullable().optional(),
+  hourlyPackageHours: z.number().int().min(1).max(24).nullable().optional(),
+  returnDate: z.string().datetime().nullable().optional(),
+  idempotencyKey: z.string().trim().max(200).nullable().optional(),
+});
+
 export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
   try {
     const body = await req.json();
-    const idempotencyKey = req.headers.get('x-idempotency-key') || body.idempotencyKey || null;
-
-    if (
-      !body.pickupLocation ||
-      typeof body.pickupLocation.latitude !== 'number' ||
-      typeof body.pickupLocation.longitude !== 'number' ||
-      !body.pickupLocation.address
-    ) {
-      return NextResponse.json(
-        {
-          error: 'INVALID_INPUT',
-          message: 'Valid pickupLocation with latitude, longitude, and address is required.',
-        },
-        { status: 400 },
-      );
-    }
+    const parsed = createBookingSchema.parse(body);
+    const idempotencyKey = req.headers.get('x-idempotency-key') || parsed.idempotencyKey || null;
 
     const booking = await createBooking(
       principal.userId,
       {
-        pickupLocation: {
-          latitude: body.pickupLocation.latitude,
-          longitude: body.pickupLocation.longitude,
-          address: body.pickupLocation.address,
-          label: body.pickupLocation.label,
-        },
-        dropoffLocation: body.dropoffLocation
-          ? {
-              latitude: body.dropoffLocation.latitude,
-              longitude: body.dropoffLocation.longitude,
-              address: body.dropoffLocation.address,
-              label: body.dropoffLocation.label,
-            }
-          : null,
-        bookingType: body.bookingType,
-        requestedStartTime: body.requestedStartTime,
-        estimatedDurationMinutes: body.estimatedDurationMinutes,
-        customerNotes: body.customerNotes,
-        numberOfDays: body.numberOfDays,
-        hourlyPackageHours: body.hourlyPackageHours,
-        returnDate: body.returnDate,
+        pickupLocation: parsed.pickupLocation,
+        dropoffLocation: parsed.dropoffLocation ?? null,
+        bookingType: parsed.bookingType,
+        requestedStartTime: parsed.requestedStartTime,
+        estimatedDurationMinutes: parsed.estimatedDurationMinutes,
+        customerNotes: parsed.customerNotes,
+        numberOfDays: parsed.numberOfDays,
+        hourlyPackageHours: parsed.hourlyPackageHours,
+        returnDate: parsed.returnDate,
       },
       idempotencyKey,
     );
 
     return NextResponse.json({ booking }, { status: 201 });
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'INVALID_INPUT', message: 'Invalid booking request.', issues: err.issues },
+        { status: 400 },
+      );
+    }
     if (err instanceof DuplicateBookingIdempotencyError) {
       return NextResponse.json(
         { error: 'DUPLICATE_IDEMPOTENCY', message: err.message },

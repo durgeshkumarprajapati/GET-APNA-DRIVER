@@ -13,6 +13,8 @@ import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { createNotification } from './notification-service';
 import { CreateCampaignInput } from '../domain/types';
 
+const CAMPAIGN_DISPATCH_CONCURRENCY = 20;
+
 export async function createCampaign(
   actorUserId: string,
   input: CreateCampaignInput,
@@ -188,26 +190,44 @@ export async function processCampaignDispatch(campaignId: string, db: Db = prism
   let totalSent = 0;
   let totalFailed = 0;
 
-  for (const userId of targetUserIds) {
-    try {
-      await createNotification(
-        {
-          userId,
-          type: NotificationType.SYSTEM_ANNOUNCEMENT,
-          title: campaign.title,
-          body: campaign.body,
-          campaignId: campaign.id,
-          idempotencyKey: `campaign-${campaign.id}-${userId}`,
-        },
-        db,
-      );
-      totalSent++;
-    } catch (err) {
-      totalFailed++;
-      logger.error(
-        { campaignId, userId, error: err },
-        'Failed to dispatch campaign notification to user',
-      );
+  // Previously a single fully-sequential `for` loop, issuing on the order of
+  // 4-8 sequential DB round trips per recipient (idempotency check, insert,
+  // delivery record, preference lookup, push fan-out) — a broadcast to N
+  // users took roughly N times as long as it needed to. Dispatched in
+  // fixed-size concurrent chunks instead: still bounded (never more than
+  // CAMPAIGN_DISPATCH_CONCURRENCY notifications in flight at once, so this
+  // doesn't overwhelm the DB/Redis connection pool the way a single
+  // unbounded Promise.all over the whole audience would), but each chunk
+  // completes in parallel rather than one-at-a-time.
+  for (let i = 0; i < targetUserIds.length; i += CAMPAIGN_DISPATCH_CONCURRENCY) {
+    const chunk = targetUserIds.slice(i, i + CAMPAIGN_DISPATCH_CONCURRENCY);
+    const results = await Promise.allSettled(
+      chunk.map((userId) =>
+        createNotification(
+          {
+            userId,
+            type: NotificationType.SYSTEM_ANNOUNCEMENT,
+            title: campaign.title,
+            body: campaign.body,
+            campaignId: campaign.id,
+            idempotencyKey: `campaign-${campaign.id}-${userId}`,
+          },
+          db,
+        ),
+      ),
+    );
+
+    for (let j = 0; j < results.length; j++) {
+      const result = results[j];
+      if (result.status === 'fulfilled') {
+        totalSent++;
+      } else {
+        totalFailed++;
+        logger.error(
+          { campaignId, userId: chunk[j], error: result.reason },
+          'Failed to dispatch campaign notification to user',
+        );
+      }
     }
   }
 

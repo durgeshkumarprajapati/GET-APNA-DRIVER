@@ -32,6 +32,8 @@ import {
   toPrismaJson,
 } from '@/modules/pricing/application/pricing-quote-service';
 
+const MAX_CUSTOMER_BOOKINGS_RETURNED = 200;
+
 export interface BookingDetail {
   id: string;
   idempotencyKey: string | null;
@@ -219,9 +221,15 @@ export async function createBooking(
 
 /**
  * Fetches a single booking detail with ownership authorization validation.
+ * BOOKINGS_READ is granted broadly to both CUSTOMER and DRIVER roles, so the
+ * permission check alone does not scope access to the caller's own
+ * booking — this function must (and does) additionally verify the caller is
+ * either the booking's customer or its assigned driver. Not-found (rather
+ * than forbidden) is thrown for a non-owner to avoid leaking booking
+ * existence, matching the pattern used elsewhere (e.g. review-service.ts).
  */
 export async function getBookingById(
-  _userId: string,
+  userId: string,
   bookingId: string,
   db: Db = prisma,
 ): Promise<BookingDetail> {
@@ -234,11 +242,22 @@ export async function getBookingById(
     throw new BookingNotFoundError(bookingId);
   }
 
+  const isOwnerCustomer = booking.customerId === userId;
+  const isAssignedDriver = booking.driverProfile?.userId === userId;
+  if (!isOwnerCustomer && !isAssignedDriver) {
+    throw new BookingNotFoundError(bookingId);
+  }
+
   return mapBookingToDetail(booking);
 }
 
 /**
- * Lists all active and past bookings for a customer.
+ * Lists all active and past bookings for a customer, most recent first.
+ * Capped at MAX_CUSTOMER_BOOKINGS_RETURNED — was previously fully
+ * unbounded, growing without limit as a long-lived customer accumulates
+ * bookings. A hard cap (rather than a page/pageSize response-shape change)
+ * keeps this backward-compatible with the existing `/bookings` list page,
+ * which expects a flat array.
  */
 export async function listCustomerBookings(
   customerUserId: string,
@@ -248,6 +267,7 @@ export async function listCustomerBookings(
     where: { customerId: customerUserId },
     include: { driverProfile: true },
     orderBy: { createdAt: 'desc' },
+    take: MAX_CUSTOMER_BOOKINGS_RETURNED,
   });
 
   return bookings.map(mapBookingToDetail);
@@ -255,6 +275,9 @@ export async function listCustomerBookings(
 
 /**
  * Cancels a booking. Server-authoritative cancellation rule enforcement.
+ * Customer-initiated cancellation only — the caller must own the booking.
+ * (Operator-initiated cancellation of any booking is a separate, audited
+ * flow: dispatch-service.ts's cancelBookingByOperator.)
  */
 export async function cancelBooking(
   userId: string,
@@ -266,6 +289,10 @@ export async function cancelBooking(
     where: { id: bookingId },
     include: { driverProfile: true },
   });
+
+  if (booking && booking.customerId !== userId) {
+    throw new BookingNotFoundError(bookingId);
+  }
 
   if (!booking) {
     throw new BookingNotFoundError(bookingId);

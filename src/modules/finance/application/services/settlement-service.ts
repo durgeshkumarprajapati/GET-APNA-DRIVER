@@ -400,6 +400,8 @@ export async function listDriverSettlements(
   const settlements = await db.driverSettlement.findMany({
     where: { driverProfileId },
     orderBy: { createdAt: 'desc' },
+    // Previously unbounded.
+    take: 200,
   });
   return settlements.map(mapSettlementToSummary);
 }

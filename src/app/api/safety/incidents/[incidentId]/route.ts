@@ -2,7 +2,10 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
-import { getSafetyIncidentById } from '@/modules/safety/application/safety-incident-service';
+import {
+  getSafetyIncidentById,
+  isAuthorizedToViewIncident,
+} from '@/modules/safety/application/safety-incident-service';
 
 type RouteParams = { params: Promise<{ incidentId: string }> };
 
@@ -17,12 +20,8 @@ export const GET = withPermission<RouteParams>(
     }
 
     // Customer/Driver privacy check: must be reporter, customer, or assigned driver
-    const isReporter = incident.reporterUserId === principal.userId;
-    const isCustomer = incident.customerId === principal.userId;
-    const isDriver = incident.booking?.driverProfileId && incident.driverProfileId;
     const isAdmin = principal.permissions.includes(PERMISSIONS.SAFETY_INCIDENT_MANAGE);
-
-    if (!isReporter && !isCustomer && !isDriver && !isAdmin) {
+    if (!isAuthorizedToViewIncident(incident, principal.userId) && !isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

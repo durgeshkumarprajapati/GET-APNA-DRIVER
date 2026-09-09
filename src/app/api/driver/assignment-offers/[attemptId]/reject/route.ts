@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { rejectAssignmentOffer } from '@/modules/booking/application/assignment-service';
@@ -9,6 +10,10 @@ import {
 
 type RouteParams = { params: Promise<{ attemptId: string }> };
 
+const rejectOfferSchema = z.object({
+  reason: z.string().trim().min(1).max(500).optional(),
+});
+
 export const POST = withPermission<RouteParams>(
   PERMISSIONS.DRIVER_ASSIGNMENT_RESPOND,
   async (req, { principal }, routeContext) => {
@@ -17,9 +22,19 @@ export const POST = withPermission<RouteParams>(
       let reason: string | undefined;
       try {
         const body = await req.json();
-        reason = body.reason;
-      } catch {
-        // Body optional
+        reason = rejectOfferSchema.parse(body).reason;
+      } catch (parseErr) {
+        if (parseErr instanceof z.ZodError) {
+          return NextResponse.json(
+            {
+              error: 'INVALID_INPUT',
+              message: 'Invalid rejection reason.',
+              issues: parseErr.issues,
+            },
+            { status: 400 },
+          );
+        }
+        // Body optional / not JSON — proceed with no reason.
       }
 
       await rejectAssignmentOffer(principal.userId, attemptId, reason);

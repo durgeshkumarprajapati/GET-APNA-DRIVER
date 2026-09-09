@@ -2,7 +2,8 @@ import 'server-only';
 import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { env } from '@/shared/config/env';
-import { toErrorResponse } from '@/shared/errors/app-error';
+import { toErrorResponse, AppError } from '@/shared/errors/app-error';
+import { logger } from '@/shared/logging/logger';
 import { getPrincipalFromSessionToken } from '../application/services/principal-service';
 import { requireAuthenticatedUser, requireRole, requirePermission } from './authorization-service';
 import type { AuthenticatedPrincipal } from '../domain/types';
@@ -47,16 +48,52 @@ export async function getPrincipalFromRequest(
 }
 
 /**
+ * Structured per-request log line: requestId (from middleware.ts, reused if
+ * the caller supplied one), route, method, resolved userId (once known),
+ * duration, and outcome status/error code. Every withAuth/withRole/
+ * withPermission-wrapped route gets this uniformly — that's the large
+ * majority of the app's API surface.
+ */
+function logOutcome(
+  req: NextRequest,
+  startedAt: number,
+  outcome: { statusCode: number; userId?: string; errorCode?: string },
+): void {
+  const durationMs = Date.now() - startedAt;
+  const level = outcome.statusCode >= 500 ? 'error' : outcome.statusCode >= 400 ? 'warn' : 'info';
+  logger[level](
+    {
+      requestId: req.headers.get('x-request-id') ?? undefined,
+      method: req.method,
+      route: req.nextUrl.pathname,
+      userId: outcome.userId,
+      statusCode: outcome.statusCode,
+      durationMs,
+      errorCode: outcome.errorCode,
+    },
+    'api_request',
+  );
+}
+
+/**
  * Wraps a route handler to require an active, authenticated user.
  */
 export function withAuth<P = unknown>(handler: AuthenticatedRouteHandler<P>) {
   return async (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
+    const startedAt = Date.now();
     try {
       const principal = await getPrincipalFromRequest(req);
       const authenticated = requireAuthenticatedUser(principal);
-      return await handler(req, { principal: authenticated }, routeContext);
+      const response = await handler(req, { principal: authenticated }, routeContext);
+      logOutcome(req, startedAt, { statusCode: response.status, userId: authenticated.userId });
+      return response;
     } catch (error: unknown) {
-      return toErrorResponse(error, req.nextUrl.pathname);
+      const response = toErrorResponse(error, req.nextUrl.pathname);
+      logOutcome(req, startedAt, {
+        statusCode: response.status,
+        errorCode: error instanceof AppError ? error.code : undefined,
+      });
+      return response;
     }
   };
 }
@@ -66,12 +103,20 @@ export function withAuth<P = unknown>(handler: AuthenticatedRouteHandler<P>) {
  */
 export function withRole<P = unknown>(roleCode: string, handler: AuthenticatedRouteHandler<P>) {
   return async (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
+    const startedAt = Date.now();
     try {
       const principal = await getPrincipalFromRequest(req);
       const authenticated = requireRole(principal, roleCode);
-      return await handler(req, { principal: authenticated }, routeContext);
+      const response = await handler(req, { principal: authenticated }, routeContext);
+      logOutcome(req, startedAt, { statusCode: response.status, userId: authenticated.userId });
+      return response;
     } catch (error: unknown) {
-      return toErrorResponse(error, req.nextUrl.pathname);
+      const response = toErrorResponse(error, req.nextUrl.pathname);
+      logOutcome(req, startedAt, {
+        statusCode: response.status,
+        errorCode: error instanceof AppError ? error.code : undefined,
+      });
+      return response;
     }
   };
 }
@@ -84,12 +129,20 @@ export function withPermission<P = unknown>(
   handler: AuthenticatedRouteHandler<P>,
 ) {
   return async (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
+    const startedAt = Date.now();
     try {
       const principal = await getPrincipalFromRequest(req);
       const authenticated = requirePermission(principal, permissionCode);
-      return await handler(req, { principal: authenticated }, routeContext);
+      const response = await handler(req, { principal: authenticated }, routeContext);
+      logOutcome(req, startedAt, { statusCode: response.status, userId: authenticated.userId });
+      return response;
     } catch (error: unknown) {
-      return toErrorResponse(error, req.nextUrl.pathname);
+      const response = toErrorResponse(error, req.nextUrl.pathname);
+      logOutcome(req, startedAt, {
+        statusCode: response.status,
+        errorCode: error instanceof AppError ? error.code : undefined,
+      });
+      return response;
     }
   };
 }

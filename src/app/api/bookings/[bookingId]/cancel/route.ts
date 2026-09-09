@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { cancelBooking } from '@/modules/booking/application/booking-service';
 import { BookingNotFoundError, BookingNotCancellableError } from '@/modules/booking/domain/errors';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
+
+const cancelBookingSchema = z.object({
+  reason: z.string().trim().min(1).max(500).optional(),
+});
 
 export const POST = withPermission<RouteParams>(
   PERMISSIONS.BOOKINGS_CANCEL,
@@ -14,9 +19,19 @@ export const POST = withPermission<RouteParams>(
       let reason: string | undefined;
       try {
         const body = await req.json();
-        reason = body.reason;
-      } catch {
-        // Body optional
+        reason = cancelBookingSchema.parse(body).reason;
+      } catch (parseErr) {
+        if (parseErr instanceof z.ZodError) {
+          return NextResponse.json(
+            {
+              error: 'INVALID_INPUT',
+              message: 'Invalid cancellation reason.',
+              issues: parseErr.issues,
+            },
+            { status: 400 },
+          );
+        }
+        // Body optional / not JSON — proceed with no reason.
       }
 
       const booking = await cancelBooking(principal.userId, bookingId, reason);

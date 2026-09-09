@@ -41,6 +41,25 @@ describe('Rate Limiter', () => {
     expect(result.remaining).toBe(0);
   });
 
+  it('reports resetSeconds matching the current TTL, so a caller can know when the window clears', async () => {
+    mockedIncr.mockResolvedValue(3);
+    mockedTtl.mockResolvedValue(37);
+
+    const result = await checkRateLimit('otp_request', '+911234567890', 5, 60);
+
+    expect(result.allowed).toBe(true);
+    expect(result.resetSeconds).toBe(37);
+  });
+
+  it('falls back to the full window as resetSeconds if Redis reports no TTL (e.g. key just expired)', async () => {
+    mockedIncr.mockResolvedValue(1);
+    mockedTtl.mockResolvedValue(-1);
+
+    const result = await checkRateLimit('otp_request', '+911234567890', 5, 60);
+
+    expect(result.resetSeconds).toBe(60);
+  });
+
   it('fails safe open when redis encounters error', async () => {
     mockedIncr.mockRejectedValue(new Error('Redis connection failed'));
 

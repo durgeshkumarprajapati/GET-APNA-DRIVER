@@ -159,7 +159,9 @@ export class OutboxDispatcherService {
   async runBatch(options: OutboxDispatcherOptions = {}, db: Db = prisma): Promise<number> {
     const batchSize =
       options.batchSize ?? (await getInteger('notification.outbox.batch_size', 50, db));
-    const events = await this.claimEvents(batchSize, options.lockTtlSeconds ?? 300, db);
+    const lockTtlSeconds =
+      options.lockTtlSeconds ?? (await getInteger('notification.outbox.lock_ttl_seconds', 300, db));
+    const events = await this.claimEvents(batchSize, lockTtlSeconds, db);
 
     let processedCount = 0;
     for (const event of events) {
