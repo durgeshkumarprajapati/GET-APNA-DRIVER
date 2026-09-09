@@ -30,6 +30,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/customer/find-driver', label: 'Find a Driver', icon: 'explore' },
       { href: '/customer/active-tracking', label: 'Active Ride & Tracking', icon: 'near_me' },
       { href: '/bookings', label: 'My Bookings', icon: 'calendar_month' },
+      { href: '/customer/reviews', label: 'My Reviews', icon: 'reviews' },
       { href: '/customer/favorites', label: 'Favorite Drivers', icon: 'star' },
     ],
   },

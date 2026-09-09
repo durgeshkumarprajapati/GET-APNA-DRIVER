@@ -20,6 +20,10 @@ function mapTypeToCategory(type: string): NotificationCategory {
   if (type.startsWith('BOOKING')) return 'BOOKING';
   if (type.startsWith('PAYMENT') || type.startsWith('FINANCE') || type.startsWith('SETTLEMENT'))
     return 'PAYMENT';
+  // Checked before the generic DRIVER* rule below: a received rating is not
+  // a safety-relevant event, so it must not inherit SAFETY's non-disableable
+  // delivery — it belongs with other general account activity.
+  if (type.startsWith('DRIVER_RATING')) return 'SYSTEM';
   if (type.startsWith('DRIVER')) return 'SAFETY';
   if (type.startsWith('SYSTEM_OFFER') || type.startsWith('SYSTEM_COUPON')) return 'PROMOTION';
   return 'SYSTEM';

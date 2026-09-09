@@ -644,6 +644,64 @@ export function registerNotificationEventHandlers(): void {
   );
 
   // -------------------------------------------------------------------------
+  // Reviews & Ratings Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'review.created',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const driverProfileId = payload.driverProfileId as string | undefined;
+      const rating = payload.rating as number | undefined;
+      if (!driverProfileId || !rating) return;
+      const client = db ?? prisma;
+
+      const driverProfile = await client.driverProfile.findUnique({
+        where: { id: driverProfileId },
+        select: { userId: true },
+      });
+      if (!driverProfile) return;
+
+      await createNotification(
+        {
+          userId: driverProfile.userId,
+          type: NotificationType.DRIVER_RATING_RECEIVED,
+          title: 'You Received a New Rating',
+          body: `A customer rated your recent trip ${rating} out of 5 stars.`,
+          data: { reviewId: payload.reviewId, rating },
+          idempotencyKey: `${event.id}-driver-rating-received`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'review.moderated',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const customerUserId = payload.customerUserId as string | undefined;
+      const newStatus = payload.newStatus as string | undefined;
+      if (!customerUserId || !newStatus) return;
+      const client = db ?? prisma;
+
+      const statusMessage =
+        newStatus === 'PUBLISHED'
+          ? 'Your review is visible again after moderation review.'
+          : 'Your review is no longer publicly visible following a moderation review.';
+
+      await createNotification(
+        {
+          userId: customerUserId,
+          type: NotificationType.REVIEW_MODERATED,
+          title: 'Your Review Was Moderated',
+          body: statusMessage,
+          data: { reviewId: payload.reviewId, newStatus },
+          idempotencyKey: `${event.id}-review-moderated`,
+        },
+        client,
+      );
+    },
+  );
+
+  // -------------------------------------------------------------------------
   // System Campaign Dispatch
   // -------------------------------------------------------------------------
   eventHandlerRegistry.register(
