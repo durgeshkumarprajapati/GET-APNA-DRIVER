@@ -69,6 +69,18 @@ export const PERMISSIONS = {
   NOTIFICATIONS_CAMPAIGN_SEND: 'notifications.campaign.send',
   NOTIFICATIONS_CAMPAIGN_CANCEL: 'notifications.campaign.cancel',
 
+  // Safety & Emergency (Phase 12 domain & admin)
+  SAFETY_INCIDENT_CREATE: 'safety.incident.create',
+  SAFETY_INCIDENT_READ: 'safety.incident.read',
+  SAFETY_INCIDENT_MANAGE: 'safety.incident.manage',
+  SAFETY_INCIDENT_ESCALATE: 'safety.incident.escalate',
+
+  // Dispute Resolution (Phase 12 domain & admin)
+  DISPUTE_CREATE: 'dispute.create',
+  DISPUTE_READ: 'dispute.read',
+  DISPUTE_MANAGE: 'dispute.manage',
+  DISPUTE_RESOLVE: 'dispute.resolve',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
 
@@ -202,6 +214,25 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.NOTIFICATIONS_CAMPAIGN_CANCEL,
     description: 'Cancel notification campaigns.',
   },
+
+  {
+    code: PERMISSIONS.SAFETY_INCIDENT_CREATE,
+    description: 'Trigger SOS and create safety incident.',
+  },
+  { code: PERMISSIONS.SAFETY_INCIDENT_READ, description: 'Read safety incidents and history.' },
+  {
+    code: PERMISSIONS.SAFETY_INCIDENT_MANAGE,
+    description: 'Acknowledge, assign, and manage safety incidents.',
+  },
+  {
+    code: PERMISSIONS.SAFETY_INCIDENT_ESCALATE,
+    description: 'Escalate safety emergency incidents.',
+  },
+
+  { code: PERMISSIONS.DISPUTE_CREATE, description: 'Create booking dispute.' },
+  { code: PERMISSIONS.DISPUTE_READ, description: 'Read booking disputes.' },
+  { code: PERMISSIONS.DISPUTE_MANAGE, description: 'Review and assign booking disputes.' },
+  { code: PERMISSIONS.DISPUTE_RESOLVE, description: 'Resolve dispute with financial actions.' },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
 

@@ -82,6 +82,13 @@ model User {
   notifications           Notification[]
   pushSubscriptions       PushSubscription[]
   notificationPreferences NotificationPreference[]
+  reporterSafetyIncidents SafetyIncident[]         @relation("ReporterSafetyIncidents")
+  customerSafetyIncidents SafetyIncident[]         @relation("CustomerSafetyIncidents")
+  assignedSafetyIncidents SafetyIncident[]         @relation("AssignedSafetyIncidents")
+  safetyTimelineEntries   SafetyIncidentTimeline[]
+  userRaisedDisputes      Dispute[]                @relation("UserRaisedDisputes")
+  assignedDisputes        Dispute[]                @relation("AssignedDisputes")
+  disputeLogs             DisputeLog[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -554,6 +561,7 @@ model DriverProfile {
   assignmentAttempts BookingAssignmentAttempt[]
   wallet             DriverWallet?
   settlements        DriverSettlement[]
+  safetyIncidents    SafetyIncident[]        @relation("DriverSafetyIncidents")
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -756,6 +764,8 @@ model Booking {
   assignmentAttempts BookingAssignmentAttempt[]
   bookingLogs        BookingLog[]
   payments           Payment[]
+  safetyIncidents    SafetyIncident[]        @relation("BookingSafetyIncidents")
+  disputes           Dispute[]               @relation("BookingDisputes")
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -1264,6 +1274,11 @@ enum NotificationType {
   SYSTEM_ANNOUNCEMENT
   SYSTEM_OFFER
   SYSTEM_COUPON
+  SAFETY_SOS_TRIGGERED
+  SAFETY_INCIDENT_UPDATED
+  DISPUTE_CREATED
+  DISPUTE_UPDATED
+  DISPUTE_RESOLVED
 
   @@map("notification_type")
 }
@@ -1435,5 +1450,184 @@ model NotificationCampaign {
   @@index([status, scheduledAt])
   @@map("notification_campaigns")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 12: SOS Safety, Emergency Response & Dispute Resolution
+// ---------------------------------------------------------------------------
+
+enum SafetyIncidentType {
+  SOS_EMERGENCY
+  ACCIDENT
+  MEDICAL_EMERGENCY
+  THREAT
+  HARASSMENT
+  VEHICLE_BREAKDOWN
+  UNSAFE_BEHAVIOR
+  OTHER
+
+  @@map("safety_incident_type")
+}
+
+enum SafetyIncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("safety_incident_severity")
+}
+
+enum SafetyIncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  INVESTIGATING
+  RESOLVED
+  ESCALATED
+
+  @@map("safety_incident_status")
+}
+
+enum DisputeCategory {
+  PAYMENT_ISSUE
+  FARE_DISPUTE
+  DRIVER_CONDUCT
+  CUSTOMER_CONDUCT
+  TRIP_ROUTE
+  CANCELLATION
+  DAMAGE
+  OTHER
+
+  @@map("dispute_category")
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  ESCALATED
+  CANCELLED
+
+  @@map("dispute_status")
+}
+
+/// Safety incident recorded by customer or driver during/after trip, or via explicit SOS.
+model SafetyIncident {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentNumber String                 @unique @map("incident_number")
+  type           SafetyIncidentType     @default(SOS_EMERGENCY)
+  severity       SafetyIncidentSeverity @default(CRITICAL)
+  status         SafetyIncidentStatus   @default(OPEN)
+
+  bookingId String?  @map("booking_id") @db.Uuid
+  booking   Booking? @relation("BookingSafetyIncidents", fields: [bookingId], references: [id], onDelete: SetNull)
+
+  reporterUserId String @map("reporter_user_id") @db.Uuid
+  reporterUser   User   @relation("ReporterSafetyIncidents", fields: [reporterUserId], references: [id], onDelete: Cascade)
+
+  customerId String? @map("customer_id") @db.Uuid
+  customer   User?   @relation("CustomerSafetyIncidents", fields: [customerId], references: [id], onDelete: SetNull)
+
+  driverProfileId String?        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile? @relation("DriverSafetyIncidents", fields: [driverProfileId], references: [id], onDelete: SetNull)
+
+  assignedOperatorId String? @map("assigned_operator_id") @db.Uuid
+  assignedOperator   User?   @relation("AssignedSafetyIncidents", fields: [assignedOperatorId], references: [id], onDelete: SetNull)
+
+  latitude         Float?  @map("latitude")
+  longitude        Float?  @map("longitude")
+  locationAccuracy Float?  @map("location_accuracy")
+  snapshotAddress  String? @map("snapshot_address")
+
+  description       String?
+  resolutionSummary String?   @map("resolution_summary")
+  idempotencyKey    String?   @unique @map("idempotency_key")
+
+  acknowledgedAt DateTime? @map("acknowledged_at") @db.Timestamptz(6)
+  resolvedAt     DateTime? @map("resolved_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  timelineEntries SafetyIncidentTimeline[]
+
+  @@index([status, severity, createdAt])
+  @@index([bookingId])
+  @@index([reporterUserId])
+  @@index([customerId])
+  @@index([driverProfileId])
+  @@map("safety_incidents")
+}
+
+/// Immutable timeline logs for safety incident workflow actions and status updates.
+model SafetyIncidentTimeline {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentId String         @map("incident_id") @db.Uuid
+  incident   SafetyIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  action      String
+  fromStatus  SafetyIncidentStatus? @map("from_status")
+  toStatus    SafetyIncidentStatus? @map("to_status")
+  performedBy String                @map("performed_by") @db.Uuid
+  actorUser   User                  @relation(fields: [performedBy], references: [id], onDelete: Cascade)
+  notes       String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([incidentId, createdAt])
+  @@map("safety_incident_timelines")
+}
+
+/// Customer or driver raised dispute regarding a booking, fare, or conduct.
+model Dispute {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeNumber  String          @unique @map("dispute_number")
+  bookingId      String          @map("booking_id") @db.Uuid
+  booking        Booking         @relation("BookingDisputes", fields: [bookingId], references: [id], onDelete: Cascade)
+  raisedByUserId String          @map("raised_by_user_id") @db.Uuid
+  raisedByUser   User            @relation("UserRaisedDisputes", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+
+  assignedOperatorId String? @map("assigned_operator_id") @db.Uuid
+  assignedOperator   User?   @relation("AssignedDisputes", fields: [assignedOperatorId], references: [id], onDelete: SetNull)
+
+  category DisputeCategory @default(PAYMENT_ISSUE)
+  status   DisputeStatus   @default(OPEN)
+
+  reason                     String
+  evidenceUrls               Json?     @map("evidence_urls") @db.JsonB
+  resolutionSummary          String?   @map("resolution_summary")
+  refundAmountMinorUnits     Int?      @map("refund_amount_minor_units")
+  financialAdjustmentSummary String?   @map("financial_adjustment_summary")
+
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  logs DisputeLog[]
+
+  @@index([status, category, createdAt])
+  @@index([bookingId])
+  @@index([raisedByUserId])
+  @@map("disputes")
+}
+
+/// Audit/timeline logs for dispute status transitions and operator notes.
+model DisputeLog {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeId   String         @map("dispute_id") @db.Uuid
+  dispute     Dispute        @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  action      String
+  fromStatus  DisputeStatus? @map("from_status")
+  toStatus    DisputeStatus? @map("to_status")
+  performedBy String         @map("performed_by") @db.Uuid
+  actorUser   User           @relation(fields: [performedBy], references: [id], onDelete: Cascade)
+  notes       String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([disputeId, createdAt])
+  @@map("dispute_logs")
+}
+
 
 

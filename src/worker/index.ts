@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { logger } from '@/shared/logging/logger';
 import { outboxDispatcherService } from './outbox/outbox-dispatcher-service';
 import { registerNotificationEventHandlers } from './jobs/notification-event-handlers';
+import { registerSafetyAndDisputeEventHandlers } from './jobs/safety-dispute-event-handlers';
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 
 async function bootstrapWorker(): Promise<void> {
@@ -12,6 +13,7 @@ async function bootstrapWorker(): Promise<void> {
 
   // 1. Register domain outbox event handlers
   registerNotificationEventHandlers();
+  registerSafetyAndDisputeEventHandlers();
 
   let isRunning = true;
 
