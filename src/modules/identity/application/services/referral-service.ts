@@ -1,10 +1,20 @@
 import 'server-only';
-import { ReferralStatus, type Referral, type UserReferralCode } from '@prisma/client';
+import {
+  ReferralStatus,
+  FinancialTransactionType,
+  WalletChangeType,
+  type Referral,
+  type UserReferralCode,
+} from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { getDecimal } from '@/shared/config/configuration-service';
 import { generateRandomToken } from '../../security/tokens';
+
+import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
+import { applyWalletChange } from '@/modules/finance/application/services/wallet-service';
+import { LEDGER_ACCOUNT_CODES } from '@/modules/finance/domain/ledger-accounts';
 
 export interface ApplyReferralCodeInput {
   referredUserId: string;
@@ -108,7 +118,7 @@ export interface QualifyReferralInput {
 }
 
 /**
- * Idempotently qualifies and rewards a pending referral upon qualifying milestone.
+ * Idempotently qualifies and rewards a pending referral upon qualifying milestone via double-entry ledger.
  */
 export async function evaluateAndQualifyReferral(
   input: QualifyReferralInput,
@@ -131,7 +141,15 @@ export async function evaluateAndQualifyReferral(
   const defaultAmount = trigger === 'DRIVER_APPROVED_ONBOARDING' ? 500 : 200;
 
   const rewardAmount = await getDecimal(configKey, defaultAmount, db);
+  const rewardAmountStr = rewardAmount.toFixed(4);
   const now = new Date();
+
+  // Find referrer driver profile if exists for wallet posting
+  const referrerDriverProfile = db.driverProfile
+    ? await db.driverProfile.findUnique({
+        where: { userId: referral.referrerUserId },
+      })
+    : null;
 
   const updatedReferral = await db.$transaction(async (tx) => {
     const updated = await tx.referral.update({
@@ -144,6 +162,44 @@ export async function evaluateAndQualifyReferral(
       },
     });
 
+    // Financial recognition via double-entry ledger
+    const rewardTransaction = await postFinancialTransaction(
+      {
+        transactionType: FinancialTransactionType.PAYMENT_CAPTURED,
+        referenceEntityType: 'Referral',
+        referenceEntityId: referral.id,
+        idempotencyKey: `ref-reward-${referral.id}`,
+        description: `Referral bonus for referring user ${referral.referredUserId}`,
+        postings: [
+          {
+            accountCode: LEDGER_ACCOUNT_CODES.MARKETING_REFERRAL_EXPENSE,
+            debitAmount: rewardAmountStr,
+            creditAmount: '0.0000',
+          },
+          {
+            accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+            debitAmount: '0.0000',
+            creditAmount: rewardAmountStr,
+          },
+        ],
+      },
+      tx,
+    );
+
+    // Credit driver wallet if referrer is an onboarded driver
+    if (referrerDriverProfile) {
+      await applyWalletChange(
+        {
+          driverProfileId: referrerDriverProfile.id,
+          financialTransactionId: rewardTransaction.id,
+          changeType: WalletChangeType.EARNING_RECOGNIZED,
+          availableDelta: rewardAmountStr,
+          totalEarnedDelta: rewardAmountStr,
+        },
+        tx,
+      );
+    }
+
     await recordAuditLog(tx, {
       actorUserId: referral.referrerUserId,
       action: 'identity.referral_rewarded',
@@ -152,7 +208,7 @@ export async function evaluateAndQualifyReferral(
       beforeState: { status: ReferralStatus.PENDING },
       afterState: {
         status: ReferralStatus.REWARDED,
-        rewardAmount: rewardAmount.toString(),
+        rewardAmount: rewardAmountStr,
         trigger,
       },
     });
@@ -165,7 +221,7 @@ export async function evaluateAndQualifyReferral(
         referralId: referral.id,
         referrerUserId: referral.referrerUserId,
         referredUserId: referral.referredUserId,
-        rewardAmount: rewardAmount.toString(),
+        rewardAmount: rewardAmountStr,
         trigger,
       },
     });

@@ -44,7 +44,7 @@ export async function postFinancialTransaction(
     throw new UnbalancedLedgerTransactionError(totalDebits.toFixed(4), totalCredits.toFixed(4));
   }
 
-  return db.$transaction(async (tx: Db) => {
+  const runInTx = async (tx: Db) => {
     const transaction = await tx.financialTransaction.create({
       data: {
         transactionType: input.transactionType,
@@ -58,23 +58,39 @@ export async function postFinancialTransaction(
     });
 
     for (const posting of input.postings) {
-      const account = await tx.ledgerAccount.findUnique({ where: { code: posting.accountCode } });
+      const account = await tx.ledgerAccount.findUnique({
+        where: { code: posting.accountCode },
+      });
       if (!account) {
         throw new LedgerAccountNotFoundError(posting.accountCode);
       }
+
+      const isDebitZero = toDecimal(posting.debitAmount).isZero();
+      const amountDecimal = isDebitZero
+        ? toDecimal(posting.creditAmount)
+        : toDecimal(posting.debitAmount);
+      const amountRounded = roundMoney(amountDecimal).toFixed(4);
 
       await tx.ledgerEntry.create({
         data: {
           financialTransactionId: transaction.id,
           ledgerAccountId: account.id,
-          debitAmount: posting.debitAmount,
-          creditAmount: posting.creditAmount,
+          amount: amountRounded,
+          direction: isDebitZero ? 'CREDIT' : 'DEBIT',
         },
       });
     }
 
     return transaction;
-  });
+  };
+
+  const dbWithTx = db as unknown as {
+    $transaction: (cb: (tx: Db) => Promise<FinancialTransaction>) => Promise<FinancialTransaction>;
+  };
+  if ('$transaction' in db && typeof dbWithTx.$transaction === 'function') {
+    return dbWithTx.$transaction(runInTx);
+  }
+  return runInTx(db);
 }
 
 /** Admin visibility into posted financial transactions and their ledger lines. */

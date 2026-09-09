@@ -26,9 +26,36 @@ export interface BookingAmountResult {
  * retroactively change an already-created payment's amount.
  */
 export async function calculateBookingAmount(
-  booking: Pick<Booking, 'estimatedDurationMinutes'>,
+  booking: Partial<Booking> & { estimatedDurationMinutes?: number | null },
   db: Db = prisma,
 ): Promise<BookingAmountResult> {
+  // If Phase 15 pricing engine calculated an explicit final or estimated fare amount on the booking
+  if (booking.finalFareAmount) {
+    const amt = toDecimal(booking.finalFareAmount.toString());
+    return {
+      amount: roundMoney(amt).toFixed(4),
+      breakdown: {
+        baseFareAmount: roundMoney(amt).toFixed(4),
+        perMinuteRate: '0.0000',
+        estimatedDurationMinutes: booking.estimatedDurationMinutes ?? null,
+        minimumFareAmount: roundMoney(amt).toFixed(4),
+      },
+    };
+  }
+
+  if (booking.estimatedFareAmount) {
+    const amt = toDecimal(booking.estimatedFareAmount.toString());
+    return {
+      amount: roundMoney(amt).toFixed(4),
+      breakdown: {
+        baseFareAmount: roundMoney(amt).toFixed(4),
+        perMinuteRate: '0.0000',
+        estimatedDurationMinutes: booking.estimatedDurationMinutes ?? null,
+        minimumFareAmount: roundMoney(amt).toFixed(4),
+      },
+    };
+  }
+
   const [baseFareRaw, perMinuteRateRaw, minimumFareRaw] = await Promise.all([
     getString('finance.pricing.base_fare_amount', '100.0000', db),
     getString('finance.pricing.per_minute_rate', '3.0000', db),

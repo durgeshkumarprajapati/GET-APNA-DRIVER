@@ -26,6 +26,12 @@ import {
   DuplicateBookingIdempotencyError,
 } from '../domain/errors';
 
+import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calculation-service';
+import {
+  createPricingQuoteSnapshot,
+  toPrismaJson,
+} from '@/modules/pricing/application/pricing-quote-service';
+
 export interface BookingDetail {
   id: string;
   idempotencyKey: string | null;
@@ -39,6 +45,20 @@ export interface BookingDetail {
     address: string;
     label: string | null;
   };
+  dropoffLocation?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    label: string | null;
+  } | null;
+  numberOfDays?: number | null;
+  hourlyPackageHours?: number | null;
+  returnDate?: Date | null;
+  estimatedDistanceKm?: number | null;
+  estimatedFareAmount?: string | null;
+  finalFareAmount?: string | null;
+  pricingSnapshot?: Prisma.JsonValue;
+  routeEstimateSnapshot?: Prisma.JsonValue;
   requestedStartTime: Date | null;
   estimatedDurationMinutes: number | null;
   customerNotes: string | null;
@@ -60,8 +80,8 @@ export interface BookingDetail {
 }
 
 /**
- * Creates a new customer booking with pickup location snapshot, server-side idempotency,
- * and initiates automated driver matching.
+ * Creates a new customer booking with pickup/dropoff location snapshots, fare calculation,
+ * server-side idempotency, and automated driver matching.
  */
 export async function createBooking(
   customerUserId: string,
@@ -83,27 +103,57 @@ export async function createBooking(
     }
   }
 
-  // 2. Validate Pickup Location Coordinates
+  // 2. Validate Coordinates
   validateCoordinates(input.pickupLocation.latitude, input.pickupLocation.longitude);
+  if (input.dropoffLocation) {
+    validateCoordinates(input.dropoffLocation.latitude, input.dropoffLocation.longitude);
+  }
+
+  // 3. Calculate Estimated Fare and Route
+  const bookingType = input.bookingType || BookingType.ONE_WAY;
+  const fareResult = await calculateEstimatedFare(
+    {
+      bookingType,
+      pickup: input.pickupLocation,
+      dropoff: input.dropoffLocation,
+      estimatedDurationMinutes: input.estimatedDurationMinutes,
+      numberOfDays: input.numberOfDays,
+      hourlyPackageHours: input.hourlyPackageHours,
+    },
+    db,
+  );
+
+  const pricingSnapshot = createPricingQuoteSnapshot(bookingType, fareResult);
 
   const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 300, db);
   const now = new Date();
   const searchExpiresAt = new Date(now.getTime() + searchTimeoutSeconds * 1000);
 
-  // 3. Create Booking Record Transactionally
+  // 4. Create Booking Record Transactionally
   const booking = await db.$transaction(async (tx) => {
     const created = await tx.booking.create({
       data: {
         idempotencyKey: idempotencyKey || null,
         customerId: customerUserId,
         status: BookingStatus.SEARCHING_DRIVER,
-        bookingType: input.bookingType || BookingType.ONE_WAY,
+        bookingType,
         pickupLatitude: input.pickupLocation.latitude,
         pickupLongitude: input.pickupLocation.longitude,
         pickupAddress: input.pickupLocation.address,
         pickupLabel: input.pickupLocation.label || null,
+        dropoffLatitude: input.dropoffLocation?.latitude ?? null,
+        dropoffLongitude: input.dropoffLocation?.longitude ?? null,
+        dropoffAddress: input.dropoffLocation?.address ?? null,
+        dropoffLabel: input.dropoffLocation?.label ?? null,
+        numberOfDays: input.numberOfDays ?? null,
+        hourlyPackageHours: input.hourlyPackageHours ?? null,
+        returnDate: input.returnDate ? new Date(input.returnDate) : null,
+        estimatedDistanceKm: fareResult.estimatedDistanceKm,
+        estimatedFareAmount: fareResult.breakdown.totalFareAmount,
+        pricingSnapshot: toPrismaJson(pricingSnapshot),
+        routeEstimateSnapshot: toPrismaJson(pricingSnapshot),
         requestedStartTime: input.requestedStartTime ? new Date(input.requestedStartTime) : null,
-        estimatedDurationMinutes: input.estimatedDurationMinutes || null,
+        estimatedDurationMinutes: fareResult.estimatedDurationMinutes,
         customerNotes: input.customerNotes || null,
         requestedAt: now,
         searchStartedAt: now,
@@ -132,6 +182,7 @@ export async function createBooking(
         status: BookingStatus.SEARCHING_DRIVER,
         pickupLatitude: created.pickupLatitude,
         pickupLongitude: created.pickupLongitude,
+        estimatedFareAmount: fareResult.breakdown.totalFareAmount,
         createdAt: now.toISOString(),
       },
     });
@@ -350,6 +401,27 @@ function mapBookingToDetail(
       address: booking.pickupAddress,
       label: booking.pickupLabel,
     },
+    dropoffLocation:
+      booking.dropoffLatitude !== null &&
+      booking.dropoffLongitude !== null &&
+      booking.dropoffAddress
+        ? {
+            latitude: booking.dropoffLatitude,
+            longitude: booking.dropoffLongitude,
+            address: booking.dropoffAddress,
+            label: booking.dropoffLabel,
+          }
+        : null,
+    numberOfDays: booking.numberOfDays,
+    hourlyPackageHours: booking.hourlyPackageHours,
+    returnDate: booking.returnDate,
+    estimatedDistanceKm: booking.estimatedDistanceKm,
+    estimatedFareAmount: booking.estimatedFareAmount
+      ? booking.estimatedFareAmount.toString()
+      : null,
+    finalFareAmount: booking.finalFareAmount ? booking.finalFareAmount.toString() : null,
+    pricingSnapshot: booking.pricingSnapshot,
+    routeEstimateSnapshot: booking.routeEstimateSnapshot,
     requestedStartTime: booking.requestedStartTime,
     estimatedDurationMinutes: booking.estimatedDurationMinutes,
     customerNotes: booking.customerNotes,

@@ -245,6 +245,32 @@ export default function DriverJourneyControlPage({
               </p>
             </div>
 
+            {/* Fare & Driver Earnings Financial Breakdown */}
+            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-2">
+              <span className="text-xs font-bold text-slate-300 uppercase block font-mono">
+                Trip Earnings & Commission
+              </span>
+              <div className="flex justify-between items-center text-xs font-mono text-slate-400">
+                <span>Estimated Duration:</span>
+                <span className="text-slate-200">
+                  {booking.estimatedDurationMinutes ?? 30} mins
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-mono text-slate-400">
+                <span>Platform Commission Rate:</span>
+                <span className="text-slate-200">20.00%</span>
+              </div>
+              <div className="flex justify-between items-center text-sm font-bold text-emerald-400 pt-2 border-t border-slate-800">
+                <span>Estimated Driver Payout (80%):</span>
+                <span>
+                  ₹
+                  {booking.estimatedDurationMinutes
+                    ? (Math.max(150, 100 + booking.estimatedDurationMinutes * 2) * 0.8).toFixed(2)
+                    : '120.00'}
+                </span>
+              </div>
+            </div>
+
             {booking.customerNotes && (
               <div>
                 <span className="text-xs text-slate-400 uppercase block">Customer Notes</span>

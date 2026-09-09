@@ -1,13 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ControlStationLayout } from '@/components/control-station-layout';
+
+interface FareEstimateData {
+  estimatedDistanceKm: number;
+  estimatedDurationMinutes: number;
+  breakdown: {
+    baseFareAmount: string;
+    distanceFareAmount: string;
+    durationFareAmount: string;
+    packageAdjustmentAmount: string;
+    minimumFareAmount: string;
+    platformFeeAmount: string;
+    subtotalAmount: string;
+    totalFareAmount: string;
+  };
+}
 
 export default function BookDriverPage() {
   const router = useRouter();
 
   const [pickupZone, setPickupZone] = useState('Vasant Vihar, Block C, New Delhi');
+  const [dropoffZone, setDropoffZone] = useState('Connaught Place, Block A, New Delhi');
   const [selectedTab, setSelectedTab] = useState<'hourly' | 'oneway' | 'outstation' | 'nightout'>(
     'hourly',
   );
@@ -19,6 +35,40 @@ export default function BookDriverPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
+
+  const pickupCoords = { latitude: 28.5603, longitude: 77.1627 };
+  const dropoffCoords = { latitude: 28.6315, longitude: 77.2167 };
+
+  useEffect(() => {
+    async function fetchEstimate() {
+      try {
+        const bookingType =
+          selectedTab === 'hourly'
+            ? 'HOURLY'
+            : selectedTab === 'outstation'
+              ? 'MULTI_DAY'
+              : 'ONE_WAY';
+        const res = await fetch('/api/pricing/estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pickup: { latitude: 28.5603, longitude: 77.1627, address: pickupZone },
+            dropoff: { latitude: 28.6315, longitude: 77.2167, address: dropoffZone },
+            bookingType,
+            estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setFareEstimate(data.estimate);
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    }
+    fetchEstimate();
+  }, [selectedTab, pickupZone, dropoffZone]);
 
   const drivers = [
     {
@@ -86,10 +136,16 @@ export default function BookDriverPage() {
         },
         body: JSON.stringify({
           pickupLocation: {
-            latitude: 28.5603,
-            longitude: 77.1627,
+            latitude: pickupCoords.latitude,
+            longitude: pickupCoords.longitude,
             address: pickupZone,
             label: 'Vasant Vihar',
+          },
+          dropoffLocation: {
+            latitude: dropoffCoords.latitude,
+            longitude: dropoffCoords.longitude,
+            address: dropoffZone,
+            label: 'Connaught Place',
           },
           bookingType:
             selectedTab === 'hourly'
@@ -160,6 +216,33 @@ export default function BookDriverPage() {
                   onClick={() => {
                     const next = prompt('Enter new pickup address:', pickupZone);
                     if (next) setPickupZone(next);
+                  }}
+                  className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42]"
+                >
+                  <span className="material-symbols-outlined text-xs">edit_location</span>
+                  <span>Change</span>
+                </button>
+              </div>
+
+              <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center shrink-0 text-[#60a5fa]">
+                    <span className="material-symbols-outlined text-base">location_on</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
+                      Destination / Dropoff Zone
+                    </span>
+                    <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
+                      {dropoffZone}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = prompt('Enter new dropoff address:', dropoffZone);
+                    if (next) setDropoffZone(next);
                   }}
                   className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42]"
                 >
@@ -490,35 +573,50 @@ export default function BookDriverPage() {
 
               <div className="space-y-1.5 font-mono text-xs text-[#bccac0]">
                 <div className="flex justify-between items-center">
-                  <span>Base Dispatch & Setup (incl. first 1 hr)</span>
-                  <span className="text-[#dfe2ee]">₹350.00</span>
+                  <span>Base Dispatch & Setup</span>
+                  <span className="text-[#dfe2ee]">
+                    ₹
+                    {fareEstimate
+                      ? Number(fareEstimate.breakdown.baseFareAmount).toFixed(2)
+                      : '100.00'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>
-                    Hourly Rate ({selectedDriver.name} @ ₹{selectedDriver.rate}/hr tier)
+                    Distance ({fareEstimate ? fareEstimate.estimatedDistanceKm : 10} km) & Duration
                   </span>
-                  <span className="text-[#dfe2ee]">₹150.00</span>
+                  <span className="text-[#dfe2ee]">
+                    ₹
+                    {fareEstimate
+                      ? (
+                          Number(fareEstimate.breakdown.distanceFareAmount) +
+                          Number(fareEstimate.breakdown.durationFareAmount) +
+                          Number(fareEstimate.breakdown.packageAdjustmentAmount)
+                        ).toFixed(2)
+                      : '210.00'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>Zero-Deductible Platform Insurance</span>
-                  <span className="text-[#dfe2ee]">₹25.00</span>
-                </div>
-                <div className="flex justify-between items-center text-[#68dba9] bg-[#68dba9]/10 p-2 rounded-lg border border-[#68dba9]/20">
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-xs">confirmation_number</span>
-                    <span>Promo Applied: FIRSTDRIVE</span>
-                  </div>
-                  <span className="font-bold">-₹100.00</span>
+                  <span>Platform & Operational Fee</span>
+                  <span className="text-[#dfe2ee]">
+                    ₹
+                    {fareEstimate
+                      ? Number(fareEstimate.breakdown.platformFeeAmount).toFixed(2)
+                      : '25.00'}
+                  </span>
                 </div>
               </div>
 
               <div className="pt-2 flex items-center justify-between bg-[#1c2028] p-3 rounded-lg border border-[#262a33]">
                 <div>
                   <span className="text-[9px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
-                    Total Net Estimated
+                    Total Net Estimated Fare
                   </span>
                   <span className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    ₹425.00
+                    ₹
+                    {fareEstimate
+                      ? Number(fareEstimate.breakdown.totalFareAmount).toFixed(2)
+                      : '335.00'}
                   </span>
                 </div>
                 <div className="text-right font-mono text-[10px]">

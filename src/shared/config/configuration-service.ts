@@ -35,9 +35,11 @@ export async function getConfiguration(
     // Redis offline/error fallback
   }
 
-  const config = await db.systemConfiguration.findUnique({
-    where: { key },
-  });
+  const config = db?.systemConfiguration?.findUnique
+    ? await db.systemConfiguration.findUnique({
+        where: { key },
+      })
+    : null;
 
   if (config) {
     try {
