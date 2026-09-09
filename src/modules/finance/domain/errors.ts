@@ -170,3 +170,23 @@ export class SettlementsDisabledError extends AppError {
     super('Settlements are currently disabled', 409, 'SETTLEMENTS_DISABLED');
   }
 }
+
+export class DuplicateActiveSettlementError extends AppError {
+  constructor(driverProfileId: string) {
+    super(
+      `Driver ${driverProfileId} already has an active (PENDING or PROCESSING) settlement`,
+      409,
+      'SETTLEMENT_DUPLICATE_ACTIVE',
+    );
+  }
+}
+
+export class SettlementNotRetryableError extends AppError {
+  constructor(settlementId: string, currentStatus: SettlementStatus) {
+    super(
+      `Settlement ${settlementId} cannot be retried from status ${currentStatus}; only a FAILED settlement can be retried`,
+      409,
+      'SETTLEMENT_NOT_RETRYABLE',
+    );
+  }
+}

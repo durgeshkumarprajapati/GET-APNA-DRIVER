@@ -65,18 +65,22 @@ export async function postFinancialTransaction(
         throw new LedgerAccountNotFoundError(posting.accountCode);
       }
 
-      const isDebitZero = toDecimal(posting.debitAmount).isZero();
-      const amountDecimal = isDebitZero
-        ? toDecimal(posting.creditAmount)
-        : toDecimal(posting.debitAmount);
-      const amountRounded = roundMoney(amountDecimal).toFixed(4);
-
       await tx.ledgerEntry.create({
         data: {
           financialTransactionId: transaction.id,
           ledgerAccountId: account.id,
-          amount: amountRounded,
-          direction: isDebitZero ? 'CREDIT' : 'DEBIT',
+          // LedgerEntry has no amount/direction field — it's single-sided
+          // debitAmount/creditAmount (see the CHECK constraint in
+          // prisma/sql/001_ledger_balance_trigger.sql requiring exactly one
+          // of the two to be > 0). Writing `amount`/`direction` here (the
+          // previous code) is not a valid field on this model at all —
+          // every call to postFinancialTransaction was throwing a Prisma
+          // "Unknown argument `amount`" error at runtime against a real
+          // database; tsc never caught it because Prisma's conditional
+          // `XOR<...>` input type on `create()` suppresses excess-property
+          // checking.
+          debitAmount: roundMoney(toDecimal(posting.debitAmount)).toFixed(4),
+          creditAmount: roundMoney(toDecimal(posting.creditAmount)).toFixed(4),
         },
       });
     }

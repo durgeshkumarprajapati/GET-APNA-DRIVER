@@ -54,6 +54,7 @@ export const PERMISSIONS = {
   FINANCE_READ: 'finance.read',
   FINANCE_WALLET_READ: 'finance.wallet.read',
   FINANCE_SETTLEMENT_MANAGE: 'finance.settlement.manage',
+  FINANCE_COMMISSION_MANAGE: 'finance.commission.manage',
 
   // Promotions (near-future domain)
   PROMOTIONS_MANAGE: 'promotions.manage',
@@ -200,6 +201,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.FINANCE_SETTLEMENT_MANAGE,
     description: 'Create and process driver settlements (admin).',
+  },
+  {
+    code: PERMISSIONS.FINANCE_COMMISSION_MANAGE,
+    description: 'View and update the platform commission rate (admin).',
   },
 
   {
