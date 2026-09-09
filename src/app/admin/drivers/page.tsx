@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin-layout';
+import { RatingStars } from '@/components/ui/rating-stars';
 
 interface DriverRow {
   id: string;
@@ -21,6 +22,7 @@ interface DriverRow {
     email: string | null;
     phoneNumber: string | null;
   };
+  rating: { averageRating: number; totalReviews: number };
 }
 
 interface DriverListResponse {
@@ -146,6 +148,7 @@ export default function AdminDriverDirectoryPage() {
                     <th className="py-3 px-4">Contact</th>
                     <th className="py-3 px-4">License</th>
                     <th className="py-3 px-4">Experience</th>
+                    <th className="py-3 px-4">Rating</th>
                     <th className="py-3 px-4">Onboarding</th>
                     <th className="py-3 px-4">Approval</th>
                     <th className="py-3 px-4 text-right">Availability</th>
@@ -173,6 +176,18 @@ export default function AdminDriverDirectoryPage() {
                       <td className="py-3 px-4 text-[#bccac0]">{driver.drivingLicenseNumber}</td>
                       <td className="py-3 px-4 text-[#bccac0]">
                         {driver.drivingExperienceYears} yrs
+                      </td>
+                      <td className="py-3 px-4">
+                        {driver.rating.totalReviews > 0 ? (
+                          <div className="flex items-center gap-1.5">
+                            <RatingStars value={driver.rating.averageRating} size="sm" />
+                            <span className="text-[10px] text-[#87948b]">
+                              ({driver.rating.totalReviews})
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-[#87948b]">No reviews</span>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <span

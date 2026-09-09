@@ -3,6 +3,21 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin-layout';
+import { RatingStars } from '@/components/ui/rating-stars';
+import { RatingSummary } from '@/components/ui/rating-summary';
+import { MetricCard } from '@/components/ui/metric-card';
+import { formatCurrency } from '@/shared/formatting/money';
+
+interface DriverPerformance {
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
+  completedTrips: number;
+  completionRate: string;
+  cancellationRate: string;
+  averageTripValue: string;
+  totalEarnings: string;
+}
 
 interface DriverDetail {
   id: string;
@@ -56,6 +71,7 @@ export default function AdminDriverDetailPage({
 }) {
   const { driverId } = use(params);
   const [driver, setDriver] = useState<DriverDetail | null>(null);
+  const [performance, setPerformance] = useState<DriverPerformance | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionReason, setActionReason] = useState('');
   const [activeModal, setActiveModal] = useState<
@@ -68,10 +84,19 @@ export default function AdminDriverDetailPage({
     let isMounted = true;
     const load = async () => {
       try {
-        const res = await fetch(`/api/admin/drivers/${driverId}`);
-        if (res.ok && isMounted) {
-          const data = await res.json();
-          setDriver(data.profile);
+        const [driverRes, performanceRes] = await Promise.all([
+          fetch(`/api/admin/drivers/${driverId}`),
+          fetch(`/api/admin/drivers/${driverId}/performance`),
+        ]);
+        if (isMounted) {
+          if (driverRes.ok) {
+            const data = await driverRes.json();
+            setDriver(data.profile);
+          }
+          if (performanceRes.ok) {
+            const data = await performanceRes.json();
+            setPerformance(data.performance);
+          }
         }
       } catch {
         // Ignore load error
@@ -243,9 +268,17 @@ export default function AdminDriverDetailPage({
               <span>/</span>
               <span className="text-[#dfe2ee] font-medium">{name}</span>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#dfe2ee] font-['Space_Grotesk']">
-              {name} Application Review
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight text-[#dfe2ee] font-['Space_Grotesk']">
+                {name} Application Review
+              </h1>
+              {performance && performance.totalReviews > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <RatingStars value={performance.averageRating} size="sm" />
+                  <span className="text-xs text-[#87948b]">({performance.totalReviews})</span>
+                </div>
+              )}
+            </div>
             <p className="text-[#bccac0] mt-1">
               DL: {driver.drivingLicenseNumber} • Account: {driver.user.email ?? 'No email on file'}
             </p>
@@ -441,6 +474,38 @@ export default function AdminDriverDetailPage({
             )}
           </div>
         </div>
+
+        {/* Performance & Ratings */}
+        {performance && (
+          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
+            <h2 className="text-lg font-semibold text-[#dfe2ee] border-b border-[#262a33] pb-3 font-['Space_Grotesk']">
+              Performance &amp; Ratings
+            </h2>
+            <RatingSummary
+              averageRating={performance.averageRating}
+              totalReviews={performance.totalReviews}
+              distribution={performance.ratingDistribution}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricCard label="Completed Trips" value={performance.completedTrips} />
+              <MetricCard
+                label="Completion Rate"
+                value={`${(Number(performance.completionRate) * 100).toFixed(1)}%`}
+                accent="positive"
+              />
+              <MetricCard
+                label="Cancellation Rate"
+                value={`${(Number(performance.cancellationRate) * 100).toFixed(1)}%`}
+                accent={Number(performance.cancellationRate) > 0.1 ? 'negative' : 'default'}
+              />
+              <MetricCard
+                label="Total Earnings"
+                value={formatCurrency(performance.totalEarnings)}
+                accent="positive"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Modal Dialog for Actions */}
         {activeModal && (

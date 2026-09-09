@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { RatingStars } from '@/components/ui/rating-stars';
 
 interface DriverBookingDetail {
   id: string;
@@ -25,6 +26,12 @@ interface DriverBookingDetail {
   createdAt: string;
 }
 
+interface BookingReview {
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
 export default function DriverJourneyControlPage({
   params,
 }: {
@@ -36,6 +43,7 @@ export default function DriverJourneyControlPage({
   const [error, setError] = useState<string | null>(null);
   const [actionPending, setActionPending] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [review, setReview] = useState<BookingReview | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +73,22 @@ export default function DriverJourneyControlPage({
       isMounted = false;
     };
   }, [bookingId]);
+
+  useEffect(() => {
+    if (!booking || booking.status !== 'TRIP_COMPLETED') return;
+    let isMounted = true;
+    fetch(`/api/bookings/${bookingId}/review`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data?.review) setReview(data.review);
+      })
+      .catch(() => {
+        // Non-critical — the completion banner simply omits the review.
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [booking, bookingId]);
 
   const handleStatusAction = async (endpoint: string, successText: string) => {
     setActionPending(true);
@@ -226,8 +250,25 @@ export default function DriverJourneyControlPage({
             )}
 
             {booking.status === 'TRIP_COMPLETED' && (
-              <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-center text-emerald-400 font-bold text-sm">
-                ✓ Trip Successfully Completed!
+              <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-3">
+                <div className="text-center text-emerald-400 font-bold text-sm">
+                  ✓ Trip Successfully Completed!
+                </div>
+                {review && (
+                  <div className="pt-3 border-t border-emerald-500/20 space-y-1.5">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block text-center">
+                      Customer Rating
+                    </span>
+                    <div className="flex justify-center">
+                      <RatingStars value={review.rating} size="md" />
+                    </div>
+                    {review.comment && (
+                      <p className="text-xs text-slate-300 italic text-center">
+                        &quot;{review.comment}&quot;
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

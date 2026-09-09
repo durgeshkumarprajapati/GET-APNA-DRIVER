@@ -444,8 +444,12 @@ export interface ListDriverApplicationsFilters {
   pageSize?: number;
 }
 
+export type DriverApplicationRow = DriverProfileWithContact & {
+  rating: { averageRating: number; totalReviews: number };
+};
+
 export interface ListDriverApplicationsResult {
-  drivers: DriverProfileWithContact[];
+  drivers: DriverApplicationRow[];
   total: number;
   page: number;
   pageSize: number;
@@ -483,7 +487,11 @@ export async function listDriverApplications(
   const [drivers, total] = await Promise.all([
     db.driverProfile.findMany({
       where,
-      include: { user: true, documents: { where: { isCurrent: true } } },
+      include: {
+        user: true,
+        documents: { where: { isCurrent: true } },
+        ratingSummary: true,
+      },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -497,11 +505,15 @@ export async function listDriverApplications(
   );
 
   return {
-    drivers: drivers.map((driver) => ({
+    drivers: drivers.map(({ ratingSummary, ...driver }) => ({
       ...driver,
       user: {
         ...driver.user,
         ...(contactByUserId.get(driver.userId) ?? { email: null, phoneNumber: null }),
+      },
+      rating: {
+        averageRating: ratingSummary ? Number(ratingSummary.averageRating) : 0,
+        totalReviews: ratingSummary?.totalReviews ?? 0,
       },
     })),
     total,

@@ -92,6 +92,7 @@ model User {
   referralCode            UserReferralCode?
   givenReferrals          Referral[]               @relation("ReferrerUser")
   receivedReferral        Referral?                @relation("ReferredUser")
+  customerReviews         Review[]                 @relation("CustomerReviews")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -565,6 +566,8 @@ model DriverProfile {
   wallet             DriverWallet?
   settlements        DriverSettlement[]
   safetyIncidents    SafetyIncident[]        @relation("DriverSafetyIncidents")
+  reviews            Review[]                @relation("DriverReviews")
+  ratingSummary      DriverRatingSummary?
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -787,6 +790,7 @@ model Booking {
   payments           Payment[]
   safetyIncidents    SafetyIncident[]        @relation("BookingSafetyIncidents")
   disputes           Dispute[]               @relation("BookingDisputes")
+  review             Review?
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -1300,6 +1304,8 @@ enum NotificationType {
   DISPUTE_CREATED
   DISPUTE_UPDATED
   DISPUTE_RESOLVED
+  DRIVER_RATING_RECEIVED
+  REVIEW_MODERATED
 
   @@map("notification_type")
 }
@@ -1696,4 +1702,83 @@ model Referral {
   @@index([referrerUserId])
   @@index([status])
   @@map("referrals")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 16: Reviews, Ratings, Driver Performance & Portfolio
+// ---------------------------------------------------------------------------
+
+/// Moderation lifecycle for a customer's review of a driver. PUBLISHED is the
+/// only status counted toward the public DriverRatingSummary aggregate.
+enum ReviewStatus {
+  PUBLISHED
+  FLAGGED
+  HIDDEN
+  REJECTED
+
+  @@map("review_status")
+}
+
+/// Customer's post-trip review of the driver assigned to a TRIP_COMPLETED
+/// booking. One review per booking — the unique constraint on bookingId is
+/// the final defense against duplicate submissions, not just the
+/// eligibility check in review-service.ts. `rating` is additionally
+/// constrained to 1-5 by a hand-added CHECK constraint (see the migration
+/// SQL) since Prisma's schema language has no native range-check attribute.
+model Review {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId String  @unique @map("booking_id") @db.Uuid
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  customerId String @map("customer_id") @db.Uuid
+  customer   User   @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Restrict)
+
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation("DriverReviews", fields: [driverProfileId], references: [id], onDelete: Restrict)
+
+  rating  Int
+  comment String?
+
+  status ReviewStatus @default(PUBLISHED)
+
+  /// Loose reference to the admin who took the most recent moderation
+  /// action, consistent with other actor columns in this schema (e.g.
+  /// Booking.cancelledBy) — not a relation.
+  moderationReason String?   @map("moderation_reason")
+  moderatedBy      String?   @map("moderated_by") @db.Uuid
+  moderatedAt      DateTime? @map("moderated_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([driverProfileId, status, createdAt])
+  @@index([customerId])
+  @@index([status, createdAt])
+  @@map("reviews")
+}
+
+/// Denormalized, transactionally-maintained rating aggregate for a driver —
+/// one row per DriverProfile, updated atomically via a single INSERT ... ON
+/// CONFLICT DO UPDATE statement in review-service.ts (never a read-modify-
+/// write in application code, so concurrent submissions can't race). Mirrors
+/// the DriverWallet pattern: a dedicated aggregate model rather than loose
+/// rating fields bolted onto DriverProfile.
+model DriverRatingSummary {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @unique @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  totalReviews  Int     @default(0) @map("total_reviews")
+  ratingSum     Int     @default(0) @map("rating_sum")
+  averageRating Decimal @default(0) @map("average_rating") @db.Decimal(3, 2)
+
+  fiveStarCount  Int @default(0) @map("five_star_count")
+  fourStarCount  Int @default(0) @map("four_star_count")
+  threeStarCount Int @default(0) @map("three_star_count")
+  twoStarCount   Int @default(0) @map("two_star_count")
+  oneStarCount   Int @default(0) @map("one_star_count")
+
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("driver_rating_summaries")
 }

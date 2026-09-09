@@ -81,6 +81,12 @@ export const PERMISSIONS = {
   DISPUTE_MANAGE: 'dispute.manage',
   DISPUTE_RESOLVE: 'dispute.resolve',
 
+  // Reviews, Ratings & Driver Performance (Phase 16 domain & admin)
+  REVIEWS_CREATE: 'reviews.create',
+  REVIEWS_READ: 'reviews.read',
+  REVIEWS_MANAGE: 'reviews.manage',
+  DRIVER_PERFORMANCE_READ: 'driver.performance.read',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
 
@@ -233,6 +239,23 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   { code: PERMISSIONS.DISPUTE_READ, description: 'Read booking disputes.' },
   { code: PERMISSIONS.DISPUTE_MANAGE, description: 'Review and assign booking disputes.' },
   { code: PERMISSIONS.DISPUTE_RESOLVE, description: 'Resolve dispute with financial actions.' },
+
+  {
+    code: PERMISSIONS.REVIEWS_CREATE,
+    description: 'Submit a review for a completed own booking.',
+  },
+  {
+    code: PERMISSIONS.REVIEWS_READ,
+    description: 'View own submitted reviews (customer) or own received reviews (driver).',
+  },
+  {
+    code: PERMISSIONS.REVIEWS_MANAGE,
+    description: 'View and moderate any review (admin).',
+  },
+  {
+    code: PERMISSIONS.DRIVER_PERFORMANCE_READ,
+    description: 'View own driver performance metrics.',
+  },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
 

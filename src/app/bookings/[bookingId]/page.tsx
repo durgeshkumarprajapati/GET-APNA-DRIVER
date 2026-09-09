@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
+import { RatingStars } from '@/components/ui/rating-stars';
 
 interface BookingDetail {
   id: string;
@@ -34,6 +35,14 @@ interface BookingDetail {
   } | null;
 }
 
+interface BookingReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  status: string;
+  createdAt: string;
+}
+
 interface DriverLocationSnapshot {
   latitude: number;
   longitude: number;
@@ -52,6 +61,11 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [cancelling, setCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [review, setReview] = useState<BookingReview | null>(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const fetchBooking = useCallback(async () => {
     try {
@@ -154,6 +168,48 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
       clearInterval(locInterval);
     };
   }, [booking?.status, fetchDriverLocation, booking]);
+
+  // Once the trip is completed, check whether a review already exists.
+  useEffect(() => {
+    if (!booking || booking.status !== 'TRIP_COMPLETED') return;
+    let isMounted = true;
+    fetch(`/api/bookings/${bookingId}/review`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data) setReview(data.review);
+      })
+      .catch(() => {
+        // Non-critical — the "Rate Your Driver" form simply stays available.
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [booking, bookingId]);
+
+  const handleSubmitReview = async () => {
+    if (reviewRating < 1) {
+      setReviewError('Please select a star rating.');
+      return;
+    }
+    setSubmittingReview(true);
+    setReviewError(null);
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: reviewRating, comment: reviewComment || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to submit review.');
+      }
+      setReview(data.review);
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Failed to submit review.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const handleCancelBooking = async () => {
     setCancelling(true);
@@ -335,6 +391,45 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                   </p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Rate Your Driver */}
+          {booking.status === 'TRIP_COMPLETED' && (
+            <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
+              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                {review ? 'Your Review' : 'Rate Your Driver'}
+              </h3>
+              {review ? (
+                <div className="space-y-2">
+                  <RatingStars value={review.rating} size="md" />
+                  {review.comment && (
+                    <p className="text-sm text-slate-300 italic">&quot;{review.comment}&quot;</p>
+                  )}
+                  <p className="text-[10px] text-slate-500">
+                    Submitted {new Date(review.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <RatingStars value={reviewRating} size="lg" onChange={setReviewRating} />
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Share your experience (optional)…"
+                    className="w-full h-20 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                  />
+                  {reviewError && <p className="text-xs text-red-400">{reviewError}</p>}
+                  <button
+                    type="button"
+                    disabled={submittingReview}
+                    onClick={() => void handleSubmitReview()}
+                    className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold text-sm disabled:opacity-50 transition-colors"
+                  >
+                    {submittingReview ? 'Submitting…' : 'Submit Review'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
