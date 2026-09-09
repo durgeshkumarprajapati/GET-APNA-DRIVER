@@ -8,13 +8,24 @@ const VALID_TRANSITIONS: Record<BookingStatus, readonly BookingStatus[]> = {
     BookingStatus.CANCELLED,
     BookingStatus.EXPIRED,
   ],
-  [BookingStatus.DRIVER_ASSIGNED]: [BookingStatus.DRIVER_EN_ROUTE, BookingStatus.CANCELLED],
+  [BookingStatus.DRIVER_ASSIGNED]: [
+    BookingStatus.DRIVER_EN_ROUTE,
+    BookingStatus.CANCELLED,
+    // Dispatch operator reassignment (see dispatch-service.ts::reassignBookingDriver):
+    // releases the currently-assigned driver and reopens matching. Deliberately
+    // scoped to DRIVER_ASSIGNED only — once en route/arrived, a driver swap is a
+    // cancellation, not a reassignment.
+    BookingStatus.SEARCHING_DRIVER,
+  ],
   [BookingStatus.DRIVER_EN_ROUTE]: [BookingStatus.DRIVER_ARRIVED, BookingStatus.CANCELLED],
   [BookingStatus.DRIVER_ARRIVED]: [BookingStatus.TRIP_IN_PROGRESS, BookingStatus.CANCELLED],
   [BookingStatus.TRIP_IN_PROGRESS]: [BookingStatus.TRIP_COMPLETED],
   [BookingStatus.TRIP_COMPLETED]: [],
   [BookingStatus.CANCELLED]: [],
-  [BookingStatus.EXPIRED]: [],
+  // Dispatch operator search restart (see dispatch-service.ts::restartBookingSearch):
+  // an EXPIRED search (no driver found in time) can be reopened by an operator.
+  // This is the only transition out of the otherwise-terminal EXPIRED state.
+  [BookingStatus.EXPIRED]: [BookingStatus.SEARCHING_DRIVER],
 };
 
 /**

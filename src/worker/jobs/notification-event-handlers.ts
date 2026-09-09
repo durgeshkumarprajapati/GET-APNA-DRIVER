@@ -448,6 +448,153 @@ export function registerNotificationEventHandlers(): void {
   );
 
   // -------------------------------------------------------------------------
+  // Dispatch Operations Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'dispatch.driver.reassigned',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const bookingId = payload.bookingId as string;
+      const previousDriverProfileId = payload.previousDriverProfileId as string | undefined;
+      if (!bookingId) return;
+      const client = db ?? prisma;
+
+      const booking = await client.booking.findUnique({
+        where: { id: bookingId },
+        select: { customerId: true },
+      });
+      if (booking) {
+        await createNotification(
+          {
+            userId: booking.customerId,
+            type: NotificationType.SYSTEM_ANNOUNCEMENT,
+            title: 'Finding You a New Chauffeur',
+            body: 'Your previously assigned driver was reassigned by our operations team. We are matching you with another driver now.',
+            data: { bookingId },
+            idempotencyKey: `${event.id}-customer-reassigned`,
+          },
+          client,
+        );
+      }
+
+      if (previousDriverProfileId) {
+        const previousProfile = await client.driverProfile.findUnique({
+          where: { id: previousDriverProfileId },
+          select: { userId: true },
+        });
+        if (previousProfile) {
+          await createNotification(
+            {
+              userId: previousProfile.userId,
+              type: NotificationType.SYSTEM_ANNOUNCEMENT,
+              title: 'Trip Reassigned',
+              body: 'This trip was reassigned by our operations team. You have been released back to available status.',
+              data: { bookingId },
+              idempotencyKey: `${event.id}-driver-reassigned`,
+            },
+            client,
+          );
+        }
+      }
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'dispatch.search.restarted',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const bookingId = payload.bookingId as string;
+      if (!bookingId) return;
+      const client = db ?? prisma;
+
+      const booking = await client.booking.findUnique({
+        where: { id: bookingId },
+        select: { customerId: true },
+      });
+      if (!booking) return;
+
+      await createNotification(
+        {
+          userId: booking.customerId,
+          type: NotificationType.SYSTEM_ANNOUNCEMENT,
+          title: 'Still Looking for Your Chauffeur',
+          body: 'Our operations team has restarted the search for your booking.',
+          data: { bookingId },
+          idempotencyKey: `${event.id}-search-restarted`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'dispatch.driver.force_assigned',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const bookingId = payload.bookingId as string;
+      const driverProfileId = payload.driverProfileId as string | undefined;
+      const previousDriverProfileId = payload.previousDriverProfileId as string | undefined;
+      if (!bookingId) return;
+      const client = db ?? prisma;
+
+      const booking = await client.booking.findUnique({
+        where: { id: bookingId },
+        select: { customerId: true },
+      });
+      if (booking) {
+        await createNotification(
+          {
+            userId: booking.customerId,
+            type: NotificationType.SYSTEM_ANNOUNCEMENT,
+            title: 'Chauffeur Assigned!',
+            body: 'A driver has been assigned to your booking by our operations team.',
+            data: { bookingId },
+            idempotencyKey: `${event.id}-customer-force-assigned`,
+          },
+          client,
+        );
+      }
+
+      if (driverProfileId) {
+        const newProfile = await client.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        if (newProfile) {
+          await createNotification(
+            {
+              userId: newProfile.userId,
+              type: NotificationType.SYSTEM_ANNOUNCEMENT,
+              title: 'Trip Assignment Confirmed',
+              body: 'Our operations team has assigned you to a trip. Tap to view details.',
+              data: { bookingId },
+              idempotencyKey: `${event.id}-driver-force-assigned`,
+            },
+            client,
+          );
+        }
+      }
+
+      if (previousDriverProfileId) {
+        const previousProfile = await client.driverProfile.findUnique({
+          where: { id: previousDriverProfileId },
+          select: { userId: true },
+        });
+        if (previousProfile) {
+          await createNotification(
+            {
+              userId: previousProfile.userId,
+              type: NotificationType.SYSTEM_ANNOUNCEMENT,
+              title: 'Trip Reassigned',
+              body: 'This trip was reassigned by our operations team. You have been released back to available status.',
+              data: { bookingId },
+              idempotencyKey: `${event.id}-previous-driver-force-assigned`,
+            },
+            client,
+          );
+        }
+      }
+    },
+  );
+
+  // -------------------------------------------------------------------------
   // System Campaign Dispatch
   // -------------------------------------------------------------------------
   eventHandlerRegistry.register(

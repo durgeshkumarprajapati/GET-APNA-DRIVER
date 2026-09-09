@@ -41,7 +41,7 @@ export default function CustomerSupportPage() {
       return;
     }
     showToast(
-      `Concierge escalation ticket submitted for #${selectedItinerary}. SLA Response ETA ≤ 90s.`
+      `Concierge escalation ticket submitted for #${selectedItinerary}. SLA Response ETA ≤ 90s.`,
     );
     setGrievanceText('');
   };
@@ -162,7 +162,9 @@ export default function CustomerSupportPage() {
                       In Review
                     </span>
                   </div>
-                  <p className="text-xs text-[#bccac0] mt-1">#TK-8821 · NH-48 Express Toll Re-check.</p>
+                  <p className="text-xs text-[#bccac0] mt-1">
+                    #TK-8821 · NH-48 Express Toll Re-check.
+                  </p>
                 </div>
                 <div className="mt-4 pt-2 border-t border-[#262a33] flex items-center justify-between text-xs font-mono text-[#bccac0]">
                   <span>Escrow Hold: ₹120.00</span>
@@ -176,9 +178,7 @@ export default function CustomerSupportPage() {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
                     30-Day Resolution
                   </span>
-                  <span className="material-symbols-outlined text-[#4edea3] text-xl">
-                    task_alt
-                  </span>
+                  <span className="material-symbols-outlined text-[#4edea3] text-xl">task_alt</span>
                 </div>
                 <div className="mt-3">
                   <div className="flex items-baseline gap-2">
@@ -340,9 +340,10 @@ export default function CustomerSupportPage() {
                       <span className="font-mono text-xl font-bold text-[#68dba9]">₹120.00</span>
                     </div>
                     <p className="text-xs text-[#bccac0] leading-relaxed">
-                      Chauffeur Rajiv Verma passed the Kherki Daula RFID toll plaza at 13:48 IST. Two
-                      consecutive debits of ₹120 each were logged within 4 seconds on the onboard
-                      FASTag ledger. Passenger telematics indicate only one boom-barrier passage.
+                      Chauffeur Rajiv Verma passed the Kherki Daula RFID toll plaza at 13:48 IST.
+                      Two consecutive debits of ₹120 each were logged within 4 seconds on the
+                      onboard FASTag ledger. Passenger telematics indicate only one boom-barrier
+                      passage.
                     </p>
                     <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-xs text-[#87948b] border-t border-[#262a33]/60">
                       <span className="flex items-center gap-1">
@@ -524,7 +525,9 @@ export default function CustomerSupportPage() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => showToast('Initiating encrypted voice call with Officer Ananya...')}
+                      onClick={() =>
+                        showToast('Initiating encrypted voice call with Officer Ananya...')
+                      }
                       className="p-2 rounded-lg bg-[#1c2028] hover:bg-[#262a33] border border-[#262a33] text-[#dfe2ee] transition-colors"
                       title="Instant Encrypted Voice Call"
                     >
@@ -693,9 +696,7 @@ export default function CustomerSupportPage() {
                       onClick={handleSubmitEscalation}
                       className="w-full py-3 px-4 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] font-['Space_Grotesk']"
                     >
-                      <span className="material-symbols-outlined text-lg">
-                        send_time_extension
-                      </span>
+                      <span className="material-symbols-outlined text-lg">send_time_extension</span>
                       <span>Submit Concierge Escalation</span>
                     </button>
                     <div className="flex items-center justify-between font-mono text-[10px] text-[#87948b] mt-2 px-1">
@@ -818,8 +819,8 @@ export default function CustomerSupportPage() {
                     </h4>
                     <p className="text-xs text-[#bccac0] mt-2 leading-relaxed">
                       Zero-tolerance tamper protocol: Cabin sweep checklist post-ride, immediate
-                      vault tagging, and direct return dispatch to your residence or corporate
-                      board room within 180 mins.
+                      vault tagging, and direct return dispatch to your residence or corporate board
+                      room within 180 mins.
                     </p>
                   </div>
                   <div className="mt-4 pt-2 border-t border-[#262a33] flex items-center justify-between font-mono text-xs text-[#4edea3]">
@@ -841,8 +842,8 @@ export default function CustomerSupportPage() {
                       GST Invoicing &amp; Corporate Ledger Reconciliation
                     </h4>
                     <p className="text-xs text-[#bccac0] mt-2 leading-relaxed">
-                      Automated ITC-compliant monthly tax invoices, split billing by executive
-                      cost center, and direct SAP / Concur ERP data pipeline integration rules.
+                      Automated ITC-compliant monthly tax invoices, split billing by executive cost
+                      center, and direct SAP / Concur ERP data pipeline integration rules.
                     </p>
                   </div>
                   <div className="mt-4 pt-2 border-t border-[#262a33] flex items-center justify-between font-mono text-xs text-[#85f8c4]">
@@ -871,9 +872,7 @@ export default function CustomerSupportPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-[#87948b]">
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
-                      lock
-                    </span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">lock</span>
                     ISO/IEC 27001 Certified
                   </span>
                   <span>•</span>
@@ -885,9 +884,7 @@ export default function CustomerSupportPage() {
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
-                      call
-                    </span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">call</span>
                     24/7 Priority Desk: +91 11 4099 2400
                   </span>
                 </div>

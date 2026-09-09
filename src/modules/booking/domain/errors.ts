@@ -57,3 +57,28 @@ export class DuplicateBookingIdempotencyError extends Error {
     this.name = 'DuplicateBookingIdempotencyError';
   }
 }
+
+export class DispatchInvalidBookingStateError extends Error {
+  constructor(bookingId: string, currentStatus: BookingStatus, requiredStatuses: BookingStatus[]) {
+    super(
+      `Booking ${bookingId} is in ${currentStatus}; this dispatch action requires one of: ${requiredStatuses.join(', ')}.`,
+    );
+    this.name = 'DispatchInvalidBookingStateError';
+  }
+}
+
+export class DriverNotEligibleForDispatchError extends Error {
+  constructor(driverProfileId: string, reasons: string[]) {
+    super(`Driver ${driverProfileId} is not eligible for assignment: ${reasons.join('; ')}`);
+    this.name = 'DriverNotEligibleForDispatchError';
+  }
+}
+
+export class DriverNotAvailableForDispatchError extends Error {
+  constructor(driverProfileId: string, currentAvailabilityStatus: string) {
+    super(
+      `Driver ${driverProfileId} is not available for assignment (current status: ${currentAvailabilityStatus}).`,
+    );
+    this.name = 'DriverNotAvailableForDispatchError';
+  }
+}

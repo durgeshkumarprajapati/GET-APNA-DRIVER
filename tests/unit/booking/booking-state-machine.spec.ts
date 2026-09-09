@@ -29,6 +29,21 @@ describe('BookingStateMachine', () => {
     expect(() =>
       validateBookingStatusTransition(BookingStatus.DRIVER_ASSIGNED, BookingStatus.CANCELLED),
     ).not.toThrow();
+
+    // Dispatch operator reassignment (dispatch-service.ts::reassignBookingDriver) and
+    // search restart (::restartBookingSearch) are the only ways these two transitions
+    // are exercised in practice — both are deliberate, permission-gated escapes from an
+    // otherwise-forward-only lifecycle, not general-purpose backward transitions.
+    expect(() =>
+      validateBookingStatusTransition(
+        BookingStatus.DRIVER_ASSIGNED,
+        BookingStatus.SEARCHING_DRIVER,
+      ),
+    ).not.toThrow();
+
+    expect(() =>
+      validateBookingStatusTransition(BookingStatus.EXPIRED, BookingStatus.SEARCHING_DRIVER),
+    ).not.toThrow();
   });
 
   it('rejects invalid state transitions', () => {
@@ -40,9 +55,19 @@ describe('BookingStateMachine', () => {
       validateBookingStatusTransition(BookingStatus.EXPIRED, BookingStatus.DRIVER_ASSIGNED),
     ).toThrow(InvalidBookingStatusTransitionError);
 
+    // Reassignment back to search is only valid from DRIVER_ASSIGNED, not once a trip
+    // is actually under way — en-route/arrived/in-progress bookings must be cancelled,
+    // never silently reopened for matching.
     expect(() =>
       validateBookingStatusTransition(
-        BookingStatus.DRIVER_ASSIGNED,
+        BookingStatus.TRIP_IN_PROGRESS,
+        BookingStatus.SEARCHING_DRIVER,
+      ),
+    ).toThrow(InvalidBookingStatusTransitionError);
+
+    expect(() =>
+      validateBookingStatusTransition(
+        BookingStatus.DRIVER_EN_ROUTE,
         BookingStatus.SEARCHING_DRIVER,
       ),
     ).toThrow(InvalidBookingStatusTransitionError);

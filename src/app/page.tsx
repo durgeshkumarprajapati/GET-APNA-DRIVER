@@ -1,1146 +1,1197 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+type RolePanel = 'customer' | 'driver' | 'admin';
+type ServiceType = 'hourly' | 'airport' | 'outstation';
+type VehicleClass = 'sedan' | 'luxury' | 'suv';
+
+const HERO_SERVICE_LABEL: Record<ServiceType, string> = {
+  hourly: 'Est. Rate: ₹149/hr (min 2h)',
+  airport: 'Fixed Fare: ₹899 (IGI T1/T2/T3)',
+  outstation: 'From ₹1,499/day (driver stay incl.)',
+};
+
+const VEHICLE_MULTIPLIER: Record<VehicleClass, number> = {
+  sedan: 1,
+  luxury: 1.4,
+  suv: 1.2,
+};
+
+function estimateFare(service: ServiceType, hours: number, vehicle: VehicleClass): number {
+  const multiplier = VEHICLE_MULTIPLIER[vehicle];
+  if (service === 'hourly') {
+    return Math.round(149 * hours * multiplier);
+  }
+  if (service === 'airport') {
+    return Math.round(899 * multiplier);
+  }
+  const days = Math.max(1, Math.ceil(hours / 24));
+  return Math.round(1499 * days * multiplier);
+}
+
+interface SessionInfo {
+  dashboardHref: string;
+  dashboardLabel: string;
+}
+
+function resolveSession(roles: string[]): SessionInfo {
+  if (roles.includes('ADMINISTRATOR')) {
+    return { dashboardHref: '/admin/mission-dashboard', dashboardLabel: 'Admin Console' };
+  }
+  if (roles.includes('DRIVER')) {
+    return { dashboardHref: '/driver', dashboardLabel: 'Driver Console' };
+  }
+  return { dashboardHref: '/bookings', dashboardLabel: 'Customer Console' };
+}
+
+const FAQS = [
+  {
+    question: 'How are Get Apna Driver chauffeurs vetted?',
+    answer:
+      'Every chauffeur undergoes a rigorous screening process including criminal background checks via state police registries, biometric identity verification, prior employment audits, and a mandatory practical driving examination in both manual and automatic vehicles.',
+  },
+  {
+    question: 'Is my vehicle insured during the trip?',
+    answer:
+      'Yes. All bookings automatically include secondary trip protection coverage for incidental vehicular damage during the active booking lifecycle.',
+  },
+  {
+    question: 'Can I book a driver for late-night return trips?',
+    answer:
+      'Yes — you can book an executive chauffeur up to 30 days in advance or request on-demand dispatch for safe, late-night transit home in your own vehicle.',
+  },
+  {
+    question: 'How are hourly and outstation fares calculated?',
+    answer:
+      'Fares are transparent with zero surge fees. Hourly rentals start at ₹149/hr for standard city commutes (minimum 2 hours), while outstation trips are calculated on a transparent daily rate that includes the driver’s stay allowance.',
+  },
+];
 
 export default function LandingPage() {
-  const [tripMode, setTripMode] = useState<'hourly' | 'oneway' | 'outstation' | 'monthly'>(
-    'hourly',
-  );
-  const [pickupNode, setPickupNode] = useState('DLF Phase 5, Gurugram');
-  const [deploymentWindow, setDeploymentWindow] = useState('Today, 19:30 (Instant)');
-  const [vehicleProfile, setVehicleProfile] = useState('Sedan / Luxury (Automatic)');
+  const [session, setSession] = useState<SessionInfo | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const [rolePanel, setRolePanel] = useState<RolePanel>('customer');
+  const [heroService, setHeroService] = useState<ServiceType>('hourly');
+
+  const [calcService, setCalcService] = useState<ServiceType>('hourly');
+  const [calcHours, setCalcHours] = useState(8);
+  const [calcVehicle, setCalcVehicle] = useState<VehicleClass>('sedan');
+
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const faqs = [
-    {
-      question: 'How are Get Apna Driver chauffeurs vetted?',
-      answer:
-        'Every chauffeur undergoes a rigorous 50-point screening process including criminal background checks via state police registries, biometric fingerprint verification, drug screening, prior employment audits, and a mandatory 15-point practical driving examination in both manual and automatic luxury vehicles.',
-    },
-    {
-      question: 'Is my vehicle insured during the trip?',
-      answer:
-        'Yes. All bookings on Get Apna Driver automatically include secondary trip protection coverage up to ₹5,00,000 for incidental vehicular damage during the active booking lifecycle, backed by our zero-incident SLA guarantee.',
-    },
-    {
-      question: 'Can I book a driver for late-night party return trips?',
-      answer:
-        'Absolutely. Our live dispatch radar operates 24/7. You can book an executive chauffeur up to 30 days in advance or request instant dispatch for safe, late-night transit back home in your personal vehicle.',
-    },
-    {
-      question: 'How are hourly and outstation fares calculated?',
-      answer:
-        'Fares are 100% transparent with zero cash surge fees. Hourly rentals start at ₹149/hr for standard city commutes (minimum 2 hours), while outstation daily packages are calculated on a transparent 12-hour / 24-hour flat slab with food & accommodation allowances included.',
-    },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data) => {
+        if (isMounted) setSession(resolveSession(data.principal?.roles ?? []));
+      })
+      .catch(() => {
+        if (isMounted) setSession(null);
+      })
+      .finally(() => {
+        if (isMounted) setSessionChecked(true);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  const toggleFaq = (index: number) => {
-    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  const handleSignOut = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      setSession(null);
+      setLoggingOut(false);
+    }
   };
 
+  const estimatedFare = estimateFare(calcService, calcHours, calcVehicle);
+
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
-      {/* HEADER NAVBAR */}
-      <header className="fixed top-0 w-full z-50 bg-[#0f131c]/90 backdrop-blur-xl border-b border-[#262a33]/60 shadow-[0_1px_8px_rgba(0,0,0,0.3)]">
-        <div className="h-20 w-full px-4 md:px-8 max-w-[1440px] mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9] group-hover:scale-105 transition-transform shadow-md">
-                <span className="material-symbols-outlined text-2xl">local_taxi</span>
-              </div>
-              <div>
-                <span className="font-bold text-lg tracking-tight text-[#dfe2ee] block leading-none font-['Space_Grotesk']">
-                  GET APNA DRIVER
-                </span>
-                <span className="text-[10px] font-semibold uppercase text-[#68dba9] tracking-widest block mt-0.5 font-['Space_Grotesk']">
-                  Elite Mobility Network
-                </span>
-              </div>
-            </Link>
-
-            {/* Portal Switcher Pill Navigation */}
-            <div className="hidden xl:flex items-center bg-[#0a0e16] p-1 rounded-full border border-[#262a33]">
+    <div className="min-h-screen bg-background text-on-surface antialiased selection:bg-primary selection:text-on-primary">
+      {/* SESSION BANNER — real auth state only, never a fabricated "active session" */}
+      {sessionChecked && session && (
+        <div className="w-full bg-surface-container-lowest border-b border-primary/20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-on-surface-variant">Signed in</span>
+            </div>
+            <div className="flex items-center gap-2">
               <Link
-                href="/"
-                className="px-4 py-1.5 rounded-full text-xs font-medium bg-[#1c2028] text-[#dfe2ee] shadow-[0_1px_4px_rgba(0,0,0,0.4)]"
+                href={session.dashboardHref}
+                className="px-3 py-1 rounded bg-primary text-on-primary font-bold text-xs flex items-center gap-1.5"
               >
-                Public Website
+                <span>Resume {session.dashboardLabel}</span>
+                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
               </Link>
-              <Link
-                href="/bookings"
-                className="px-4 py-1.5 rounded-full text-xs font-medium text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
+              <button
+                type="button"
+                disabled={loggingOut}
+                onClick={handleSignOut}
+                className="px-2.5 py-1 rounded border border-outline-variant/60 text-on-surface-variant hover:text-on-surface hover:border-primary text-xs disabled:opacity-50"
               >
-                Customer Hub
-              </Link>
-              <Link
-                href="/driver/bookings"
-                className="px-4 py-1.5 rounded-full text-xs font-medium text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
-              >
-                Driver Partner Portal
-              </Link>
-              <Link
-                href="/admin/drivers"
-                className="px-4 py-1.5 rounded-full text-xs font-medium text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
-              >
-                Enterprise Admin
-              </Link>
+                Sign Out
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Quick Search */}
-          <div className="hidden lg:flex items-center bg-[#0a0e16] px-3.5 py-1.5 rounded-xl w-64 justify-between border border-[#262a33]">
-            <button
-              onClick={() => setSearchModalOpen(true)}
-              className="flex items-center gap-2 text-[#bccac0] text-xs w-full text-left"
-            >
-              <span className="material-symbols-outlined text-base">search</span>
-              <span>Search drivers, routes...</span>
-            </button>
-            <kbd className="bg-[#262a33] px-1.5 py-0.5 rounded text-[#bccac0] text-[10px] font-mono">
-              ⌘K
-            </kbd>
-          </div>
-
-          {/* Header Controls */}
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 bg-[#181c24] px-3 py-1.5 rounded-full border border-[#262a33]">
-              <span className="material-symbols-outlined text-[#68dba9] text-base">
-                location_on
+      {/* PRIMARY NAVIGATION */}
+      <header className="sticky top-0 w-full z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-variant/30 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+        <div className="h-20 w-full px-4 md:px-8 mx-auto max-w-[1440px] flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary text-2xl">local_taxi</span>
+            </div>
+            <div>
+              <span className="font-bold text-lg tracking-tight text-on-surface block leading-none font-['Space_Grotesk']">
+                GET APNA DRIVER
               </span>
-              <span className="text-xs font-mono text-[#dfe2ee]">South Delhi / NCR</span>
-              <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping ml-1" />
+              <span className="text-[10px] uppercase text-primary tracking-widest block mt-0.5 font-bold font-['Space_Grotesk']">
+                Executive Dispatch Terminal
+              </span>
             </div>
+          </Link>
 
-            <button
-              aria-label="Notifications"
-              onClick={() => setSearchModalOpen(true)}
-              className="relative w-9 h-9 rounded-xl bg-[#181c24] hover:bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee] flex items-center justify-center transition-colors border border-[#262a33]"
+          <div className="hidden lg:flex items-center gap-1.5 bg-surface-container-lowest border border-surface-variant/40 px-3 py-1.5 rounded-lg text-xs text-on-surface-variant">
+            <span className="material-symbols-outlined text-base text-primary">security</span>
+            <span className="font-mono">Delhi Police Verification Cleared</span>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/login"
+              className="px-3 py-2 rounded-lg text-xs text-on-surface hover:text-primary hover:bg-surface-container transition-all flex items-center gap-1.5 border border-outline-variant/40"
             >
-              <span className="material-symbols-outlined text-lg">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#68dba9]" />
-            </button>
-
-            <Link href="/profile" className="flex items-center gap-2 pl-1">
-              <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9] font-bold text-xs">
-                  AD
-                </div>
-                <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#0f131c] rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[#68dba9] text-[10px]">
-                    verified
-                  </span>
-                </span>
-              </div>
+              <span className="material-symbols-outlined text-base">login</span>
+              <span>Sign In</span>
             </Link>
+            <div className="relative group">
+              <button
+                type="button"
+                className="px-3 py-2 rounded-lg bg-primary text-on-primary text-xs uppercase tracking-wider hover:bg-primary-hover transition-all flex items-center gap-1.5 shadow-md font-bold"
+              >
+                <span className="material-symbols-outlined text-base">how_to_reg</span>
+                <span>Register</span>
+                <span className="material-symbols-outlined text-xs">expand_more</span>
+              </button>
+              <div className="absolute right-0 mt-2 w-64 bg-surface-container-high border border-surface-variant/60 rounded-xl shadow-2xl p-2 hidden group-hover:block z-50">
+                <Link
+                  href="/register"
+                  className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-surface-container transition-colors"
+                >
+                  <span className="material-symbols-outlined text-primary mt-0.5">person</span>
+                  <div>
+                    <p className="text-xs font-bold text-on-surface font-['Space_Grotesk']">
+                      Customer Registration
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant">
+                      Book chauffeurs &amp; verified pilots
+                    </p>
+                  </div>
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-surface-container transition-colors border-t border-surface-variant/20 mt-1 pt-1"
+                >
+                  <span className="material-symbols-outlined text-tertiary mt-0.5">
+                    sports_motorsports
+                  </span>
+                  <div>
+                    <p className="text-xs font-bold text-on-surface font-['Space_Grotesk']">
+                      Driver Partner Enrollment
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant">Zero platform deductions</p>
+                  </div>
+                </Link>
+                <Link
+                  href="/login"
+                  className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-surface-container transition-colors border-t border-surface-variant/20 mt-1 pt-1"
+                >
+                  <span className="material-symbols-outlined text-secondary mt-0.5">
+                    admin_panel_settings
+                  </span>
+                  <div>
+                    <p className="text-xs font-bold text-on-surface font-['Space_Grotesk']">
+                      Enterprise Fleet Admin
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant">
+                      Corporate accounts &amp; audit console
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Sub-Nav Bar */}
-        <div className="w-full bg-[#0a0e16]/80 backdrop-blur-md px-4 md:px-8 border-t border-[#262a33]/40">
-          <nav className="max-w-[1440px] mx-auto flex items-center gap-8 h-10 overflow-x-auto text-xs">
-            <Link href="/" className="whitespace-nowrap text-[#68dba9] font-bold">
-              Home
-            </Link>
+        <div className="w-full bg-surface-container-lowest/90 border-t border-surface-variant/20 px-4 md:px-8">
+          <nav className="max-w-[1440px] mx-auto flex items-center gap-6 h-11 overflow-x-auto text-xs uppercase tracking-wider text-on-surface-variant">
             <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1 text-primary border-b-2 border-primary"
+              href="#overview"
+            >
+              <span className="material-symbols-outlined text-[14px]">explore</span>Overview
+            </a>
+            <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
               href="#how-it-works"
-              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
             >
-              How It Works
+              <span className="material-symbols-outlined text-[14px]">flowsheet</span>3-Step
+              Protocol
             </a>
             <a
-              href="#trust-safety"
-              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#services-fleet"
             >
-              Safety & Verification
+              <span className="material-symbols-outlined text-[14px]">directions_car</span>Flagship
+              Fleet
             </a>
             <a
-              href="#chauffeurs"
-              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#safety-telematics"
             >
-              Top Drivers
+              <span className="material-symbols-outlined text-[14px]">verified_user</span>Safety
             </a>
-            <Link
-              href="/driver/onboarding"
-              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+            <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#driver-partner-perks"
             >
-              For Drivers
-            </Link>
-            <Link
-              href="/bookings/new"
-              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+              <span className="material-symbols-outlined text-[14px]">military_tech</span>Pilot
+              Perks
+            </a>
+            <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#enterprise-admin"
             >
-              Book Chauffeur
-            </Link>
+              <span className="material-symbols-outlined text-[14px]">corporate_fare</span>
+              Enterprise
+            </a>
+            <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#pricing-transparency"
+            >
+              <span className="material-symbols-outlined text-[14px]">payments</span>Tariff Card
+            </a>
+            <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#testimonials-reputation"
+            >
+              <span className="material-symbols-outlined text-[14px]">reviews</span>Reputation
+            </a>
+            <a
+              className="hover:text-primary transition-colors py-1 flex items-center gap-1"
+              href="#faq"
+            >
+              <span className="material-symbols-outlined text-[14px]">help_center</span>FAQ
+            </a>
           </nav>
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
-      <main className="w-full pt-32">
-        {/* SECTION 1: HERO & LIVE DISPATCH RADAR */}
-        <section className="relative w-full overflow-hidden px-4 md:px-8 py-12 lg:py-20">
-          <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-[#68dba9]/10 blur-3xl pointer-events-none" />
-          <div className="absolute top-1/2 right-0 w-80 h-80 rounded-full bg-[#0053db]/15 blur-3xl pointer-events-none" />
-
-          <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
-            {/* Left Column: Value Prop & Tactical Search Engine */}
-            <div className="lg:col-span-7 flex flex-col gap-6">
-              <div className="flex items-center gap-2.5 w-fit bg-[#181c24] px-4 py-1.5 rounded-full border border-[#262a33]">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#68dba9] animate-ping" />
-                <span className="font-bold text-xs uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
+      <main className="w-full bg-surface">
+        {/* SECTION 1: HERO */}
+        <section
+          className="relative w-full overflow-hidden bg-surface px-4 md:px-8 py-12 lg:py-16"
+          id="overview"
+        >
+          <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          <div className="absolute top-1/2 right-0 w-80 h-80 rounded-full bg-secondary-container/15 blur-3xl pointer-events-none" />
+          <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div className="lg:col-span-7 flex flex-col gap-5">
+              <div className="flex items-center gap-2 w-fit bg-surface-container-low border border-primary/20 px-3 py-1 rounded-full">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary animate-ping" />
+                <span className="text-[11px] uppercase tracking-wider text-primary font-bold">
                   Live Dispatch Mesh Active
                 </span>
-                <span className="text-xs font-mono text-[#bccac0]">| 412 Drivers Ready in NCR</span>
               </div>
+              <h1 className="text-4xl lg:text-5xl text-on-surface leading-[1.08] tracking-tight font-bold font-['Space_Grotesk']">
+                Executive Chauffeur Dispatch.
+                <br />
+                <span className="text-primary">Your Car.</span> Apex Vetted Drivers.
+              </h1>
+              <p className="text-lg text-on-surface-variant max-w-2xl pt-2">
+                India&apos;s unified mobility standard for private vehicle owners, corporate fleets,
+                and high-earning certified pilots. Tier-1 police verification, 24/7 telematics, zero
+                surge guarantee.
+              </p>
 
-              <div className="space-y-4">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#dfe2ee] leading-[1.08] font-['Space_Grotesk']">
-                  Find a Trusted Driver.
-                  <br />
-                  <span className="text-[#68dba9]">Wherever</span> You Need One.
-                </h1>
-                <p className="text-base sm:text-lg text-[#bccac0] max-w-2xl">
-                  Book background-verified, executive chauffeurs for your personal car on demand,
-                  hourly, or outstation. Rated 4.9/5 across 185,000+ completed journeys.
-                </p>
-              </div>
-
-              {/* Integrated Tactical Booking Widget */}
-              <div className="w-full bg-[#1c2028] rounded-2xl p-5 md:p-6 shadow-2xl border border-[#262a33] flex flex-col gap-5">
-                {/* Trip Mode Switcher */}
-                <div className="flex flex-wrap items-center gap-2 bg-[#0a0e16] p-1.5 rounded-xl border border-[#262a33]">
-                  <button
-                    type="button"
-                    onClick={() => setTripMode('hourly')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all font-['Space_Grotesk'] ${
-                      tripMode === 'hourly'
-                        ? 'bg-[#1c2028] text-[#68dba9] shadow-md border border-[#3d4a42]'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                    }`}
-                  >
-                    Hourly Rental
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTripMode('oneway')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all font-['Space_Grotesk'] ${
-                      tripMode === 'oneway'
-                        ? 'bg-[#1c2028] text-[#68dba9] shadow-md border border-[#3d4a42]'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                    }`}
-                  >
-                    One-Way Drop
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTripMode('outstation')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all font-['Space_Grotesk'] ${
-                      tripMode === 'outstation'
-                        ? 'bg-[#1c2028] text-[#68dba9] shadow-md border border-[#3d4a42]'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                    }`}
-                  >
-                    Outstation Trip
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTripMode('monthly')}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all font-['Space_Grotesk'] ${
-                      tripMode === 'monthly'
-                        ? 'bg-[#1c2028] text-[#68dba9] shadow-md border border-[#3d4a42]'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                    }`}
-                  >
-                    Monthly Dedicated
-                  </button>
-                </div>
-
-                {/* Input Matrix */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Pickup Location */}
-                  <div className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] flex flex-col justify-between">
-                    <label className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider flex items-center gap-1 font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm text-[#68dba9]">
-                        my_location
-                      </span>
-                      Pickup Node
-                    </label>
-                    <input
-                      type="text"
-                      value={pickupNode}
-                      onChange={(e) => setPickupNode(e.target.value)}
-                      className="bg-transparent text-sm text-[#dfe2ee] font-medium focus:outline-none w-full mt-1"
-                      placeholder="Enter landmark or street"
-                    />
-                    <span className="text-[10px] font-mono text-[#68dba9]/80 mt-1">
-                      Radar locked: Sector 54 hub
-                    </span>
-                  </div>
-
-                  {/* Deployment Window */}
-                  <div className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] flex flex-col justify-between">
-                    <label className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider flex items-center gap-1 font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm text-[#68dba9]">
-                        schedule
-                      </span>
-                      Deployment Window
-                    </label>
-                    <input
-                      type="text"
-                      value={deploymentWindow}
-                      onChange={(e) => setDeploymentWindow(e.target.value)}
-                      className="bg-transparent text-sm text-[#dfe2ee] font-medium focus:outline-none w-full mt-1"
-                    />
-                    <span className="text-[10px] font-mono text-[#bccac0] mt-1">
-                      Estimated ETA: 6 mins
-                    </span>
-                  </div>
-
-                  {/* Vehicle Specification */}
-                  <div className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] flex flex-col justify-between">
-                    <label className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider flex items-center gap-1 font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm text-[#68dba9]">
-                        directions_car
-                      </span>
-                      Your Vehicle Profile
-                    </label>
-                    <select
-                      value={vehicleProfile}
-                      onChange={(e) => setVehicleProfile(e.target.value)}
-                      className="bg-transparent text-sm text-[#dfe2ee] font-medium focus:outline-none w-full mt-1 cursor-pointer"
+              {/* Multi-Role Launchpad */}
+              <div className="w-full bg-surface-container border border-surface-variant/50 rounded-2xl p-4 lg:p-5 shadow-2xl flex flex-col gap-4">
+                <div className="flex items-center bg-surface-container-lowest p-1 rounded-xl border border-surface-variant/40">
+                  {(
+                    [
+                      { key: 'customer', label: 'Hire Chauffeur', icon: 'hail' },
+                      { key: 'driver', label: 'Drive & Earn', icon: 'sports_motorsports' },
+                      { key: 'admin', label: 'Enterprise Fleet', icon: 'business_center' },
+                    ] as const
+                  ).map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setRolePanel(tab.key)}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs uppercase transition-all flex items-center justify-center gap-1.5 ${
+                        rolePanel === tab.key
+                          ? 'bg-surface-container text-primary font-bold shadow-sm'
+                          : 'text-on-surface-variant hover:text-on-surface'
+                      }`}
                     >
-                      <option className="bg-[#1c2028]">Sedan / Luxury (Automatic)</option>
-                      <option className="bg-[#1c2028]">SUV / 4x4 (Automatic)</option>
-                      <option className="bg-[#1c2028]">Hatchback / Compact (Manual)</option>
-                      <option className="bg-[#1c2028]">Vintage / Electric (EV)</option>
-                    </select>
-                    <span className="text-[10px] font-mono text-[#bccac0] mt-1">
-                      Chauffeur grade matched
-                    </span>
-                  </div>
+                      <span className="material-symbols-outlined text-sm">{tab.icon}</span>
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
                 </div>
 
-                {/* Submit CTA & Live Pulse */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-1">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-xl">
-                      verified_user
-                    </span>
-                    <span className="text-xs text-[#bccac0]">
-                      Tier-1 Police verified + Drug-tested chauffeur deployment
-                    </span>
+                {rolePanel === 'customer' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <label className="text-[11px] uppercase text-on-surface-variant flex items-center gap-1">
+                          <span className="material-symbols-outlined text-primary text-sm">
+                            my_location
+                          </span>
+                          Pickup Node
+                        </label>
+                        <p className="text-sm text-on-surface mt-1.5">DLF Phase 5, Gurugram</p>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <label className="text-[11px] uppercase text-on-surface-variant flex items-center gap-1">
+                          <span className="material-symbols-outlined text-primary text-sm">
+                            schedule
+                          </span>
+                          Deployment Mode
+                        </label>
+                        <select
+                          value={heroService}
+                          onChange={(e) => setHeroService(e.target.value as ServiceType)}
+                          className="bg-transparent text-sm text-on-surface focus:outline-none w-full mt-1.5 cursor-pointer"
+                        >
+                          <option className="bg-surface-container" value="hourly">
+                            Hourly Chauffeur (₹149/hr)
+                          </option>
+                          <option className="bg-surface-container" value="airport">
+                            Airport VIP Escort (Fixed ₹899)
+                          </option>
+                          <option className="bg-surface-container" value="outstation">
+                            Outstation Trip (₹1,499/day)
+                          </option>
+                        </select>
+                        <span className="text-[11px] text-on-surface-variant mt-1 block">
+                          {HERO_SERVICE_LABEL[heroService]}
+                        </span>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <label className="text-[11px] uppercase text-on-surface-variant flex items-center gap-1">
+                          <span className="material-symbols-outlined text-primary text-sm">
+                            directions_car
+                          </span>
+                          Transmission / Grade
+                        </label>
+                        <p className="text-sm text-on-surface mt-1.5">
+                          Luxury Automatic (BMW/Merc)
+                        </p>
+                        <span className="text-[11px] text-primary/80 mt-1 block">
+                          Trained pilot assigned
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                      <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                        <span className="material-symbols-outlined text-primary text-base">
+                          verified_user
+                        </span>
+                        <span>Police clearance certificate verified on dispatch</span>
+                      </div>
+                      <Link
+                        href="/register"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-primary text-on-primary rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg hover:bg-primary-hover transition-all font-bold"
+                      >
+                        <span>Continue Booking → Sign Up</span>
+                        <span className="material-symbols-outlined text-base">arrow_forward</span>
+                      </Link>
+                    </div>
                   </div>
+                )}
 
-                  <Link
-                    href={`/bookings/new?mode=${tripMode}&pickup=${encodeURIComponent(pickupNode)}`}
-                    className="w-full sm:w-auto px-6 py-3.5 bg-[#68dba9] text-[#003825] rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl hover:bg-[#85f8c4] transition-all font-['Space_Grotesk']"
-                  >
-                    <span>Search Verified Drivers</span>
-                    <span className="material-symbols-outlined text-base">arrow_forward</span>
-                  </Link>
-                </div>
+                {rolePanel === 'driver' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <span className="text-[11px] uppercase text-tertiary block">
+                          Monthly Earnings
+                        </span>
+                        <p className="text-xl text-on-surface mt-1 font-bold font-['Space_Grotesk']">
+                          ₹35,000 – ₹48,000
+                        </p>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Net take-home + tips
+                        </span>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <span className="text-[11px] uppercase text-tertiary block">
+                          Payout Frequency
+                        </span>
+                        <p className="text-xl text-on-surface mt-1 font-bold font-['Space_Grotesk']">
+                          Fast IMPS / UPI
+                        </p>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Zero platform surge deductions
+                        </span>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <span className="text-[11px] uppercase text-tertiary block">
+                          Driver Shield
+                        </span>
+                        <p className="text-xl text-on-surface mt-1 font-bold font-['Space_Grotesk']">
+                          Accident Cover
+                        </p>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Included on active trips
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                      <span className="text-xs text-on-surface-variant">
+                        Requirements: Commercial/LMV licence + 3 years clean record.
+                      </span>
+                      <Link
+                        href="/register"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-tertiary text-on-tertiary rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-all font-bold"
+                      >
+                        <span>Apply as Driver Partner</span>
+                        <span className="material-symbols-outlined text-base">badge</span>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {rolePanel === 'admin' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <span className="text-[11px] uppercase text-secondary block">
+                          Consolidated Billing
+                        </span>
+                        <p className="text-base text-on-surface mt-1 font-bold font-['Space_Grotesk']">
+                          Monthly GST Invoicing
+                        </p>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Automated toll &amp; expense reconciliation
+                        </span>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <span className="text-[11px] uppercase text-secondary block">
+                          Fleet Oversight
+                        </span>
+                        <p className="text-base text-on-surface mt-1 font-bold font-['Space_Grotesk']">
+                          Live Ops Console
+                        </p>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Booking, dispatch &amp; driver management
+                        </span>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl p-3 border border-surface-variant/30">
+                        <span className="text-[11px] uppercase text-secondary block">
+                          Dedicated Account
+                        </span>
+                        <p className="text-base text-on-surface mt-1 font-bold font-['Space_Grotesk']">
+                          Priority Dispatch
+                        </p>
+                        <span className="text-[11px] text-on-surface-variant">
+                          Corporate SLA &amp; dedicated pilot pools
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                      <span className="text-xs text-on-surface-variant">
+                        Corporate accounts with customized SLA and dedicated pilot pools.
+                      </span>
+                      <Link
+                        href="/login"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-secondary-container text-on-secondary-container rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-all font-bold"
+                      >
+                        <span>Open Enterprise Admin Console</span>
+                        <span className="material-symbols-outlined text-base">
+                          admin_panel_settings
+                        </span>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Right Column: Interactive Radar Canvas & Floating Driver Profile */}
+            {/* Right column: illustrative dispatch visualization (marketing decoration, not a live feed) */}
             <div className="lg:col-span-5 relative w-full flex flex-col items-center">
-              {/* Radar Visualizer */}
-              <div className="relative w-full aspect-square max-w-[460px] bg-[#0a0e16] rounded-3xl p-6 overflow-hidden shadow-2xl border border-[#262a33] flex items-center justify-center">
-                {/* Concentric Telemetry Circles */}
-                <div className="absolute w-80 h-80 rounded-full bg-[#1c2028]/50 border border-[#262a33]/60" />
-                <div className="absolute w-56 h-56 rounded-full bg-[#1c2028]/80 border border-[#262a33]" />
-                <div className="absolute w-32 h-32 rounded-full bg-[#68dba9]/10 animate-pulse border border-[#68dba9]/30" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#68dba9]/10 via-transparent to-transparent" />
-
-                {/* Sweep Ray */}
-                <div className="absolute inset-0 origin-center animate-radar-sweep pointer-events-none">
-                  <div className="w-1/2 h-1/2 bg-gradient-to-br from-[#68dba9]/30 to-transparent origin-bottom-right transform rotate-45 rounded-tl-full" />
-                </div>
-
-                {/* Center Car Marker */}
+              <div className="relative w-full aspect-square max-w-[440px] bg-surface-container-lowest rounded-3xl p-6 overflow-hidden shadow-2xl border border-surface-variant/30 flex items-center justify-center">
+                <div className="absolute w-80 h-80 rounded-full border border-surface-variant/40" />
+                <div className="absolute w-56 h-56 rounded-full border border-surface-variant/60" />
+                <div className="absolute w-32 h-32 rounded-full border border-primary/30 bg-primary/5 animate-pulse" />
                 <div className="relative z-20 flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#68dba9] text-[#003825] flex items-center justify-center shadow-2xl">
+                  <div className="w-14 h-14 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-2xl">
                     <span className="material-symbols-outlined text-3xl">directions_car</span>
                   </div>
-                  <div className="mt-2 bg-[#262a33] px-3 py-1 rounded-full shadow-md border border-[#3d4a42]">
-                    <span className="text-[10px] font-bold text-[#dfe2ee] uppercase tracking-wider font-['Space_Grotesk']">
-                      Owner Car Node
-                    </span>
+                  <div className="mt-2 bg-surface-container-high px-3 py-1 rounded-full shadow-md border border-surface-variant/40">
+                    <span className="text-[10px] text-on-surface uppercase">Your Vehicle Node</span>
                   </div>
-                </div>
-
-                {/* Nearby Driver Ping 1 */}
-                <div className="absolute top-12 left-16 z-20 flex items-center gap-1.5 group cursor-pointer">
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#68dba9] ring-4 ring-[#68dba9]/20" />
-                  <div className="bg-[#1c2028] px-2 py-0.5 rounded text-[#68dba9] font-mono text-[10px] shadow-md border border-[#3d4a42]">
-                    4m away
-                  </div>
-                </div>
-
-                {/* Nearby Driver Ping 2 */}
-                <div className="absolute bottom-16 right-14 z-20 flex items-center gap-1.5 group cursor-pointer">
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#4edea3] ring-4 ring-[#4edea3]/20" />
-                  <div className="bg-[#1c2028] px-2 py-0.5 rounded text-[#dfe2ee] font-mono text-[10px] shadow-md border border-[#3d4a42]">
-                    6m away
-                  </div>
-                </div>
-
-                {/* Top Overlay: Telemetry Stats Bar */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-center bg-[#181c24]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-[#262a33]">
-                  <span className="font-mono text-[10px] text-[#bccac0] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" /> RADAR: 2.5
-                    KM SWEEP
-                  </span>
-                  <span className="font-bold text-[10px] text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
-                    9 Chauffeurs Online
-                  </span>
                 </div>
               </div>
 
-              {/* Floating Driver Card Overlay */}
-              <div className="-mt-14 relative z-30 w-full max-w-[420px] bg-[#262a33] rounded-2xl p-4 md:p-5 shadow-2xl border border-[#3d4a42]">
-                <div className="flex items-start justify-between gap-4">
+              <div className="-mt-12 relative z-30 w-full max-w-[400px] bg-surface-container-high rounded-2xl p-4 shadow-2xl border border-surface-variant/60">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-xl bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-xl font-bold text-[#68dba9]">
-                        RK
-                      </div>
-                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#68dba9] text-[#003825] rounded-full flex items-center justify-center shadow">
-                        <span className="material-symbols-outlined text-[12px]">verified</span>
+                      <Image
+                        alt="Illustrative chauffeur portrait"
+                        className="w-12 h-12 rounded-xl object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO3yMCwbxgKCghsL-i16RfdjWsBXRQ9hFbSTooCQOv0kAbZF2mAY3HS8a_MaTr38wgDpJTvRI-xbengnxFDc9dJO9o6y5chaOetxeu5W69yQbc_m6JcTUIskC8qicyLwjVYiohSP06onzJEFqgC-ZOdZuxhBezm1BnKZRyWE2bBF9kYPFiqIICNJH7oqYybYzlZgdYvToGn1TSiz7xZCe6X7JNjfJkH77_p1sfAK0laisOj2hhn4x6BA"
+                        width={48}
+                        height={48}
+                        unoptimized
+                      />
+                      <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary text-on-primary rounded-full flex items-center justify-center shadow">
+                        <span className="material-symbols-outlined text-[10px]">verified</span>
                       </span>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-sm text-on-surface font-bold font-['Space_Grotesk']">
                           Rajesh Kumar
                         </h4>
-                        <span className="text-[9px] font-bold bg-[#68dba9]/20 text-[#68dba9] px-1.5 py-0.5 rounded font-['Space_Grotesk']">
-                          TOP RATED
+                        <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold">
+                          TOP PILOT
                         </span>
                       </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">
-                        8 yrs exp • Mercedes & BMW Specialist
+                      <p className="text-xs text-on-surface-variant">
+                        BMW 7 &amp; Mercedes Specialist • 8 yrs exp
                       </p>
                     </div>
                   </div>
-
                   <div className="text-right">
-                    <div className="flex items-center justify-end text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm mr-0.5">star</span>
-                      4.96
+                    <div className="flex items-center justify-end text-primary text-sm font-bold font-['Space_Grotesk']">
+                      <span className="material-symbols-outlined text-sm mr-1">star</span>4.96
                     </div>
-                    <span className="font-mono text-[10px] text-[#bccac0]">1,420 trips</span>
+                    <span className="text-[11px] text-on-surface-variant">1,420 trips</span>
                   </div>
-                </div>
-
-                <div className="mt-4 pt-3 bg-[#0a0e16] px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#1c2028]">
-                  <div className="flex items-center gap-1.5 text-xs text-[#dfe2ee] font-mono">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
-                      electric_bolt
-                    </span>
-                    <span>
-                      Deploy ETA: <strong className="text-[#68dba9]">4 mins</strong>
-                    </span>
-                  </div>
-                  <span className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                    ₹169<span className="text-xs text-[#bccac0] font-normal">/hr</span>
-                  </span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 2: TRUST & SAFETY TELEMETRY METRIC RIBBON */}
+        {/* SECTION 2: 3-STEP PROTOCOL */}
         <section
-          id="trust-safety"
-          className="w-full bg-[#0a0e16] py-12 px-4 md:px-8 border-y border-[#262a33]"
+          className="w-full bg-surface-container-lowest px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="how-it-works"
         >
-          <div className="max-w-[1440px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[#181c24] rounded-2xl p-6 flex items-start gap-4 shadow-sm border border-[#262a33] hover:border-[#68dba9]/50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-[#68dba9]/15 text-[#68dba9] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-2xl">policy</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                  100% Police Clearance
-                </h4>
-                <p className="text-xs text-[#bccac0] mt-1">
-                  Verified criminal record check via state crime registry & biometric fingerprint.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#181c24] rounded-2xl p-6 flex items-start gap-4 shadow-sm border border-[#262a33] hover:border-[#68dba9]/50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-[#68dba9]/15 text-[#68dba9] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-2xl">fact_check</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                  50-Point Screening
-                </h4>
-                <p className="text-xs text-[#bccac0] mt-1">
-                  Rigorous driving skill test, drug test, address validation & reference
-                  cross-audits.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#181c24] rounded-2xl p-6 flex items-start gap-4 shadow-sm border border-[#262a33] hover:border-[#68dba9]/50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-[#68dba9]/15 text-[#68dba9] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-2xl">security</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                  Zero Incident Guarantee
-                </h4>
-                <p className="text-xs text-[#bccac0] mt-1">
-                  Trip protection coverage up to ₹5,00,000 against incidental car damage.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#181c24] rounded-2xl p-6 flex items-start gap-4 shadow-sm border border-[#262a33] hover:border-[#68dba9]/50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-[#68dba9]/15 text-[#68dba9] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-2xl">emergency_share</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                  Live Telematics & SOS
-                </h4>
-                <p className="text-xs text-[#bccac0] mt-1">
-                  Real-time GPS trip tracking, speed alerts, and 24/7 armed command desk response.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 3: HOW IT WORKS (4-STEP TACTICAL WORKFLOW) */}
-        <section id="how-it-works" className="w-full bg-[#0f131c] px-4 md:px-8 py-20 relative">
           <div className="max-w-[1440px] mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#68dba9] block mb-1 font-['Space_Grotesk']">
-                  Seamless Execution
+                <span className="text-xs uppercase tracking-widest text-primary block mb-1 font-bold">
+                  Standard Operating Procedure
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Effortless Chauffeur Deployment in 4 Steps
+                <h2 className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  3-Step Executive Chauffeur Deployment
                 </h2>
               </div>
-              <p className="text-sm text-[#bccac0] max-w-md">
-                Zero paperwork, zero negotiations. Your personal luxury or daily commute vehicle
-                driven with white-glove respect.
+              <p className="text-sm text-on-surface-variant max-w-md">
+                Zero bargaining, zero paperwork. Chauffeurs arrive in clean uniforms with pre-trip
+                vehicle logs and a sanitized driving cabin.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-              {/* Step 1 */}
-              <div className="bg-[#181c24] rounded-2xl p-6 flex flex-col justify-between group hover:bg-[#1c2028] transition-all border border-[#262a33] shadow-md">
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-4xl font-bold text-[#3d4a42] group-hover:text-[#68dba9] transition-colors font-['Space_Grotesk']">
-                      01
-                    </span>
-                    <div className="w-10 h-10 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-                      <span className="material-symbols-outlined text-xl">pin_drop</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                {
+                  step: '01',
+                  icon: 'pin_drop',
+                  title: 'Request Trip & Vehicle Spec',
+                  body: 'Specify your exact pickup coordinates, vehicle transmission, and duty window (hourly, airport escort, or outstation).',
+                  footer: 'Instant GPS geofencing',
+                },
+                {
+                  step: '02',
+                  icon: 'badge',
+                  title: 'Pilot Dispatched with Digital KYC',
+                  body: 'Inspect the pilot profile, police verification status, aggregate rating, and track live ETA to your door.',
+                  footer: 'Verified police badge & photo ID',
+                },
+                {
+                  step: '03',
+                  icon: 'verified',
+                  title: 'Pre-Trip Audit & Smooth Commute',
+                  body: 'Your chauffeur inspects exterior condition, logs starting odometer, and ensures a discreet, quiet journey.',
+                  footer: 'Automated post-trip receipt',
+                },
+              ].map((item) => (
+                <div
+                  key={item.step}
+                  className="bg-surface-container-low rounded-2xl p-6 border border-surface-variant/40 flex flex-col justify-between hover:border-primary/50 transition-all shadow-md group"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-3xl text-outline-variant group-hover:text-primary transition-colors font-bold font-['Space_Grotesk']">
+                        {item.step}
+                      </span>
+                      <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+                        <span className="material-symbols-outlined">{item.icon}</span>
+                      </div>
                     </div>
+                    <h3 className="text-lg text-on-surface font-bold mb-2 font-['Space_Grotesk']">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-on-surface-variant">{item.body}</p>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
-                    Share Trip Coordinates
-                  </h3>
-                  <p className="text-xs text-[#bccac0]">
-                    Specify your pickup node, trip type (hourly/outstation), and vehicle
-                    transmission details.
-                  </p>
+                  <div className="mt-6 pt-3 border-t border-surface-variant/30 text-xs text-primary flex items-center gap-1.5 font-mono">
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    {item.footer}
+                  </div>
                 </div>
-                <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Instant
-                  GPS geotagging
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 3: FLAGSHIP FLEET */}
+        <section
+          className="w-full bg-surface px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="services-fleet"
+        >
+          <div className="max-w-[1440px] mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+              <div>
+                <span className="text-xs uppercase tracking-widest text-primary block mb-1 font-bold">
+                  High-Spec Fleet Proficiency
+                </span>
+                <h2 className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  Trained for the World&apos;s Finest Vehicles
+                </h2>
+              </div>
+              <p className="text-sm text-on-surface-variant max-w-md">
+                Every pilot passes practical tests on air suspensions, lane-assist calibration, EV
+                regenerative braking, and tight urban maneuvering.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {[
+                {
+                  icon: 'airport_shuttle',
+                  tag: 'Ultra-Luxury Sedans',
+                  title: 'Mercedes S-Class / BMW 7',
+                  body: 'Smooth acceleration curve, whisper-quiet cabin protocol, and soft-close door etiquette.',
+                  years: '7+ Years',
+                },
+                {
+                  icon: 'directions_car',
+                  tag: 'Executive MPVs & Vans',
+                  title: 'Toyota Vellfire / Kia Carnival',
+                  body: 'First-class recliner configuration, multi-passenger luggage handling, smooth highway cruising.',
+                  years: '5+ Years',
+                },
+                {
+                  icon: 'terrain',
+                  tag: 'Premium Heavy SUVs',
+                  title: 'Defender / Range Rover / Fortuner',
+                  body: 'Hill assist, rough-terrain navigation, high ground-clearance awareness.',
+                  years: '6+ Years',
+                },
+                {
+                  icon: 'electric_car',
+                  tag: 'Modern Electric Vehicles',
+                  title: 'BMW iX / Audi e-tron / BYD Seal',
+                  body: 'Regenerative one-pedal modulation and fast-charging station setup.',
+                  years: 'EV Certified',
+                },
+              ].map((fleet) => (
+                <div
+                  key={fleet.title}
+                  className="bg-surface-container rounded-2xl p-5 border border-surface-variant/40 hover:border-primary/40 transition-all"
+                >
+                  <div className="h-32 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary mb-4 border border-surface-variant/20">
+                    <span className="material-symbols-outlined text-5xl">{fleet.icon}</span>
+                  </div>
+                  <span className="text-[10px] text-primary uppercase font-bold">{fleet.tag}</span>
+                  <h4 className="text-base text-on-surface font-bold mt-1 font-['Space_Grotesk']">
+                    {fleet.title}
+                  </h4>
+                  <p className="text-xs text-on-surface-variant mt-2">{fleet.body}</p>
+                  <div className="mt-4 pt-3 border-t border-surface-variant/30 flex items-center justify-between text-xs font-mono">
+                    <span className="text-on-surface-variant">Min Experience</span>
+                    <span className="text-primary font-bold">{fleet.years}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 4: SAFETY & TELEMATICS */}
+        <section
+          className="w-full bg-surface-container-lowest px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="safety-telematics"
+        >
+          <div className="max-w-[1440px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-6 space-y-4">
+                <div className="flex items-center gap-2 text-primary text-xs tracking-wider uppercase font-bold">
+                  <span className="material-symbols-outlined text-sm">shield</span>
+                  Zero-Tolerance Security Framework
+                </div>
+                <h2 className="text-3xl text-on-surface leading-tight font-bold font-['Space_Grotesk']">
+                  Rigorous Screening &amp; 24/7 Safety Desk
+                </h2>
+                <p className="text-sm text-on-surface-variant">
+                  Your car is one of your most valuable assets. Every chauffeur passes a
+                  multi-pillar security review before receiving an active dispatch badge.
+                </p>
+                <div className="space-y-3 pt-2">
+                  {[
+                    {
+                      icon: 'policy',
+                      title: 'State Police Crime Registry Clearances',
+                      body: 'Background and litigation checks coordinated through state police headquarters.',
+                    },
+                    {
+                      icon: 'crisis_alert',
+                      title: '24/7 Emergency SOS Response',
+                      body: 'An in-app panic button routes directly to our safety desk for immediate escalation.',
+                    },
+                    {
+                      icon: 'health_and_safety',
+                      title: 'Incidental Trip Damage Protection',
+                      body: 'Trip-time coverage for incidental vehicular damage while operated by a verified driver.',
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.title}
+                      className="flex items-start gap-3 p-3 rounded-xl bg-surface-container-low border border-surface-variant/30"
+                    >
+                      <span className="material-symbols-outlined text-primary text-xl mt-0.5">
+                        {item.icon}
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-on-surface-variant">{item.body}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Step 2 */}
-              <div className="bg-[#181c24] rounded-2xl p-6 flex flex-col justify-between group hover:bg-[#1c2028] transition-all border border-[#262a33] shadow-md">
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-4xl font-bold text-[#3d4a42] group-hover:text-[#68dba9] transition-colors font-['Space_Grotesk']">
-                      02
+              <div className="lg:col-span-6 bg-surface-container rounded-3xl p-6 border border-surface-variant/40 shadow-2xl relative overflow-hidden">
+                <div className="flex items-center justify-between border-b border-surface-variant/30 pb-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs text-on-surface font-bold font-mono">
+                      SAMPLE TRIP TELEMETRY VIEW
                     </span>
-                    <div className="w-10 h-10 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-                      <span className="material-symbols-outlined text-xl">badge</span>
-                    </div>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
-                    Select Verified Driver
-                  </h3>
-                  <p className="text-xs text-[#bccac0]">
-                    Compare verified chauffeur profiles, languages spoken, luxury vehicle
-                    certifications, and passenger ratings.
-                  </p>
+                  <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded">
+                    ILLUSTRATIVE
+                  </span>
                 </div>
-                <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span>{' '}
-                  Transparent fixed rate cards
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="bg-[#181c24] rounded-2xl p-6 flex flex-col justify-between group hover:bg-[#1c2028] transition-all border border-[#262a33] shadow-md">
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-4xl font-bold text-[#3d4a42] group-hover:text-[#68dba9] transition-colors font-['Space_Grotesk']">
-                      03
+                <div className="space-y-3 font-mono text-xs">
+                  <div className="flex justify-between bg-surface-container-lowest p-2.5 rounded-lg border border-surface-variant/20">
+                    <span className="text-on-surface-variant">Vehicle Custody</span>
+                    <span className="text-on-surface font-semibold">
+                      BMW 530d M Sport [HR26-DQ-****]
                     </span>
-                    <div className="w-10 h-10 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-                      <span className="material-symbols-outlined text-xl">directions_walk</span>
-                    </div>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
-                    Driver Arrives in Uniform
-                  </h3>
-                  <p className="text-xs text-[#bccac0]">
-                    Your chauffeur arrives 10 minutes ahead in crisp uniform, takes custody of
-                    vehicle keys, and logs odometer.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Pre-trip
-                  vehicle walkaround
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div className="bg-[#181c24] rounded-2xl p-6 flex flex-col justify-between group hover:bg-[#1c2028] transition-all border border-[#262a33] shadow-md">
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-4xl font-bold text-[#3d4a42] group-hover:text-[#68dba9] transition-colors font-['Space_Grotesk']">
-                      04
-                    </span>
-                    <div className="w-10 h-10 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-                      <span className="material-symbols-outlined text-xl">payments</span>
-                    </div>
+                  <div className="flex justify-between bg-surface-container-lowest p-2.5 rounded-lg border border-surface-variant/20">
+                    <span className="text-on-surface-variant">Pilot Assigned</span>
+                    <span className="text-primary font-semibold">Rajesh Kumar</span>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
-                    Relax & Settle Post-Trip
-                  </h3>
-                  <p className="text-xs text-[#bccac0]">
-                    Enjoy your commute or night out. Seamless automated billing via UPI, corporate
-                    credit card, or monthly invoicing.
-                  </p>
+                  <div className="flex justify-between bg-surface-container-lowest p-2.5 rounded-lg border border-surface-variant/20">
+                    <span className="text-on-surface-variant">Status</span>
+                    <span className="text-tertiary font-semibold">En Route to Pickup</span>
+                  </div>
                 </div>
-                <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Zero cash
-                  surge surcharge
+                <div className="mt-5 p-3 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-primary font-bold">
+                    <span className="material-symbols-outlined text-sm">support_agent</span>
+                    <span>24/7 Dispatch Support Standby</span>
+                  </div>
+                  <a href="tel:+917740002020" className="font-mono text-xs text-on-surface">
+                    +91 774-000-2020
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 4: FEATURED TOP-RATED CHAUFFEURS */}
+        {/* SECTION 5: DRIVER PARTNER PERKS */}
         <section
-          id="chauffeurs"
-          className="w-full bg-[#0a0e16] px-4 md:px-8 py-20 border-t border-[#262a33]"
+          className="w-full bg-surface px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="driver-partner-perks"
+        >
+          <div className="max-w-[1440px] mx-auto bg-gradient-to-r from-surface-container-low to-surface-container rounded-3xl p-6 lg:p-10 border border-surface-variant/40 shadow-xl">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-8 space-y-4">
+                <div className="flex items-center gap-2 text-tertiary text-xs tracking-wider uppercase font-bold">
+                  <span className="material-symbols-outlined text-sm">sports_motorsports</span>
+                  For Professional Chauffeurs &amp; Pilots
+                </div>
+                <h2 className="text-3xl lg:text-4xl text-on-surface leading-tight font-bold font-['Space_Grotesk']">
+                  India&apos;s Highest Respect, 0% Platform Deductions, and{' '}
+                  <span className="text-tertiary">Fast Cashouts</span>
+                </h2>
+                <p className="text-sm text-on-surface-variant max-w-2xl">
+                  We treat professional chauffeurs with the respect they deserve. Zero surge cuts,
+                  honest wages, and executive clientele who treat you with dignity.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                  {[
+                    { label: 'Top Tier Pay', value: '₹45k+/mo' },
+                    { label: 'Settlement', value: 'Fast IMPS' },
+                    { label: 'Free Uniform', value: '2 Sets/Yr' },
+                    { label: 'Honor Rating', value: '4.92 Avg' },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="bg-surface-container-lowest p-3 rounded-xl border border-surface-variant/30"
+                    >
+                      <span className="text-[10px] uppercase text-on-surface-variant">
+                        {stat.label}
+                      </span>
+                      <p className="text-xl text-tertiary mt-1 font-bold font-['Space_Grotesk']">
+                        {stat.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-3">
+                <Link
+                  href="/register"
+                  className="w-full sm:w-auto px-8 py-3 bg-tertiary text-on-tertiary text-sm rounded-xl flex items-center justify-center gap-2 shadow-xl hover:opacity-90 transition-all font-bold text-center"
+                >
+                  <span>Apply as Driver Pilot</span>
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+                <span className="text-[11px] text-on-surface-variant font-mono text-center lg:text-right w-full">
+                  5-minute application, no paperwork on day one
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 6: ENTERPRISE */}
+        <section
+          className="w-full bg-surface-container-lowest px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="enterprise-admin"
         >
           <div className="max-w-[1440px] mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#68dba9] block mb-1 font-['Space_Grotesk']">
-                  Elite Talent Roster
+                <span className="text-xs uppercase tracking-widest text-secondary block mb-1 font-bold">
+                  Corporate Mobility Infrastructure
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Hand-Selected Executive Chauffeurs
+                <h2 className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  Enterprise Chauffeur Desk &amp; Audit Logs
                 </h2>
               </div>
               <Link
-                href="/bookings/new"
-                className="flex items-center gap-1.5 font-mono text-xs text-[#68dba9] hover:text-[#85f8c4] transition-colors"
+                href="/login"
+                className="text-xs text-secondary hover:underline flex items-center gap-1"
               >
-                <span>View All 4,850+ Chauffeurs</span>
-                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                <span>Request Enterprise Access</span>
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
               </Link>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Chauffeur Card 1 */}
-              <div className="bg-[#1c2028] rounded-2xl p-6 flex flex-col justify-between shadow-xl border border-[#262a33] hover:-translate-y-1 transition-transform">
-                <div>
-                  <div className="flex items-start gap-4 mb-5">
-                    <div className="relative shrink-0">
-                      <div className="w-20 h-20 rounded-2xl bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-2xl font-bold text-[#68dba9]">
-                        VS
-                      </div>
-                      <span className="absolute -bottom-2 -right-2 bg-[#68dba9] text-[#003825] rounded-full p-1 shadow">
-                        <span className="material-symbols-outlined text-sm block">verified</span>
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-lg text-[#dfe2ee] truncate font-['Space_Grotesk']">
-                          Vikramaditya S.
-                        </h3>
-                        <div className="flex items-center gap-1 text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
-                          <span className="material-symbols-outlined text-sm">star</span>
-                          4.98
-                        </div>
-                      </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">
-                        Ex-Hotel Taj Ambassador Chauffeur
-                      </p>
-                      <span className="inline-block mt-2 font-mono text-[11px] text-[#bccac0]">
-                        11 Years Experience • 2,890 Trips
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        auto_transmission
-                      </span>{' '}
-                      Automatic & Manual
-                    </span>
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        shield
-                      </span>{' '}
-                      VVIP Protocol Certified
-                    </span>
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        airport_shuttle
-                      </span>{' '}
-                      German Luxury Cars
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#bccac0] line-clamp-2">
-                    Fluent in English & Hindi. Specialized in long-distance night driving, Mercedes
-                    S-Class, BMW 7-Series, and Audi A8 handling.
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 bg-[#181c24] px-4 py-3 rounded-xl flex items-center justify-between border border-[#262a33]">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
-                      Hourly Base Tariff
-                    </span>
-                    <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      ₹159<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
-                    </div>
-                  </div>
-                  <Link
-                    href="/bookings/new"
-                    className="px-4 py-2 bg-[#68dba9] text-[#003825] rounded-xl font-bold text-xs hover:bg-[#85f8c4] transition-colors flex items-center gap-1.5 shadow font-['Space_Grotesk']"
-                  >
-                    <span>Quick Book</span>
-                    <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Chauffeur Card 2 */}
-              <div className="bg-[#1c2028] rounded-2xl p-6 flex flex-col justify-between shadow-xl border border-[#262a33] hover:-translate-y-1 transition-transform">
-                <div>
-                  <div className="flex items-start gap-4 mb-5">
-                    <div className="relative shrink-0">
-                      <div className="w-20 h-20 rounded-2xl bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-2xl font-bold text-[#68dba9]">
-                        MS
-                      </div>
-                      <span className="absolute -bottom-2 -right-2 bg-[#68dba9] text-[#003825] rounded-full p-1 shadow">
-                        <span className="material-symbols-outlined text-sm block">verified</span>
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-lg text-[#dfe2ee] truncate font-['Space_Grotesk']">
-                          Manpreet Singh
-                        </h3>
-                        <div className="flex items-center gap-1 text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
-                          <span className="material-symbols-outlined text-sm">star</span>
-                          4.97
-                        </div>
-                      </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">
-                        Executive SUV & Highway Expert
-                      </p>
-                      <span className="inline-block mt-2 font-mono text-[11px] text-[#bccac0]">
-                        9 Years Experience • 2,140 Trips
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        terrain
-                      </span>{' '}
-                      Hills & Highway Pro
-                    </span>
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        ev_station
-                      </span>{' '}
-                      EV Specialist
-                    </span>
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        translate
-                      </span>{' '}
-                      English, Punjabi, Hindi
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#bccac0] line-clamp-2">
-                    Expert handling on Fortuner, Defender, Range Rover, and Volvo XC90. Non-smoker
-                    with defensive driver training certification.
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 bg-[#181c24] px-4 py-3 rounded-xl flex items-center justify-between border border-[#262a33]">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
-                      Hourly Base Tariff
-                    </span>
-                    <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      ₹149<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
-                    </div>
-                  </div>
-                  <Link
-                    href="/bookings/new"
-                    className="px-4 py-2 bg-[#68dba9] text-[#003825] rounded-xl font-bold text-xs hover:bg-[#85f8c4] transition-colors flex items-center gap-1.5 shadow font-['Space_Grotesk']"
-                  >
-                    <span>Quick Book</span>
-                    <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Chauffeur Card 3 */}
-              <div className="bg-[#1c2028] rounded-2xl p-6 flex flex-col justify-between shadow-xl border border-[#262a33] hover:-translate-y-1 transition-transform">
-                <div>
-                  <div className="flex items-start gap-4 mb-5">
-                    <div className="relative shrink-0">
-                      <div className="w-20 h-20 rounded-2xl bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-2xl font-bold text-[#68dba9]">
-                        AJ
-                      </div>
-                      <span className="absolute -bottom-2 -right-2 bg-[#68dba9] text-[#003825] rounded-full p-1 shadow">
-                        <span className="material-symbols-outlined text-sm block">verified</span>
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-lg text-[#dfe2ee] truncate font-['Space_Grotesk']">
-                          Amitabh Joshi
-                        </h3>
-                        <div className="flex items-center gap-1 text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
-                          <span className="material-symbols-outlined text-sm">star</span>
-                          4.95
-                        </div>
-                      </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">
-                        Corporate Fleet & Airport Transfer Specialist
-                      </p>
-                      <span className="inline-block mt-2 font-mono text-[11px] text-[#bccac0]">
-                        7 Years Experience • 1,760 Trips
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        local_police
-                      </span>{' '}
-                      Special Police Cleared
-                    </span>
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        schedule
-                      </span>{' '}
-                      100% Punctuality Index
-                    </span>
-                    <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
-                        lock
-                      </span>{' '}
-                      Discretion NDA Signed
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#bccac0] line-clamp-2">
-                    Specially trained for late-night city party pickups, airport transfers, and
-                    corporate executive daily round-trips.
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 bg-[#181c24] px-4 py-3 rounded-xl flex items-center justify-between border border-[#262a33]">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
-                      Hourly Base Tariff
-                    </span>
-                    <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      ₹149<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
-                    </div>
-                  </div>
-                  <Link
-                    href="/bookings/new"
-                    className="px-4 py-2 bg-[#68dba9] text-[#003825] rounded-xl font-bold text-xs hover:bg-[#85f8c4] transition-colors flex items-center gap-1.5 shadow font-['Space_Grotesk']"
-                  >
-                    <span>Quick Book</span>
-                    <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 5: LIVE OPERATIONAL STATS WITH COUNTERS */}
-        <section className="w-full bg-[#0f131c] px-4 md:px-8 py-16">
-          <div className="max-w-[1440px] mx-auto bg-[#181c24] rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl border border-[#262a33]">
-            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-[#68dba9]/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#68dba9] block mb-1 font-['Space_Grotesk']">
-                  Real-Time Operational Mesh
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Network Velocity & Performance Metrics
-                </h2>
-              </div>
-              <div className="flex items-center gap-2 bg-[#1c2028] px-4 py-2 rounded-xl border border-[#262a33]">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#68dba9] animate-ping" />
-                <span className="font-mono text-xs text-[#dfe2ee]">TELEMETRY SYNCED: JUST NOW</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Stat 1 */}
-              <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#68dba9] font-['Space_Grotesk']">
-                  4,850+
-                </span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
-                  Active Verified Drivers
-                </span>
-                <p className="text-xs text-[#bccac0] mt-2">
-                  Ready for instant dispatch across NCR, Mumbai, Bengaluru & Pune.
-                </p>
-              </div>
-
-              {/* Stat 2 */}
-              <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#b4c5ff] font-['Space_Grotesk']">
-                  185,000+
-                </span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
-                  Journeys Completed
-                </span>
-                <p className="text-xs text-[#bccac0] mt-2">
-                  Zero major accidents recorded since network inception.
-                </p>
-              </div>
-
-              {/* Stat 3 */}
-              <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#4edea3] font-['Space_Grotesk']">
-                  99.4%
-                </span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
-                  On-Time Arrival SLA
-                </span>
-                <p className="text-xs text-[#bccac0] mt-2">
-                  Average arrival window is within 8 minutes of target schedule.
-                </p>
-              </div>
-
-              {/* Stat 4 */}
-              <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  14
-                </span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
-                  Metropolitan Cities
-                </span>
-                <p className="text-xs text-[#bccac0] mt-2">
-                  Complete coverage in Tier-1 corridors and satellite financial districts.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 6: DRIVER PARTNER RECRUITMENT BANNER */}
-        <section className="w-full bg-[#0a0e16] px-4 md:px-8 py-20 border-t border-[#262a33]">
-          <div className="max-w-[1440px] mx-auto bg-gradient-to-r from-[#1c2028] to-[#262a33] rounded-3xl p-8 md:p-12 shadow-2xl border border-[#3d4a42] relative overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-              <div className="lg:col-span-8 space-y-4">
-                <div className="flex items-center gap-2 bg-[#68dba9]/20 px-4 py-1.5 rounded-full w-fit border border-[#68dba9]/30">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    handshake
-                  </span>
-                  <span className="text-xs font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
-                    Driver Partner Enrollment Open
-                  </span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#dfe2ee] leading-tight font-['Space_Grotesk']">
-                  Earn up to <span className="text-[#68dba9]">₹45,000/month</span> Driving Executive
-                  Cars.
-                </h2>
-                <p className="text-base text-[#bccac0] max-w-2xl">
-                  Join India&apos;s highest-paying chauffeur network. Flexible 4-hr, 8-hr or 12-hr
-                  duty slots, instant daily UPI payouts, accidental insurance coverage, and
-                  respectful corporate clientele.
-                </p>
-
-                <div className="flex flex-wrap items-center gap-6 pt-2">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
-                      currency_rupee
-                    </span>
-                    <span className="font-mono text-xs text-[#dfe2ee]">Daily UPI Settlements</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
-                      health_and_safety
-                    </span>
-                    <span className="font-mono text-xs text-[#dfe2ee]">
-                      ₹10 Lakh Medical Shield
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
-                      hotel_class
-                    </span>
-                    <span className="font-mono text-xs text-[#dfe2ee]">Zero Surge Commissions</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-3">
-                <Link
-                  href="/driver/onboarding"
-                  className="w-full sm:w-auto px-8 py-4 bg-[#68dba9] text-[#003825] font-bold text-base rounded-2xl flex items-center justify-center gap-2 shadow-2xl hover:bg-[#85f8c4] transition-all text-center font-['Space_Grotesk']"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                {
+                  icon: 'receipt_long',
+                  title: 'Consolidated GST Invoicing',
+                  body: 'Centralized monthly tax invoices with trip logs and department cost-center allocation.',
+                },
+                {
+                  icon: 'vpn_lock',
+                  title: 'Discretion NDA & Board-Level Pilots',
+                  body: 'Dedicated chauffeurs with signed non-disclosure agreements for confidential travel.',
+                },
+                {
+                  icon: 'map',
+                  title: 'Multi-City Corporate Pool',
+                  body: 'A single corporate contract covering every metro your fleet operates in.',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="bg-surface-container rounded-2xl p-6 border border-surface-variant/40"
                 >
-                  <span>Become a Driver Partner</span>
-                  <span className="material-symbols-outlined">north_east</span>
-                </Link>
-                <span className="font-mono text-[10px] text-[#bccac0] text-center lg:text-right w-full">
-                  Requires valid Commercial/LMV license & minimum 3 yrs experience.
+                  <div className="w-10 h-10 rounded-xl bg-secondary/15 text-secondary flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                  </div>
+                  <h4 className="text-base text-on-surface font-bold mb-2 font-['Space_Grotesk']">
+                    {item.title}
+                  </h4>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 7: TARIFF CARDS & FARE ESTIMATOR */}
+        <section
+          className="w-full bg-surface px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="pricing-transparency"
+        >
+          <div className="max-w-[1440px] mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+              <div>
+                <span className="text-xs uppercase tracking-widest text-primary block mb-1 font-bold">
+                  Transparent Economics
                 </span>
+                <h2 className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  Zero Surge Guarantee Tariff Cards
+                </h2>
+              </div>
+              <p className="text-sm text-on-surface-variant max-w-md">
+                No midnight surcharges, no rain-surge multiplier. Predictable hourly and outstation
+                rates.
+              </p>
+            </div>
+
+            {/* Fare Estimator */}
+            <div className="bg-surface-container rounded-3xl p-6 lg:p-8 border border-surface-variant/40 mb-8 shadow-xl">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-8 space-y-4">
+                  <h3 className="text-xl text-on-surface font-bold flex items-center gap-2 font-['Space_Grotesk']">
+                    <span className="material-symbols-outlined text-primary">calculate</span>
+                    Interactive Chauffeur Fare Estimator
+                  </h3>
+                  <p className="text-xs text-on-surface-variant">
+                    Adjust hours or select your travel service to preview transparent charges.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                        Service Type
+                      </label>
+                      <select
+                        value={calcService}
+                        onChange={(e) => setCalcService(e.target.value as ServiceType)}
+                        className="w-full bg-surface-container-low border border-surface-variant/50 rounded-xl p-2.5 text-sm text-on-surface"
+                      >
+                        <option value="hourly">Hourly City Chauffeur</option>
+                        <option value="airport">Airport VIP Escort</option>
+                        <option value="outstation">Outstation Roundtrip</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                        Duration
+                      </label>
+                      <select
+                        value={calcHours}
+                        onChange={(e) => setCalcHours(Number(e.target.value))}
+                        disabled={calcService === 'airport'}
+                        className="w-full bg-surface-container-low border border-surface-variant/50 rounded-xl p-2.5 text-sm text-on-surface disabled:opacity-50"
+                      >
+                        <option value={2}>2 Hours (Minimum block)</option>
+                        <option value={4}>4 Hours (Half Day)</option>
+                        <option value={8}>8 Hours (Full Business Day)</option>
+                        <option value={12}>12 Hours (Extended Shift)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                        Vehicle Classification
+                      </label>
+                      <select
+                        value={calcVehicle}
+                        onChange={(e) => setCalcVehicle(e.target.value as VehicleClass)}
+                        className="w-full bg-surface-container-low border border-surface-variant/50 rounded-xl p-2.5 text-sm text-on-surface"
+                      >
+                        <option value="sedan">Standard Sedan / Hatchback</option>
+                        <option value="luxury">Luxury Chauffeur (BMW/Merc/Audi)</option>
+                        <option value="suv">Executive SUV / 4x4</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-4 bg-surface-container-lowest rounded-2xl p-5 border border-primary/30 flex flex-col justify-between text-center gap-3">
+                  <span className="text-[10px] uppercase text-on-surface-variant">
+                    Estimated Transparent Fare
+                  </span>
+                  <span className="text-4xl text-primary font-bold font-['Space_Grotesk']">
+                    ₹{estimatedFare.toLocaleString('en-IN')}
+                  </span>
+                  <Link
+                    href="/register"
+                    className="px-4 py-2 bg-primary text-on-primary rounded-xl text-sm font-bold hover:bg-primary-hover transition-all"
+                  >
+                    Book This Package
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Tariff Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-surface-container rounded-2xl p-6 border border-surface-variant/40 flex flex-col gap-3">
+                <span className="text-xs uppercase text-on-surface-variant font-bold">
+                  Hourly Chauffeur
+                </span>
+                <span className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  ₹149<span className="text-sm text-on-surface-variant">/hr</span>
+                </span>
+                <p className="text-xs text-on-surface-variant">
+                  Min 2-hr block • Free pickup within 5km • Live ETA tracking
+                </p>
+                <Link
+                  href="/register"
+                  className="mt-auto text-center px-4 py-2 rounded-xl bg-surface-container-high text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors"
+                >
+                  Book Hourly
+                </Link>
+              </div>
+              <div className="bg-surface-container rounded-2xl p-6 border-2 border-primary flex flex-col gap-3 relative">
+                <span className="absolute -top-3 right-4 px-2 py-0.5 rounded-full bg-primary text-on-primary text-[10px] font-bold uppercase">
+                  Popular
+                </span>
+                <span className="text-xs uppercase text-primary font-bold">
+                  Airport VIP One-Way
+                </span>
+                <span className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  ₹899<span className="text-sm text-on-surface-variant"> fixed</span>
+                </span>
+                <p className="text-xs text-on-surface-variant">
+                  IGI T1 / T2 / T3 • 30 min complimentary wait • Meet &amp; greet
+                </p>
+                <Link
+                  href="/register"
+                  className="mt-auto text-center px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors"
+                >
+                  Book Airport Trip
+                </Link>
+              </div>
+              <div className="bg-surface-container rounded-2xl p-6 border border-surface-variant/40 flex flex-col gap-3">
+                <span className="text-xs uppercase text-on-surface-variant font-bold">
+                  Outstation Roundtrip
+                </span>
+                <span className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  ₹1,499<span className="text-sm text-on-surface-variant">/day</span>
+                </span>
+                <p className="text-xs text-on-surface-variant">
+                  Highway-certified pilots • Driver stay allowance included
+                </p>
+                <Link
+                  href="/register"
+                  className="mt-auto text-center px-4 py-2 rounded-xl bg-surface-container-high text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors"
+                >
+                  Book Outstation
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 7: TESTIMONIALS & FAQ ACCORDION */}
-        <section className="w-full bg-[#0f131c] px-4 md:px-8 py-20">
+        {/* SECTION 8: TESTIMONIALS & FAQ */}
+        <section
+          className="w-full bg-surface-container-lowest px-4 md:px-8 py-16 border-t border-surface-variant/20"
+          id="testimonials-reputation"
+        >
           <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Left Column: Testimonials */}
             <div className="lg:col-span-5 flex flex-col gap-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#68dba9] block mb-1 font-['Space_Grotesk']">
+                <span className="text-xs uppercase tracking-widest text-primary block mb-1 font-bold">
                   Executive Praise
                 </span>
-                <h2 className="text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Trusted by CEOs, Doctors & Families
+                <h2 className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
+                  Endorsed by Top Executives &amp; Families
                 </h2>
               </div>
 
-              {/* Review Card 1 */}
-              <div className="bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow-md">
-                <div className="flex items-center gap-1 text-[#68dba9] mb-3">
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                </div>
-                <p className="text-sm text-[#dfe2ee] mb-4 italic leading-relaxed">
-                  &quot;I frequently host visiting delegates from Europe. Get Apna Driver provides
-                  chauffeurs who understand executive etiquette, smooth braking, and route
-                  optimization. Truly five-star service.&quot;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#262a33] flex items-center justify-center text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
-                    AK
+              {[
+                {
+                  quote:
+                    'I frequently host visiting delegates from Europe. Get Apna Driver provides chauffeurs who understand executive etiquette, smooth braking, and route optimization.',
+                  initials: 'AK',
+                  name: 'Arjun Kapoor',
+                  role: 'Managing Partner, Nexus Capital • South Delhi',
+                },
+                {
+                  quote:
+                    'Booked an outstation driver for a 4-day trip to Jaipur in my BMW 5-Series. The driver was impeccably mannered, never exceeded the speed limit, and kept the car spotless throughout.',
+                  initials: 'RS',
+                  name: 'Dr. Radhika Sen',
+                  role: 'Senior Cardiologist, Gurugram',
+                },
+              ].map((review) => (
+                <div
+                  key={review.name}
+                  className="bg-surface-container p-6 rounded-2xl border border-surface-variant/40 shadow-md"
+                >
+                  <div className="flex items-center gap-1 text-primary mb-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className="material-symbols-outlined text-sm">
+                        star
+                      </span>
+                    ))}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">
-                      Arjun Kapoor
-                    </h4>
-                    <p className="text-xs text-[#bccac0]">
-                      Managing Partner, Nexus Capital • South Delhi
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Review Card 2 */}
-              <div className="bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow-md">
-                <div className="flex items-center gap-1 text-[#68dba9] mb-3">
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                  <span className="material-symbols-outlined text-sm">star</span>
-                </div>
-                <p className="text-sm text-[#dfe2ee] mb-4 italic leading-relaxed">
-                  &quot;Booked an outstation driver for a 4-day trip to Jaipur in my BMW 5-Series.
-                  The driver was impeccably mannered, never exceeded 90 km/h, and kept the car
-                  spotless throughout.&quot;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#262a33] flex items-center justify-center text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
-                    RS
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">
-                      Dr. Radhika Sen
-                    </h4>
-                    <p className="text-xs text-[#bccac0]">Senior Cardiologist, Gurugram</p>
+                  <p className="text-sm text-on-surface mb-4 italic leading-relaxed">
+                    &quot;{review.quote}&quot;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary text-sm font-bold font-['Space_Grotesk']">
+                      {review.initials}
+                    </div>
+                    <div>
+                      <h4 className="text-sm text-on-surface font-bold font-['Space_Grotesk']">
+                        {review.name}
+                      </h4>
+                      <p className="text-xs text-on-surface-variant">{review.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
 
-            {/* Right Column: FAQ Accordion */}
-            <div className="lg:col-span-7 flex flex-col gap-6">
+            <div className="lg:col-span-7 flex flex-col gap-6" id="faq">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#68dba9] block mb-1 font-['Space_Grotesk']">
+                <span className="text-xs uppercase tracking-widest text-primary block mb-1 font-bold">
                   Resolution Desk
                 </span>
-                <h2 className="text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-3xl text-on-surface font-bold font-['Space_Grotesk']">
                   Frequently Asked Questions
                 </h2>
               </div>
-
               <div className="space-y-4">
-                {faqs.map((faq, index) => {
+                {FAQS.map((faq, index) => {
                   const isOpen = openFaqIndex === index;
                   return (
                     <div
                       key={faq.question}
-                      className="bg-[#181c24] border border-[#262a33] rounded-2xl overflow-hidden transition-colors"
+                      className="bg-surface-container border border-surface-variant/40 rounded-2xl overflow-hidden transition-colors"
                     >
                       <button
-                        onClick={() => toggleFaq(index)}
-                        className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-base text-[#dfe2ee] hover:text-[#68dba9] transition-colors font-['Space_Grotesk']"
+                        type="button"
+                        onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                        className="w-full p-6 text-left flex items-center justify-between gap-4 text-base text-on-surface hover:text-primary transition-colors font-bold font-['Space_Grotesk']"
                       >
                         <span>{faq.question}</span>
-                        <span className="material-symbols-outlined text-xl text-[#68dba9] shrink-0">
+                        <span className="material-symbols-outlined text-xl text-primary shrink-0">
                           {isOpen ? 'expand_less' : 'expand_more'}
                         </span>
                       </button>
-
                       {isOpen && (
-                        <div className="px-6 pb-6 text-xs text-[#bccac0] leading-relaxed border-t border-[#262a33]/60 pt-4">
+                        <div className="px-6 pb-6 text-xs text-on-surface-variant leading-relaxed border-t border-surface-variant/40 pt-4">
                           {faq.answer}
                         </div>
                       )}
@@ -1152,136 +1203,62 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* SECTION 8: FINAL CONVERSION CTA */}
-        <section className="w-full bg-[#0a0e16] px-4 md:px-8 py-20 border-t border-[#262a33]">
-          <div className="max-w-[1440px] mx-auto bg-[#181c24] rounded-3xl p-10 md:p-16 text-center space-y-6 relative overflow-hidden border border-[#262a33] shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-[#68dba9]/20 text-[#68dba9] flex items-center justify-center mx-auto mb-2 border border-[#68dba9]/40">
+        {/* SECTION 9: FINAL CTA */}
+        <section className="w-full bg-surface px-4 md:px-8 py-16 border-t border-surface-variant/20">
+          <div className="max-w-[1440px] mx-auto bg-surface-container rounded-3xl p-10 md:p-16 text-center space-y-6 border border-surface-variant/40 shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-primary/20 text-primary flex items-center justify-center mx-auto border border-primary/40">
               <span className="material-symbols-outlined text-3xl">directions_car</span>
             </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#dfe2ee] max-w-3xl mx-auto font-['Space_Grotesk'] leading-tight">
-              Ready to Experience First-Class Chauffeur Service?
+            <h2 className="text-3xl sm:text-4xl text-on-surface max-w-3xl mx-auto leading-tight font-bold font-['Space_Grotesk']">
+              Ready to Experience India&apos;s Premier Chauffeur Network?
             </h2>
-
-            <p className="text-sm sm:text-base text-[#bccac0] max-w-xl mx-auto">
-              Book within 60 seconds. Chauffeur arrives in under 15 minutes across prime NCR nodes.
+            <p className="text-sm sm:text-base text-on-surface-variant max-w-xl mx-auto">
+              Select your role below to access dedicated onboarding flows &amp; the unified
+              automobile console.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               <Link
-                href="/bookings/new"
-                className="w-full sm:w-auto px-8 py-4 bg-[#68dba9] text-[#003825] font-bold text-sm rounded-xl hover:bg-[#85f8c4] transition-all shadow-xl font-['Space_Grotesk']"
+                href="/register"
+                className="w-full sm:w-auto px-6 py-3 bg-primary text-on-primary rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:bg-primary-hover transition-all"
               >
-                Book Chauffeur Now &rarr;
+                Continue Booking
               </Link>
               <Link
-                href="/bookings"
-                className="w-full sm:w-auto px-8 py-4 bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-bold text-sm rounded-xl transition-all border border-[#3d4a42] font-['Space_Grotesk']"
+                href="/register"
+                className="w-full sm:w-auto px-6 py-3 bg-surface-container-high text-on-surface rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-all"
               >
-                Explore Rate Cards
+                Drive Fleet &amp; KYC
+              </Link>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto px-6 py-3 bg-surface-container-high text-on-surface rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-all"
+              >
+                Enterprise Admin
               </Link>
             </div>
           </div>
         </section>
       </main>
 
-      {/* SEARCH MODAL DIALOG */}
-      {searchModalOpen && (
-        <div className="fixed inset-0 bg-[#0a0e16]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1c2028] border border-[#3d4a42] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-              <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9]">search</span>
-                Search Drivers & Locations
-              </h3>
-              <button
-                onClick={() => setSearchModalOpen(false)}
-                className="text-[#bccac0] hover:text-[#dfe2ee]"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Type location, driver name, or booking ID..."
-                className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-4 py-3 text-sm text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-2 pt-2 text-xs">
-              <span className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
-                Quick Links
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/bookings/new"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
-                >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    add_circle
-                  </span>
-                  Create New Booking
-                </Link>
-                <Link
-                  href="/bookings"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
-                >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    history
-                  </span>
-                  My Bookings
-                </Link>
-                <Link
-                  href="/driver/bookings"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
-                >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">badge</span>
-                  Driver Portal
-                </Link>
-                <Link
-                  href="/admin/drivers"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
-                >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    admin_panel_settings
-                  </span>
-                  Enterprise Admin
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* FOOTER */}
-      <footer className="w-full bg-[#0a0e16] text-[#bccac0] pt-16 pb-12 px-4 md:px-8 border-t border-[#262a33]">
-        <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-[#262a33]">
+      <footer className="w-full bg-surface-container-lowest text-on-surface-variant pt-16 pb-12 px-4 md:px-8 border-t border-surface-variant/40">
+        <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-surface-variant/40">
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9]">
+              <div className="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
                 <span className="material-symbols-outlined text-xl">local_taxi</span>
               </div>
-              <span className="font-bold text-base tracking-tight text-[#dfe2ee] font-['Space_Grotesk']">
+              <span className="text-base tracking-tight text-on-surface font-bold font-['Space_Grotesk']">
                 GET APNA DRIVER
               </span>
             </Link>
-            <p className="text-xs text-[#bccac0] max-w-sm leading-relaxed">
-              India&apos;s premier executive chauffeur network for personal luxury and commute cars.
-              100% background verified, police cleared, with live telemetry tracking.
+            <p className="text-xs text-on-surface-variant max-w-sm leading-relaxed">
+              India&apos;s executive chauffeur network for personal luxury and commute cars.
+              Background-verified drivers with live trip tracking.
             </p>
-
             <div className="flex items-center gap-4 text-xs font-mono pt-2">
-              <span className="flex items-center gap-1.5 text-[#68dba9]">
-                <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" /> SOS DESK: LIVE
+              <span className="flex items-center gap-1.5 text-primary">
+                <span className="w-2 h-2 rounded-full bg-primary animate-ping" /> SAFETY DESK: LIVE
               </span>
               <span>•</span>
               <span>24/7 GPS TELEMETRY</span>
@@ -1289,27 +1266,27 @@ export default function LandingPage() {
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase text-[#dfe2ee] tracking-wider mb-4 font-['Space_Grotesk']">
+            <h4 className="text-xs uppercase text-on-surface tracking-wider mb-4 font-bold font-['Space_Grotesk']">
               Quick Links
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/bookings/new" className="hover:text-[#68dba9] transition-colors">
+                <Link href="/bookings/new" className="hover:text-primary transition-colors">
                   Book Chauffeur
                 </Link>
               </li>
               <li>
-                <Link href="/bookings" className="hover:text-[#68dba9] transition-colors">
+                <Link href="/bookings" className="hover:text-primary transition-colors">
                   Customer Hub
                 </Link>
               </li>
               <li>
-                <Link href="/driver/onboarding" className="hover:text-[#68dba9] transition-colors">
+                <Link href="/driver/onboarding" className="hover:text-primary transition-colors">
                   Driver Partner Enrollment
                 </Link>
               </li>
               <li>
-                <Link href="/admin/drivers" className="hover:text-[#68dba9] transition-colors">
+                <Link href="/admin/drivers" className="hover:text-primary transition-colors">
                   Enterprise Admin
                 </Link>
               </li>
@@ -1317,66 +1294,61 @@ export default function LandingPage() {
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase text-[#dfe2ee] tracking-wider mb-4 font-['Space_Grotesk']">
-              Trust & Security
+            <h4 className="text-xs uppercase text-on-surface tracking-wider mb-4 font-bold font-['Space_Grotesk']">
+              Trust &amp; Security
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
+                <a href="#safety-telematics" className="hover:text-primary transition-colors">
                   Police Verification Protocol
                 </a>
               </li>
               <li>
-                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
+                <a href="#safety-telematics" className="hover:text-primary transition-colors">
                   Emergency Response SOS
                 </a>
               </li>
               <li>
-                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
-                  Zero Incident Protection
-                </a>
-              </li>
-              <li>
-                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
-                  Insurance Coverage
+                <a href="#safety-telematics" className="hover:text-primary transition-colors">
+                  Trip Damage Protection
                 </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-xs uppercase text-[#dfe2ee] tracking-wider mb-4 font-['Space_Grotesk']">
+            <h4 className="text-xs uppercase text-on-surface tracking-wider mb-4 font-bold font-['Space_Grotesk']">
               24/7 Command Hotline
             </h4>
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] space-y-2">
-              <span className="text-[10px] font-mono text-[#68dba9] uppercase block font-['Space_Grotesk']">
-                24/7 SUPPORT & DISPATCH
+            <div className="bg-surface-container p-4 rounded-xl border border-surface-variant/40 space-y-2">
+              <span className="text-[10px] font-mono text-primary uppercase block font-bold">
+                24/7 Support &amp; Dispatch
               </span>
               <a
                 href="tel:+917740002020"
-                className="text-sm font-bold text-[#dfe2ee] block font-['Space_Grotesk']"
+                className="text-sm text-on-surface block font-bold font-['Space_Grotesk']"
               >
                 +91 774-000-2020
               </a>
-              <span className="text-[10px] text-[#bccac0] block">
-                Priority executive reservations & emergency SOS telemetry operations.
+              <span className="text-[10px] text-on-surface-variant block">
+                Priority reservations &amp; emergency SOS operations.
               </span>
             </div>
           </div>
         </div>
 
-        <div className="max-w-[1440px] mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#bccac0]">
+        <div className="max-w-[1440px] mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant">
           <div>
             © {new Date().getFullYear()} Get Apna Driver Technologies Pvt. Ltd. All rights reserved.
           </div>
           <div className="flex items-center gap-6 text-xs">
-            <a href="#" className="hover:text-[#dfe2ee]">
+            <a href="#" className="hover:text-on-surface">
               Privacy Policy
             </a>
-            <a href="#" className="hover:text-[#dfe2ee]">
+            <a href="#" className="hover:text-on-surface">
               Terms of Service
             </a>
-            <a href="#" className="hover:text-[#dfe2ee]">
+            <a href="#" className="hover:text-on-surface">
               Compliance
             </a>
           </div>

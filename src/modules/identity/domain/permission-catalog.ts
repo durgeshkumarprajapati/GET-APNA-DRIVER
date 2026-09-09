@@ -40,6 +40,13 @@ export const PERMISSIONS = {
   DRIVER_JOURNEY_MANAGE: 'driver.journey.manage',
   BOOKINGS_TRACK_LOCATION: 'bookings.track_location',
 
+  // Dispatch operations (admin)
+  DISPATCH_BOOKING_READ: 'dispatch.booking.read',
+  DISPATCH_BOOKING_OVERRIDE: 'dispatch.booking.override',
+  DISPATCH_ASSIGNMENT_REASSIGN: 'dispatch.assignment.reassign',
+  DISPATCH_ASSIGNMENT_FORCE: 'dispatch.assignment.force',
+  DISPATCH_ASSIGNMENT_FORCE_ELIGIBILITY_BYPASS: 'dispatch.assignment.force_eligibility_bypass',
+
   // Payments & finance (Phase 8 domain)
   PAYMENTS_READ: 'payments.read',
   PAYMENTS_CREATE: 'payments.create',
@@ -136,6 +143,28 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.BOOKINGS_TRACK_LOCATION,
     description: 'Access live driver location tracking during active trip lifecycle.',
+  },
+
+  {
+    code: PERMISSIONS.DISPATCH_BOOKING_READ,
+    description: 'View live bookings and assignment attempt history (admin).',
+  },
+  {
+    code: PERMISSIONS.DISPATCH_BOOKING_OVERRIDE,
+    description: 'Restart driver search on an expired booking (admin).',
+  },
+  {
+    code: PERMISSIONS.DISPATCH_ASSIGNMENT_REASSIGN,
+    description: 'Release the assigned driver and reopen matching for a booking (admin).',
+  },
+  {
+    code: PERMISSIONS.DISPATCH_ASSIGNMENT_FORCE,
+    description: 'Directly assign a specific eligible driver to a booking (admin).',
+  },
+  {
+    code: PERMISSIONS.DISPATCH_ASSIGNMENT_FORCE_ELIGIBILITY_BYPASS,
+    description:
+      'Force-assign a driver even when they fail eligibility checks (admin, high severity).',
   },
 
   { code: PERMISSIONS.PAYMENTS_READ, description: 'View own payment records.' },

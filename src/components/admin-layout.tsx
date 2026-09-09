@@ -97,11 +97,6 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       items: [
         { href: '/admin/live-bookings', label: 'Live Bookings', icon: 'local_taxi' },
         { href: '/admin/sos-and-disputes', label: 'SOS & Disputes', icon: 'crisis_alert' },
-        {
-          href: '/admin/dispatch-overrides',
-          label: 'Dispatch Overrides',
-          icon: 'published_with_changes',
-        },
       ],
     },
     {

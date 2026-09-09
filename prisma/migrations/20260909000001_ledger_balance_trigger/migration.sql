@@ -3,18 +3,12 @@
 -- Prisma's schema DSL cannot express triggers or deferred constraints, so
 -- this is a hand-written raw-SQL migration (per the project rule: "use raw
 -- SQL migrations where Prisma cannot express PostgreSQL requirements
--- correctly").
---
--- This exact SQL is captured in migration history as
--- prisma/migrations/20260909000001_ledger_balance_trigger/migration.sql —
--- `prisma migrate deploy`/`dev` applies it automatically, in order, right
--- after 20260909000000_init. Use THIS copy only as a manual fallback when
--- pointing at a database that already has the Phase 1-10 tables (e.g. from
--- an earlier `db push`-based setup) but no `_prisma_migrations` history:
---
---   npx prisma migrate resolve --applied 20260909000000_init
---   psql "$DATABASE_URL" -f prisma/sql/001_ledger_balance_trigger.sql
---   npx prisma migrate resolve --applied 20260909000001_ledger_balance_trigger
+-- correctly"). Captured here as its own migration, applied by
+-- `prisma migrate deploy`/`dev` immediately after 20260909000000_init in
+-- normal migration order. The identical, standalone copy at
+-- prisma/sql/001_ledger_balance_trigger.sql remains as a manual fallback
+-- for a database that already has the Phase 1-10 tables but no migration
+-- history (see prisma/sql/001_ledger_balance_trigger.sql's own header).
 --
 -- Why a DEFERRED trigger and not a plain CHECK constraint: LedgerEntry rows
 -- for one FinancialTransaction are inserted one at a time (one INSERT per
