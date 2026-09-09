@@ -2,6 +2,7 @@ jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback(mockTx)),
     driverWallet: { findUnique: jest.fn() },
+    driverSettlement: { findFirst: jest.fn(), findUnique: jest.fn() },
   },
 }));
 
@@ -33,17 +34,25 @@ import { Prisma } from '@prisma/client';
 import {
   createSettlement,
   failOrCancelSettlement,
+  retryFailedSettlement,
 } from '@/modules/finance/application/services/settlement-service';
 import { prisma } from '@/shared/database/prisma';
 import { getBoolean, getString } from '@/shared/config/configuration-service';
+import { recordAuditLog } from '@/shared/audit/audit-service';
+import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import {
   DriverWalletNotFoundError,
+  DuplicateActiveSettlementError,
   InsufficientAvailableBalanceError,
   SettlementBelowMinimumAmountError,
+  SettlementNotRetryableError,
   SettlementsDisabledError,
 } from '@/modules/finance/domain/errors';
 
-const mockedPrisma = prisma as unknown as { driverWallet: { findUnique: jest.Mock } };
+const mockedPrisma = prisma as unknown as {
+  driverWallet: { findUnique: jest.Mock };
+  driverSettlement: { findFirst: jest.Mock; findUnique: jest.Mock };
+};
 const mockedGetBoolean = getBoolean as jest.Mock;
 const mockedGetString = getString as jest.Mock;
 
@@ -56,6 +65,7 @@ function wallet(availableBalance: string) {
 }
 
 describe('createSettlement', () => {
+  beforeEach(() => mockedPrisma.driverSettlement.findFirst.mockResolvedValue(null));
   afterEach(() => jest.clearAllMocks());
 
   it('rejects when settlements are disabled', async () => {
@@ -123,6 +133,129 @@ describe('createSettlement', () => {
 
     expect(result.amount).toBe('2000.0000');
     expect(result.status).toBe('PENDING');
+  });
+
+  it('rejects when the driver already has an active (PENDING/PROCESSING) settlement', async () => {
+    mockedGetBoolean.mockResolvedValue(true);
+    mockedGetString.mockResolvedValue('500.0000');
+    mockedPrisma.driverWallet.findUnique.mockResolvedValue(wallet('2000.0000'));
+    mockedPrisma.driverSettlement.findFirst.mockResolvedValue({
+      id: 'existing-settlement',
+      status: 'PENDING',
+    });
+
+    await expect(createSettlement('admin-1', { driverProfileId: 'driver-1' })).rejects.toThrow(
+      DuplicateActiveSettlementError,
+    );
+    expect(mockTx.driverSettlement.create).not.toHaveBeenCalled();
+  });
+
+  it('translates a unique-constraint race (P2002) into DuplicateActiveSettlementError', async () => {
+    mockedGetBoolean.mockResolvedValue(true);
+    mockedGetString.mockResolvedValue('500.0000');
+    mockedPrisma.driverWallet.findUnique.mockResolvedValue(wallet('2000.0000'));
+    // Pre-check passes (no active settlement seen yet)...
+    mockedPrisma.driverSettlement.findFirst.mockResolvedValue(null);
+    // ...but the DB-level partial unique index rejects the concurrent insert.
+    mockTx.driverSettlement.create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+
+    await expect(createSettlement('admin-1', { driverProfileId: 'driver-1' })).rejects.toThrow(
+      DuplicateActiveSettlementError,
+    );
+  });
+});
+
+describe('retryFailedSettlement', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('rejects retrying a settlement that is not FAILED', async () => {
+    mockedPrisma.driverSettlement.findUnique.mockResolvedValue({
+      id: 'settlement-1',
+      status: 'PENDING',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('500.0000'),
+    });
+
+    await expect(retryFailedSettlement('admin-1', 'settlement-1')).rejects.toThrow(
+      SettlementNotRetryableError,
+    );
+    expect(mockTx.driverSettlement.create).not.toHaveBeenCalled();
+  });
+
+  it('creates a brand-new settlement for the same driver/amount and records audit + outbox events', async () => {
+    mockedPrisma.driverSettlement.findUnique.mockResolvedValue({
+      id: 'failed-settlement-1',
+      status: 'FAILED',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('750.0000'),
+    });
+    mockedPrisma.driverSettlement.findFirst.mockResolvedValue(null);
+    mockedGetBoolean.mockResolvedValue(true);
+    mockedGetString.mockResolvedValue('500.0000');
+    mockedPrisma.driverWallet.findUnique.mockResolvedValue(wallet('750.0000'));
+    mockTx.driverSettlement.create.mockResolvedValue({
+      id: 'new-settlement-1',
+      amount: new Prisma.Decimal('750.0000'),
+    });
+    mockTx.driverSettlement.update.mockResolvedValue({
+      id: 'new-settlement-1',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('750.0000'),
+      amountPaid: null,
+      status: 'PENDING',
+      payoutProvider: null,
+      payoutReference: null,
+      failureReason: null,
+      initiatedAt: null,
+      completedAt: null,
+      createdAt: new Date(),
+    });
+
+    const result = await retryFailedSettlement('admin-1', 'failed-settlement-1');
+
+    expect(result.id).toBe('new-settlement-1');
+    expect(result.status).toBe('PENDING');
+    expect(recordAuditLog).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'finance.settlement.retried',
+        entityId: 'new-settlement-1',
+        beforeState: expect.objectContaining({ retriedFromSettlementId: 'failed-settlement-1' }),
+      }),
+    );
+    expect(insertOutboxEvent).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        eventType: 'settlement.retried',
+        aggregateId: 'new-settlement-1',
+        payload: expect.objectContaining({ retriedFromSettlementId: 'failed-settlement-1' }),
+      }),
+    );
+  });
+
+  it('propagates DuplicateActiveSettlementError when a retry races another active settlement', async () => {
+    mockedPrisma.driverSettlement.findUnique.mockResolvedValue({
+      id: 'failed-settlement-1',
+      status: 'FAILED',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('750.0000'),
+    });
+    mockedGetBoolean.mockResolvedValue(true);
+    mockedGetString.mockResolvedValue('500.0000');
+    mockedPrisma.driverWallet.findUnique.mockResolvedValue(wallet('750.0000'));
+    mockedPrisma.driverSettlement.findFirst.mockResolvedValue({
+      id: 'someone-elses-active-settlement',
+      status: 'PROCESSING',
+    });
+
+    await expect(retryFailedSettlement('admin-1', 'failed-settlement-1')).rejects.toThrow(
+      DuplicateActiveSettlementError,
+    );
   });
 });
 

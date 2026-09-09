@@ -1,6 +1,7 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { SettlementStatus } from '@prisma/client';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import {
@@ -13,9 +14,22 @@ const createSettlementSchema = z.object({
   amount: z.string().min(1).optional(),
 });
 
-export const GET = withPermission(PERMISSIONS.FINANCE_SETTLEMENT_MANAGE, async () => {
-  const settlements = await listAllSettlements();
-  return NextResponse.json({ settlements }, { status: 200 });
+export const GET = withPermission(PERMISSIONS.FINANCE_SETTLEMENT_MANAGE, async (req) => {
+  const { searchParams } = new URL(req.url);
+  const statusParam = searchParams.get('status');
+  const status =
+    statusParam && statusParam in SettlementStatus ? (statusParam as SettlementStatus) : undefined;
+  const driverProfileId = searchParams.get('driverProfileId') ?? undefined;
+  const page = Number(searchParams.get('page') ?? '1');
+  const pageSize = Number(searchParams.get('pageSize') ?? '25');
+
+  const result = await listAllSettlements({
+    ...(status ? { status } : {}),
+    ...(driverProfileId ? { driverProfileId } : {}),
+    page: Number.isFinite(page) && page > 0 ? page : 1,
+    pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 25,
+  });
+  return NextResponse.json(result, { status: 200 });
 });
 
 export const POST = withPermission(

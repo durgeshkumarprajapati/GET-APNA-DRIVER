@@ -1,5 +1,5 @@
 import 'server-only';
-import type { DriverSettlement } from '@prisma/client';
+import type { DriverSettlement, SettlementStatus } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { getBoolean, getString } from '@/shared/config/configuration-service';
@@ -9,12 +9,16 @@ import { postFinancialTransaction } from './ledger-service';
 import { applyWalletChange } from './wallet-service';
 import { validateSettlementStatusTransition } from '../../domain/settlement-state-machine';
 import { LEDGER_ACCOUNT_CODES } from '../../domain/ledger-accounts';
-import { roundMoney, toDecimal } from '../../domain/money';
+import { roundMoney, toDecimal, toMinorUnits } from '../../domain/money';
+import { payoutProvider } from '../../infrastructure/payout-provider';
+import { Prisma } from '@prisma/client';
 import {
   DriverWalletNotFoundError,
+  DuplicateActiveSettlementError,
   InsufficientAvailableBalanceError,
   SettlementBelowMinimumAmountError,
   SettlementNotFoundError,
+  SettlementNotRetryableError,
   SettlementsDisabledError,
 } from '../../domain/errors';
 
@@ -82,6 +86,17 @@ export async function createSettlement(
     throw new DriverWalletNotFoundError(input.driverProfileId);
   }
 
+  // Fast, friendly pre-check. Not itself race-safe against a concurrent
+  // request (there's nothing to lock on the absence of a row) — the
+  // partial unique index (driver_settlements_one_active_per_driver,
+  // migration 20260909000007) is the authoritative guarantee, caught below.
+  const existingActive = await db.driverSettlement.findFirst({
+    where: { driverProfileId: input.driverProfileId, status: { in: ['PENDING', 'PROCESSING'] } },
+  });
+  if (existingActive) {
+    throw new DuplicateActiveSettlementError(input.driverProfileId);
+  }
+
   const availableBalance = toDecimal(wallet.availableBalance);
   const amount = input.amount ? toDecimal(input.amount) : availableBalance;
 
@@ -94,80 +109,96 @@ export async function createSettlement(
     throw new InsufficientAvailableBalanceError(amount.toFixed(4), availableBalance.toFixed(4));
   }
 
-  return db.$transaction(async (tx: Db) => {
-    const settlement = await tx.driverSettlement.create({
-      data: {
-        driverProfileId: input.driverProfileId,
-        driverWalletId: wallet.id,
-        amount: roundMoney(amount).toFixed(4),
-        status: 'PENDING',
-        payoutProvider: 'manual',
-        requestedBy: actorUserId,
-      },
+  try {
+    return await db.$transaction(async (tx: Db) => {
+      const settlement = await tx.driverSettlement.create({
+        data: {
+          driverProfileId: input.driverProfileId,
+          driverWalletId: wallet.id,
+          amount: roundMoney(amount).toFixed(4),
+          status: 'PENDING',
+          // Not yet known — set when startProcessingSettlement actually
+          // invokes a payout provider (see infrastructure/payout-provider.ts).
+          payoutProvider: null,
+          requestedBy: actorUserId,
+        },
+      });
+
+      const financialTransaction = await postFinancialTransaction(
+        {
+          transactionType: 'SETTLEMENT_CREATED',
+          referenceEntityType: 'DriverSettlement',
+          referenceEntityId: settlement.id,
+          idempotencyKey: `settlement_created:${settlement.id}`,
+          description: `Settlement reserved for driver ${input.driverProfileId}`,
+          postings: [
+            {
+              accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+              debitAmount: roundMoney(amount).toFixed(4),
+              creditAmount: '0',
+            },
+            {
+              accountCode: LEDGER_ACCOUNT_CODES.SETTLEMENT_CLEARING,
+              debitAmount: '0',
+              creditAmount: roundMoney(amount).toFixed(4),
+            },
+          ],
+        },
+        tx,
+      );
+
+      await applyWalletChange(
+        {
+          driverProfileId: input.driverProfileId,
+          financialTransactionId: financialTransaction.id,
+          changeType: 'SETTLEMENT_RESERVED',
+          availableDelta: roundMoney(amount).mul(-1).toFixed(4),
+          reservedDelta: roundMoney(amount).toFixed(4),
+        },
+        tx,
+      );
+
+      const updated = await tx.driverSettlement.update({
+        where: { id: settlement.id },
+        data: { financialTransactionId: financialTransaction.id },
+      });
+
+      await recordAuditLog(tx, {
+        actorUserId,
+        action: 'finance.settlement.created',
+        entityType: 'DriverSettlement',
+        entityId: settlement.id,
+        beforeState: null,
+        afterState: {
+          amount: settlement.amount.toFixed(4),
+          driverProfileId: input.driverProfileId,
+        },
+        requestMetadata: null,
+      });
+
+      await insertOutboxEvent(tx, {
+        eventType: 'settlement.created',
+        aggregateType: 'DriverSettlement',
+        aggregateId: settlement.id,
+        payload: {
+          settlementId: settlement.id,
+          driverProfileId: input.driverProfileId,
+          amount: settlement.amount.toFixed(4),
+        },
+      });
+
+      return mapSettlementToSummary(updated);
     });
-
-    const financialTransaction = await postFinancialTransaction(
-      {
-        transactionType: 'SETTLEMENT_CREATED',
-        referenceEntityType: 'DriverSettlement',
-        referenceEntityId: settlement.id,
-        idempotencyKey: `settlement_created:${settlement.id}`,
-        description: `Settlement reserved for driver ${input.driverProfileId}`,
-        postings: [
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
-            debitAmount: roundMoney(amount).toFixed(4),
-            creditAmount: '0',
-          },
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.SETTLEMENT_CLEARING,
-            debitAmount: '0',
-            creditAmount: roundMoney(amount).toFixed(4),
-          },
-        ],
-      },
-      tx,
-    );
-
-    await applyWalletChange(
-      {
-        driverProfileId: input.driverProfileId,
-        financialTransactionId: financialTransaction.id,
-        changeType: 'SETTLEMENT_RESERVED',
-        availableDelta: roundMoney(amount).mul(-1).toFixed(4),
-        reservedDelta: roundMoney(amount).toFixed(4),
-      },
-      tx,
-    );
-
-    const updated = await tx.driverSettlement.update({
-      where: { id: settlement.id },
-      data: { financialTransactionId: financialTransaction.id },
-    });
-
-    await recordAuditLog(tx, {
-      actorUserId,
-      action: 'finance.settlement.created',
-      entityType: 'DriverSettlement',
-      entityId: settlement.id,
-      beforeState: null,
-      afterState: { amount: settlement.amount.toFixed(4), driverProfileId: input.driverProfileId },
-      requestMetadata: null,
-    });
-
-    await insertOutboxEvent(tx, {
-      eventType: 'settlement.created',
-      aggregateType: 'DriverSettlement',
-      aggregateId: settlement.id,
-      payload: {
-        settlementId: settlement.id,
-        driverProfileId: input.driverProfileId,
-        amount: settlement.amount.toFixed(4),
-      },
-    });
-
-    return mapSettlementToSummary(updated);
-  });
+  } catch (err: unknown) {
+    // Authoritative guarantee: driver_settlements_one_active_per_driver
+    // (migration 20260909000007). The pre-check above closes the common
+    // case with a friendly error; this catches the rare race the pre-check
+    // cannot (two concurrent requests both passing the check).
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new DuplicateActiveSettlementError(input.driverProfileId);
+    }
+    throw err;
+  }
 }
 
 async function loadSettlementOrThrow(settlementId: string, db: Db): Promise<DriverSettlement> {
@@ -178,12 +209,81 @@ async function loadSettlementOrThrow(settlementId: string, db: Db): Promise<Driv
   return settlement;
 }
 
+/**
+ * Retries a FAILED settlement. FAILED is a deliberately terminal state in
+ * the state machine (see settlement-state-machine.ts's header comment) —
+ * failing a settlement already released its reservation back to
+ * availableBalance, so "retry" here means creating a brand-new settlement
+ * for the same driver/amount through the exact same validated path every
+ * settlement goes through (createSettlement), rather than resurrecting the
+ * failed row or adding a FAILED -> PENDING transition that would let an
+ * operator button bypass the state machine. Idempotency protection comes
+ * for free from the one-active-settlement-per-driver constraint: a second
+ * concurrent/duplicate retry click hits DuplicateActiveSettlementError from
+ * createSettlement, exactly as it would for any other duplicate creation
+ * attempt.
+ */
+export async function retryFailedSettlement(
+  actorUserId: string,
+  failedSettlementId: string,
+  db: Db = prisma,
+): Promise<SettlementSummary> {
+  const failed = await loadSettlementOrThrow(failedSettlementId, db);
+  if (failed.status !== 'FAILED') {
+    throw new SettlementNotRetryableError(failedSettlementId, failed.status);
+  }
+
+  const retried = await createSettlement(
+    actorUserId,
+    { driverProfileId: failed.driverProfileId, amount: failed.amount.toFixed(4) },
+    db,
+  );
+
+  await recordAuditLog(db, {
+    actorUserId,
+    action: 'finance.settlement.retried',
+    entityType: 'DriverSettlement',
+    entityId: retried.id,
+    beforeState: { retriedFromSettlementId: failedSettlementId, status: 'FAILED' },
+    afterState: { status: retried.status, amount: retried.amount },
+  });
+
+  await insertOutboxEvent(db, {
+    eventType: 'settlement.retried',
+    aggregateType: 'DriverSettlement',
+    aggregateId: retried.id,
+    payload: {
+      newSettlementId: retried.id,
+      retriedFromSettlementId: failedSettlementId,
+      driverProfileId: failed.driverProfileId,
+    },
+  });
+
+  return retried;
+}
+
 /** Admin marks a reserved settlement as actively being paid out. */
 export async function startProcessingSettlement(
   actorUserId: string,
   settlementId: string,
   db: Db = prisma,
 ): Promise<SettlementSummary> {
+  const current = await loadSettlementOrThrow(settlementId, db);
+  if (current.status === 'PROCESSING') {
+    return mapSettlementToSummary(current);
+  }
+  validateSettlementStatusTransition(current.status, 'PROCESSING');
+
+  // The payout provider call happens outside any DB transaction — same
+  // discipline payment-service.ts already uses for its Razorpay createOrder
+  // call, so a real (network-bound) provider never holds a transaction open.
+  const payoutResult = await payoutProvider.initiatePayout({
+    settlementId: current.id,
+    driverProfileId: current.driverProfileId,
+    amountMinorUnits: toMinorUnits(toDecimal(current.amount)),
+    currency: 'INR',
+  });
+
   return db.$transaction(async (tx: Db) => {
     const settlement = await loadSettlementOrThrow(settlementId, tx);
     if (settlement.status === 'PROCESSING') {
@@ -193,7 +293,13 @@ export async function startProcessingSettlement(
 
     const updated = await tx.driverSettlement.update({
       where: { id: settlementId },
-      data: { status: 'PROCESSING', initiatedAt: new Date(), processedBy: actorUserId },
+      data: {
+        status: 'PROCESSING',
+        initiatedAt: new Date(),
+        processedBy: actorUserId,
+        payoutProvider: payoutResult.providerName,
+        payoutReference: payoutResult.payoutReference,
+      },
     });
 
     await recordAuditLog(tx, {
@@ -202,7 +308,7 @@ export async function startProcessingSettlement(
       entityType: 'DriverSettlement',
       entityId: settlementId,
       beforeState: { status: settlement.status },
-      afterState: { status: 'PROCESSING' },
+      afterState: { status: 'PROCESSING', payoutProvider: payoutResult.providerName },
       requestMetadata: null,
     });
 
@@ -406,12 +512,48 @@ export async function listDriverSettlements(
   return settlements.map(mapSettlementToSummary);
 }
 
-export async function listAllSettlements(db: Db = prisma): Promise<SettlementSummary[]> {
-  const settlements = await db.driverSettlement.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-  });
-  return settlements.map(mapSettlementToSummary);
+export interface ListAllSettlementsFilters {
+  status?: SettlementStatus;
+  driverProfileId?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ListAllSettlementsResult {
+  settlements: SettlementSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function listAllSettlements(
+  filters: ListAllSettlementsFilters = {},
+  db: Db = prisma,
+): Promise<ListAllSettlementsResult> {
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize = filters.pageSize && filters.pageSize > 0 ? Math.min(filters.pageSize, 100) : 25;
+
+  const where = {
+    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.driverProfileId ? { driverProfileId: filters.driverProfileId } : {}),
+  };
+
+  const [settlements, total] = await Promise.all([
+    db.driverSettlement.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    db.driverSettlement.count({ where }),
+  ]);
+
+  return {
+    settlements: settlements.map(mapSettlementToSummary),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 /** Resolves the caller's own driver profile, then returns their settlement history. */

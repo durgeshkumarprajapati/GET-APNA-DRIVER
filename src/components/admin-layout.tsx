@@ -110,6 +110,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           label: 'Ledger Transactions',
           icon: 'account_balance',
         },
+        { href: '/admin/vault', label: 'Vault', icon: 'lock' },
         {
           href: '/admin/treasury-and-settlements',
           label: 'Treasury & Settlements',

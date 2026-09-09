@@ -8,6 +8,7 @@ jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     booking: { findUnique: jest.fn() },
     driverProfile: { findUnique: jest.fn() },
+    userRole: { findMany: jest.fn() },
   },
 }));
 
@@ -179,6 +180,117 @@ describe('review outbox notification handlers', () => {
         userId: 'customer-1',
         idempotencyKey: 'evt-7-review-moderated',
       }),
+      prisma,
+    );
+  });
+});
+
+describe('settlement outbox notification handlers', () => {
+  beforeAll(() => {
+    registerNotificationEventHandlers();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('registers all settlement event types', () => {
+    expect(eventHandlerRegistry.hasHandler('settlement.created')).toBe(true);
+    expect(eventHandlerRegistry.hasHandler('settlement.completed')).toBe(true);
+    expect(eventHandlerRegistry.hasHandler('settlement.failed')).toBe(true);
+    expect(eventHandlerRegistry.hasHandler('settlement.retried')).toBe(true);
+  });
+
+  it('settlement.completed resolves driverProfileId to a userId and notifies the driver', async () => {
+    (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue({ userId: 'driver-user-1' });
+
+    const handler = eventHandlerRegistry.getHandler('settlement.completed')!;
+    await handler(
+      fakeEvent('evt-settlement-completed'),
+      { driverProfileId: 'driver-profile-1', amount: '500.0000' },
+      prisma as never,
+    );
+
+    expect(prisma.driverProfile.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'driver-profile-1' } }),
+    );
+    expect(createNotification).toHaveBeenCalledTimes(1);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'driver-user-1',
+        idempotencyKey: 'evt-settlement-completed-settlement-paid',
+        body: expect.stringContaining('500.0000'),
+      }),
+      prisma,
+    );
+  });
+
+  it('settlement.completed is a no-op when the driver profile no longer exists', async () => {
+    (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue(null);
+
+    const handler = eventHandlerRegistry.getHandler('settlement.completed')!;
+    await handler(
+      fakeEvent('evt-settlement-completed-missing'),
+      { driverProfileId: 'missing', amount: '500.0000' },
+      prisma as never,
+    );
+
+    expect(createNotification).not.toHaveBeenCalled();
+  });
+
+  it('settlement.failed notifies both the driver and every active administrator', async () => {
+    (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue({ userId: 'driver-user-1' });
+    (prisma.userRole.findMany as jest.Mock).mockResolvedValue([
+      { userId: 'admin-1' },
+      { userId: 'admin-2' },
+    ]);
+
+    const handler = eventHandlerRegistry.getHandler('settlement.failed')!;
+    await handler(
+      fakeEvent('evt-settlement-failed'),
+      { driverProfileId: 'driver-profile-1', reason: 'Payout provider rejected the transfer' },
+      prisma as never,
+    );
+
+    expect(prisma.userRole.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { role: { code: 'ADMINISTRATOR' }, revokedAt: null },
+      }),
+    );
+    expect(createNotification).toHaveBeenCalledTimes(3);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'driver-user-1' }),
+      prisma,
+    );
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'admin-1',
+        idempotencyKey: 'evt-settlement-failed-admin-admin-1',
+      }),
+      prisma,
+    );
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'admin-2',
+        idempotencyKey: 'evt-settlement-failed-admin-admin-2',
+      }),
+      prisma,
+    );
+  });
+
+  it('settlement.retried notifies the driver that a new settlement is awaiting payout', async () => {
+    (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue({ userId: 'driver-user-1' });
+
+    const handler = eventHandlerRegistry.getHandler('settlement.retried')!;
+    await handler(
+      fakeEvent('evt-settlement-retried'),
+      { driverProfileId: 'driver-profile-1' },
+      prisma as never,
+    );
+
+    expect(createNotification).toHaveBeenCalledTimes(1);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'driver-user-1', type: 'SETTLEMENT_CREATED' }),
       prisma,
     );
   });

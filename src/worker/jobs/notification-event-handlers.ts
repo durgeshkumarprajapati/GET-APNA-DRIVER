@@ -5,6 +5,39 @@ import { eventHandlerRegistry } from '../outbox/event-handler-registry';
 import { createNotification } from '@/modules/notification/application/notification-service';
 import { processCampaignDispatch } from '@/modules/notification/application/notification-campaign-service';
 
+/**
+ * Fans a notification out to every currently-active ADMINISTRATOR — there
+ * is no "broadcast to all admins" primitive elsewhere in the app (the
+ * notification-campaign system's audiences are ALL_CUSTOMERS/ALL_DRIVERS/
+ * ALL_USERS/SELECTED_USERS, none of which target a role). The admin
+ * population is always small, so this is a bounded fan-out, not the
+ * campaign-scale broadcast notification-campaign-service.ts already
+ * batches for potentially thousands of recipients.
+ */
+async function notifyAdministrators(
+  input: { type: NotificationType; title: string; body: string; data: Record<string, unknown> },
+  event: OutboxEvent,
+  db: Db,
+): Promise<void> {
+  const admins = await db.userRole.findMany({
+    where: { role: { code: 'ADMINISTRATOR' }, revokedAt: null },
+    select: { userId: true },
+  });
+  for (const admin of admins) {
+    await createNotification(
+      {
+        userId: admin.userId,
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        data: input.data,
+        idempotencyKey: `${event.id}-admin-${admin.userId}`,
+      },
+      db,
+    );
+  }
+}
+
 export function registerNotificationEventHandlers(): void {
   // -------------------------------------------------------------------------
   // Booking Events
@@ -325,22 +358,34 @@ export function registerNotificationEventHandlers(): void {
   eventHandlerRegistry.register(
     'settlement.completed',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
-      const driverUserId = payload.driverUserId as string;
+      // completeSettlement's outbox payload carries driverProfileId, not
+      // driverUserId (there is no such field) — this handler previously
+      // read payload.driverUserId directly, which was always undefined, so
+      // this notification silently never fired. Fixed to resolve the
+      // userId the same way the sibling settlement.created/settlement.failed
+      // handlers already correctly do.
+      const driverProfileId = payload.driverProfileId as string;
       const amount = payload.amount as string | number;
+      if (!driverProfileId) return;
+      const client = db ?? prisma;
 
-      if (driverUserId) {
-        await createNotification(
-          {
-            userId: driverUserId,
-            type: NotificationType.SETTLEMENT_COMPLETED,
-            title: 'Bank Settlement Paid',
-            body: `Bank settlement payout of ₹${amount} completed via IMPS rails.`,
-            data: payload,
-            idempotencyKey: `${event.id}-settlement-paid`,
-          },
-          db ?? prisma,
-        );
-      }
+      const profile = await client.driverProfile.findUnique({
+        where: { id: driverProfileId },
+        select: { userId: true },
+      });
+      if (!profile) return;
+
+      await createNotification(
+        {
+          userId: profile.userId,
+          type: NotificationType.SETTLEMENT_COMPLETED,
+          title: 'Settlement Paid',
+          body: `Your settlement payout of ₹${amount} has been completed.`,
+          data: payload,
+          idempotencyKey: `${event.id}-settlement-paid`,
+        },
+        client,
+      );
     },
   );
 
@@ -396,6 +441,49 @@ export function registerNotificationEventHandlers(): void {
             : 'Your settlement payout failed and is being reviewed.',
           data: payload,
           idempotencyKey: `${event.id}-settlement-failed`,
+        },
+        client,
+      );
+
+      // "Admin: Large settlement failure" — a failed payout is exactly the
+      // kind of financial event ops should see without having to poll the
+      // settlements page.
+      await notifyAdministrators(
+        {
+          type: NotificationType.SETTLEMENT_FAILED,
+          title: 'Driver Settlement Failed',
+          body: reason
+            ? `A driver settlement failed: ${reason}`
+            : 'A driver settlement failed and needs review.',
+          data: payload,
+        },
+        event,
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'settlement.retried',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const driverProfileId = payload.driverProfileId as string;
+      if (!driverProfileId) return;
+      const client = db ?? prisma;
+
+      const profile = await client.driverProfile.findUnique({
+        where: { id: driverProfileId },
+        select: { userId: true },
+      });
+      if (!profile) return;
+
+      await createNotification(
+        {
+          userId: profile.userId,
+          type: NotificationType.SETTLEMENT_CREATED,
+          title: 'Settlement Retried',
+          body: 'Your failed settlement is being retried and is awaiting payout again.',
+          data: payload,
+          idempotencyKey: `${event.id}-settlement-retried`,
         },
         client,
       );

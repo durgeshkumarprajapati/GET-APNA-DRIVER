@@ -48,6 +48,30 @@ describe('postFinancialTransaction', () => {
 
     expect(result.id).toBe('txn-1');
     expect(mockTx.ledgerEntry.create).toHaveBeenCalledTimes(3);
+    // Regression guard: LedgerEntry has no amount/direction field — only
+    // single-sided debitAmount/creditAmount (see the CHECK constraint in
+    // prisma/sql/001_ledger_balance_trigger.sql). A prior version of this
+    // function wrote `amount`/`direction`, which isn't a real field on the
+    // model at all — every call silently threw "Unknown argument `amount`"
+    // against a real database, undetected by this test (which only checked
+    // the call count) or by tsc (Prisma's `create()` input type suppresses
+    // excess-property checking). Asserting the exact shape here closes that gap.
+    expect(mockTx.ledgerEntry.create).toHaveBeenCalledWith({
+      data: {
+        financialTransactionId: 'txn-1',
+        ledgerAccountId: 'account-PAYMENT_PROVIDER_CLEARING',
+        debitAmount: '100.0000',
+        creditAmount: '0.0000',
+      },
+    });
+    expect(mockTx.ledgerEntry.create).toHaveBeenCalledWith({
+      data: {
+        financialTransactionId: 'txn-1',
+        ledgerAccountId: 'account-PLATFORM_REVENUE_COMMISSION',
+        debitAmount: '0.0000',
+        creditAmount: '20.0000',
+      },
+    });
   });
 
   it('rejects an unbalanced set of postings before writing anything', async () => {
