@@ -124,7 +124,7 @@ export default function HomeContent() {
                   </div>
                 </Link>
                 <Link
-                  href="/register"
+                  href="/register?role=driver"
                   className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-surface-container transition-colors border-t border-surface-variant/20 mt-1 pt-1"
                 >
                   <span className="material-symbols-outlined text-tertiary mt-0.5">
@@ -1148,7 +1148,7 @@ export default function HomeContent() {
                 Continue Booking
               </Link>
               <Link
-                href="/register"
+                href="/register?role=driver"
                 className="w-full sm:w-auto px-6 py-3 bg-surface-container-high text-on-surface rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-all"
               >
                 Drive Fleet &amp; KYC
