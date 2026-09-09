@@ -17,6 +17,7 @@ import * as tokenRepository from '../../infrastructure/token-repository';
 import * as rbacRepository from '../../infrastructure/rbac-repository';
 import * as sessionRepository from '../../infrastructure/session-repository';
 import { createSessionForUser } from './session-service';
+import { generateReferralCodeForUser, applyReferralCode } from './referral-service';
 import { SYSTEM_ROLE_CODES } from '../../domain/role-catalog';
 import {
   AccountNotActiveError,
@@ -41,11 +42,21 @@ export interface AuthSessionResponse {
   rawSessionToken: string;
 }
 
+export interface RegisterWithEmailPasswordInput {
+  email: string;
+  password: string;
+  accountType?: 'CUSTOMER' | 'DRIVER';
+  fullName?: string | null;
+  phoneNumber?: string | null;
+  referralCode?: string | null;
+}
+
 /**
- * Registers a new user with Email and Password.
+ * Registers a new user with Email and Password. Supports role-aware registration
+ * (CUSTOMER vs DRIVER), profile creation, and server-authoritative referral application.
  */
 export async function registerWithEmailPassword(
-  input: { email: string; password: string },
+  input: RegisterWithEmailPasswordInput,
   requestMetadata?: { ipAddress?: string | null; userAgent?: string | null },
 ): Promise<AuthSessionResponse> {
   const normalizedEmail = normalizeEmail(input.email);
@@ -57,6 +68,12 @@ export async function registerWithEmailPassword(
   if (!policyCheck.isValid) {
     throw new InvalidPasswordPolicyError(policyCheck.issues);
   }
+
+  // Server-authoritative accountType validation (only CUSTOMER or DRIVER allowed)
+  const targetAccountType: 'CUSTOMER' | 'DRIVER' =
+    input.accountType === 'DRIVER' ? 'DRIVER' : 'CUSTOMER';
+  const roleCodeToAssign =
+    targetAccountType === 'DRIVER' ? SYSTEM_ROLE_CODES.DRIVER : SYSTEM_ROLE_CODES.CUSTOMER;
 
   const hashedPassword = await hashPassword(input.password);
 
@@ -73,20 +90,68 @@ export async function registerWithEmailPassword(
         providerName: 'email',
         providerSubject: normalizedEmail,
         email: normalizedEmail,
-        phoneNumber: null,
+        phoneNumber: input.phoneNumber?.trim() || null,
       },
     );
 
     await credentialRepository.createUserCredential(tx, newUser.id, hashedPassword);
 
-    // Assign default public role: CUSTOMER
-    const customerRole = await rbacRepository.findRoleByCode(tx, SYSTEM_ROLE_CODES.CUSTOMER);
-    if (customerRole) {
+    // Assign validated system role (CUSTOMER or DRIVER)
+    const targetRole = await rbacRepository.findRoleByCode(tx, roleCodeToAssign);
+    if (targetRole) {
       await rbacRepository.upsertRoleAssignment(tx, {
         userId: newUser.id,
-        roleId: customerRole.id,
+        roleId: targetRole.id,
         assignedBy: null,
       });
+    }
+
+    // Split name if provided
+    let firstName: string | null = null;
+    let lastName: string | null = null;
+    if (input.fullName?.trim()) {
+      const parts = input.fullName.trim().split(/\s+/);
+      firstName = parts[0] || null;
+      lastName = parts.slice(1).join(' ') || null;
+    }
+
+    // Initialize domain profile based on role
+    if (targetAccountType === 'DRIVER') {
+      await tx.driverProfile.create({
+        data: {
+          userId: newUser.id,
+          firstName,
+          lastName,
+          displayName: input.fullName?.trim() || null,
+          onboardingStatus: 'NOT_STARTED',
+          verificationStatus: 'NOT_VERIFIED',
+          approvalStatus: 'PENDING',
+          availabilityStatus: 'OFFLINE',
+        },
+      });
+    } else {
+      await tx.customerProfile.create({
+        data: {
+          userId: newUser.id,
+          firstName,
+          lastName,
+          displayName: input.fullName?.trim() || null,
+        },
+      });
+    }
+
+    // Generate unique referral code for the new user
+    await generateReferralCodeForUser(newUser.id, tx);
+
+    // If referral code was supplied during registration, apply it
+    if (input.referralCode?.trim()) {
+      await applyReferralCode(
+        {
+          referredUserId: newUser.id,
+          code: input.referralCode.trim(),
+        },
+        tx,
+      );
     }
 
     // Generate email verification token (valid 24h)
@@ -107,7 +172,11 @@ export async function registerWithEmailPassword(
       entityType: 'User',
       entityId: newUser.id,
       beforeState: null,
-      afterState: { email: normalizedEmail, providerName: 'email' },
+      afterState: {
+        email: normalizedEmail,
+        providerName: 'email',
+        accountType: targetAccountType,
+      },
       requestMetadata: requestMetadata ? { ...requestMetadata } : null,
     });
 
@@ -115,7 +184,11 @@ export async function registerWithEmailPassword(
       eventType: 'identity.user_registered',
       aggregateType: 'User',
       aggregateId: newUser.id,
-      payload: { userId: newUser.id, email: normalizedEmail },
+      payload: {
+        userId: newUser.id,
+        email: normalizedEmail,
+        accountType: targetAccountType,
+      },
     });
 
     // Deliver email asynchronously

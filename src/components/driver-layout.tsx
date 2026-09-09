@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
+import { useAutoLocation } from './use-auto-location';
 
 type AvailabilityStatus = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE';
 
@@ -75,6 +76,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus | null>(null);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  useAutoLocation('DRIVER');
 
   const handleLogout = async () => {
     try {

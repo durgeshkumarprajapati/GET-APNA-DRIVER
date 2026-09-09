@@ -5,6 +5,20 @@ jest.mock('@/shared/database/prisma', () => ({
         userSession: {
           updateMany: jest.fn(),
         },
+        customerProfile: {
+          create: jest.fn(),
+        },
+        driverProfile: {
+          create: jest.fn(),
+        },
+        userReferralCode: {
+          findUnique: jest.fn().mockResolvedValue(null),
+          create: jest.fn().mockResolvedValue({ id: 'code-1', code: 'REF-MOCK' }),
+        },
+        referral: {
+          findUnique: jest.fn().mockResolvedValue(null),
+          create: jest.fn(),
+        },
       }),
     ),
     userIdentity: {
