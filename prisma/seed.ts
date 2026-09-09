@@ -4,15 +4,97 @@
 // cannot assume its caller already populated process.env.
 import 'dotenv/config';
 import { prisma } from '../src/shared/database/prisma';
-import { SYSTEM_ROLES } from '../src/modules/identity/domain/role-catalog';
+import { SYSTEM_ROLES, SYSTEM_ROLE_CODES } from '../src/modules/identity/domain/role-catalog';
 import { PERMISSION_CATALOG } from '../src/modules/identity/domain/permission-catalog';
 import { ROLE_PERMISSION_MAP } from '../src/modules/identity/domain/rbac-seed-data';
 import { LEDGER_ACCOUNT_CATALOG } from '../src/modules/finance/domain/ledger-accounts';
+import {
+  createUserWithIdentity,
+  findIdentityByEmail,
+  markIdentityVerified,
+  updateAccountStatus,
+} from '../src/modules/identity/infrastructure/user-repository';
+import { updateUserCredentialPassword } from '../src/modules/identity/infrastructure/credential-repository';
+import { upsertRoleAssignment } from '../src/modules/identity/infrastructure/rbac-repository';
+import { hashPassword } from '../src/modules/identity/security/password';
+import { normalizeEmail } from '../src/modules/identity/validation/email';
+
+interface DevUserSeed {
+  label: string;
+  email: string;
+  password: string;
+  roleCode: string;
+}
+
+/**
+ * Local-development login accounts, one per role, so `npm run dev` has
+ * something to sign in as immediately after seeding. Deliberately excluded
+ * from anything resembling a production dataset — see the NODE_ENV guard
+ * around the call site. Passwords are read from env vars with a documented
+ * dev-only fallback (never a real secret) so a fresh clone works with zero
+ * configuration; override them via .env if you want different credentials.
+ */
+const DEV_USERS: DevUserSeed[] = [
+  {
+    label: 'Administrator',
+    email: 'admin@getapnadriver.local',
+    password: process.env.SEED_ADMIN_PASSWORD || 'DevAdmin!2026',
+    roleCode: SYSTEM_ROLE_CODES.ADMINISTRATOR,
+  },
+  {
+    label: 'Customer',
+    email: 'customer@getapnadriver.local',
+    password: process.env.SEED_CUSTOMER_PASSWORD || 'DevCustomer!2026',
+    roleCode: SYSTEM_ROLE_CODES.CUSTOMER,
+  },
+  {
+    label: 'Driver',
+    email: 'driver@getapnadriver.local',
+    password: process.env.SEED_DRIVER_PASSWORD || 'DevDriver!2026',
+    roleCode: SYSTEM_ROLE_CODES.DRIVER,
+  },
+];
+
+/**
+ * Creates (or updates) one ACTIVE, email-verified login account with the
+ * given role — mirrors what `registerWithEmailPassword` +
+ * email-verification + admin role-assignment produce together, minus the
+ * verification-token round trip, since this is a local dev shortcut, not a
+ * public flow. Idempotent: re-running resets the password and role
+ * assignment for an already-seeded email instead of erroring.
+ */
+async function seedDevUser(seed: DevUserSeed): Promise<void> {
+  const email = normalizeEmail(seed.email);
+  const existing = await findIdentityByEmail(prisma, email);
+
+  let userId: string;
+  if (existing) {
+    userId = existing.userId;
+  } else {
+    const { user, identity } = await createUserWithIdentity(prisma, {
+      providerType: 'EMAIL',
+      providerName: 'email',
+      providerSubject: email,
+      email,
+      phoneNumber: null,
+    });
+    userId = user.id;
+    await markIdentityVerified(prisma, identity.id);
+  }
+
+  await updateAccountStatus(prisma, userId, { accountStatus: 'ACTIVE' });
+  await updateUserCredentialPassword(prisma, userId, await hashPassword(seed.password));
+
+  const role = await prisma.role.findUniqueOrThrow({ where: { code: seed.roleCode } });
+  await upsertRoleAssignment(prisma, { userId, roleId: role.id, assignedBy: null });
+
+  console.log(`  ${seed.label}: ${email} / ${seed.password}`);
+}
 
 /**
  * Deterministic, idempotent RBAC seed: system roles, the permission catalog,
  * and the least-privilege role -> permission mapping. Safe to run repeatedly
- * (upsert by unique `code`). Does not seed any user accounts or credentials.
+ * (upsert by unique `code`).
  */
 async function main(): Promise<void> {
   for (const role of SYSTEM_ROLES) {
@@ -439,6 +521,18 @@ async function main(): Promise<void> {
   console.log(
     'Seed complete: roles, permissions, role-permission mappings, system configurations, and the ledger chart of accounts are up to date.',
   );
+
+  // Dev login accounts — never seeded against a production database, even
+  // if this script is accidentally pointed at one.
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('\nSeeding local dev login accounts:');
+    for (const seed of DEV_USERS) {
+      await seedDevUser(seed);
+    }
+    console.log(
+      '\nUse these to test the login/logout flow at /login. Override via SEED_ADMIN_PASSWORD / SEED_CUSTOMER_PASSWORD / SEED_DRIVER_PASSWORD in .env if you want different credentials.',
+    );
+  }
 }
 
 main()
