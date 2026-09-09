@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function VerificationStatusPage() {
@@ -105,8 +106,11 @@ export default function VerificationStatusPage() {
               <span className="material-symbols-outlined text-lg">dark_mode</span>
             </button>
             <div className="relative flex items-center">
-              <img
+              <Image
                 alt="Profile"
+                width={32}
+                height={32}
+                unoptimized
                 className="w-8 h-8 rounded-full object-cover ring-1 ring-[#68dba9]/40"
                 src="https://lh3.googleusercontent.com/aida/AEtjO1WxTO3NWRJYA6Ib8PoLewFtFM192nboytw0dzwqWk0TIlG-EKLuweHK3XEBiNQPnRKauOOKRhAitZ0MSszwg63MMJtw0CZH0PQuLqh2eFIwV8e0k116pkMkpiHFZjv6K7_YcBF4yrXC9ju4097kjEeBXeIHsRM6FJqVKl32MXq3hJit4vg6qpYolsOCW13MleiFjFXW7na0Il8qSvKmcsODjxcQAHKnbfL_TtjEDmBexYKDZrzUvLjYLyQ"
               />
@@ -185,9 +189,11 @@ export default function VerificationStatusPage() {
             <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 min-w-0">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[#262a33] shrink-0 border border-[#3d4a42]">
-                  <img
+                  <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJB_3T9vYBscafDrA2dRFG613_zj1Jygcl8LkKK0LDCZMPxRfelzZZ5_qi3gpqncrHXJZIiag75UMCsHbVutc8e4DL8XfeBCZ5VdQXmYiEbsvTJYlpQhydddjMib8RU04QMnS7IJyESCLlDsa6E87g5mghApBNGOAStGLWH31AYfKZ_vnoq-qiYtz6IPk67asU3t7LamxjousZCJv8TMk0hW6EdXtoGckZSOKctE904vTnKIPtYmOrIQ"
                     alt="Chauffeur Portrait"
+                    fill
+                    unoptimized
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute bottom-1 right-1 flex items-center justify-center w-5 h-5 rounded-full bg-[#68dba9] text-[#003825]">
@@ -660,9 +666,11 @@ export default function VerificationStatusPage() {
                     Telemetry Snapshot
                   </span>
                   <div className="w-full h-44 rounded-lg mt-2 overflow-hidden relative border border-red-500/40 bg-[#181c24]">
-                    <img
+                    <Image
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdAKFq1zmnOXJidFjStDMJsbS5Bdgzptayvz9arFPVtlMh7BTRr5h7lIVj4BIxWoAbtk2DWGaVMSN-ybIjPxbASu7dixkF8yq8iiAtQ0mkj8aSqxbNFJa32X-9BgzJ3jvGX5O3-IjmVEJjLV1h0sGtUHEWu5urgYMYp8fTl4roSk-yy_saln7lNWctkBdge2eGWPcrh5Q5nZJ2uIU3e_VsSAeKjBtCKeW-9PQdr6PZ5ALZowM0JdXa2A"
                       alt="Telemetry Map"
+                      fill
+                      unoptimized
                       className="w-full h-full object-cover opacity-60"
                     />
                     <div className="absolute inset-0 bg-[#0a0e16]/60 flex flex-col items-center justify-center p-4 text-center">

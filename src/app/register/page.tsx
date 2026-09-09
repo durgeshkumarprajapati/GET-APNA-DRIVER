@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -192,8 +193,11 @@ export default function RegisterPage() {
               <span className="material-symbols-outlined text-lg">dark_mode</span>
             </button>
             <div className="relative flex items-center">
-              <img
+              <Image
                 alt="Profile Avatar"
+                width={32}
+                height={32}
+                unoptimized
                 className="w-8 h-8 rounded-full object-cover ring-1 ring-[#68dba9]/40"
                 src="https://lh3.googleusercontent.com/aida/AEtjO1WxTO3NWRJYA6Ib8PoLewFtFM192nboytw0dzwqWk0TIlG-EKLuweHK3XEBiNQPnRKauOOKRhAitZ0MSszwg63MMJtw0CZH0PQuLqh2eFIwV8e0k116pkMkpiHFZjv6K7_YcBF4yrXC9ju4097kjEeBXeIHsRM6FJqVKl32MXq3hJit4vg6qpYolsOCW13MleiFjFXW7na0Il8qSvKmcsODjxcQAHKnbfL_TtjEDmBexYKDZrzUvLjYLyQ"
               />
@@ -928,9 +932,12 @@ export default function RegisterPage() {
             {/* Chauffeur 1 */}
             <div className="bg-[#181c24] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between gap-4 shadow-md">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKNCqq2PM1oa59sRcaSonA1k4gRzmzr3mkjHrNB9UnYqG3folXJkF5zUuK5QDt6sx4n48Exa1ZlvjknD7PMLvbMg6MYEiYWPZcnPVX9lRCKwat-njkKU5C_T-RPP6QEfa7dCTz3dBzErijFPrTA4S_4zMDBE6ayEKSj5p_cHc4_47vRwEqu0xfVOkj8ijp8024iYjaDaUfsr22TMJYhTsiABJNT3b4s6Q9VCW_37QLDAsHno9oSR7h_g"
                   alt="Rajesh Sharma portrait"
+                  width={56}
+                  height={56}
+                  unoptimized
                   className="w-14 h-14 rounded-full object-cover border border-[#262a33]"
                 />
                 <div className="flex flex-col">
@@ -961,9 +968,12 @@ export default function RegisterPage() {
             {/* Chauffeur 2 */}
             <div className="bg-[#181c24] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between gap-4 shadow-md">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeWik2094HCznjY2yliY9CCOq03Wnm8kS7Y7lIAacN-iLTlnEh6P9l6UhcjheFrdP1hhB9QK7rJJiPbnPsRFvEoFtvsM-0H-m9VrF1PlxWrZ-QjgMDnQqxwArYQsWIvyZvoyRvEDUKIdru36tXwAoXKupkgYqkto3L4hJRxkm_8Gayfot3ARl3c1UIi0lBEXBkMv3ThZD09-ZZICL5wv2TkBJw1EOJuv4K48PleemaYthIS-hsnrTi1g"
                   alt="Gurpreet Singh portrait"
+                  width={56}
+                  height={56}
+                  unoptimized
                   className="w-14 h-14 rounded-full object-cover border border-[#262a33]"
                 />
                 <div className="flex flex-col">
@@ -994,9 +1004,12 @@ export default function RegisterPage() {
             {/* Chauffeur 3 */}
             <div className="bg-[#181c24] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between gap-4 shadow-md">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8F6F_G60tL85i0VbLoYsZUe6_uzL7l6D-KtuIDLdlpqFxIYqY57HHbCF2tOxTlAMnnWiRKb3ELkhl-HDYA4v13dBO5sJZ_RTQdWz7JrVlYllgBI_eR10dlPO9jvwG3jQ6ZZO32JZPyH0PvqlvLtX9cUGfjbmWvSptC7KXokWZxjOtfCFssMpPoDGgyIfphTpiqVUJmEVCTrZGy6ym6bc8mteVmqPhNEoB_57KxFtN9hFR_p-WcM7APg"
                   alt="Amitav Roy portrait"
+                  width={56}
+                  height={56}
+                  unoptimized
                   className="w-14 h-14 rounded-full object-cover border border-[#262a33]"
                 />
                 <div className="flex flex-col">

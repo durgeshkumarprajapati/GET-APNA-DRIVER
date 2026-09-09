@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -110,8 +111,11 @@ export default function DriverOnboardingPage() {
               <span className="material-symbols-outlined text-lg">dark_mode</span>
             </button>
             <div className="relative flex items-center">
-              <img
+              <Image
                 alt="Profile"
+                width={32}
+                height={32}
+                unoptimized
                 className="w-8 h-8 rounded-full object-cover ring-1 ring-[#68dba9]/40"
                 src="https://lh3.googleusercontent.com/aida/AEtjO1WxTO3NWRJYA6Ib8PoLewFtFM192nboytw0dzwqWk0TIlG-EKLuweHK3XEBiNQPnRKauOOKRhAitZ0MSszwg63MMJtw0CZH0PQuLqh2eFIwV8e0k116pkMkpiHFZjv6K7_YcBF4yrXC9ju4097kjEeBXeIHsRM6FJqVKl32MXq3hJit4vg6qpYolsOCW13MleiFjFXW7na0Il8qSvKmcsODjxcQAHKnbfL_TtjEDmBexYKDZrzUvLjYLyQ"
               />
@@ -424,9 +428,11 @@ export default function DriverOnboardingPage() {
                   </div>
 
                   <div className="relative w-full h-36 rounded-lg overflow-hidden border border-[#262a33] bg-[#181c24]">
-                    <img
+                    <Image
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKNCqq2PM1oa59sRcaSonA1k4gRzmzr3mkjHrNB9UnYqG3folXJkF5zUuK5QDt6sx4n48Exa1ZlvjknD7PMLvbMg6MYEiYWPZcnPVX9lRCKwat-njkKU5C_T-RPP6QEfa7dCTz3dBzErijFPrTA4S_4zMDBE6ayEKSj5p_cHc4_47vRwEqu0xfVOkj8ijp8024iYjaDaUfsr22TMJYhTsiABJNT3b4s6Q9VCW_37QLDAsHno9oSR7h_g"
                       alt="Front Driving License Scan"
+                      fill
+                      unoptimized
                       className="w-full h-full object-cover opacity-80"
                     />
                     <div className="absolute bottom-2 left-2 bg-[#0a0e16]/90 px-2 py-1 rounded text-[9px] font-mono text-[#dfe2ee] border border-[#262a33]">
@@ -662,9 +668,12 @@ export default function DriverOnboardingPage() {
             {/* Target Clearance Level Box */}
             <div className="bg-[#0a0e16] p-4 rounded-2xl border border-[#262a33] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8F6F_G60tL85i0VbLoYsZUe6_uzL7l6D-KtuIDLdlpqFxIYqY57HHbCF2tOxTlAMnnWiRKb3ELkhl-HDYA4v13dBO5sJZ_RTQdWz7JrVlYllgBI_eR10dlPO9jvwG3jQ6ZZO32JZPyH0PvqlvLtX9cUGfjbmWvSptC7KXokWZxjOtfCFssMpPoDGgyIfphTpiqVUJmEVCTrZGy6ym6bc8mteVmqPhNEoB_57KxFtN9hFR_p-WcM7APg"
                   alt="Luxury vehicle preview"
+                  width={48}
+                  height={48}
+                  unoptimized
                   className="w-12 h-12 rounded-lg object-cover border border-[#262a33]"
                 />
                 <div>

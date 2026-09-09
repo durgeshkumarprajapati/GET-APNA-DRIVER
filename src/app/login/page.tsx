@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -200,8 +201,11 @@ export default function LoginPage() {
               <span className="material-symbols-outlined text-lg">dark_mode</span>
             </button>
             <div className="relative flex items-center">
-              <img
+              <Image
                 alt="Profile"
+                width={32}
+                height={32}
+                unoptimized
                 className="w-8 h-8 rounded-full object-cover ring-1 ring-[#68dba9]/40"
                 src="https://lh3.googleusercontent.com/aida/AEtjO1WxTO3NWRJYA6Ib8PoLewFtFM192nboytw0dzwqWk0TIlG-EKLuweHK3XEBiNQPnRKauOOKRhAitZ0MSszwg63MMJtw0CZH0PQuLqh2eFIwV8e0k116pkMkpiHFZjv6K7_YcBF4yrXC9ju4097kjEeBXeIHsRM6FJqVKl32MXq3hJit4vg6qpYolsOCW13MleiFjFXW7na0Il8qSvKmcsODjxcQAHKnbfL_TtjEDmBexYKDZrzUvLjYLyQ"
               />

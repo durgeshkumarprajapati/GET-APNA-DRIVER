@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ControlStationLayout } from '@/components/control-station-layout';
 
 export default function AdminDriversPage() {
@@ -655,9 +656,12 @@ export default function AdminDriversPage() {
             {/* Driver 1: Suresh Babu */}
             <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] flex flex-col gap-3 justify-between">
               <div className="flex items-start gap-3">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc1I-Euw-zX80B-am8pKRl33-EkusXLl7gDj3GMaxX0rk9xEF_qrMGo3RiagzsJzPCqSDAa61RNPrbs-mZueUF4Ve0qdmrfl0AwmpTaSUhd_fATWZZEtDaHUbAoROgIwTVKyucbn2ZslIRKjvOIsqmjXJFEFOTsgFL8FvAgskn8brUxRITtf85zm5oDl7GEaWGDniDROU6uwts8jWuWTwOy06SsUA1Sieb60vghqxjTIl6Y2whzJxqvQ"
                   alt="Suresh Babu portrait"
+                  width={48}
+                  height={48}
+                  unoptimized
                   className="w-12 h-12 rounded-lg object-cover border border-[#262a33]"
                 />
                 <div>
@@ -711,9 +715,12 @@ export default function AdminDriversPage() {
             {/* Driver 2: Mohd. Tanveer */}
             <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] flex flex-col gap-3 justify-between">
               <div className="flex items-start gap-3">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC6PVqsA7FJz9_L50-rPgUd8p5vLWp1HzeL-6VD2DFKMNfVl8bc1Khc5f0VIjjZL0Kq5dr0EnmE1FiGnZ4uRwpWP1b2MCPQ3mytrzKF195vS5wj1p7zIT4dngfZoo77PGLW-_7bqktfZTnPTT6dWf0wcYj6D5XHvkKaGL353d2GeuNrg_faOszLPGrxKFgJ9ZzZ0ItTdAHVkiS3ZSswIsn-WIxXfGDLTS-T2AxjhFLF5BMz2u0aWfC5w"
                   alt="Mohd Tanveer portrait"
+                  width={48}
+                  height={48}
+                  unoptimized
                   className="w-12 h-12 rounded-lg object-cover border border-[#262a33]"
                 />
                 <div>
@@ -767,9 +774,12 @@ export default function AdminDriversPage() {
             {/* Driver 3: Deepak Verma (Flagged) */}
             <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#93000a]/50 flex flex-col gap-3 justify-between bg-red-950/10">
               <div className="flex items-start gap-3">
-                <img
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3Y6wiEUNlIW9jDDgpdcxFiFB2qsOjbOT9N-WQop_8IG1fbmwgPK5eKyA_amUmVQBtz8t8uMZuCrPt4a7Pi7aoKKFtg8aN0NjicOsLWevJRubZgUJ9bS5irANenEPQbmn1ZswNyaYLpyl8JZyR7LFjhT0ZsMhEMdpP50olENA397a4DWuuk_DKNQXPaNFfm0NZup_qxCCakpT6xKIb-mmp37lzKsnc96PM0hDRfiA5k6FO1dNFuWlm4g"
                   alt="Deepak Verma portrait"
+                  width={48}
+                  height={48}
+                  unoptimized
                   className="w-12 h-12 rounded-lg object-cover border border-red-500/40"
                 />
                 <div>
