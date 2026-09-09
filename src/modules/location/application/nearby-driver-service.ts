@@ -202,3 +202,91 @@ export async function findNearbyDrivers(
 
   return nearbyDrivers;
 }
+
+export interface AdminOnlineDriverEntry {
+  driverProfileId: string;
+  displayName: string;
+  availabilityStatus: string;
+  latitude: number;
+  longitude: number;
+  capturedAt: string;
+  staleSeconds: number;
+}
+
+/** Hard cap on how many online drivers the admin radar reads per request — the live-index set is operational (currently-online drivers), not historical, but still bounded defensively. */
+const MAX_ADMIN_RADAR_DRIVERS = 500;
+
+/**
+ * Bulk operational view of every driver currently in the live geo index —
+ * for the admin live-fleet-radar page. No dedicated bulk-read existed
+ * before this; every other read in this module (findNearbyDrivers) is
+ * scoped to one point+radius query, which can't answer "show me everyone
+ * online" the way an ops dashboard needs.
+ */
+export async function listOnlineDriversForAdmin(
+  db: Db = prisma,
+): Promise<AdminOnlineDriverEntry[]> {
+  let driverIds: string[] = [];
+  try {
+    driverIds = await redis.zrange(
+      'driver:geo:available',
+      '0',
+      String(MAX_ADMIN_RADAR_DRIVERS - 1),
+    );
+  } catch {
+    return [];
+  }
+  if (driverIds.length === 0) return [];
+
+  let rawLocations: (string | null)[] = [];
+  try {
+    rawLocations = await redis.mget(driverIds.map((id) => `driver:last-location:${id}`));
+  } catch {
+    return [];
+  }
+
+  const parsedLocations = new Map<
+    string,
+    { latitude: number; longitude: number; capturedAt: string }
+  >();
+  driverIds.forEach((id, index) => {
+    const raw = rawLocations[index];
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as { latitude: number; longitude: number; capturedAt: string };
+      parsedLocations.set(id, parsed);
+    } catch {
+      // Skip a malformed cache entry rather than failing the whole list.
+    }
+  });
+  if (parsedLocations.size === 0) return [];
+
+  const profiles = await db.driverProfile.findMany({
+    where: { id: { in: [...parsedLocations.keys()] } },
+    select: {
+      id: true,
+      displayName: true,
+      firstName: true,
+      lastName: true,
+      availabilityStatus: true,
+    },
+  });
+
+  const now = Date.now();
+  return profiles.map((profile) => {
+    const loc = parsedLocations.get(profile.id)!;
+    const displayName =
+      profile.displayName ||
+      [profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
+      'Driver';
+    return {
+      driverProfileId: profile.id,
+      displayName,
+      availabilityStatus: profile.availabilityStatus,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      capturedAt: loc.capturedAt,
+      staleSeconds: Math.floor((now - new Date(loc.capturedAt).getTime()) / 1000),
+    };
+  });
+}
