@@ -19,7 +19,7 @@ export default function CustomerSafetySosPage() {
   };
 
   return (
-    <CustomerLayout activePath="customer-safety-sos">
+    <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         {/* TOP PROTOCOL BANNER & EMERGENCY CALL BUTTONS */}
         <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-xl bg-[#181c24] border border-[#262a33]">

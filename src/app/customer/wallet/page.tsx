@@ -178,7 +178,7 @@ export default function CustomerWalletPage() {
   });
 
   return (
-    <CustomerLayout activePath="customer-wallet">
+    <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         {toastMessage && (
           <div className="fixed bottom-6 right-6 z-50 bg-[#25a475] text-[#00311f] font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-[#68dba9]">

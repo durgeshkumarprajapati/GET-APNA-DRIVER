@@ -3,11 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-
 export default function LoginPage() {
-  const router = useRouter();
-
   // Test Harness State
   const [testHarnessState, setTestHarnessState] = useState<
     'default' | 'error' | 'pending' | 'suspended'
@@ -87,15 +83,15 @@ export default function LoginPage() {
         throw new Error(data.error || 'Authentication failed');
       }
 
-      router.push('/');
-      router.refresh();
+      // Hard navigation ensures the server re-reads the freshly-set session cookie.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = '/';
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('An unexpected authentication error occurred.');
       }
-    } finally {
       setLoading(false);
     }
   };
@@ -115,23 +111,13 @@ export default function LoginPage() {
       const data = (await res.json()) as { message?: string; error?: string };
 
       if (!res.ok) {
-        // Fallback for demo verification if backend endpoint requires existing user
-        if (otpCode.length === 6) {
-          router.push('/');
-          return;
-        }
         throw new Error(data.error || 'Invalid telemetry OTP token.');
       }
 
-      router.push('/');
-      router.refresh();
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = '/';
     } catch (err: unknown) {
-      if (otpDigits.join('').length >= 4) {
-        router.push('/');
-      } else {
-        setError(err instanceof Error ? err.message : 'Invalid OTP code.');
-      }
-    } finally {
+      setError(err instanceof Error ? err.message : 'Invalid OTP code.');
       setLoading(false);
     }
   };

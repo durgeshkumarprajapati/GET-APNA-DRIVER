@@ -22,6 +22,12 @@ export type DriverProfileWithContact = DriverProfile & {
   documents: DriverDocument[];
 };
 
+export type OwnDriverProfileWithContact = DriverProfile & {
+  accountStatus: User['accountStatus'];
+  email: string | null;
+  phoneNumber: string | null;
+};
+
 export interface UpdateDriverProfileInput {
   firstName?: string | null;
   lastName?: string | null;
@@ -55,6 +61,28 @@ export async function getOrCreateDriverProfile(
       onboardingStatus: DriverOnboardingStatus.NOT_STARTED,
     },
   });
+}
+
+/**
+ * Same as `getOrCreateDriverProfile`, enriched with account status and
+ * contact info resolved from UserIdentity — for the driver's own "my
+ * profile" view, where they need to see their own email/phone.
+ */
+export async function getOwnDriverProfileWithContact(
+  userId: string,
+  db: Db = prisma,
+): Promise<OwnDriverProfileWithContact> {
+  const [profile, user, contactInfo] = await Promise.all([
+    getOrCreateDriverProfile(userId, db),
+    db.user.findUniqueOrThrow({ where: { id: userId } }),
+    getContactInfoForUsers(db, [userId]),
+  ]);
+
+  return {
+    ...profile,
+    accountStatus: user.accountStatus,
+    ...(contactInfo.get(userId) ?? { email: null, phoneNumber: null }),
+  };
 }
 
 /**

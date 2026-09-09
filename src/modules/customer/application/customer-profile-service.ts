@@ -1,8 +1,15 @@
 import 'server-only';
-import type { CustomerProfile } from '@prisma/client';
+import type { AccountStatus, CustomerProfile } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
+
+export type CustomerProfileWithContact = CustomerProfile & {
+  accountStatus: AccountStatus;
+  email: string | null;
+  phoneNumber: string | null;
+};
 
 export interface UpdateCustomerProfileInput {
   firstName?: string | null;
@@ -32,6 +39,29 @@ export async function getOrCreateCustomerProfile(
       userId,
     },
   });
+}
+
+/**
+ * Same as `getOrCreateCustomerProfile`, enriched with account status and
+ * contact info resolved from UserIdentity (User itself carries neither) —
+ * for self-service "my profile" views where the customer needs to see their
+ * own email/phone, not just profile-table fields.
+ */
+export async function getOwnCustomerProfileWithContact(
+  userId: string,
+  db: Db = prisma,
+): Promise<CustomerProfileWithContact> {
+  const [profile, user, contactInfo] = await Promise.all([
+    getOrCreateCustomerProfile(userId, db),
+    db.user.findUniqueOrThrow({ where: { id: userId } }),
+    getContactInfoForUsers(db, [userId]),
+  ]);
+
+  return {
+    ...profile,
+    accountStatus: user.accountStatus,
+    ...(contactInfo.get(userId) ?? { email: null, phoneNumber: null }),
+  };
 }
 
 /**

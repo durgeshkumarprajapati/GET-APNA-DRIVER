@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import {
-  getOrCreateCustomerProfile,
+  getOwnCustomerProfileWithContact,
   updateCustomerProfile,
 } from '@/modules/customer/application/customer-profile-service';
 
@@ -16,7 +16,7 @@ const updateProfileSchema = z.object({
 });
 
 export const GET = withAuth(async (_req, { principal }) => {
-  const profile = await getOrCreateCustomerProfile(principal.userId);
+  const profile = await getOwnCustomerProfileWithContact(principal.userId);
   return NextResponse.json({ profile }, { status: 200 });
 });
 

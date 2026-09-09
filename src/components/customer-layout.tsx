@@ -2,29 +2,65 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { NotificationCenter } from './notification-center';
 
 interface CustomerLayoutProps {
   children: ReactNode;
-  activePath?:
-    | 'customer-dashboard'
-    | 'customer-find-driver'
-    | 'customer-active-tracking'
-    | 'customer-bookings'
-    | 'customer-favorites'
-    | 'customer-wallet'
-    | 'customer-offers'
-    | 'customer-referral'
-    | 'customer-safety-sos'
-    | 'customer-support'
-    | 'customer-settings';
+  userEmail?: string | null;
 }
 
-export function CustomerLayout({
-  children,
-  activePath = 'customer-dashboard',
-}: CustomerLayoutProps) {
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Main Section',
+    items: [
+      { href: '/customer/dashboard', label: 'Dashboard', icon: 'grid_view' },
+      { href: '/customer/find-driver', label: 'Find a Driver', icon: 'explore' },
+      { href: '/customer/active-tracking', label: 'Active Ride & Tracking', icon: 'near_me' },
+      { href: '/bookings', label: 'My Bookings', icon: 'calendar_month' },
+      { href: '/customer/favorites', label: 'Favorite Drivers', icon: 'star' },
+    ],
+  },
+  {
+    label: 'Rewards & Finance',
+    items: [
+      { href: '/payments', label: 'Payments', icon: 'account_balance_wallet' },
+      { href: '/customer/offers', label: 'Offers & Coupons', icon: 'confirmation_number' },
+      {
+        href: '/customer/referral',
+        label: 'Refer & Earn',
+        icon: 'featured_seasonal_and_gifts',
+      },
+    ],
+  },
+  {
+    label: 'Account & Safety',
+    items: [
+      { href: '/customer/safety-sos', label: 'SOS Emergency Hub', icon: 'emergency_home' },
+      { href: '/customer/support', label: 'Customer Support', icon: 'support_agent' },
+      { href: '/profile', label: 'Profile & Settings', icon: 'settings' },
+    ],
+  },
+];
+
+export function CustomerLayout({ children, userEmail = null }: CustomerLayoutProps) {
+  const pathname = usePathname();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/customer/dashboard' && pathname?.startsWith(`${href}/`));
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
@@ -39,61 +75,29 @@ export function CustomerLayout({
               GET APNA DRIVER
             </span>
           </Link>
-          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#181c24] text-[#bccac0] text-xs font-mono border border-[#262a33]">
-            <span className="material-symbols-outlined text-[#68dba9] text-sm">verified_user</span>
-            <span>256-Bit SSL Auth Rails • ISO/IEC 27001 Certified</span>
-          </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181c24] border border-[#262a33] text-xs">
-            <span className="material-symbols-outlined text-[#68dba9] text-sm">location_on</span>
-            <span className="font-mono text-[#dfe2ee]">South Delhi / NCR Hub (GPS Locked)</span>
-          </div>
-
           <button
+            type="button"
             onClick={() => setSearchModalOpen(true)}
             className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c2028] border border-[#262a33] text-xs text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
           >
             <span className="material-symbols-outlined text-sm">search</span>
-            <span>Search Telemetry</span>
-            <kbd className="px-1.5 py-0.5 bg-[#31353e] rounded text-[#dfe2ee] text-[10px] font-mono">
-              ⌘K
-            </kbd>
+            <span>Search</span>
           </button>
 
-          <Link
-            href="/admin/drivers"
-            className="px-2.5 py-1 rounded-lg bg-[#1c2028] hover:bg-[#262a33] text-[#68dba9] font-mono text-xs border border-[#3d4a42]"
-            title="Switch to Admin Console"
-          >
-            Admin Ops
-          </Link>
+          <NotificationCenter />
 
-          <button
-            type="button"
-            aria-label="Toggle theme"
-            className="p-2 rounded-lg text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]"
-          >
-            <span className="material-symbols-outlined text-lg">dark_mode</span>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Notifications"
-            onClick={() => setSearchModalOpen(true)}
-            className="relative p-2 rounded-lg text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]"
-          >
-            <span className="material-symbols-outlined text-lg">notifications</span>
-            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#68dba9] text-[10px] font-bold text-[#003825]">
-              3
-            </span>
-          </button>
-
-          <Link href="/customer/settings" className="flex items-center pl-1">
+          <Link href="/profile" className="flex items-center gap-2 pl-1">
+            <div className="text-right hidden md:block">
+              <div className="text-xs text-[#dfe2ee] font-semibold leading-tight max-w-[160px] truncate">
+                {userEmail ?? 'Customer'}
+              </div>
+            </div>
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9] font-bold text-xs font-['Space_Grotesk']">
-                VS
+                {(userEmail ?? 'C').charAt(0).toUpperCase()}
               </div>
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] ring-2 ring-[#0a0e16]" />
             </div>
@@ -104,173 +108,39 @@ export function CustomerLayout({
       {/* FIXED SIDEBAR */}
       <aside className="fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex flex-col justify-between border-r border-[#262a33]">
         <div className="space-y-5">
-          {/* Main Section */}
-          <div className="space-y-1">
-            <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
-              Main Section
-            </p>
-            <nav className="space-y-0.5">
-              <Link
-                href="/customer/dashboard"
-                data-path="customer-dashboard"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-dashboard'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">grid_view</span>
-                <span>Dashboard</span>
-              </Link>
-              <Link
-                href="/customer/find-driver"
-                data-path="customer-find-driver"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-find-driver'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">explore</span>
-                <span>Find a Driver</span>
-              </Link>
-              <Link
-                href="/customer/active-tracking"
-                data-path="customer-active-tracking"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-active-tracking'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">near_me</span>
-                <span>Active Ride & Tracking</span>
-              </Link>
-              <Link
-                href="/customer/bookings"
-                data-path="customer-bookings"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-bookings'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">calendar_month</span>
-                <span>My Bookings</span>
-              </Link>
-              <Link
-                href="/customer/favorites"
-                data-path="customer-favorites"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-favorites'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">star</span>
-                <span>Favorite Drivers</span>
-              </Link>
-            </nav>
-          </div>
-
-          {/* Rewards & Finance */}
-          <div className="space-y-1">
-            <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
-              Rewards & Finance
-            </p>
-            <nav className="space-y-0.5">
-              <Link
-                href="/customer/wallet"
-                data-path="customer-wallet"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-wallet'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
-                <span>Wallet & Payments</span>
-              </Link>
-              <Link
-                href="/customer/offers"
-                data-path="customer-offers"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-offers'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">confirmation_number</span>
-                <span>Offers & Coupons</span>
-              </Link>
-              <Link
-                href="/customer/referral"
-                data-path="customer-referral"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-referral'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">
-                  featured_seasonal_and_gifts
-                </span>
-                <span>Refer & Earn</span>
-              </Link>
-            </nav>
-          </div>
-
-          {/* Account & Safety */}
-          <div className="space-y-1">
-            <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
-              Account & Safety
-            </p>
-            <nav className="space-y-0.5">
-              <Link
-                href="/customer/safety-sos"
-                data-path="customer-safety-sos"
-                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-safety-sos'
-                    ? 'bg-[#93000a] text-[#ffdad6] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-lg text-[#ffb4ab]">
-                    emergency_home
-                  </span>
-                  <span>SOS Emergency Hub</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] text-[9px] font-bold uppercase font-['Space_Grotesk']">
-                  PRIORITY
-                </span>
-              </Link>
-              <Link
-                href="/customer/support"
-                data-path="customer-support"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-support'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">support_agent</span>
-                <span>Customer Support</span>
-              </Link>
-              <Link
-                href="/customer/settings"
-                data-path="customer-settings"
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
-                  activePath === 'customer-settings'
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">settings</span>
-                <span>Profile & Settings</span>
-              </Link>
-            </nav>
-          </div>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
+                {group.label}
+              </p>
+              <nav className="space-y-0.5">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
+                      isActive(item.href)
+                        ? item.href === '/customer/safety-sos'
+                          ? 'bg-[#93000a] text-[#ffdad6] font-bold'
+                          : 'bg-[#25a475] text-[#00311f] font-bold'
+                        : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                    }`}
+                  >
+                    <span
+                      className={`material-symbols-outlined text-lg ${
+                        item.href === '/customer/safety-sos' && !isActive(item.href)
+                          ? 'text-[#ffb4ab]'
+                          : ''
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          ))}
         </div>
       </aside>
 
@@ -281,14 +151,9 @@ export function CustomerLayout({
 
       {/* FOOTER BAR */}
       <footer className="fixed bottom-0 left-0 right-0 h-10 bg-[#0a0e16] z-50 flex items-center justify-between px-6 border-t border-[#262a33]">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0]">
-            <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse" />
-            <span>OPERATIONAL TELEMATICS ONLINE</span>
-          </div>
-          <span className="hidden md:inline font-mono text-xs text-[#bccac0]">
-            SLA 99.8% AVAILABILITY
-          </span>
+        <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0]">
+          <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse" />
+          <span>SYSTEM ONLINE</span>
         </div>
         <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0]">
           <span className="material-symbols-outlined text-[#ffb4ab] text-sm">call</span>
@@ -305,9 +170,10 @@ export function CustomerLayout({
             <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
               <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#68dba9]">search</span>
-                Search Customer Telemetry
+                Search
               </h3>
               <button
+                type="button"
                 onClick={() => setSearchModalOpen(false)}
                 className="text-[#bccac0] hover:text-[#dfe2ee]"
               >
@@ -342,17 +208,7 @@ export function CustomerLayout({
                   Find Chauffeur
                 </Link>
                 <Link
-                  href="/customer/active-tracking"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
-                >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    near_me
-                  </span>
-                  Active Ride Tracker
-                </Link>
-                <Link
-                  href="/customer/bookings"
+                  href="/bookings"
                   onClick={() => setSearchModalOpen(false)}
                   className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
                 >
@@ -360,6 +216,14 @@ export function CustomerLayout({
                     calendar_month
                   </span>
                   My Bookings
+                </Link>
+                <Link
+                  href="/bookings/new"
+                  onClick={() => setSearchModalOpen(false)}
+                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
+                >
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">add</span>
+                  New Booking
                 </Link>
                 <Link
                   href="/customer/safety-sos"

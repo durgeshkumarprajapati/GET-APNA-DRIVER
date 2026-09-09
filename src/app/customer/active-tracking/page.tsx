@@ -23,7 +23,7 @@ export default function CustomerActiveTrackingPage() {
   };
 
   return (
-    <CustomerLayout activePath="customer-active-tracking">
+    <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         {/* HEADER STATUS STRIP */}
         <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-[#181c24] border border-[#262a33]">

@@ -12,7 +12,7 @@ function resolveDashboardHref(roles: string[]): string {
   if (roles.includes(SYSTEM_ROLE_CODES.DRIVER)) {
     return '/driver';
   }
-  return '/bookings';
+  return '/customer/dashboard';
 }
 
 /**

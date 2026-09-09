@@ -28,6 +28,25 @@ interface WalletSummary {
   pendingBalance: string;
 }
 
+interface DriverProfile {
+  firstName: string | null;
+  lastName: string | null;
+  displayName: string | null;
+  email: string | null;
+  phoneNumber: string | null;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  approvalStatus: string;
+  availabilityStatus: string;
+  createdAt: string;
+}
+
+function driverDisplayName(profile: DriverProfile): string {
+  if (profile.displayName) return profile.displayName;
+  const combined = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+  return combined || profile.email || 'there';
+}
+
 const ACTIVE_BOOKING_STATUSES = new Set([
   'DRIVER_ASSIGNED',
   'DRIVER_EN_ROUTE',
@@ -36,6 +55,7 @@ const ACTIVE_BOOKING_STATUSES = new Set([
 ]);
 
 export default function DriverDashboardPage() {
+  const [profile, setProfile] = useState<DriverProfile | null>(null);
   const [offers, setOffers] = useState<AssignmentOffer[]>([]);
   const [bookings, setBookings] = useState<DriverBooking[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
@@ -46,12 +66,17 @@ export default function DriverDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [offersRes, bookingsRes, walletRes] = await Promise.all([
+        const [profileRes, offersRes, bookingsRes, walletRes] = await Promise.all([
+          fetch('/api/driver/profile'),
           fetch('/api/driver/assignment-offers'),
           fetch('/api/driver/bookings'),
           fetch('/api/driver/wallet'),
         ]);
         if (isMounted) {
+          if (profileRes.ok) {
+            const data = await profileRes.json();
+            setProfile(data.profile);
+          }
           if (offersRes.ok) {
             const data = await offersRes.json();
             setOffers(data.offers ?? []);
@@ -85,11 +110,34 @@ export default function DriverDashboardPage() {
   return (
     <DriverLayout>
       <div className="flex flex-col w-full px-6 py-6 gap-6">
-        <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33]">
-          <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">Dashboard</h1>
-          <p className="text-xs text-[#bccac0] mt-1">
-            Your live assignment offers, active bookings, and wallet snapshot.
-          </p>
+        <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
+              Welcome back
+            </span>
+            <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+              {profile ? driverDisplayName(profile) : 'Dashboard'}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-[#87948b]">
+              {profile?.email && <span>{profile.email}</span>}
+              {profile?.phoneNumber && <span>{profile.phoneNumber}</span>}
+              {profile && <span>{profile.drivingExperienceYears} yrs experience</span>}
+              {profile?.primaryServiceArea && <span>{profile.primaryServiceArea}</span>}
+            </div>
+          </div>
+          {profile && (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#262a33] text-[#dfe2ee]">
+                {profile.approvalStatus}
+              </span>
+              <Link
+                href="/driver/profile"
+                className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-bold transition-colors"
+              >
+                Edit Profile
+              </Link>
+            </div>
+          )}
         </section>
 
         {error && (

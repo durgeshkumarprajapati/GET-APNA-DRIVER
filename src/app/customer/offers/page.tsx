@@ -43,7 +43,7 @@ export default function CustomerOffersPage() {
   };
 
   return (
-    <CustomerLayout activePath="customer-offers">
+    <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <div className="flex items-center justify-between p-6 rounded-xl bg-[#181c24] border border-[#262a33]">
           <div>

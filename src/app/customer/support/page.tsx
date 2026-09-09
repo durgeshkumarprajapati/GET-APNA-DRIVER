@@ -60,7 +60,7 @@ export default function CustomerSupportPage() {
   ];
 
   return (
-    <CustomerLayout activePath="customer-support">
+    <CustomerLayout>
       <div className="flex flex-col w-full gap-6 max-w-[1440px] mx-auto">
         {/* Toast Alert Banner */}
         {toastMessage && (

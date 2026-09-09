@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import {
-  getOrCreateDriverProfile,
+  getOwnDriverProfileWithContact,
   updateDriverProfile,
 } from '@/modules/driver/application/services/driver-profile-service';
 
@@ -20,7 +20,7 @@ const updateProfileSchema = z.object({
 });
 
 export const GET = withAuth(async (_req, { principal }) => {
-  const profile = await getOrCreateDriverProfile(principal.userId);
+  const profile = await getOwnDriverProfileWithContact(principal.userId);
   return NextResponse.json({ profile }, { status: 200 });
 });
 
