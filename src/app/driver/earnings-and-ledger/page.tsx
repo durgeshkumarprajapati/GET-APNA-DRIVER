@@ -1,5 +1,5 @@
 import DriverWalletPage from '../wallet-and-payouts/page';
 
-export default function DriverWalletIndexPage() {
+export default function DriverEarningsPage() {
   return <DriverWalletPage />;
 }

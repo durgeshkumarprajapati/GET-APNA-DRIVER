@@ -4,7 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function LandingPage() {
-  const [tripMode, setTripMode] = useState<'hourly' | 'oneway' | 'outstation' | 'monthly'>('hourly');
+  const [tripMode, setTripMode] = useState<'hourly' | 'oneway' | 'outstation' | 'monthly'>(
+    'hourly',
+  );
   const [pickupNode, setPickupNode] = useState('DLF Phase 5, Gurugram');
   const [deploymentWindow, setDeploymentWindow] = useState('Today, 19:30 (Instant)');
   const [vehicleProfile, setVehicleProfile] = useState('Sedan / Luxury (Automatic)');
@@ -105,7 +107,9 @@ export default function LandingPage() {
           {/* Header Controls */}
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 bg-[#181c24] px-3 py-1.5 rounded-full border border-[#262a33]">
-              <span className="material-symbols-outlined text-[#68dba9] text-base">location_on</span>
+              <span className="material-symbols-outlined text-[#68dba9] text-base">
+                location_on
+              </span>
               <span className="text-xs font-mono text-[#dfe2ee]">South Delhi / NCR</span>
               <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping ml-1" />
             </div>
@@ -140,19 +144,34 @@ export default function LandingPage() {
             <Link href="/" className="whitespace-nowrap text-[#68dba9] font-bold">
               Home
             </Link>
-            <a href="#how-it-works" className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors">
+            <a
+              href="#how-it-works"
+              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+            >
               How It Works
             </a>
-            <a href="#trust-safety" className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors">
+            <a
+              href="#trust-safety"
+              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+            >
               Safety & Verification
             </a>
-            <a href="#chauffeurs" className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors">
+            <a
+              href="#chauffeurs"
+              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+            >
               Top Drivers
             </a>
-            <Link href="/driver/onboarding" className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors">
+            <Link
+              href="/driver/onboarding"
+              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+            >
               For Drivers
             </Link>
-            <Link href="/bookings/new" className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors">
+            <Link
+              href="/bookings/new"
+              className="text-[#bccac0] hover:text-[#dfe2ee] whitespace-nowrap transition-colors"
+            >
               Book Chauffeur
             </Link>
           </nav>
@@ -179,11 +198,13 @@ export default function LandingPage() {
 
               <div className="space-y-4">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#dfe2ee] leading-[1.08] font-['Space_Grotesk']">
-                  Find a Trusted Driver.<br />
+                  Find a Trusted Driver.
+                  <br />
                   <span className="text-[#68dba9]">Wherever</span> You Need One.
                 </h1>
                 <p className="text-base sm:text-lg text-[#bccac0] max-w-2xl">
-                  Book background-verified, executive chauffeurs for your personal car on demand, hourly, or outstation. Rated 4.9/5 across 185,000+ completed journeys.
+                  Book background-verified, executive chauffeurs for your personal car on demand,
+                  hourly, or outstation. Rated 4.9/5 across 185,000+ completed journeys.
                 </p>
               </div>
 
@@ -242,7 +263,9 @@ export default function LandingPage() {
                   {/* Pickup Location */}
                   <div className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] flex flex-col justify-between">
                     <label className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider flex items-center gap-1 font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm text-[#68dba9]">my_location</span>
+                      <span className="material-symbols-outlined text-sm text-[#68dba9]">
+                        my_location
+                      </span>
                       Pickup Node
                     </label>
                     <input
@@ -252,13 +275,17 @@ export default function LandingPage() {
                       className="bg-transparent text-sm text-[#dfe2ee] font-medium focus:outline-none w-full mt-1"
                       placeholder="Enter landmark or street"
                     />
-                    <span className="text-[10px] font-mono text-[#68dba9]/80 mt-1">Radar locked: Sector 54 hub</span>
+                    <span className="text-[10px] font-mono text-[#68dba9]/80 mt-1">
+                      Radar locked: Sector 54 hub
+                    </span>
                   </div>
 
                   {/* Deployment Window */}
                   <div className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] flex flex-col justify-between">
                     <label className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider flex items-center gap-1 font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm text-[#68dba9]">schedule</span>
+                      <span className="material-symbols-outlined text-sm text-[#68dba9]">
+                        schedule
+                      </span>
                       Deployment Window
                     </label>
                     <input
@@ -267,13 +294,17 @@ export default function LandingPage() {
                       onChange={(e) => setDeploymentWindow(e.target.value)}
                       className="bg-transparent text-sm text-[#dfe2ee] font-medium focus:outline-none w-full mt-1"
                     />
-                    <span className="text-[10px] font-mono text-[#bccac0] mt-1">Estimated ETA: 6 mins</span>
+                    <span className="text-[10px] font-mono text-[#bccac0] mt-1">
+                      Estimated ETA: 6 mins
+                    </span>
                   </div>
 
                   {/* Vehicle Specification */}
                   <div className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] flex flex-col justify-between">
                     <label className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider flex items-center gap-1 font-['Space_Grotesk']">
-                      <span className="material-symbols-outlined text-sm text-[#68dba9]">directions_car</span>
+                      <span className="material-symbols-outlined text-sm text-[#68dba9]">
+                        directions_car
+                      </span>
                       Your Vehicle Profile
                     </label>
                     <select
@@ -286,15 +317,21 @@ export default function LandingPage() {
                       <option className="bg-[#1c2028]">Hatchback / Compact (Manual)</option>
                       <option className="bg-[#1c2028]">Vintage / Electric (EV)</option>
                     </select>
-                    <span className="text-[10px] font-mono text-[#bccac0] mt-1">Chauffeur grade matched</span>
+                    <span className="text-[10px] font-mono text-[#bccac0] mt-1">
+                      Chauffeur grade matched
+                    </span>
                   </div>
                 </div>
 
                 {/* Submit CTA & Live Pulse */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-1">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-xl">verified_user</span>
-                    <span className="text-xs text-[#bccac0]">Tier-1 Police verified + Drug-tested chauffeur deployment</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-xl">
+                      verified_user
+                    </span>
+                    <span className="text-xs text-[#bccac0]">
+                      Tier-1 Police verified + Drug-tested chauffeur deployment
+                    </span>
                   </div>
 
                   <Link
@@ -354,7 +391,8 @@ export default function LandingPage() {
                 {/* Top Overlay: Telemetry Stats Bar */}
                 <div className="absolute top-4 left-4 right-4 flex justify-between items-center bg-[#181c24]/90 backdrop-blur-md px-4 py-2 rounded-xl border border-[#262a33]">
                   <span className="font-mono text-[10px] text-[#bccac0] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" /> RADAR: 2.5 KM SWEEP
+                    <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" /> RADAR: 2.5
+                    KM SWEEP
                   </span>
                   <span className="font-bold text-[10px] text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
                     9 Chauffeurs Online
@@ -376,12 +414,16 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">Rajesh Kumar</h4>
+                        <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
+                          Rajesh Kumar
+                        </h4>
                         <span className="text-[9px] font-bold bg-[#68dba9]/20 text-[#68dba9] px-1.5 py-0.5 rounded font-['Space_Grotesk']">
                           TOP RATED
                         </span>
                       </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">8 yrs exp • Mercedes & BMW Specialist</p>
+                      <p className="text-xs text-[#bccac0] mt-0.5">
+                        8 yrs exp • Mercedes & BMW Specialist
+                      </p>
                     </div>
                   </div>
 
@@ -396,8 +438,12 @@ export default function LandingPage() {
 
                 <div className="mt-4 pt-3 bg-[#0a0e16] px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#1c2028]">
                   <div className="flex items-center gap-1.5 text-xs text-[#dfe2ee] font-mono">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">electric_bolt</span>
-                    <span>Deploy ETA: <strong className="text-[#68dba9]">4 mins</strong></span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      electric_bolt
+                    </span>
+                    <span>
+                      Deploy ETA: <strong className="text-[#68dba9]">4 mins</strong>
+                    </span>
                   </div>
                   <span className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
                     ₹169<span className="text-xs text-[#bccac0] font-normal">/hr</span>
@@ -409,15 +455,22 @@ export default function LandingPage() {
         </section>
 
         {/* SECTION 2: TRUST & SAFETY TELEMETRY METRIC RIBBON */}
-        <section id="trust-safety" className="w-full bg-[#0a0e16] py-12 px-4 md:px-8 border-y border-[#262a33]">
+        <section
+          id="trust-safety"
+          className="w-full bg-[#0a0e16] py-12 px-4 md:px-8 border-y border-[#262a33]"
+        >
           <div className="max-w-[1440px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-[#181c24] rounded-2xl p-6 flex items-start gap-4 shadow-sm border border-[#262a33] hover:border-[#68dba9]/50 transition-colors">
               <div className="w-12 h-12 rounded-xl bg-[#68dba9]/15 text-[#68dba9] flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-2xl">policy</span>
               </div>
               <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">100% Police Clearance</h4>
-                <p className="text-xs text-[#bccac0] mt-1">Verified criminal record check via state crime registry & biometric fingerprint.</p>
+                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
+                  100% Police Clearance
+                </h4>
+                <p className="text-xs text-[#bccac0] mt-1">
+                  Verified criminal record check via state crime registry & biometric fingerprint.
+                </p>
               </div>
             </div>
 
@@ -426,8 +479,13 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-2xl">fact_check</span>
               </div>
               <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">50-Point Screening</h4>
-                <p className="text-xs text-[#bccac0] mt-1">Rigorous driving skill test, drug test, address validation & reference cross-audits.</p>
+                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
+                  50-Point Screening
+                </h4>
+                <p className="text-xs text-[#bccac0] mt-1">
+                  Rigorous driving skill test, drug test, address validation & reference
+                  cross-audits.
+                </p>
               </div>
             </div>
 
@@ -436,8 +494,12 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-2xl">security</span>
               </div>
               <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">Zero Incident Guarantee</h4>
-                <p className="text-xs text-[#bccac0] mt-1">Trip protection coverage up to ₹5,00,000 against incidental car damage.</p>
+                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
+                  Zero Incident Guarantee
+                </h4>
+                <p className="text-xs text-[#bccac0] mt-1">
+                  Trip protection coverage up to ₹5,00,000 against incidental car damage.
+                </p>
               </div>
             </div>
 
@@ -446,8 +508,12 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-2xl">emergency_share</span>
               </div>
               <div>
-                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">Live Telematics & SOS</h4>
-                <p className="text-xs text-[#bccac0] mt-1">Real-time GPS trip tracking, speed alerts, and 24/7 armed command desk response.</p>
+                <h4 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
+                  Live Telematics & SOS
+                </h4>
+                <p className="text-xs text-[#bccac0] mt-1">
+                  Real-time GPS trip tracking, speed alerts, and 24/7 armed command desk response.
+                </p>
               </div>
             </div>
           </div>
@@ -466,7 +532,8 @@ export default function LandingPage() {
                 </h2>
               </div>
               <p className="text-sm text-[#bccac0] max-w-md">
-                Zero paperwork, zero negotiations. Your personal luxury or daily commute vehicle driven with white-glove respect.
+                Zero paperwork, zero negotiations. Your personal luxury or daily commute vehicle
+                driven with white-glove respect.
               </p>
             </div>
 
@@ -482,11 +549,17 @@ export default function LandingPage() {
                       <span className="material-symbols-outlined text-xl">pin_drop</span>
                     </div>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">Share Trip Coordinates</h3>
-                  <p className="text-xs text-[#bccac0]">Specify your pickup node, trip type (hourly/outstation), and vehicle transmission details.</p>
+                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
+                    Share Trip Coordinates
+                  </h3>
+                  <p className="text-xs text-[#bccac0]">
+                    Specify your pickup node, trip type (hourly/outstation), and vehicle
+                    transmission details.
+                  </p>
                 </div>
                 <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Instant GPS geotagging
+                  <span className="material-symbols-outlined text-sm">check_circle</span> Instant
+                  GPS geotagging
                 </div>
               </div>
 
@@ -501,11 +574,17 @@ export default function LandingPage() {
                       <span className="material-symbols-outlined text-xl">badge</span>
                     </div>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">Select Verified Driver</h3>
-                  <p className="text-xs text-[#bccac0]">Compare verified chauffeur profiles, languages spoken, luxury vehicle certifications, and passenger ratings.</p>
+                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
+                    Select Verified Driver
+                  </h3>
+                  <p className="text-xs text-[#bccac0]">
+                    Compare verified chauffeur profiles, languages spoken, luxury vehicle
+                    certifications, and passenger ratings.
+                  </p>
                 </div>
                 <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Transparent fixed rate cards
+                  <span className="material-symbols-outlined text-sm">check_circle</span>{' '}
+                  Transparent fixed rate cards
                 </div>
               </div>
 
@@ -520,11 +599,17 @@ export default function LandingPage() {
                       <span className="material-symbols-outlined text-xl">directions_walk</span>
                     </div>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">Driver Arrives in Uniform</h3>
-                  <p className="text-xs text-[#bccac0]">Your chauffeur arrives 10 minutes ahead in crisp uniform, takes custody of vehicle keys, and logs odometer.</p>
+                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
+                    Driver Arrives in Uniform
+                  </h3>
+                  <p className="text-xs text-[#bccac0]">
+                    Your chauffeur arrives 10 minutes ahead in crisp uniform, takes custody of
+                    vehicle keys, and logs odometer.
+                  </p>
                 </div>
                 <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Pre-trip vehicle walkaround
+                  <span className="material-symbols-outlined text-sm">check_circle</span> Pre-trip
+                  vehicle walkaround
                 </div>
               </div>
 
@@ -539,11 +624,17 @@ export default function LandingPage() {
                       <span className="material-symbols-outlined text-xl">payments</span>
                     </div>
                   </div>
-                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">Relax & Settle Post-Trip</h3>
-                  <p className="text-xs text-[#bccac0]">Enjoy your commute or night out. Seamless automated billing via UPI, corporate credit card, or monthly invoicing.</p>
+                  <h3 className="font-bold text-lg text-[#dfe2ee] mb-2 font-['Space_Grotesk']">
+                    Relax & Settle Post-Trip
+                  </h3>
+                  <p className="text-xs text-[#bccac0]">
+                    Enjoy your commute or night out. Seamless automated billing via UPI, corporate
+                    credit card, or monthly invoicing.
+                  </p>
                 </div>
                 <div className="mt-6 pt-4 bg-[#0a0e16] px-3 py-2 rounded-xl font-mono text-[11px] text-[#68dba9] flex items-center gap-1.5 border border-[#1c2028]">
-                  <span className="material-symbols-outlined text-sm">check_circle</span> Zero cash surge surcharge
+                  <span className="material-symbols-outlined text-sm">check_circle</span> Zero cash
+                  surge surcharge
                 </div>
               </div>
             </div>
@@ -551,7 +642,10 @@ export default function LandingPage() {
         </section>
 
         {/* SECTION 4: FEATURED TOP-RATED CHAUFFEURS */}
-        <section id="chauffeurs" className="w-full bg-[#0a0e16] px-4 md:px-8 py-20 border-t border-[#262a33]">
+        <section
+          id="chauffeurs"
+          className="w-full bg-[#0a0e16] px-4 md:px-8 py-20 border-t border-[#262a33]"
+        >
           <div className="max-w-[1440px] mx-auto">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
               <div>
@@ -594,7 +688,9 @@ export default function LandingPage() {
                           4.98
                         </div>
                       </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">Ex-Hotel Taj Ambassador Chauffeur</p>
+                      <p className="text-xs text-[#bccac0] mt-0.5">
+                        Ex-Hotel Taj Ambassador Chauffeur
+                      </p>
                       <span className="inline-block mt-2 font-mono text-[11px] text-[#bccac0]">
                         11 Years Experience • 2,890 Trips
                       </span>
@@ -603,24 +699,36 @@ export default function LandingPage() {
 
                   <div className="flex flex-wrap gap-2 mb-5">
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">auto_transmission</span> Automatic & Manual
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        auto_transmission
+                      </span>{' '}
+                      Automatic & Manual
                     </span>
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">shield</span> VVIP Protocol Certified
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        shield
+                      </span>{' '}
+                      VVIP Protocol Certified
                     </span>
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">airport_shuttle</span> German Luxury Cars
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        airport_shuttle
+                      </span>{' '}
+                      German Luxury Cars
                     </span>
                   </div>
 
                   <p className="text-xs text-[#bccac0] line-clamp-2">
-                    Fluent in English & Hindi. Specialized in long-distance night driving, Mercedes S-Class, BMW 7-Series, and Audi A8 handling.
+                    Fluent in English & Hindi. Specialized in long-distance night driving, Mercedes
+                    S-Class, BMW 7-Series, and Audi A8 handling.
                   </p>
                 </div>
 
                 <div className="mt-6 pt-4 bg-[#181c24] px-4 py-3 rounded-xl flex items-center justify-between border border-[#262a33]">
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">Hourly Base Tariff</span>
+                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                      Hourly Base Tariff
+                    </span>
                     <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                       ₹159<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
                     </div>
@@ -657,7 +765,9 @@ export default function LandingPage() {
                           4.97
                         </div>
                       </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">Executive SUV & Highway Expert</p>
+                      <p className="text-xs text-[#bccac0] mt-0.5">
+                        Executive SUV & Highway Expert
+                      </p>
                       <span className="inline-block mt-2 font-mono text-[11px] text-[#bccac0]">
                         9 Years Experience • 2,140 Trips
                       </span>
@@ -666,24 +776,36 @@ export default function LandingPage() {
 
                   <div className="flex flex-wrap gap-2 mb-5">
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">terrain</span> Hills & Highway Pro
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        terrain
+                      </span>{' '}
+                      Hills & Highway Pro
                     </span>
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">ev_station</span> EV Specialist
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        ev_station
+                      </span>{' '}
+                      EV Specialist
                     </span>
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">translate</span> English, Punjabi, Hindi
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        translate
+                      </span>{' '}
+                      English, Punjabi, Hindi
                     </span>
                   </div>
 
                   <p className="text-xs text-[#bccac0] line-clamp-2">
-                    Expert handling on Fortuner, Defender, Range Rover, and Volvo XC90. Non-smoker with defensive driver training certification.
+                    Expert handling on Fortuner, Defender, Range Rover, and Volvo XC90. Non-smoker
+                    with defensive driver training certification.
                   </p>
                 </div>
 
                 <div className="mt-6 pt-4 bg-[#181c24] px-4 py-3 rounded-xl flex items-center justify-between border border-[#262a33]">
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">Hourly Base Tariff</span>
+                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                      Hourly Base Tariff
+                    </span>
                     <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                       ₹149<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
                     </div>
@@ -720,7 +842,9 @@ export default function LandingPage() {
                           4.95
                         </div>
                       </div>
-                      <p className="text-xs text-[#bccac0] mt-0.5">Corporate Fleet & Airport Transfer Specialist</p>
+                      <p className="text-xs text-[#bccac0] mt-0.5">
+                        Corporate Fleet & Airport Transfer Specialist
+                      </p>
                       <span className="inline-block mt-2 font-mono text-[11px] text-[#bccac0]">
                         7 Years Experience • 1,760 Trips
                       </span>
@@ -729,24 +853,36 @@ export default function LandingPage() {
 
                   <div className="flex flex-wrap gap-2 mb-5">
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">local_police</span> Special Police Cleared
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        local_police
+                      </span>{' '}
+                      Special Police Cleared
                     </span>
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">schedule</span> 100% Punctuality Index
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        schedule
+                      </span>{' '}
+                      100% Punctuality Index
                     </span>
                     <span className="bg-[#262a33] text-[#dfe2ee] px-2.5 py-1 rounded-md font-mono text-[10px] flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">lock</span> Discretion NDA Signed
+                      <span className="material-symbols-outlined text-[13px] text-[#68dba9]">
+                        lock
+                      </span>{' '}
+                      Discretion NDA Signed
                     </span>
                   </div>
 
                   <p className="text-xs text-[#bccac0] line-clamp-2">
-                    Specially trained for late-night city party pickups, airport transfers, and corporate executive daily round-trips.
+                    Specially trained for late-night city party pickups, airport transfers, and
+                    corporate executive daily round-trips.
                   </p>
                 </div>
 
                 <div className="mt-6 pt-4 bg-[#181c24] px-4 py-3 rounded-xl flex items-center justify-between border border-[#262a33]">
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">Hourly Base Tariff</span>
+                    <span className="text-[10px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                      Hourly Base Tariff
+                    </span>
                     <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                       ₹149<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
                     </div>
@@ -787,30 +923,54 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Stat 1 */}
               <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#68dba9] font-['Space_Grotesk']">4,850+</span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">Active Verified Drivers</span>
-                <p className="text-xs text-[#bccac0] mt-2">Ready for instant dispatch across NCR, Mumbai, Bengaluru & Pune.</p>
+                <span className="text-4xl lg:text-5xl font-bold text-[#68dba9] font-['Space_Grotesk']">
+                  4,850+
+                </span>
+                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
+                  Active Verified Drivers
+                </span>
+                <p className="text-xs text-[#bccac0] mt-2">
+                  Ready for instant dispatch across NCR, Mumbai, Bengaluru & Pune.
+                </p>
               </div>
 
               {/* Stat 2 */}
               <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#b4c5ff] font-['Space_Grotesk']">185,000+</span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">Journeys Completed</span>
-                <p className="text-xs text-[#bccac0] mt-2">Zero major accidents recorded since network inception.</p>
+                <span className="text-4xl lg:text-5xl font-bold text-[#b4c5ff] font-['Space_Grotesk']">
+                  185,000+
+                </span>
+                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
+                  Journeys Completed
+                </span>
+                <p className="text-xs text-[#bccac0] mt-2">
+                  Zero major accidents recorded since network inception.
+                </p>
               </div>
 
               {/* Stat 3 */}
               <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#4edea3] font-['Space_Grotesk']">99.4%</span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">On-Time Arrival SLA</span>
-                <p className="text-xs text-[#bccac0] mt-2">Average arrival window is within 8 minutes of target schedule.</p>
+                <span className="text-4xl lg:text-5xl font-bold text-[#4edea3] font-['Space_Grotesk']">
+                  99.4%
+                </span>
+                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
+                  On-Time Arrival SLA
+                </span>
+                <p className="text-xs text-[#bccac0] mt-2">
+                  Average arrival window is within 8 minutes of target schedule.
+                </p>
               </div>
 
               {/* Stat 4 */}
               <div className="flex flex-col bg-[#0a0e16] p-6 rounded-2xl border border-[#1c2028]">
-                <span className="text-4xl lg:text-5xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">14</span>
-                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">Metropolitan Cities</span>
-                <p className="text-xs text-[#bccac0] mt-2">Complete coverage in Tier-1 corridors and satellite financial districts.</p>
+                <span className="text-4xl lg:text-5xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  14
+                </span>
+                <span className="font-bold text-lg text-[#dfe2ee] mt-1 font-['Space_Grotesk']">
+                  Metropolitan Cities
+                </span>
+                <p className="text-xs text-[#bccac0] mt-2">
+                  Complete coverage in Tier-1 corridors and satellite financial districts.
+                </p>
               </div>
             </div>
           </div>
@@ -822,29 +982,42 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
               <div className="lg:col-span-8 space-y-4">
                 <div className="flex items-center gap-2 bg-[#68dba9]/20 px-4 py-1.5 rounded-full w-fit border border-[#68dba9]/30">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">handshake</span>
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                    handshake
+                  </span>
                   <span className="text-xs font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
                     Driver Partner Enrollment Open
                   </span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#dfe2ee] leading-tight font-['Space_Grotesk']">
-                  Earn up to <span className="text-[#68dba9]">₹45,000/month</span> Driving Executive Cars.
+                  Earn up to <span className="text-[#68dba9]">₹45,000/month</span> Driving Executive
+                  Cars.
                 </h2>
                 <p className="text-base text-[#bccac0] max-w-2xl">
-                  Join India&apos;s highest-paying chauffeur network. Flexible 4-hr, 8-hr or 12-hr duty slots, instant daily UPI payouts, accidental insurance coverage, and respectful corporate clientele.
+                  Join India&apos;s highest-paying chauffeur network. Flexible 4-hr, 8-hr or 12-hr
+                  duty slots, instant daily UPI payouts, accidental insurance coverage, and
+                  respectful corporate clientele.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-6 pt-2">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">currency_rupee</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      currency_rupee
+                    </span>
                     <span className="font-mono text-xs text-[#dfe2ee]">Daily UPI Settlements</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">health_and_safety</span>
-                    <span className="font-mono text-xs text-[#dfe2ee]">₹10 Lakh Medical Shield</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      health_and_safety
+                    </span>
+                    <span className="font-mono text-xs text-[#dfe2ee]">
+                      ₹10 Lakh Medical Shield
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">hotel_class</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      hotel_class
+                    </span>
                     <span className="font-mono text-xs text-[#dfe2ee]">Zero Surge Commissions</span>
                   </div>
                 </div>
@@ -890,15 +1063,21 @@ export default function LandingPage() {
                   <span className="material-symbols-outlined text-sm">star</span>
                 </div>
                 <p className="text-sm text-[#dfe2ee] mb-4 italic leading-relaxed">
-                  &quot;I frequently host visiting delegates from Europe. Get Apna Driver provides chauffeurs who understand executive etiquette, smooth braking, and route optimization. Truly five-star service.&quot;
+                  &quot;I frequently host visiting delegates from Europe. Get Apna Driver provides
+                  chauffeurs who understand executive etiquette, smooth braking, and route
+                  optimization. Truly five-star service.&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#262a33] flex items-center justify-center text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
                     AK
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">Arjun Kapoor</h4>
-                    <p className="text-xs text-[#bccac0]">Managing Partner, Nexus Capital • South Delhi</p>
+                    <h4 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">
+                      Arjun Kapoor
+                    </h4>
+                    <p className="text-xs text-[#bccac0]">
+                      Managing Partner, Nexus Capital • South Delhi
+                    </p>
                   </div>
                 </div>
               </div>
@@ -913,14 +1092,18 @@ export default function LandingPage() {
                   <span className="material-symbols-outlined text-sm">star</span>
                 </div>
                 <p className="text-sm text-[#dfe2ee] mb-4 italic leading-relaxed">
-                  &quot;Booked an outstation driver for a 4-day trip to Jaipur in my BMW 5-Series. The driver was impeccably mannered, never exceeded 90 km/h, and kept the car spotless throughout.&quot;
+                  &quot;Booked an outstation driver for a 4-day trip to Jaipur in my BMW 5-Series.
+                  The driver was impeccably mannered, never exceeded 90 km/h, and kept the car
+                  spotless throughout.&quot;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#262a33] flex items-center justify-center text-[#68dba9] font-bold text-sm font-['Space_Grotesk']">
                     RS
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">Dr. Radhika Sen</h4>
+                    <h4 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">
+                      Dr. Radhika Sen
+                    </h4>
                     <p className="text-xs text-[#bccac0]">Senior Cardiologist, Gurugram</p>
                   </div>
                 </div>
@@ -1031,14 +1214,18 @@ export default function LandingPage() {
             </div>
 
             <div className="space-y-2 pt-2 text-xs">
-              <span className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">Quick Links</span>
+              <span className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                Quick Links
+              </span>
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   href="/bookings/new"
                   onClick={() => setSearchModalOpen(false)}
                   className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
                 >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">add_circle</span>
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                    add_circle
+                  </span>
                   Create New Booking
                 </Link>
                 <Link
@@ -1046,7 +1233,9 @@ export default function LandingPage() {
                   onClick={() => setSearchModalOpen(false)}
                   className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
                 >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">history</span>
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                    history
+                  </span>
                   My Bookings
                 </Link>
                 <Link
@@ -1062,7 +1251,9 @@ export default function LandingPage() {
                   onClick={() => setSearchModalOpen(false)}
                   className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
                 >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">admin_panel_settings</span>
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                    admin_panel_settings
+                  </span>
                   Enterprise Admin
                 </Link>
               </div>
@@ -1084,7 +1275,8 @@ export default function LandingPage() {
               </span>
             </Link>
             <p className="text-xs text-[#bccac0] max-w-sm leading-relaxed">
-              India&apos;s premier executive chauffeur network for personal luxury and commute cars. 100% background verified, police cleared, with live telemetry tracking.
+              India&apos;s premier executive chauffeur network for personal luxury and commute cars.
+              100% background verified, police cleared, with live telemetry tracking.
             </p>
 
             <div className="flex items-center gap-4 text-xs font-mono pt-2">
@@ -1129,10 +1321,26 @@ export default function LandingPage() {
               Trust & Security
             </h4>
             <ul className="space-y-2.5 text-xs">
-              <li><a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">Police Verification Protocol</a></li>
-              <li><a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">Emergency Response SOS</a></li>
-              <li><a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">Zero Incident Protection</a></li>
-              <li><a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">Insurance Coverage</a></li>
+              <li>
+                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
+                  Police Verification Protocol
+                </a>
+              </li>
+              <li>
+                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
+                  Emergency Response SOS
+                </a>
+              </li>
+              <li>
+                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
+                  Zero Incident Protection
+                </a>
+              </li>
+              <li>
+                <a href="#trust-safety" className="hover:text-[#68dba9] transition-colors">
+                  Insurance Coverage
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -1144,7 +1352,10 @@ export default function LandingPage() {
               <span className="text-[10px] font-mono text-[#68dba9] uppercase block font-['Space_Grotesk']">
                 24/7 SUPPORT & DISPATCH
               </span>
-              <a href="tel:+917740002020" className="text-sm font-bold text-[#dfe2ee] block font-['Space_Grotesk']">
+              <a
+                href="tel:+917740002020"
+                className="text-sm font-bold text-[#dfe2ee] block font-['Space_Grotesk']"
+              >
                 +91 774-000-2020
               </a>
               <span className="text-[10px] text-[#bccac0] block">
@@ -1155,11 +1366,19 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-[1440px] mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#bccac0]">
-          <div>© {new Date().getFullYear()} Get Apna Driver Technologies Pvt. Ltd. All rights reserved.</div>
+          <div>
+            © {new Date().getFullYear()} Get Apna Driver Technologies Pvt. Ltd. All rights reserved.
+          </div>
           <div className="flex items-center gap-6 text-xs">
-            <a href="#" className="hover:text-[#dfe2ee]">Privacy Policy</a>
-            <a href="#" className="hover:text-[#dfe2ee]">Terms of Service</a>
-            <a href="#" className="hover:text-[#dfe2ee]">Compliance</a>
+            <a href="#" className="hover:text-[#dfe2ee]">
+              Privacy Policy
+            </a>
+            <a href="#" className="hover:text-[#dfe2ee]">
+              Terms of Service
+            </a>
+            <a href="#" className="hover:text-[#dfe2ee]">
+              Compliance
+            </a>
           </div>
         </div>
       </footer>
