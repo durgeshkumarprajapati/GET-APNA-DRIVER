@@ -401,6 +401,10 @@ export async function listDriverBookings(
   const bookings = await db.booking.findMany({
     where: { driverProfileId: profile.id },
     orderBy: { createdAt: 'desc' },
+    // Previously unbounded — caps a long-tenured driver's history query
+    // without changing the flat-array response shape the driver bookings
+    // page already expects.
+    take: 200,
   });
 
   return bookings.map(mapBookingToDriverSummary);

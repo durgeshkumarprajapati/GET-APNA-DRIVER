@@ -429,6 +429,37 @@ export async function getSafetyIncidentById(incidentId: string, db: Db = prisma)
           driverProfileId: true,
         },
       },
+      // Selected so callers can compare against the *user* id of the
+      // assigned driver — incident.driverProfileId is a DriverProfile id,
+      // never directly comparable to a principal's userId.
+      driverProfile: { select: { userId: true } },
     },
   });
+}
+
+type IncidentOwnershipFields = {
+  reporterUserId: string;
+  customerId: string | null;
+  driverProfile: { userId: string } | null;
+};
+
+/**
+ * The read-access check for a single safety incident: reporter, the
+ * incident's customer, or its actually-assigned driver (by user id, never
+ * by comparing a DriverProfile id against a User id — that comparison is
+ * always false and was the bug this replaces; see the route's prior
+ * `isDriver = incident.booking?.driverProfileId && incident.driverProfileId`
+ * tautology, which let any caller holding SAFETY_INCIDENT_READ — a
+ * permission both CUSTOMER and DRIVER roles hold broadly — view any
+ * incident that merely had *some* driver attached).
+ */
+export function isAuthorizedToViewIncident(
+  incident: IncidentOwnershipFields,
+  userId: string,
+): boolean {
+  return (
+    incident.reporterUserId === userId ||
+    incident.customerId === userId ||
+    incident.driverProfile?.userId === userId
+  );
 }

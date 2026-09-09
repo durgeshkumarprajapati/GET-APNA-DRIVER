@@ -454,6 +454,15 @@ async function main(): Promise<void> {
       isPublic: false,
     },
     {
+      key: 'notification.outbox.lock_ttl_seconds',
+      value: '300',
+      valueType: 'INTEGER' as const,
+      category: 'notification',
+      description:
+        'Seconds a claimed (PROCESSING) outbox event is considered stale and eligible for re-claim by another worker after a crash',
+      isPublic: false,
+    },
+    {
       key: 'notification.outbox.max_attempts',
       value: '5',
       valueType: 'INTEGER' as const,

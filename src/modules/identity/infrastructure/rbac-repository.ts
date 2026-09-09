@@ -1,6 +1,11 @@
 import 'server-only';
 import type { Permission, Role, RolePermission, UserRole } from '@prisma/client';
 import type { Db } from '@/shared/database/prisma';
+import {
+  getCachedUserRbacSnapshot,
+  invalidateUserRbacSnapshot,
+  setCachedUserRbacSnapshot,
+} from './rbac-cache';
 
 export interface UserRbacSnapshot {
   roleCodes: string[];
@@ -40,7 +45,7 @@ export async function upsertRoleAssignment(
   db: Db,
   params: { userId: string; roleId: string; assignedBy: string | null },
 ): Promise<UserRole> {
-  return db.userRole.upsert({
+  const result = await db.userRole.upsert({
     where: { userId_roleId: { userId: params.userId, roleId: params.roleId } },
     create: { userId: params.userId, roleId: params.roleId, assignedBy: params.assignedBy },
     update: {
@@ -50,6 +55,8 @@ export async function upsertRoleAssignment(
       revokedBy: null,
     },
   });
+  await invalidateUserRbacSnapshot(params.userId);
+  return result;
 }
 
 /** Counts currently-active (non-revoked) assignments of a role, for lockout guards. */
@@ -61,14 +68,32 @@ export async function revokeRoleAssignment(
   db: Db,
   params: { userId: string; roleId: string; revokedBy: string },
 ): Promise<UserRole> {
-  return db.userRole.update({
+  const result = await db.userRole.update({
     where: { userId_roleId: { userId: params.userId, roleId: params.roleId } },
     data: { revokedAt: new Date(), revokedBy: params.revokedBy },
   });
+  await invalidateUserRbacSnapshot(params.userId);
+  return result;
 }
 
-/** Loads the flattened set of active role codes and granted permission codes for a user. */
+/**
+ * Loads the flattened set of active role codes and granted permission codes
+ * for a user — read-through Redis cached (see rbac-cache.ts for key/TTL/
+ * invalidation strategy), since this 3-level join otherwise re-runs on
+ * every authenticated request.
+ */
 export async function loadUserRbacSnapshot(db: Db, userId: string): Promise<UserRbacSnapshot> {
+  const cached = await getCachedUserRbacSnapshot(userId);
+  if (cached) {
+    return cached;
+  }
+
+  const snapshot = await loadUserRbacSnapshotUncached(db, userId);
+  await setCachedUserRbacSnapshot(userId, snapshot);
+  return snapshot;
+}
+
+async function loadUserRbacSnapshotUncached(db: Db, userId: string): Promise<UserRbacSnapshot> {
   const assignments = await db.userRole.findMany({
     where: { userId, revokedAt: null },
     include: {

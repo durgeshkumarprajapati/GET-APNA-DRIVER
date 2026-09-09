@@ -47,6 +47,8 @@ export async function listDriverAssignmentOffers(
     where: { driverProfileId: profile.id },
     include: { booking: true },
     orderBy: { createdAt: 'desc' },
+    // Previously unbounded, with a full booking join per row.
+    take: 200,
   });
 
   return attempts.map((a) => ({

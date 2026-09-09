@@ -1,5 +1,12 @@
 import 'server-only';
-import { DriverApprovalStatus, DriverDocumentStatus, DriverOnboardingStatus } from '@prisma/client';
+import {
+  DriverApprovalStatus,
+  DriverDocument,
+  DriverDocumentStatus,
+  DriverOnboardingStatus,
+  DriverProfile,
+  User,
+} from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getJson } from '@/shared/config/configuration-service';
 
@@ -8,6 +15,11 @@ export interface DriverEligibilityEvaluation {
   reasons: string[];
 }
 
+export type DriverProfileForEligibility = DriverProfile & {
+  user: User;
+  documents: DriverDocument[];
+};
+
 /**
  * Server-authoritative evaluator determining if a driver meets all criteria to go AVAILABLE.
  */
@@ -15,8 +27,6 @@ export async function evaluateDriverEligibility(
   driverProfileId: string,
   db: Db = prisma,
 ): Promise<DriverEligibilityEvaluation> {
-  const reasons: string[] = [];
-
   const profile = await db.driverProfile.findUnique({
     where: { id: driverProfileId },
     include: {
@@ -33,6 +43,22 @@ export async function evaluateDriverEligibility(
       reasons: ['Driver profile not found.'],
     };
   }
+
+  return evaluateDriverEligibilityFromProfile(profile, db);
+}
+
+/**
+ * Same evaluation, given an already-fetched profile (with `user` and
+ * current `documents` included) — lets a caller that already needs the
+ * full profile for another purpose (e.g. nearby-driver-service.ts, which
+ * also assembles a public portfolio from the same row) avoid fetching it
+ * twice.
+ */
+export async function evaluateDriverEligibilityFromProfile(
+  profile: DriverProfileForEligibility,
+  db: Db = prisma,
+): Promise<DriverEligibilityEvaluation> {
+  const reasons: string[] = [];
 
   // 1. Check User Account Status
   if (profile.user.accountStatus !== 'ACTIVE') {

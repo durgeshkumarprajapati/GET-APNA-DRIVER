@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { processRazorpayWebhook } from '@/modules/finance/application/services/webhook-service';
 import { toErrorResponse } from '@/shared/errors/app-error';
 import { logger } from '@/shared/logging/logger';
+import { checkRateLimit } from '@/shared/rate-limit/rate-limiter';
 
 /**
  * Razorpay webhook receiver.
@@ -19,6 +20,19 @@ import { logger } from '@/shared/logging/logger';
  * authenticates this endpoint.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // A generous per-IP flood guard — 120/min is far above Razorpay's own
+  // retry cadence for a single delivery, so it never interferes with a
+  // legitimate retry; it only stops a raw-volume abuse attempt against this
+  // unauthenticated endpoint before it reaches signature verification/DB.
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+  const rateLimit = await checkRateLimit('razorpay_webhook', ip, 120, 60);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { status: 'rate_limited' },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.resetSeconds) } },
+    );
+  }
+
   const rawBody = await req.text();
   const signatureHeader = req.headers.get('x-razorpay-signature');
   const eventIdHeader = req.headers.get('x-razorpay-event-id');

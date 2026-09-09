@@ -1,5 +1,10 @@
-import { createBooking, cancelBooking } from '@/modules/booking/application/booking-service';
+import {
+  createBooking,
+  cancelBooking,
+  getBookingById,
+} from '@/modules/booking/application/booking-service';
 import { BookingStatus, BookingType } from '@prisma/client';
+import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
 const mockTx = {
   booking: {
@@ -174,6 +179,71 @@ describe('BookingService', () => {
 
       expect(result.status).toBe(BookingStatus.CANCELLED);
       expect(mockTx.booking.update).toHaveBeenCalled();
+    });
+
+    it('rejects cancellation by a user who does not own the booking', async () => {
+      mockFindUnique.mockResolvedValue({
+        id: 'bk-1',
+        customerId: 'cust-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        driverProfile: null,
+      });
+
+      await expect(cancelBooking('someone-else', 'bk-1', 'not mine')).rejects.toBeInstanceOf(
+        BookingNotFoundError,
+      );
+      expect(mockTx.booking.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getBookingById', () => {
+    it('returns the booking for its owning customer', async () => {
+      mockFindUnique.mockResolvedValue({
+        id: 'bk-1',
+        customerId: 'cust-1',
+        driverProfile: null,
+        status: BookingStatus.TRIP_COMPLETED,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        pickupAddress: 'Connaught Place',
+        requestedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const result = await getBookingById('cust-1', 'bk-1');
+      expect(result.id).toBe('bk-1');
+    });
+
+    it('returns the booking for its assigned driver', async () => {
+      mockFindUnique.mockResolvedValue({
+        id: 'bk-1',
+        customerId: 'cust-1',
+        driverProfile: { userId: 'driver-user-1' },
+        status: BookingStatus.TRIP_COMPLETED,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        pickupAddress: 'Connaught Place',
+        requestedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const result = await getBookingById('driver-user-1', 'bk-1');
+      expect(result.id).toBe('bk-1');
+    });
+
+    it('rejects a caller who is neither the customer nor the assigned driver (cross-user access attempt)', async () => {
+      mockFindUnique.mockResolvedValue({
+        id: 'bk-1',
+        customerId: 'cust-1',
+        driverProfile: { userId: 'driver-user-1' },
+        status: BookingStatus.TRIP_COMPLETED,
+      });
+
+      await expect(getBookingById('some-other-customer', 'bk-1')).rejects.toBeInstanceOf(
+        BookingNotFoundError,
+      );
     });
   });
 });

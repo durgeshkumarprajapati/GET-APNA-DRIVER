@@ -31,12 +31,12 @@ jest.mock('@/shared/config/configuration-service', () => ({
 }));
 
 jest.mock('@/modules/driver/application/services/driver-eligibility-service', () => ({
-  evaluateDriverEligibility: jest.fn(),
+  evaluateDriverEligibilityFromProfile: jest.fn(),
 }));
 
 import { prisma } from '@/shared/database/prisma';
 import { redis } from '@/shared/redis/client';
-import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
+import { evaluateDriverEligibilityFromProfile } from '@/modules/driver/application/services/driver-eligibility-service';
 
 describe('NearbyDriverService', () => {
   const mockFindMany = prisma.driverCurrentLocation.findMany as jest.Mock;
@@ -57,7 +57,10 @@ describe('NearbyDriverService', () => {
         capturedAt: new Date().toISOString(),
       }),
     );
-    (evaluateDriverEligibility as jest.Mock).mockResolvedValue({ isEligible: true, reasons: [] });
+    (evaluateDriverEligibilityFromProfile as jest.Mock).mockResolvedValue({
+      isEligible: true,
+      reasons: [],
+    });
 
     mockFindUniqueProfile.mockResolvedValue({
       id: 'dp-1',
@@ -86,7 +89,10 @@ describe('NearbyDriverService', () => {
 
   it('falls back to PostgreSQL + PostGIS if Redis returns no candidates', async () => {
     (redis.call as jest.Mock).mockResolvedValue([]); // Redis empty
-    (evaluateDriverEligibility as jest.Mock).mockResolvedValue({ isEligible: true, reasons: [] });
+    (evaluateDriverEligibilityFromProfile as jest.Mock).mockResolvedValue({
+      isEligible: true,
+      reasons: [],
+    });
 
     mockFindMany.mockResolvedValue([
       {
@@ -145,7 +151,7 @@ describe('NearbyDriverService', () => {
         capturedAt: new Date().toISOString(),
       }),
     );
-    (evaluateDriverEligibility as jest.Mock).mockResolvedValue({
+    (evaluateDriverEligibilityFromProfile as jest.Mock).mockResolvedValue({
       isEligible: false,
       reasons: ['Suspended driver account.'],
     });

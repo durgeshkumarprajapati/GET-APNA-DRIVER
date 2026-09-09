@@ -507,6 +507,8 @@ export async function listCustomerPayments(
   const payments = await db.payment.findMany({
     where: { customerId: customerUserId },
     orderBy: { createdAt: 'desc' },
+    // Previously unbounded.
+    take: 200,
   });
   return payments.map(mapPaymentToSummary);
 }

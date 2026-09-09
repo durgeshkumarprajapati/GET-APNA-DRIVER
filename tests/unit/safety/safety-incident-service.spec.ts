@@ -3,8 +3,46 @@ import {
   triggerSos,
   updateSafetyIncidentStatus,
   assignSafetyOperator,
+  isAuthorizedToViewIncident,
 } from '@/modules/safety/application/safety-incident-service';
 import { InvalidSafetyStateTransitionError } from '@/modules/safety/domain/safety-state-machine';
+
+describe('isAuthorizedToViewIncident', () => {
+  const incident = {
+    reporterUserId: 'reporter-1',
+    customerId: 'customer-1',
+    driverProfile: { userId: 'driver-user-1' },
+  };
+
+  it('allows the reporter', () => {
+    expect(isAuthorizedToViewIncident(incident, 'reporter-1')).toBe(true);
+  });
+
+  it('allows the incident customer', () => {
+    expect(isAuthorizedToViewIncident(incident, 'customer-1')).toBe(true);
+  });
+
+  it('allows the actually-assigned driver (by user id)', () => {
+    expect(isAuthorizedToViewIncident(incident, 'driver-user-1')).toBe(true);
+  });
+
+  it('rejects an unrelated user (cross-user access attempt) even when a driver is attached to the booking', () => {
+    // Regression test for the fixed bug: the old check was
+    // `incident.booking?.driverProfileId && incident.driverProfileId`, a
+    // truthy/truthy tautology that let ANY driver view ANY incident that
+    // had a driver attached, regardless of whose incident it actually was.
+    expect(isAuthorizedToViewIncident(incident, 'some-other-driver-user')).toBe(false);
+  });
+
+  it('rejects an unrelated user when no driver is attached at all', () => {
+    expect(
+      isAuthorizedToViewIncident(
+        { reporterUserId: 'reporter-1', customerId: 'customer-1', driverProfile: null },
+        'random-user',
+      ),
+    ).toBe(false);
+  });
+});
 
 describe('SafetyIncidentService', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

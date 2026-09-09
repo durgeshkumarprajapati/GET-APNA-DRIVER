@@ -89,6 +89,7 @@ export const PERMISSIONS = {
 
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
+  SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
 
   // Governance
   AUDIT_LOG_READ: 'audit.log.read',
@@ -258,6 +259,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
+  {
+    code: PERMISSIONS.SYSTEM_OUTBOX_MANAGE,
+    description: 'View outbox health metrics and requeue dead-lettered events.',
+  },
 
   { code: PERMISSIONS.AUDIT_LOG_READ, description: 'View the platform audit log (read-only).' },
 ];

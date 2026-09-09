@@ -1000,6 +1000,10 @@ model Payment {
   @@index([bookingId])
   @@index([customerId, status])
   @@index([status, createdAt])
+  /// Supports the admin payments list's unfiltered "newest 200" query
+  /// (listAllPayments) — a bare createdAt DESC scan with no status
+  /// predicate, which none of the other indexes (all status-prefixed) cover.
+  @@index([createdAt])
   @@map("payments")
 }
 
@@ -1578,6 +1582,10 @@ model SafetyIncident {
   timelineEntries SafetyIncidentTimeline[]
 
   @@index([status, severity, createdAt])
+  /// A severity-only filter (e.g. "show all CRITICAL", no status filter)
+  /// cannot use the composite [status, severity, createdAt] index at all
+  /// since status is its leading column — this covers that case directly.
+  @@index([severity, createdAt])
   @@index([bookingId])
   @@index([reporterUserId])
   @@index([customerId])
@@ -1633,6 +1641,10 @@ model Dispute {
   logs DisputeLog[]
 
   @@index([status, category, createdAt])
+  /// Supports the admin dispute list's common "filter by status alone"
+  /// case (no category) with createdAt ordering included, rather than
+  /// falling back to a residual sort once category isn't part of the filter.
+  @@index([status, createdAt])
   @@index([bookingId])
   @@index([raisedByUserId])
   @@map("disputes")

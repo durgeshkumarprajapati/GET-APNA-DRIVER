@@ -3,7 +3,7 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { redis } from '@/shared/redis/client';
 import { getInteger } from '@/shared/config/configuration-service';
 import { calculateHaversineDistance, toKmDisplay, validateCoordinates } from './distance-service';
-import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
+import { evaluateDriverEligibilityFromProfile } from '@/modules/driver/application/services/driver-eligibility-service';
 
 export interface FindNearbyDriversInput {
   latitude: number;
@@ -158,8 +158,18 @@ export async function findNearbyDrivers(
       continue;
     }
 
+    // Fetch the profile once — reused for both eligibility and the
+    // portfolio assembly below (previously fetched twice: once inside
+    // evaluateDriverEligibility, once again here).
+    const profile = await db.driverProfile.findUnique({
+      where: { id: candidate.driverProfileId },
+      include: { user: true, documents: { where: { isCurrent: true } } },
+    });
+
+    if (!profile) continue;
+
     // Verify Eligibility
-    const eligibility = await evaluateDriverEligibility(candidate.driverProfileId, db);
+    const eligibility = await evaluateDriverEligibilityFromProfile(profile, db);
     if (!eligibility.isEligible) {
       try {
         await redis.zrem('driver:geo:available', candidate.driverProfileId);
@@ -169,15 +179,7 @@ export async function findNearbyDrivers(
       continue;
     }
 
-    // Fetch Public Profile Portfolio Details
-    const profile = await db.driverProfile.findUnique({
-      where: { id: candidate.driverProfileId },
-      include: {
-        user: true,
-      },
-    });
-
-    if (!profile || profile.availabilityStatus !== 'AVAILABLE') continue;
+    if (profile.availabilityStatus !== 'AVAILABLE') continue;
 
     const displayName =
       profile.displayName ||

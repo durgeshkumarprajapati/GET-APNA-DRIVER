@@ -125,6 +125,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       items: [
         { href: '/admin/audit-logs', label: 'Audit Logs', icon: 'history_edu' },
         { href: '/admin/system-config', label: 'System Config', icon: 'tune' },
+        { href: '/admin/outbox-health', label: 'Outbox Health', icon: 'monitor_heart' },
       ],
     },
   ];
