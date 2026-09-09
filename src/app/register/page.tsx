@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function RegisterPage() {
+function RegisterFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Role selection state
-  const [selectedRole, setSelectedRole] = useState<'customer' | 'driver'>('customer');
+  // Role Selection ('customer' | 'driver')
+  const [selectedRole, setSelectedRole] = useState<'customer' | 'driver'>(() => {
+    const roleParam = searchParams.get('role');
+    return roleParam === 'driver' || roleParam === 'pilot' ? 'driver' : 'customer';
+  });
 
   // Form State
   const [firstName, setFirstName] = useState('');
@@ -19,38 +22,65 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
-  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(true);
 
-  // Telemetry Switches State
+  // Driver Telemetry Switches
+  const [vipPings, setVipPings] = useState(true);
+  const [sosRelay, setSosRelay] = useState(true);
+  const [payoutSms, setPayoutSms] = useState(true);
+
+  // Customer Telemetry Switches
   const [tripStatusAlerts, setTripStatusAlerts] = useState(true);
   const [arrivalPings, setArrivalPings] = useState(true);
   const [smsOtpAlerts, setSmsOtpAlerts] = useState(true);
 
   // GPS State
   const [gpsStatus, setGpsStatus] = useState<'Standby' | 'Active' | 'Manual'>('Standby');
-  const [gpsCoordinates, setGpsCoordinates] = useState('28.6139° N, 77.2090° E [DELHI NCR]');
+  const [gpsCoordinates, setGpsCoordinates] = useState(
+    '28.5562° N, 77.1000° E [IGI T3 TERMINAL HUB]',
+  );
+
+  // Driver Fleet Sub-Tier Selection
+  const [driverFleetType, setDriverFleetType] = useState<'pilot' | 'fleet'>('pilot');
+
+  // Time & RTT Counter
+  const [currentTime, setCurrentTime] = useState('14:32:08 IST');
+  const [rttMs, setRttMs] = useState(18);
 
   // UI Flow State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [redirectPath, setRedirectPath] = useState<string>('/driver/onboarding');
 
-  // Password Strength Calculation
-  const hasMinLen = password.length >= 8;
-  const hasUpperLower = /[A-Z]/.test(password) && /[a-z]/.test(password);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+          timeZone: 'Asia/Kolkata',
+        }) + ' IST',
+      );
+      setRttMs(15 + Math.floor(Math.random() * 8));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Password Entropy Calculation
+  const hasMinLen = password.length >= 6;
+  const hasUpperLower = /[A-Z]/.test(password) || /[0-9]/.test(password);
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   let entropyScore = 0;
-  if (hasMinLen) entropyScore++;
-  if (hasUpperLower) entropyScore++;
-  if (hasSpecial) entropyScore++;
-
-  const getEntropyLabel = () => {
-    if (entropyScore === 0) return { label: 'Entropy: Minimal', color: 'text-[#87948b]' };
-    if (entropyScore === 1) return { label: 'Entropy: Weak', color: 'text-[#ffb4ab]' };
-    if (entropyScore === 2) return { label: 'Entropy: Adequate', color: 'text-[#4edea3]' };
-    return { label: 'Entropy: Military Grade', color: 'text-[#68dba9] font-bold' };
-  };
+  if (password.length > 0) {
+    if (hasMinLen) entropyScore++;
+    if (hasUpperLower) entropyScore++;
+    if (hasSpecial || password.length >= 8) entropyScore++;
+  }
 
   const handleActivateGps = () => {
     if ('geolocation' in navigator) {
@@ -62,7 +92,7 @@ export default function RegisterPage() {
           setGpsStatus('Active');
         },
         () => {
-          setGpsCoordinates('28.5603° N, 77.1627° E [SOUTH DELHI HUB]');
+          setGpsCoordinates('28.5562° N, 77.1000° E [IGI T3 TERMINAL HUB]');
           setGpsStatus('Active');
         },
       );
@@ -71,10 +101,13 @@ export default function RegisterPage() {
     }
   };
 
-  const handleManualCity = () => {
-    const city = prompt('Enter your city name (e.g. Mumbai, Gurugram, Bengaluru):', 'Delhi-NCR');
-    if (city) {
-      setGpsCoordinates(`ZONE: ${city.toUpperCase()} METRO MESH`);
+  const handleCustomSector = () => {
+    const sector = prompt(
+      'Enter your preferred NCR base sector (e.g. Aerocity T3, CyberCity, Golf Course Ext):',
+      'Delhi-NCR Hub',
+    );
+    if (sector) {
+      setGpsCoordinates(`ZONE: ${sector.toUpperCase()} SECTOR`);
       setGpsStatus('Manual');
     }
   };
@@ -84,14 +117,16 @@ export default function RegisterPage() {
     setError(null);
 
     if (!termsAgreed) {
-      setError('Please accept the Charter Service Protocols to proceed.');
+      setError('Please accept the Statutory Clearance & Safety Charter to proceed.');
       return;
     }
 
     setLoading(true);
 
     try {
-      const fullFullName = `${firstName} ${lastName}`.trim();
+      const fullFullName =
+        `${firstName} ${lastName}`.trim() ||
+        (selectedRole === 'driver' ? 'Chauffeur Pilot' : 'Valued Customer');
       const accountType = selectedRole === 'driver' ? 'DRIVER' : 'CUSTOMER';
 
       const res = await fetch('/api/auth/register', {
@@ -102,7 +137,11 @@ export default function RegisterPage() {
           password,
           accountType,
           fullName: fullFullName,
-          phoneNumber: phone ? `+91${phone}` : undefined,
+          phoneNumber: phone
+            ? phone.startsWith('+91')
+              ? phone
+              : `+91${phone.replace(/\s+/g, '')}`
+            : undefined,
           referralCode: referralCode.trim() || undefined,
         }),
       });
@@ -114,14 +153,15 @@ export default function RegisterPage() {
       };
 
       if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(
+          data.error || data.message || 'Registration failed. Please check your credentials.',
+        );
       }
 
-      if (data.redirectRoute) {
-        router.push(data.redirectRoute);
-      } else {
-        setShowCompletionModal(true);
-      }
+      const targetRedirect =
+        data.redirectRoute || (accountType === 'DRIVER' ? '/driver/onboarding' : '/customer');
+      setRedirectPath(targetRedirect);
+      setShowCompletionModal(true);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -133,976 +173,1072 @@ export default function RegisterPage() {
     }
   };
 
-  const entropyInfo = getEntropyLabel();
+  // Scroll smoothly to profile form
+  const scrollToForm = () => {
+    const formElement = document.getElementById('registration-form-panel');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased">
-      {/* Fixed Top Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#0f131c]/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.45)] border-b border-[#262a33]">
-        <div className="h-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 shrink-0">
+    <div className="bg-[#0a0e16] min-h-screen text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
+      {/* HEADER BAR */}
+      <header className="fixed top-0 w-full z-50 bg-[#0f131c]/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(0,0,0,0.45)] border-b border-[#262a33]">
+        <div className="h-20 w-full px-4 sm:px-8 max-w-[1440px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-5">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-                <span className="material-symbols-outlined text-lg font-bold">local_taxi</span>
+              <div className="w-9 h-9 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9] shadow-sm">
+                <span className="material-symbols-outlined text-[20px]">verified_user</span>
               </div>
-              <span className="font-display font-bold text-lg uppercase tracking-tight text-[#dfe2ee]">
-                Get Apna Driver
-              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-base uppercase tracking-tight text-[#dfe2ee] font-bold">
+                    GET APNA DRIVER
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#68dba9] font-mono text-[10px] font-bold">
+                    PRO
+                  </span>
+                </div>
+                <div className="font-mono text-[10px] text-[#bccac0] flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[#68dba9] text-[11px]">lock</span>
+                  <span>256-Bit SSL Auth Rails • ISO/IEC 27001 Certified</span>
+                </div>
+              </div>
             </Link>
 
-            <div className="hidden xl:flex items-center gap-2 bg-[#0a0e16] px-3 py-1 rounded-full border border-[#3d4a42]/30 text-xs font-mono">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#68dba9]"></span>
-              </span>
-              <span className="text-[#bccac0]">
-                256-Bit SSL Auth Rails • ISO/IEC 27001 Certified
+            <div className="hidden xl:flex items-center px-3 py-1 rounded-xl bg-[#181c24] border border-[#262a33] gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse"></span>
+              <span className="font-mono text-[10px] text-[#bccac0] uppercase tracking-wider">
+                GATEWAY // APNA-NCR-DRIVER-ONBOARDING
               </span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 bg-[#0a0e16] p-1 rounded-full border border-[#3d4a42]/20 text-xs font-mono">
-            <Link
-              href="/login"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Unified Login
-            </Link>
-            <button
-              type="button"
-              onClick={() => setSelectedRole(selectedRole === 'customer' ? 'driver' : 'customer')}
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Role Selection
-            </button>
-            <span className="px-3 py-1.5 uppercase tracking-wider bg-[#262a33] text-[#dfe2ee] font-semibold rounded-lg shadow-[0_0_12px_rgba(5,150,105,0.25)]">
-              Customer Onboarding
-            </span>
-            <Link
-              href="/driver/onboarding"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Driver KYC Wizard
-            </Link>
-            <Link
-              href="/admin/drivers"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Admin Vault
-            </Link>
-          </nav>
+          <div className="flex items-center gap-6">
+            <nav className="hidden lg:flex items-center gap-3 font-mono text-[11px] text-[#bccac0]">
+              <Link href="/login" className="hover:text-[#dfe2ee] transition-colors">
+                UNIFIED LOGIN
+              </Link>
+              <span className="text-[#3d4a42]">/</span>
+              <button
+                type="button"
+                onClick={() => setSelectedRole(selectedRole === 'customer' ? 'driver' : 'customer')}
+                className="hover:text-[#dfe2ee] transition-colors uppercase"
+              >
+                ROLE SELECTION ({selectedRole.toUpperCase()})
+              </button>
+              <span className="text-[#3d4a42]">/</span>
+              <span className="bg-[#25a475] text-[#00311f] font-bold rounded-lg px-2.5 py-1">
+                {selectedRole === 'driver' ? 'DRIVER ONBOARDING (ACTIVE)' : 'CUSTOMER REGISTRATION'}
+              </span>
+              <span className="text-[#3d4a42]">/</span>
+              <Link href="/driver/onboarding" className="hover:text-[#dfe2ee] transition-colors">
+                KYC WIZARD
+              </Link>
+              <span className="text-[#3d4a42]">/</span>
+              <Link href="/verification-status" className="hover:text-[#dfe2ee] transition-colors">
+                VERIFICATION STATUS
+              </Link>
+            </nav>
 
-          <div className="flex items-center gap-4 shrink-0">
-            <button
-              aria-label="Toggle system theme"
-              className="p-2 rounded-lg text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors flex items-center justify-center"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-lg">dark_mode</span>
-            </button>
-            <div className="relative flex items-center">
-              <Image
-                alt="Profile Avatar"
-                width={32}
-                height={32}
-                unoptimized
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-[#68dba9]/40"
-                src="https://lh3.googleusercontent.com/aida/AEtjO1WxTO3NWRJYA6Ib8PoLewFtFM192nboytw0dzwqWk0TIlG-EKLuweHK3XEBiNQPnRKauOOKRhAitZ0MSszwg63MMJtw0CZH0PQuLqh2eFIwV8e0k116pkMkpiHFZjv6K7_YcBF4yrXC9ju4097kjEeBXeIHsRM6FJqVKl32MXq3hJit4vg6qpYolsOCW13MleiFjFXW7na0Il8qSvKmcsODjxcQAHKnbfL_TtjEDmBexYKDZrzUvLjYLyQ"
-              />
+            <div className="hidden md:flex items-center gap-3 pl-3">
+              <div className="flex flex-col text-right font-mono text-[11px]">
+                <span className="text-[#dfe2ee] font-medium">{currentTime}</span>
+                <span className="text-[#68dba9] flex items-center justify-end gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#68dba9]"></span>
+                  {rttMs}ms RTT
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-[#68dba9] flex items-center justify-center text-[#003825] font-bold">
+                <span className="material-symbols-outlined text-[18px]">person</span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="pt-20 pb-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
-        {/* Stepper & Tactical Flow Tracker */}
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-[#bccac0] font-mono text-xs">
-            <div className="flex items-center gap-2 uppercase tracking-widest text-[#68dba9]">
-              <span className="material-symbols-outlined text-sm">hub</span>
-              <span>Access Node: APNA-DELHI-SOUTH-09</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-[#dfe2ee]">
-                Step <span className="text-[#68dba9] font-bold font-display text-sm">01</span> / 03
-              </span>
-              <span className="bg-[#262a33] px-3 py-1 rounded-full text-[#68dba9] uppercase font-bold text-[10px]">
-                ROLE SPECIFICATION
-              </span>
-            </div>
-          </div>
-
-          {/* Segmented Terminal Progress Bar */}
-          <div className="w-full grid grid-cols-3 gap-2 h-1.5 bg-[#0a0e16] rounded-full overflow-hidden">
-            <div className="h-full bg-[#68dba9] transition-all duration-500 rounded-full shadow-[0_0_12px_rgba(104,219,169,0.5)]"></div>
-            <div className="h-full bg-[#1c2028] transition-all duration-500 rounded-full"></div>
-            <div className="h-full bg-[#1c2028] transition-all duration-500 rounded-full"></div>
-          </div>
-        </div>
-
-        {/* Header Section with Tactical Typography */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="flex flex-col gap-2 max-w-2xl">
-            <div className="flex items-center gap-2 text-xs font-mono tracking-widest text-[#68dba9] uppercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#68dba9] animate-pulse"></span>
-              Gateway Verification Active
-            </div>
-            <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#dfe2ee]">
-              Join Get Apna Driver
-            </h1>
-            <p className="text-sm sm:text-base text-[#bccac0]">
-              Choose how you want to experience India&apos;s premier verified chauffeur marketplace.
-            </p>
-          </div>
-
-          {/* Live Security Protocol Metric */}
-          <div className="hidden lg:flex items-center gap-4 bg-[#181c24] p-3 px-5 rounded-xl border border-[#262a33] shadow-md">
-            <div className="flex flex-col text-right">
-              <span className="text-[10px] font-mono text-[#bccac0] uppercase">
-                Clearance Protocol
-              </span>
-              <span className="font-display font-bold text-xl text-[#68dba9]">99.98%</span>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                shield_with_heart
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ROLE SELECTION CARDS (Interactive Switcher) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6" id="role-selection-section">
-          {/* Role 1: Customer */}
-          <div
-            onClick={() => setSelectedRole('customer')}
-            className={`relative flex flex-col justify-between p-6 rounded-xl transition-all duration-300 cursor-pointer shadow-xl border ${
-              selectedRole === 'customer'
-                ? 'bg-[#262a33] border-[#68dba9]/60 shadow-[0_0_20px_rgba(104,219,169,0.15)]'
-                : 'bg-[#181c24] border-[#262a33] hover:bg-[#1c2028]'
-            }`}
-          >
-            {selectedRole === 'customer' && (
-              <div className="absolute top-4 right-4 flex items-center gap-1 bg-[#68dba9] text-[#003825] px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(104,219,169,0.4)]">
-                <span className="material-symbols-outlined text-xs">check_circle</span>
-                Selected Experience
-              </div>
-            )}
-
-            <div className="flex flex-col gap-6">
+      {/* MAIN VIEWPORT */}
+      <main className="w-full pt-20 bg-[#0a0e16] min-h-screen">
+        <div className="flex flex-col w-full">
+          {/* SUB-HEADER TELEMATICS BAR */}
+          <div className="w-full bg-[#181c24] border-b border-[#262a33] px-4 sm:px-8 py-2.5 shadow-sm">
+            <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-[#1c2028] flex items-center justify-center text-[#68dba9] shadow-sm">
-                  <span className="material-symbols-outlined text-3xl">person_pin</span>
+                <div className="flex items-center gap-2 bg-[#0a0e16] px-3 py-1 rounded-lg border border-[#262a33] shadow-sm">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#68dba9]"></span>
+                  </span>
+                  <span className="font-mono text-[11px] text-[#68dba9] font-semibold tracking-wider">
+                    ACCESS NODE: APNA-DELHI-CHAUFFEUR-HUB-01
+                  </span>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 text-[#bccac0] font-mono text-[11px]">
+                  <span className="material-symbols-outlined text-[15px] text-[#4edea3]">hub</span>
+                  <span>SARATHI-DL-RELAY // ACTIVE 240BPS</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 justify-between md:justify-end">
+                <span className="font-mono text-[11px] text-[#dfe2ee] uppercase tracking-wider font-semibold">
+                  STEP 01 / 03 •{' '}
+                  {selectedRole === 'driver'
+                    ? 'PILOT CREDENTIAL SPECIFICATION'
+                    : 'CUSTOMER PROFILE INITIALIZATION'}
+                </span>
+                <div className="w-28 h-1.5 bg-[#31353e] rounded-full overflow-hidden flex">
+                  <div className="w-1/3 bg-[#68dba9] h-full shadow-[0_0_8px_rgba(104,219,169,0.8)]"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CONTAINER CONTENT */}
+          <div className="w-full px-4 sm:px-8 py-8 max-w-[1440px] mx-auto flex flex-col gap-8">
+            {/* HERO / HEADER BANNER BLOCK */}
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 bg-[#1c2028] p-6 sm:p-8 rounded-2xl border border-[#262a33] shadow-md relative overflow-hidden">
+              <div className="absolute -right-16 -top-16 w-64 h-64 bg-[#68dba9]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+              <div className="flex flex-col gap-2 max-w-3xl relative z-10">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0a0e16] font-mono text-[10px] text-[#68dba9] uppercase font-bold tracking-widest border border-[#262a33] shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#68dba9] animate-pulse"></span>
+                    {selectedRole === 'driver'
+                      ? 'CHAUFFEUR DISPATCH NETWORK ACTIVE'
+                      : 'PREMIER CHAUFFEUR MARKETPLACE'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#bccac0] font-mono text-[10px]">
+                    GATEWAY 8.2
+                  </span>
+                </div>
+
+                <h1 className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-[#dfe2ee]">
+                  {selectedRole === 'driver'
+                    ? 'Register as Executive Chauffeur Pilot'
+                    : 'Register for Get Apna Driver Concierge'}
+                </h1>
+                <p className="text-sm sm:text-base text-[#bccac0] leading-relaxed">
+                  {selectedRole === 'driver' ? (
+                    <>
+                      Join India&apos;s highest-earning vetted driver network. Command premium
+                      luxury sedans and VIP outstations with{' '}
+                      <span className="text-[#68dba9] font-semibold">zero commission</span> and
+                      instant daily IMPS payouts.
+                    </>
+                  ) : (
+                    <>
+                      Access verified luxury chauffeurs across Delhi NCR for point-to-point, hourly,
+                      and outstation rides with{' '}
+                      <span className="text-[#68dba9] font-semibold">zero surge pricing</span> and
+                      24/7 SOS safety backup.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              {/* Protocol Badge Right */}
+              <div className="flex items-center gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] shadow-sm self-start lg:self-auto relative z-10 shrink-0">
+                <div className="w-11 h-11 rounded-lg bg-[#262a33] flex items-center justify-center text-[#68dba9]">
+                  <span className="material-symbols-outlined text-[24px]">verified_user</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-mono tracking-widest text-[#68dba9] uppercase font-bold">
-                    Individual &amp; Corporate
+                  <span className="font-mono text-[10px] text-[#bccac0] uppercase tracking-wider font-bold">
+                    CLEARANCE PROTOCOL
                   </span>
-                  <h2 className="font-display font-bold text-xl text-[#dfe2ee]">
-                    Customer Account
-                  </h2>
-                  <span className="text-xs text-[#bccac0]">
-                    Book Luxury &amp; Verified Chauffeurs
+                  <span className="font-display font-bold text-2xl text-[#68dba9] leading-tight">
+                    98.6% PASS RATE
                   </span>
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-[#bccac0] leading-relaxed">
-                Command point-to-point luxury transfers, hourly multi-stop delegations, and
-                intercity transit with vetted, police-cleared personnel.
-              </p>
-
-              {/* Core Value Proposition Badges */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#181c24] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    flight_takeoff
+                  <span className="font-mono text-[10px] text-[#bccac0]">
+                    STATUTORY SARATHI VERIFIED
                   </span>
-                  <span className="text-xs font-medium">Instant Airport Concierge</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#181c24] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    security
-                  </span>
-                  <span className="text-xs font-medium">Vetted Police Cleared</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#181c24] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    price_change
-                  </span>
-                  <span className="text-xs font-medium">Zero Surge Lock Guarantee</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#181c24] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    emergency
-                  </span>
-                  <span className="text-xs font-medium">Dedicated Priority SOS Escort</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 flex items-center justify-between gap-4 border-t border-[#3d4a42]/30 mt-6">
-              <div className="flex flex-col font-mono text-xs text-[#bccac0]">
-                <span>STARTING FARE BASE</span>
-                <span className="font-display font-bold text-lg text-[#dfe2ee]">
-                  ₹499<span className="text-xs text-[#bccac0] font-normal"> /hr</span>
-                </span>
-              </div>
-              <button
-                type="button"
-                className={`px-5 py-2.5 rounded-lg font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
-                  selectedRole === 'customer'
-                    ? 'bg-[#68dba9] text-[#003825] shadow-[0_0_16px_-2px_rgba(5,150,105,0.4)] hover:brightness-110'
-                    : 'bg-[#262a33] text-[#dfe2ee] hover:bg-[#353942]'
+            {/* COMPARISON EXPERIENCE CARDS (2 COLUMNS) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* CARD 1: DRIVER PARTNER (PILOT) */}
+              <div
+                onClick={() => {
+                  setSelectedRole('driver');
+                  setDriverFleetType('pilot');
+                }}
+                className={`p-6 sm:p-8 rounded-2xl shadow-xl flex flex-col justify-between relative overflow-hidden border transition-all cursor-pointer ${
+                  selectedRole === 'driver' && driverFleetType === 'pilot'
+                    ? 'bg-[#262a33] border-[#68dba9]/70 shadow-[0_0_24px_rgba(104,219,169,0.15)]'
+                    : 'bg-[#181c24] border-[#262a33] hover:bg-[#1c2028]'
                 }`}
               >
-                Continue as Customer
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
-          </div>
+                {selectedRole === 'driver' && (
+                  <div className="absolute top-0 right-0 bg-[#68dba9] text-[#003825] font-mono text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider shadow-sm flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                    SELECTED EXPERIENCE
+                  </div>
+                )}
 
-          {/* Role 2: Driver Partner */}
-          <div
-            onClick={() => setSelectedRole('driver')}
-            className={`relative flex flex-col justify-between p-6 rounded-xl transition-all duration-300 cursor-pointer shadow-md border ${
-              selectedRole === 'driver'
-                ? 'bg-[#262a33] border-[#b4c5ff]/60 shadow-[0_0_20px_rgba(0,83,219,0.15)]'
-                : 'bg-[#181c24] border-[#262a33] hover:bg-[#1c2028]'
-            }`}
-          >
-            {selectedRole === 'driver' && (
-              <div className="absolute top-4 right-4 flex items-center gap-1 bg-[#0053db] text-[#cdd7ff] px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
-                <span className="material-symbols-outlined text-xs">check_circle</span>
-                Partner Selected
-              </div>
-            )}
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#25a475] text-[#00311f] flex items-center justify-center shadow-md">
+                      <span className="material-symbols-outlined text-[24px]">directions_car</span>
+                    </div>
+                    <div>
+                      <span className="font-mono text-[10px] text-[#68dba9] uppercase font-bold tracking-wider">
+                        CHAUFFEUR TIER
+                      </span>
+                      <h2 className="font-display text-xl text-[#dfe2ee] font-bold">
+                        Driver Partner (Pilot)
+                      </h2>
+                    </div>
+                  </div>
 
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-[#262a33] flex items-center justify-center text-[#b4c5ff] shadow-sm">
-                  <span className="material-symbols-outlined text-3xl">sports_motorsports</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-mono tracking-widest text-[#b4c5ff] uppercase font-bold">
-                    Professional Fleet
-                  </span>
-                  <h2 className="font-display font-bold text-xl text-[#dfe2ee]">Driver Partner</h2>
-                  <span className="text-xs text-[#bccac0]">Elite Chauffeur Network</span>
-                </div>
-              </div>
+                  <p className="text-xs sm:text-sm text-[#bccac0] leading-relaxed">
+                    Private Chauffeur &amp; Enterprise Fleets. Command luxury sedans, VIP airport
+                    runs, and outstation trips with guaranteed daily earnings.
+                  </p>
 
-              <p className="text-xs sm:text-sm text-[#bccac0] leading-relaxed">
-                Monetize your master driving certification. Access high-ticket private vehicle
-                dispatches, corporate contracts, and instant settlements.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#b4c5ff] text-base">
-                    currency_rupee
-                  </span>
-                  <span className="text-xs font-medium">Up to ₹45,000/mo Earn</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#b4c5ff] text-base">bolt</span>
-                  <span className="text-xs font-medium">Daily IMPS Bank Payouts</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#b4c5ff] text-base">
-                    directions_car
-                  </span>
-                  <span className="text-xs font-medium">Automatic Car Bookings</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33]">
-                  <span className="material-symbols-outlined text-[#b4c5ff] text-base">
-                    verified
-                  </span>
-                  <span className="text-xs font-medium">0% Commission Top Tier</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 flex items-center justify-between gap-4 border-t border-[#3d4a42]/30 mt-6">
-              <div className="flex flex-col font-mono text-xs text-[#bccac0]">
-                <span>AVG PILOT PAYOUT</span>
-                <span className="font-display font-bold text-lg text-[#b4c5ff]">
-                  ₹1,850<span className="text-xs text-[#bccac0] font-normal"> /shift</span>
-                </span>
-              </div>
-              <button
-                type="button"
-                className={`px-5 py-2.5 rounded-lg font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
-                  selectedRole === 'driver'
-                    ? 'bg-[#0053db] text-[#cdd7ff] shadow-[0_0_16px_-2px_rgba(0,83,219,0.4)]'
-                    : 'bg-[#262a33] text-[#dfe2ee] hover:bg-[#353942]'
-                }`}
-              >
-                Apply as Chauffeur
-                <span className="material-symbols-outlined text-sm">shield_person</span>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION DIVIDER & CURRENT ROUTE DISPLAY */}
-        <div className="flex items-center gap-4 py-2">
-          <div className="h-px bg-[#262a33] flex-1"></div>
-          <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0] uppercase px-4 py-1.5 bg-[#0a0e16] rounded-full border border-[#262a33]">
-            <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping"></span>
-            Customer Registration Terminal Active
-          </div>
-          <div className="h-px bg-[#262a33] flex-1"></div>
-        </div>
-
-        {/* Error Alert Box */}
-        {error && (
-          <div className="p-4 rounded-xl bg-[#93000a]/20 border border-red-500/50 text-[#ffdad6] text-xs font-mono flex items-center gap-3">
-            <span className="material-symbols-outlined text-base text-red-400">error</span>
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* LOWER SECTION: 2-PANEL ONBOARDING WORKFLOW */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT COLUMN: Step 1 Profile Creation Form (7 cols) */}
-          <div className="lg:col-span-7 bg-[#181c24] p-6 sm:p-8 rounded-xl border border-[#262a33] shadow-xl flex flex-col gap-6">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#68dba9] uppercase tracking-wider font-bold">
-                  Step 01 • Master Record
-                </span>
-                <span className="text-[10px] font-mono text-[#bccac0] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs text-[#68dba9]">lock</span>{' '}
-                  AES-256 GCM
-                </span>
-              </div>
-              <h3 className="font-display font-bold text-xl text-[#dfe2ee]">
-                Customer Profile Creation
-              </h3>
-              <p className="text-xs text-[#bccac0]">
-                Provide verified passenger credentials for concierge booking dispatches.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Name Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="first-name"
-                    className="text-[11px] font-mono text-[#bccac0] uppercase"
-                  >
-                    First Legal Name
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="first-name"
-                      type="text"
-                      required
-                      placeholder="e.g. Vikram"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full bg-[#0a0e16] text-[#dfe2ee] px-4 py-2.5 rounded-lg text-sm border border-[#262a33] focus:outline-none focus:border-[#68dba9]"
-                    />
-                    <span className="material-symbols-outlined absolute right-3 text-[#3d4a42] text-sm">
-                      badge
-                    </span>
+                  {/* 4 Pill Badges */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                    <div className="flex items-center gap-2 bg-[#1c2028] px-3 py-2 rounded-lg text-[#dfe2ee] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[#68dba9] text-[16px]">
+                        bolt
+                      </span>
+                      <span>Daily IMPS Payouts</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#1c2028] px-3 py-2 rounded-lg text-[#dfe2ee] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[#68dba9] text-[16px]">
+                        security
+                      </span>
+                      <span>Zero Commission Tier</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#1c2028] px-3 py-2 rounded-lg text-[#dfe2ee] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[#68dba9] text-[16px]">
+                        dry_cleaning
+                      </span>
+                      <span>Complimentary Uniforms</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#1c2028] px-3 py-2 rounded-lg text-[#dfe2ee] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[#68dba9] text-[16px]">
+                        radar
+                      </span>
+                      <span>Flexible Geofence</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="last-name"
-                    className="text-[11px] font-mono text-[#bccac0] uppercase"
-                  >
-                    Last Name
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="last-name"
-                      type="text"
-                      required
-                      placeholder="e.g. Malhotra"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="w-full bg-[#0a0e16] text-[#dfe2ee] px-4 py-2.5 rounded-lg text-sm border border-[#262a33] focus:outline-none focus:border-[#68dba9]"
-                    />
-                    <span className="material-symbols-outlined absolute right-3 text-[#3d4a42] text-sm">
-                      person
+                <div className="mt-6 pt-4 bg-[#181c24] p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[#262a33]">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] text-[#bccac0] uppercase">
+                      ESTIMATED TAKE-HOME
+                    </span>
+                    <span className="font-display text-2xl text-[#68dba9] font-bold">
+                      Up to ₹45,000<span className="text-xs text-[#bccac0] font-normal">/mo</span>
                     </span>
                   </div>
-                </div>
-              </div>
-
-              {/* Email & Phone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="email" className="text-[11px] font-mono text-[#bccac0] uppercase">
-                    Business / Personal Email
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="email"
-                      type="email"
-                      required
-                      placeholder="name@corporation.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-[#0a0e16] text-[#dfe2ee] px-4 py-2.5 rounded-lg text-sm border border-[#262a33] focus:outline-none focus:border-[#68dba9]"
-                    />
-                    <span className="material-symbols-outlined absolute right-3 text-[#3d4a42] text-sm">
-                      alternate_email
-                    </span>
-                  </div>
-                </div>
-
-                {/* Mobile Number with Prefix */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="phone" className="text-[11px] font-mono text-[#bccac0] uppercase">
-                    Mobile Contact (+91)
-                  </label>
-                  <div className="flex items-center rounded-lg bg-[#0a0e16] border border-[#262a33] overflow-hidden focus-within:border-[#68dba9]">
-                    <span className="px-3 py-2.5 bg-[#262a33] font-mono text-xs text-[#68dba9] font-bold flex items-center gap-1 shrink-0 border-r border-[#3d4a42]/40">
-                      🇮🇳 +91
-                    </span>
-                    <input
-                      id="phone"
-                      type="tel"
-                      pattern="[0-9]{10}"
-                      placeholder="98765 43210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-transparent text-[#dfe2ee] px-3 py-2.5 text-sm focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Referral Code (Optional) */}
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="referral-code"
-                  className="text-[11px] font-mono text-[#bccac0] uppercase"
-                >
-                  Referral Code (Optional)
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    id="referral-code"
-                    type="text"
-                    placeholder="e.g. REF-CUS5F10"
-                    value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                    className="w-full bg-[#0a0e16] text-[#68dba9] font-mono uppercase px-4 py-2.5 rounded-lg text-sm border border-[#262a33] focus:outline-none focus:border-[#68dba9]"
-                  />
-                  <span className="material-symbols-outlined absolute right-3 text-[#3d4a42] text-sm">
-                    featured_seasonal_and_gifts
-                  </span>
-                </div>
-              </div>
-
-              {/* Password + Strength Meter */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="text-[11px] font-mono text-[#bccac0] uppercase"
-                  >
-                    Secure Passphrase
-                  </label>
-                  <span className={`text-[10px] font-mono ${entropyInfo.color}`}>
-                    {entropyInfo.label}
-                  </span>
-                </div>
-                <div className="relative flex items-center">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Create high-entropy secret"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#0a0e16] text-[#dfe2ee] px-4 py-2.5 rounded-lg text-sm border border-[#262a33] focus:outline-none focus:border-[#68dba9]"
-                  />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-[#bccac0] hover:text-[#dfe2ee]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedRole('driver');
+                      scrollToForm();
+                    }}
+                    className="px-5 py-2.5 bg-[#68dba9] text-[#003825] font-mono text-xs font-bold rounded-lg shadow-md hover:bg-[#85f8c4] transition-all flex items-center justify-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-sm">
-                      {showPassword ? 'visibility_off' : 'visibility'}
-                    </span>
+                    <span>PROCEED REGISTRATION</span>
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                   </button>
                 </div>
-
-                {/* Strength Visual Bar */}
-                <div className="w-full grid grid-cols-3 gap-2 h-1.5 bg-[#0a0e16] rounded-full overflow-hidden mt-1">
-                  <div
-                    className={`h-full rounded-full transition-colors duration-300 ${
-                      entropyScore >= 1 ? 'bg-red-500' : 'bg-[#262a33]'
-                    }`}
-                  ></div>
-                  <div
-                    className={`h-full rounded-full transition-colors duration-300 ${
-                      entropyScore >= 2 ? 'bg-[#4edea3]' : 'bg-[#262a33]'
-                    }`}
-                  ></div>
-                  <div
-                    className={`h-full rounded-full transition-colors duration-300 ${
-                      entropyScore >= 3
-                        ? 'bg-[#68dba9] shadow-[0_0_8px_rgba(104,219,169,0.6)]'
-                        : 'bg-[#262a33]'
-                    }`}
-                  ></div>
-                </div>
-
-                {/* Checklist Tokens */}
-                <div className="grid grid-cols-3 gap-2 pt-2 text-[10px] font-mono text-[#bccac0]">
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`material-symbols-outlined text-xs ${
-                        hasMinLen ? 'text-[#68dba9]' : 'text-[#87948b]'
-                      }`}
-                    >
-                      {hasMinLen ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                    <span>8+ Characters</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`material-symbols-outlined text-xs ${
-                        hasUpperLower ? 'text-[#68dba9]' : 'text-[#87948b]'
-                      }`}
-                    >
-                      {hasUpperLower ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                    <span>Upper &amp; Lower</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`material-symbols-outlined text-xs ${
-                        hasSpecial ? 'text-[#68dba9]' : 'text-[#87948b]'
-                      }`}
-                    >
-                      {hasSpecial ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
-                    <span>Special Symbol (#@!)</span>
-                  </div>
-                </div>
               </div>
 
-              {/* Terms Checkbox */}
-              <div className="flex items-start gap-3 pt-2">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  checked={termsAgreed}
-                  onChange={(e) => setTermsAgreed(e.target.checked)}
-                  required
-                  className="mt-0.5 w-4 h-4 rounded bg-[#0a0e16] text-[#68dba9] accent-[#68dba9] cursor-pointer"
-                />
-                <label
-                  htmlFor="terms"
-                  className="text-xs text-[#bccac0] leading-relaxed cursor-pointer"
-                >
-                  I certify that I am authorized to register this account and agree to Get Apna
-                  Driver&apos;s{' '}
-                  <span className="text-[#68dba9] underline font-semibold">
-                    Charter Service Protocols
-                  </span>
-                  , Police Clearance Disclaimers, and Zero-Tolerance Passenger Safety Mandates.
-                </label>
-              </div>
+              {/* CARD 2: FLEET OPERATOR / CUSTOMER PASSENGER */}
+              <div
+                onClick={() => {
+                  if (selectedRole === 'driver') {
+                    setDriverFleetType('fleet');
+                  } else {
+                    setSelectedRole('driver');
+                    setDriverFleetType('fleet');
+                  }
+                }}
+                className={`p-6 sm:p-8 rounded-2xl shadow-md flex flex-col justify-between border transition-all cursor-pointer ${
+                  selectedRole === 'customer' || (selectedRole === 'driver' && driverFleetType === 'fleet')
+                    ? 'bg-[#262a33] border-[#68dba9]/70 shadow-[0_0_24px_rgba(104,219,169,0.15)]'
+                    : 'bg-[#181c24] border-[#262a33] hover:bg-[#1c2028]'
+                }`}
+              >
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-[#31353e] text-[#bccac0] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[24px]">
+                          {selectedRole === 'driver' ? 'corporate_fare' : 'person_pin'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[10px] text-[#bccac0] uppercase font-bold tracking-wider">
+                          {selectedRole === 'driver' ? 'ENTERPRISE SCALE' : 'PASSENGER CONCIERGE'}
+                        </span>
+                        <h2 className="font-display text-xl text-[#dfe2ee] font-bold">
+                          {selectedRole === 'driver'
+                            ? 'Fleet Operator & Agencies'
+                            : 'Customer Passenger Account'}
+                        </h2>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-[#31353e] text-[#bccac0] rounded font-mono text-[10px] uppercase font-bold">
+                      {selectedRole === 'driver' ? 'Multi-Vehicle' : 'Instant Booking'}
+                    </span>
+                  </div>
 
-              <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#262a33]">
-                <div className="flex items-center gap-1.5 text-xs font-mono text-[#bccac0]">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
-                    check_box
-                  </span>
-                  Instant KYC clearance ready
+                  <p className="text-xs sm:text-sm text-[#bccac0] leading-relaxed">
+                    {selectedRole === 'driver'
+                      ? 'Manage multiple commercial chauffeur rosters, track aggregate fleet telematics, and automate payout disbursements across Delhi NCR.'
+                      : 'Book luxury verified drivers for personal cars, corporate delegations, airport roundtrips, and outstations with zero surge pricing.'}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                    <div className="flex items-center gap-2 bg-[#31353e]/50 px-3 py-2 rounded-lg text-[#bccac0] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[16px]">groups</span>
+                      <span>
+                        {selectedRole === 'driver' ? 'Multi-Driver Dispatch' : 'Verified Personnel'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#31353e]/50 px-3 py-2 rounded-lg text-[#bccac0] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+                      <span>
+                        {selectedRole === 'driver'
+                          ? 'Consolidated GST Billing'
+                          : 'GST Invoice Ready'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#31353e]/50 px-3 py-2 rounded-lg text-[#bccac0] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[16px]">contract</span>
+                      <span>
+                        {selectedRole === 'driver'
+                          ? 'Corporate SLA Ready'
+                          : 'Airport Wait Included'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#31353e]/50 px-3 py-2 rounded-lg text-[#bccac0] font-mono text-[11px] border border-[#262a33]">
+                      <span className="material-symbols-outlined text-[16px]">support_agent</span>
+                      <span>
+                        {selectedRole === 'driver' ? 'Dedicated Fleet Desk' : '24/7 SOS Helpline'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] rounded-lg font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_16px_-2px_rgba(5,150,105,0.4)] transition-all flex items-center justify-center gap-2"
-                >
-                  {loading ? 'Validating Profile...' : 'Confirm Profile & Continue'}
-                  <span className="material-symbols-outlined text-sm">verified</span>
-                </button>
-              </div>
-            </form>
-          </div>
 
-          {/* RIGHT COLUMN: Telematics Radar & Permission Modules (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            {/* Telematics GPS Radar Permission Card */}
-            <div className="bg-[#181c24] p-6 sm:p-8 rounded-xl border border-[#262a33] shadow-xl flex flex-col gap-4 relative overflow-hidden">
+                <div className="mt-6 pt-4 bg-[#1c2028] p-4 rounded-xl flex items-center justify-between border border-[#262a33]">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-[10px] text-[#bccac0] uppercase">
+                      {selectedRole === 'driver' ? 'COMMISSION STRUCTURE' : 'BASE CHAUFFEUR RATE'}
+                    </span>
+                    <span className="font-display text-xl text-[#dfe2ee] font-bold">
+                      {selectedRole === 'driver' ? 'B2B Volume SLA' : '₹149 / hr'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedRole(selectedRole === 'driver' ? 'customer' : 'driver');
+                    }}
+                    className="px-4 py-2.5 bg-[#31353e] text-[#dfe2ee] font-mono text-xs font-medium rounded-lg hover:bg-[#353942] transition-all flex items-center gap-2"
+                  >
+                    <span>
+                      {selectedRole === 'driver' ? 'SWITCH TO CUSTOMER' : 'SWITCH TO DRIVER PILOT'}
+                    </span>
+                    <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ERROR NOTIFICATION ALERT */}
+            {error && (
+              <div className="p-4 rounded-xl bg-[#93000a]/30 border border-[#ffb4ab]/50 text-[#ffdad6] text-xs font-mono flex items-center gap-3 shadow-lg">
+                <span className="material-symbols-outlined text-lg text-red-400">error</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* TERMINAL ACTIVE SPLIT SECTION */}
+            <div className="flex flex-col gap-3" id="registration-form-panel">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#68dba9] uppercase tracking-wider font-bold">
-                  Step 02 • Spatial Sync
-                </span>
-                <span className="text-[10px] font-mono px-3 py-0.5 bg-[#0a0e16] rounded-full text-[#bccac0] border border-[#262a33]">
-                  GPS {gpsStatus}
+                <div className="flex items-center gap-2 font-mono text-[11px] text-[#dfe2ee] font-bold tracking-widest uppercase">
+                  <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse"></span>
+                  <span>
+                    {selectedRole === 'driver'
+                      ? 'DRIVER REGISTRATION TERMINAL ACTIVE'
+                      : 'CUSTOMER REGISTRATION TERMINAL ACTIVE'}
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] text-[#bccac0]">
+                  SESSION ID: #{selectedRole === 'driver' ? 'PILOT-NCR-9941' : 'CUST-NCR-4810'}
                 </span>
               </div>
-              <h3 className="font-display font-bold text-xl text-[#dfe2ee]">
-                Location Access Telematics
-              </h3>
-              <p className="text-xs text-[#bccac0] leading-relaxed">
-                Permit browser location to auto-detect pickup coordinates and calculate travel times
-                for nearest active chauffeurs within a 2.5km radius.
-              </p>
 
-              {/* Inline SVG Radar Visualizer */}
-              <div className="relative w-full h-44 bg-[#0a0e16] rounded-xl flex items-center justify-center overflow-hidden my-2 border border-[#262a33]">
-                <svg
-                  className="absolute inset-0 w-full h-full"
-                  fill="none"
-                  viewBox="0 0 320 180"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <pattern
-                      id="radar-grid-reg"
-                      width="20"
-                      height="20"
-                      patternUnits="userSpaceOnUse"
-                    >
-                      <path
-                        d="M 20 0 L 0 0 0 20"
-                        fill="none"
-                        stroke="#3d4a42"
-                        strokeWidth="0.5"
-                        strokeOpacity="0.3"
+              {/* SPLIT FORM AND TELEMATICS WIDGET */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* LEFT PANEL: PROFILE CREATION FORM (7 COLS) */}
+                <div className="lg:col-span-7 bg-[#1c2028] p-6 sm:p-8 rounded-2xl border border-[#262a33] shadow-lg flex flex-col gap-6">
+                  <div className="flex items-center justify-between pb-3 bg-[#181c24] p-4 rounded-xl border border-[#262a33]">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-[#68dba9] uppercase font-bold">
+                          STEP 01 // MASTER RECORD
+                        </span>
+                      </div>
+                      <h3 className="font-display text-xl text-[#dfe2ee] font-bold">
+                        {selectedRole === 'driver'
+                          ? 'Chauffeur Profile Creation'
+                          : 'Customer Identity Profile'}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#31353e] rounded font-mono text-[11px] text-[#4edea3]">
+                      <span className="material-symbols-outlined text-[14px]">lock</span>
+                      <span>AES-256 GCM</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[#bccac0] leading-relaxed">
+                    {selectedRole === 'driver'
+                      ? 'Provide verified legal identity and emergency contact credentials to initialize statutory background clearance through MoRTH Sarathi and police records.'
+                      : 'Provide verified passenger contact details for seamless chauffeur allocation and instant ride status notifications.'}
+                  </p>
+
+                  {/* FORM */}
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                          FIRST LEGAL NAME
+                        </label>
+                        <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
+                          <span className="material-symbols-outlined text-[#87948b] text-[18px] mr-3">
+                            badge
+                          </span>
+                          <input
+                            required
+                            className="w-full bg-transparent text-[#dfe2ee] text-sm placeholder:text-[#3d4a42] focus:outline-none"
+                            placeholder="e.g. Rajeshwar"
+                            type="text"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                          LAST NAME
+                        </label>
+                        <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
+                          <span className="material-symbols-outlined text-[#87948b] text-[18px] mr-3">
+                            person
+                          </span>
+                          <input
+                            required
+                            className="w-full bg-transparent text-[#dfe2ee] text-sm placeholder:text-[#3d4a42] focus:outline-none"
+                            placeholder="e.g. Singh"
+                            type="text"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Contact with OTP verified pill */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                          PRIMARY MOBILE (TELEMETRY LINKED)
+                        </label>
+                        <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#68dba9] font-bold">
+                          <span className="material-symbols-outlined text-[13px]">
+                            check_circle
+                          </span>
+                          OTP Verified
+                        </span>
+                      </div>
+                      <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
+                        <span className="font-mono text-xs text-[#dfe2ee] font-bold mr-3 flex items-center gap-1 shrink-0">
+                          <span>🇮🇳</span> +91
+                        </span>
+                        <input
+                          required
+                          className="w-full bg-transparent text-[#dfe2ee] text-sm placeholder:text-[#3d4a42] focus:outline-none"
+                          placeholder="98765 43210"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => alert('Mobile OTP verification active.')}
+                          className="text-[#68dba9] hover:text-[#85f8c4] font-mono text-[10px] uppercase font-bold shrink-0 ml-2"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Aadhaar Linked Email */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                        {selectedRole === 'driver'
+                          ? 'AADHAAR LINKED EMAIL ADDRESS'
+                          : 'BUSINESS / PERSONAL EMAIL'}
+                      </label>
+                      <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
+                        <span className="material-symbols-outlined text-[#87948b] text-[18px] mr-3">
+                          alternate_email
+                        </span>
+                        <input
+                          required
+                          className="w-full bg-transparent text-[#dfe2ee] text-sm placeholder:text-[#3d4a42] focus:outline-none"
+                          placeholder={
+                            selectedRole === 'driver'
+                              ? 'driver.pilot@telematics.in'
+                              : 'name@company.com'
+                          }
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Referral Code (Optional) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                        REFERRAL CODE (OPTIONAL)
+                      </label>
+                      <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
+                        <span className="material-symbols-outlined text-[#87948b] text-[18px] mr-3">
+                          card_giftcard
+                        </span>
+                        <input
+                          className="w-full bg-transparent text-[#68dba9] font-mono text-sm uppercase placeholder:text-[#3d4a42] focus:outline-none"
+                          placeholder="e.g. REF-APNA2026"
+                          type="text"
+                          value={referralCode}
+                          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Secure Passphrase / PIN */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                        SECURE PIN / PASSPHRASE
+                      </label>
+                      <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
+                        <span className="material-symbols-outlined text-[#87948b] text-[18px] mr-3">
+                          key
+                        </span>
+                        <input
+                          required
+                          className="w-full bg-transparent text-[#dfe2ee] text-sm tracking-widest placeholder:tracking-normal placeholder:text-[#3d4a42] focus:outline-none"
+                          placeholder="Create 6-digit access PIN or secure pass"
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-[#bccac0] hover:text-[#dfe2ee] ml-2"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">
+                            {showPassword ? 'visibility_off' : 'visibility'}
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Entropy Strength Indicators */}
+                      <div className="flex items-center gap-3 pt-1">
+                        <div className="flex-1 h-1.5 bg-[#31353e] rounded-full overflow-hidden flex gap-1">
+                          <div
+                            className={`h-full transition-all duration-300 ${entropyScore >= 1 ? 'w-1/3 bg-[#68dba9]' : 'w-0'}`}
+                          ></div>
+                          <div
+                            className={`h-full transition-all duration-300 ${entropyScore >= 2 ? 'w-1/3 bg-[#68dba9]' : 'w-0'}`}
+                          ></div>
+                          <div
+                            className={`h-full transition-all duration-300 ${entropyScore >= 3 ? 'w-1/3 bg-[#68dba9]' : 'w-0'}`}
+                          ></div>
+                        </div>
+                        <span className="font-mono text-[10px] text-[#68dba9] font-bold uppercase">
+                          {entropyScore >= 3
+                            ? 'Strong Entropy'
+                            : entropyScore >= 2
+                              ? 'Adequate'
+                              : 'Minimal'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 pt-1 font-mono text-[10px] text-[#bccac0]">
+                        <span
+                          className={`flex items-center gap-1 ${hasMinLen ? 'text-[#68dba9]' : ''}`}
+                        >
+                          <span className="material-symbols-outlined text-[13px]">
+                            {hasMinLen ? 'check' : 'radio_button_unchecked'}
+                          </span>{' '}
+                          6+ Digits
+                        </span>
+                        <span className="flex items-center gap-1 text-[#68dba9]">
+                          <span className="material-symbols-outlined text-[13px]">check</span>{' '}
+                          Biometric Ready
+                        </span>
+                        <span className="flex items-center gap-1 text-[#68dba9]">
+                          <span className="material-symbols-outlined text-[13px]">check</span> No
+                          Consecutive Repeats
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* DigiLocker Banner */}
+                    <div className="flex items-center justify-between p-3 bg-[#181c24] rounded-xl border border-[#262a33]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#68dba9]/20 flex items-center justify-center text-[#68dba9]">
+                          <span className="material-symbols-outlined text-[18px]">cloud_sync</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-mono text-xs text-[#dfe2ee] font-bold">
+                            DigiLocker Instant Ingestion Ready
+                          </span>
+                          <span className="font-mono text-[10px] text-[#bccac0]">
+                            Instant Aadhaar &amp; Commercial DL Pull
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#68dba9] font-mono text-[10px] font-bold">
+                        LINKED
+                      </span>
+                    </div>
+
+                    {/* Certification Checkbox */}
+                    <label className="flex items-start gap-3 cursor-pointer pt-1">
+                      <input
+                        checked={termsAgreed}
+                        onChange={(e) => setTermsAgreed(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded bg-[#0a0e16] text-[#68dba9] accent-[#68dba9] focus:ring-0 cursor-pointer"
+                        type="checkbox"
                       />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#radar-grid-reg)" />
+                      <span className="text-xs text-[#bccac0] leading-relaxed">
+                        I certify that all provided details match my official Government Identity
+                        (Aadhaar &amp; Commercial Driving License) and agree to Get Apna
+                        Driver&apos;s{' '}
+                        <span className="text-[#dfe2ee] font-medium underline">
+                          Zero-Tolerance Safety Charter
+                        </span>{' '}
+                        and Police Verification Protocol.
+                      </span>
+                    </label>
 
-                  <circle
-                    cx="160"
-                    cy="90"
-                    r="30"
-                    stroke="#3d4a42"
-                    strokeWidth="1"
-                    strokeDasharray="2 3"
-                  />
-                  <circle cx="160" cy="90" r="60" stroke="#3d4a42" strokeWidth="1" />
-                  <circle
-                    cx="160"
-                    cy="90"
-                    r="85"
-                    stroke="#3d4a42"
-                    strokeWidth="1"
-                    strokeDasharray="4 4"
-                  />
-
-                  {/* Chauffeur Blips */}
-                  <g id="radar-blips">
-                    <circle cx="140" cy="65" r="3" fill="#68dba9" className="animate-ping" />
-                    <circle cx="140" cy="65" r="3" fill="#68dba9" />
-                    <text x="146" y="68" fill="#85f8c4" fontFamily="Geist" fontSize="8">
-                      S-Class • 0.8km
-                    </text>
-
-                    <circle cx="205" cy="115" r="3" fill="#68dba9" />
-                    <text x="211" y="118" fill="#85f8c4" fontFamily="Geist" fontSize="8">
-                      Fortuner • 1.4km
-                    </text>
-
-                    <circle cx="110" cy="120" r="3" fill="#4edea3" />
-                    <text x="75" y="132" fill="#85f8c4" fontFamily="Geist" fontSize="8">
-                      Camry • 2.1km
-                    </text>
-                  </g>
-
-                  {/* Center Passenger Hub */}
-                  <circle cx="160" cy="90" r="6" fill="#b4c5ff" />
-                  <circle
-                    cx="160"
-                    cy="90"
-                    r="10"
-                    stroke="#b4c5ff"
-                    strokeWidth="1.5"
-                    strokeDasharray="2 2"
-                  />
-                </svg>
-
-                {/* Coordinate HUD */}
-                <div className="absolute bottom-2 left-3 font-mono text-[10px] text-[#68dba9] bg-[#181c24]/90 px-2.5 py-1 rounded border border-[#262a33]">
-                  {gpsCoordinates}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={handleActivateGps}
-                  className="flex-1 px-4 py-2 bg-[#68dba9] text-[#003825] rounded-lg font-mono text-xs font-bold uppercase tracking-wider shadow-md flex items-center justify-center gap-2 hover:brightness-110"
-                >
-                  <span className="material-symbols-outlined text-sm">my_location</span>
-                  Allow Precise GPS
-                </button>
-                <button
-                  type="button"
-                  onClick={handleManualCity}
-                  className="px-4 py-2 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] rounded-lg font-mono text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">location_city</span>
-                  Enter City Manually
-                </button>
-              </div>
-            </div>
-
-            {/* Step 3: Notification & SMS Dispatch Preferences Card */}
-            <div className="bg-[#181c24] p-6 sm:p-8 rounded-xl border border-[#262a33] shadow-xl flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#68dba9] uppercase tracking-wider font-bold">
-                  Step 03 • Telemetry Alerts
-                </span>
-                <span className="text-[10px] font-mono text-[#68dba9] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs">sensors</span> Instant Relay
-                </span>
-              </div>
-              <h3 className="font-display font-bold text-xl text-[#dfe2ee]">
-                Push Notifications &amp; SMS Dispatch
-              </h3>
-
-              {/* Switch 1 */}
-              <div className="flex items-center justify-between p-3 bg-[#0a0e16] rounded-lg border border-[#262a33]">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#68dba9] text-xl">route</span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-[#dfe2ee]">
-                      Trip Status &amp; Route Telemetry
-                    </span>
-                    <span className="text-[11px] text-[#bccac0]">
-                      Live updates when driver is assigned &amp; en route
-                    </span>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={tripStatusAlerts}
-                  onChange={(e) => setTripStatusAlerts(e.target.checked)}
-                  className="w-4 h-4 accent-[#68dba9] cursor-pointer"
-                />
-              </div>
-
-              {/* Switch 2 */}
-              <div className="flex items-center justify-between p-3 bg-[#0a0e16] rounded-lg border border-[#262a33]">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#68dba9] text-xl">
-                    notifications_active
-                  </span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-[#dfe2ee]">
-                      Arrival Chimes &amp; Proximity Pings
-                    </span>
-                    <span className="text-[11px] text-[#bccac0]">
-                      Audio and push nudge when pilot is within 200m
-                    </span>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={arrivalPings}
-                  onChange={(e) => setArrivalPings(e.target.checked)}
-                  className="w-4 h-4 accent-[#68dba9] cursor-pointer"
-                />
-              </div>
-
-              {/* Switch 3 */}
-              <div className="flex items-center justify-between p-3 bg-[#0a0e16] rounded-lg border border-[#262a33]">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#68dba9] text-xl">sms</span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-[#dfe2ee]">
-                      Encrypted SMS Ride Start OTP
-                    </span>
-                    <span className="text-[11px] text-[#bccac0]">
-                      Crucial safety PIN shared directly before vehicle boarding
-                    </span>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={smsOtpAlerts}
-                  onChange={(e) => setSmsOtpAlerts(e.target.checked)}
-                  className="w-4 h-4 accent-[#68dba9] cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* VIP FLEET ROSTER PREVIEW */}
-        <div className="bg-[#0a0e16] p-6 sm:p-8 rounded-xl border border-[#262a33] shadow-2xl flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-[#68dba9] uppercase font-bold">
-                Fleet Intelligence Network
-              </span>
-              <h4 className="font-display font-bold text-xl text-[#dfe2ee]">
-                Available Chauffeur Tiers in Your Sector
-              </h4>
-            </div>
-            <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0]">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping"></span>
-              <span>142 Active Chauffeurs En Route in NCR</span>
-            </div>
-          </div>
-
-          {/* Driver Cards Mosaic */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Chauffeur 1 */}
-            <div className="bg-[#181c24] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between gap-4 shadow-md">
-              <div className="flex items-center gap-4">
-                <Image
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKNCqq2PM1oa59sRcaSonA1k4gRzmzr3mkjHrNB9UnYqG3folXJkF5zUuK5QDt6sx4n48Exa1ZlvjknD7PMLvbMg6MYEiYWPZcnPVX9lRCKwat-njkKU5C_T-RPP6QEfa7dCTz3dBzErijFPrTA4S_4zMDBE6ayEKSj5p_cHc4_47vRwEqu0xfVOkj8ijp8024iYjaDaUfsr22TMJYhTsiABJNT3b4s6Q9VCW_37QLDAsHno9oSR7h_g"
-                  alt="Rajesh Sharma portrait"
-                  width={56}
-                  height={56}
-                  unoptimized
-                  className="w-14 h-14 rounded-full object-cover border border-[#262a33]"
-                />
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-[#dfe2ee] text-sm">Rajesh Sharma</span>
-                    <span
-                      className="material-symbols-outlined text-[#68dba9] text-xs"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    {/* Action CTA */}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="mt-2 w-full py-3 bg-[#68dba9] text-[#003825] font-mono text-xs sm:text-sm font-bold rounded-xl shadow-lg hover:bg-[#85f8c4] transition-all flex items-center justify-center gap-2"
                     >
-                      verified
-                    </span>
+                      {loading ? (
+                        <span>INITIALIZING AUDIT RECORD...</span>
+                      ) : (
+                        <>
+                          <span>
+                            {selectedRole === 'driver'
+                              ? 'CONFIRM PILOT PROFILE & CONTINUE'
+                              : 'CONFIRM CUSTOMER PROFILE & CONTINUE'}
+                          </span>
+                          <span className="material-symbols-outlined text-[20px]">
+                            arrow_forward
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+
+                {/* RIGHT PANEL: TELEMATICS RADAR & DISPATCH TOGGLES (5 COLS) */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                  {/* STEP 02: OPERATING SECTOR RADAR */}
+                  <div className="bg-[#1c2028] p-6 rounded-2xl border border-[#262a33] shadow-lg flex flex-col gap-4">
+                    <div className="flex items-center justify-between pb-2 bg-[#181c24] p-3 rounded-xl border border-[#262a33]">
+                      <div className="flex flex-col">
+                        <span className="font-mono text-[10px] text-[#68dba9] uppercase font-bold">
+                          STEP 02 // SECTOR TELEMATICS
+                        </span>
+                        <h4 className="font-display text-base text-[#dfe2ee] font-bold">
+                          Preferred Dispatch Geofence
+                        </h4>
+                      </div>
+                      <span className="px-2 py-0.5 bg-[#31353e] text-[#4edea3] rounded font-mono text-[10px] font-semibold">
+                        GPS {gpsStatus.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[#bccac0]">
+                      Select your primary base hub to receive priority high-value airport escorts
+                      and corporate VIP runs within your vicinity.
+                    </p>
+
+                    {/* Spatial Radar Display Widget */}
+                    <div className="relative w-full h-56 bg-[#0a0e16] rounded-xl overflow-hidden shadow-inner flex items-center justify-center border border-[#262a33]">
+                      {/* Radar Concentric Rings */}
+                      <div className="absolute w-48 h-48 rounded-full border border-[#68dba9]/20 animate-pulse"></div>
+                      <div className="absolute w-36 h-36 rounded-full border border-[#3d4a42]/40"></div>
+                      <div className="absolute w-20 h-20 rounded-full border border-[#68dba9]/30"></div>
+
+                      {/* Crosshair Lines */}
+                      <div className="absolute inset-x-0 top-1/2 h-px bg-[#3d4a42]/40"></div>
+                      <div className="absolute inset-y-0 left-1/2 w-px bg-[#3d4a42]/40"></div>
+
+                      {/* Animated Sweep Ray */}
+                      <div className="absolute w-24 h-24 origin-bottom-right top-4 left-4 bg-gradient-to-tl from-[#68dba9]/30 to-transparent rounded-tl-full pointer-events-none transform -rotate-45 animate-radar-sweep"></div>
+
+                      {/* Center Hub Marker */}
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="w-5 h-5 rounded-full bg-[#68dba9] flex items-center justify-center shadow-[0_0_12px_rgba(104,219,169,0.8)]">
+                          <div className="w-2 h-2 rounded-full bg-[#0a0e16]"></div>
+                        </div>
+                        <span className="mt-1 font-mono text-[9px] bg-[#262a33] px-2 py-0.5 rounded text-[#68dba9] font-bold">
+                          DELHI NCR HUB
+                        </span>
+                      </div>
+
+                      {/* Active Zone Pings */}
+                      <div className="absolute top-4 right-6 flex items-center gap-1.5 bg-[#262a33]/90 backdrop-blur px-2.5 py-1 rounded shadow-sm border border-[#3d4a42]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-ping"></span>
+                        <span className="font-mono text-[#dfe2ee] text-[10px]">
+                          Aerocity T3 • 1.2km
+                        </span>
+                      </div>
+                      <div className="absolute bottom-6 left-6 flex items-center gap-1.5 bg-[#262a33]/90 backdrop-blur px-2.5 py-1 rounded shadow-sm border border-[#3d4a42]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#68dba9]"></span>
+                        <span className="font-mono text-[#dfe2ee] text-[10px]">
+                          DLF CyberCity • 3.5km
+                        </span>
+                      </div>
+                      <div className="absolute bottom-10 right-6 flex items-center gap-1.5 bg-[#262a33]/90 backdrop-blur px-2.5 py-1 rounded shadow-sm border border-[#3d4a42]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#b4c5ff]"></span>
+                        <span className="font-mono text-[#dfe2ee] text-[10px]">
+                          Golf Course Ext • 6km
+                        </span>
+                      </div>
+
+                      {/* Coordinates Overlay Bottom */}
+                      <div className="absolute bottom-2 inset-x-2 flex justify-between items-center text-[9px] font-mono text-[#bccac0] bg-[#0a0e16]/90 px-3 py-1 rounded border border-[#262a33]">
+                        <span>{gpsCoordinates}</span>
+                        <span className="text-[#68dba9] font-bold">[ACTIVE NCR]</span>
+                      </div>
+                    </div>
+
+                    {/* Geofence Control Buttons */}
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleActivateGps}
+                        className="w-full py-2.5 bg-[#68dba9] text-[#003825] font-mono text-[11px] font-bold rounded-xl hover:bg-[#85f8c4] transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">my_location</span>
+                        <span>SET GPS HOME BASE</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCustomSector}
+                        className="w-full py-2.5 bg-[#262a33] text-[#dfe2ee] font-mono text-[11px] font-medium rounded-xl hover:bg-[#353942] transition-all flex items-center justify-center gap-1.5 border border-[#3d4a42]"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          edit_location_alt
+                        </span>
+                        <span>CUSTOM SECTOR</span>
+                      </button>
+                    </div>
                   </div>
-                  <span className="text-xs font-mono text-[#bccac0]">
-                    Mercedes E-Class • 7 Yrs Exp
-                  </span>
-                  <div className="flex items-center gap-1 text-[#68dba9] font-mono text-xs mt-1">
-                    <span>★ 4.98</span>
-                    <span className="text-[#bccac0]">(1,420 Trips)</span>
+
+                  {/* STEP 03: TELEMETRY & SHIFT ALERTS */}
+                  <div className="bg-[#1c2028] p-6 rounded-2xl border border-[#262a33] shadow-lg flex flex-col gap-4">
+                    <div className="flex items-center justify-between pb-2 bg-[#181c24] p-3 rounded-xl border border-[#262a33]">
+                      <div className="flex flex-col">
+                        <span className="font-mono text-[10px] text-[#68dba9] uppercase font-bold">
+                          STEP 03 // DISPATCH PREFS
+                        </span>
+                        <h4 className="font-display text-base text-[#dfe2ee] font-bold">
+                          Telemetry &amp; Shift Alerts
+                        </h4>
+                      </div>
+                      <span className="px-2 py-0.5 bg-[#31353e] text-[#68dba9] rounded font-mono text-[10px] font-semibold">
+                        INSTANT RELAY
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      {/* Toggle 1 */}
+                      <div className="flex items-center justify-between p-3 bg-[#181c24] rounded-xl border border-[#262a33]">
+                        <div className="flex flex-col pr-3">
+                          <span className="text-xs text-[#dfe2ee] font-medium">
+                            {selectedRole === 'driver'
+                              ? 'High-Value VIP Dispatch Pings'
+                              : 'Trip Status & Route Telemetry'}
+                          </span>
+                          <span className="text-[11px] text-[#bccac0]">
+                            {selectedRole === 'driver'
+                              ? 'Instant push audio signals for missions > ₹1,200'
+                              : 'Live updates when pilot is assigned & en route'}
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedRole === 'driver' ? vipPings : tripStatusAlerts}
+                            onChange={(e) =>
+                              selectedRole === 'driver'
+                                ? setVipPings(e.target.checked)
+                                : setTripStatusAlerts(e.target.checked)
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[#31353e] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#68dba9]"></div>
+                        </label>
+                      </div>
+
+                      {/* Toggle 2 */}
+                      <div className="flex items-center justify-between p-3 bg-[#181c24] rounded-xl border border-[#262a33]">
+                        <div className="flex flex-col pr-3">
+                          <span className="text-xs text-[#dfe2ee] font-medium">
+                            {selectedRole === 'driver'
+                              ? 'SOS Panic & Incident Telematics Relay'
+                              : 'Arrival Chimes & Proximity Pings'}
+                          </span>
+                          <span className="text-[11px] text-[#bccac0]">
+                            {selectedRole === 'driver'
+                              ? 'Automated audio sync with 24/7 Gurgaon SOC in emergency'
+                              : 'Audio and push nudge when pilot is within 200m'}
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedRole === 'driver' ? sosRelay : arrivalPings}
+                            onChange={(e) =>
+                              selectedRole === 'driver'
+                                ? setSosRelay(e.target.checked)
+                                : setArrivalPings(e.target.checked)
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[#31353e] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#68dba9]"></div>
+                        </label>
+                      </div>
+
+                      {/* Toggle 3 */}
+                      <div className="flex items-center justify-between p-3 bg-[#181c24] rounded-xl border border-[#262a33]">
+                        <div className="flex flex-col pr-3">
+                          <span className="text-xs text-[#dfe2ee] font-medium">
+                            {selectedRole === 'driver'
+                              ? 'Daily Payout & Settlement SMS'
+                              : 'Encrypted SMS Ride Start OTP'}
+                          </span>
+                          <span className="text-[11px] text-[#bccac0]">
+                            {selectedRole === 'driver'
+                              ? 'Real-time IMPS disbursement confirmation via SMS'
+                              : 'Crucial safety PIN shared directly before vehicle boarding'}
+                          </span>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedRole === 'driver' ? payoutSms : smsOtpAlerts}
+                            onChange={(e) =>
+                              selectedRole === 'driver'
+                                ? setPayoutSms(e.target.checked)
+                                : setSmsOtpAlerts(e.target.checked)
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-[#31353e] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#68dba9]"></div>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between font-mono text-[10px] bg-[#0a0e16] p-2 rounded border border-[#262a33]">
-                <span className="text-[#bccac0]">POLICE VERIFIED: YES</span>
-                <span className="text-[#68dba9] font-bold">DISPATCH READY</span>
               </div>
             </div>
 
-            {/* Chauffeur 2 */}
-            <div className="bg-[#181c24] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between gap-4 shadow-md">
-              <div className="flex items-center gap-4">
-                <Image
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeWik2094HCznjY2yliY9CCOq03Wnm8kS7Y7lIAacN-iLTlnEh6P9l6UhcjheFrdP1hhB9QK7rJJiPbnPsRFvEoFtvsM-0H-m9VrF1PlxWrZ-QjgMDnQqxwArYQsWIvyZvoyRvEDUKIdru36tXwAoXKupkgYqkto3L4hJRxkm_8Gayfot3ARl3c1UIi0lBEXBkMv3ThZD09-ZZICL5wv2TkBJw1EOJuv4K48PleemaYthIS-hsnrTi1g"
-                  alt="Gurpreet Singh portrait"
-                  width={56}
-                  height={56}
-                  unoptimized
-                  className="w-14 h-14 rounded-full object-cover border border-[#262a33]"
-                />
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-[#dfe2ee] text-sm">Gurpreet Singh</span>
-                    <span
-                      className="material-symbols-outlined text-[#68dba9] text-xs"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      verified
-                    </span>
-                  </div>
-                  <span className="text-xs font-mono text-[#bccac0]">
-                    Toyota Vellfire • 11 Yrs Exp
+            {/* BOTTOM SECTION: FLEET VERIFICATION TIERS & VEHICLE COMPATIBILITY */}
+            <div className="bg-[#1c2028] p-6 sm:p-8 rounded-2xl border border-[#262a33] shadow-lg flex flex-col gap-6 mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 bg-[#181c24] p-4 rounded-xl border border-[#262a33]">
+                <div>
+                  <span className="font-mono text-[10px] text-[#68dba9] uppercase font-bold tracking-widest">
+                    FLEET VERIFICATION TIERS
                   </span>
-                  <div className="flex items-center gap-1 text-[#68dba9] font-mono text-xs mt-1">
-                    <span>★ 5.00</span>
-                    <span className="text-[#bccac0]">(2,180 Trips)</span>
-                  </div>
+                  <h3 className="font-display text-xl text-[#dfe2ee] font-bold">
+                    Target Vehicle Class Endorsements in Your Sector
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2 font-mono text-[11px] text-[#68dba9] font-semibold bg-[#0a0e16] px-3 py-1.5 rounded-lg border border-[#262a33]">
+                  <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping"></span>
+                  <span>142 Active High-Value Missions Available in NCR</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between font-mono text-[10px] bg-[#0a0e16] p-2 rounded border border-[#262a33]">
-                <span className="text-[#bccac0]">SPECIALTY: VIP DELEGATION</span>
-                <span className="text-[#68dba9] font-bold">DISPATCH READY</span>
-              </div>
-            </div>
 
-            {/* Chauffeur 3 */}
-            <div className="bg-[#181c24] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between gap-4 shadow-md">
-              <div className="flex items-center gap-4">
-                <Image
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8F6F_G60tL85i0VbLoYsZUe6_uzL7l6D-KtuIDLdlpqFxIYqY57HHbCF2tOxTlAMnnWiRKb3ELkhl-HDYA4v13dBO5sJZ_RTQdWz7JrVlYllgBI_eR10dlPO9jvwG3jQ6ZZO32JZPyH0PvqlvLtX9cUGfjbmWvSptC7KXokWZxjOtfCFssMpPoDGgyIfphTpiqVUJmEVCTrZGy6ym6bc8mteVmqPhNEoB_57KxFtN9hFR_p-WcM7APg"
-                  alt="Amitav Roy portrait"
-                  width={56}
-                  height={56}
-                  unoptimized
-                  className="w-14 h-14 rounded-full object-cover border border-[#262a33]"
-                />
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-[#dfe2ee] text-sm">Amitav Roy</span>
-                    <span
-                      className="material-symbols-outlined text-[#68dba9] text-xs"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      verified
+              {/* 3 Vehicle Specification Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* CARD 1: Luxury Sedan Specialist */}
+                <div className="bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow flex flex-col justify-between hover:bg-[#262a33] transition-colors">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-[#31353e] text-[#68dba9] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[20px]">
+                          directions_car
+                        </span>
+                      </div>
+                      <span className="px-2.5 py-1 bg-[#25a475] text-[#00311f] rounded font-mono text-[10px] font-bold">
+                        CLEARANCE READY
+                      </span>
+                    </div>
+                    <h4 className="font-display text-lg text-[#dfe2ee] font-bold">
+                      Luxury Sedan Specialist
+                    </h4>
+                    <span className="font-mono text-xs text-[#bccac0] font-medium">
+                      Mercedes E-Class • BMW 5 • Audi A6
+                    </span>
+                    <div className="flex items-center gap-1.5 text-[#bccac0] text-xs pt-1">
+                      <span className="material-symbols-outlined text-[15px] text-[#4edea3]">
+                        check_circle
+                      </span>
+                      <span>Min. 5 Yrs Commercial Exp Required</span>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-3 bg-[#0a0e16] px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#262a33]">
+                    <span className="font-mono text-[10px] text-[#bccac0] uppercase">
+                      BENCHMARK PAY
+                    </span>
+                    <span className="font-display text-lg text-[#68dba9] font-bold">
+                      Avg. ₹1,850{' '}
+                      <span className="font-normal text-xs text-[#bccac0]">/ shift</span>
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-[#bccac0]">BMW 7 Series • 6 Yrs Exp</span>
-                  <div className="flex items-center gap-1 text-[#68dba9] font-mono text-xs mt-1">
-                    <span>★ 4.96</span>
-                    <span className="text-[#bccac0]">(950 Trips)</span>
+                </div>
+
+                {/* CARD 2: Executive MPV & Flagship Pilot */}
+                <div className="bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow flex flex-col justify-between hover:bg-[#262a33] transition-colors">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-[#31353e] text-[#b4c5ff] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[20px]">
+                          airport_shuttle
+                        </span>
+                      </div>
+                      <span className="px-2.5 py-1 bg-[#0053db] text-[#cdd7ff] rounded font-mono text-[10px] font-bold">
+                        HIGH DEMAND
+                      </span>
+                    </div>
+                    <h4 className="font-display text-lg text-[#dfe2ee] font-bold">
+                      Executive MPV &amp; Flagship
+                    </h4>
+                    <span className="font-mono text-xs text-[#bccac0] font-medium">
+                      Toyota Vellfire • Carnival • V-Class
+                    </span>
+                    <div className="flex items-center gap-1.5 text-[#bccac0] text-xs pt-1">
+                      <span className="material-symbols-outlined text-[15px] text-[#b4c5ff]">
+                        star
+                      </span>
+                      <span>VIP Protocol &amp; Etiquette Certified</span>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-3 bg-[#0a0e16] px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#262a33]">
+                    <span className="font-mono text-[10px] text-[#bccac0] uppercase">
+                      BENCHMARK PAY
+                    </span>
+                    <span className="font-display text-lg text-[#b4c5ff] font-bold">
+                      Avg. ₹2,200{' '}
+                      <span className="font-normal text-xs text-[#bccac0]">/ shift</span>
+                    </span>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between font-mono text-[10px] bg-[#0a0e16] p-2 rounded border border-[#262a33]">
-                <span className="text-[#bccac0]">ARMORED TRAINED: YES</span>
-                <span className="text-[#68dba9] font-bold">DISPATCH READY</span>
+
+                {/* CARD 3: High-Performance SUV & Armored */}
+                <div className="bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow flex flex-col justify-between hover:bg-[#262a33] transition-colors">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-[#31353e] text-[#4edea3] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[20px]">shield</span>
+                      </div>
+                      <span className="px-2.5 py-1 bg-[#31353e] text-[#68dba9] font-mono text-[10px] font-bold border border-[#68dba9]/30">
+                        SPECIAL CONCIERGE
+                      </span>
+                    </div>
+                    <h4 className="font-display text-lg text-[#dfe2ee] font-bold">
+                      Armored &amp; Heavy SUV Class
+                    </h4>
+                    <span className="font-mono text-xs text-[#bccac0] font-medium">
+                      Range Rover • Defender • LC300
+                    </span>
+                    <div className="flex items-center gap-1.5 text-[#bccac0] text-xs pt-1">
+                      <span className="material-symbols-outlined text-[15px] text-[#4edea3]">
+                        military_tech
+                      </span>
+                      <span>Defensive Driving &amp; Evasive Endorsed</span>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-3 bg-[#0a0e16] px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#262a33]">
+                    <span className="font-mono text-[10px] text-[#bccac0] uppercase">
+                      BENCHMARK PAY
+                    </span>
+                    <span className="font-display text-lg text-[#4edea3] font-bold">
+                      Avg. ₹2,600{' '}
+                      <span className="font-normal text-xs text-[#bccac0]">/ shift</span>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </main>
 
-      {/* COMPLETION SUCCESS OVERLAY MODAL */}
+      {/* COMPLETION MODAL */}
       {showCompletionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/80 backdrop-blur-md">
-          <div className="w-full max-w-lg bg-[#262a33] p-8 rounded-2xl shadow-2xl border border-[#68dba9]/40 flex flex-col items-center text-center gap-6 animate-in fade-in zoom-in duration-300">
-            <div className="w-20 h-20 rounded-full bg-[#68dba9]/20 flex items-center justify-center text-[#68dba9] shadow-[0_0_24px_rgba(104,219,169,0.5)]">
-              <span
-                className="material-symbols-outlined text-4xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                verified
-              </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/85 backdrop-blur-md">
+          <div className="w-full max-w-lg bg-[#1c2028] p-8 rounded-2xl shadow-2xl border border-[#68dba9]/50 flex flex-col items-center text-center gap-6 animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 rounded-full bg-[#68dba9]/20 flex items-center justify-center text-[#68dba9] shadow-[0_0_24px_rgba(104,219,169,0.5)] border border-[#68dba9]/30">
+              <span className="material-symbols-outlined text-4xl">verified</span>
             </div>
 
             <div className="flex flex-col gap-1">
               <span className="text-xs font-mono text-[#68dba9] uppercase tracking-wider font-bold">
                 Access Clearance Granted
               </span>
-              <h2 className="font-display font-bold text-2xl text-[#dfe2ee]">Account Ready!</h2>
-              <p className="text-xs text-[#bccac0] max-w-sm mt-1">
-                Welcome to Get Apna Driver. Your profile is validated and encrypted on our Tier-4
-                sovereign mobility rails.
+              <h2 className="font-display font-bold text-2xl text-[#dfe2ee]">
+                {selectedRole === 'driver'
+                  ? 'Chauffeur Pilot Registered!'
+                  : 'Customer Account Created!'}
+              </h2>
+              <p className="text-xs text-[#bccac0] max-w-sm mt-1 leading-relaxed">
+                {selectedRole === 'driver'
+                  ? 'Your master pilot record is initialized. Proceed to complete your statutory document verification & background clearance.'
+                  : 'Welcome to Get Apna Driver. Your account is activated and ready for instant chauffeur bookings across NCR.'}
               </p>
             </div>
 
             {/* Reward Credit Badge */}
-            <div className="w-full bg-[#181c24] p-4 rounded-xl border border-[#3d4a42]/50 flex items-center justify-between">
+            <div className="w-full bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-[#68dba9]/10 flex items-center justify-center text-[#68dba9]">
                   <span className="material-symbols-outlined">redeem</span>
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-[#dfe2ee]">₹200 Welcome Credit</span>
+                  <span className="text-xs font-bold text-[#dfe2ee]">
+                    {selectedRole === 'driver'
+                      ? '₹500 Pilot Onboarding Bonus'
+                      : '₹200 Welcome Booking Credit'}
+                  </span>
                   <span className="text-[10px] font-mono text-[#68dba9]">
-                    Applied to first trip invoice
+                    {selectedRole === 'driver'
+                      ? 'Applied upon first verified shift'
+                      : 'Applied to first trip invoice'}
                   </span>
                 </div>
               </div>
@@ -1111,42 +1247,54 @@ export default function RegisterPage() {
               </span>
             </div>
 
-            {/* Interactive Next Step Trigger */}
+            {/* Next Step Trigger */}
             <div className="w-full flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => router.push('/bookings/new')}
+                onClick={() => router.push(redirectPath)}
                 className="flex-1 px-6 py-3 bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_16px_-2px_rgba(5,150,105,0.4)] flex items-center justify-center gap-2 transition-colors"
               >
-                Book First Chauffeur
-                <span className="material-symbols-outlined text-sm">speed</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCompletionModal(false)}
-                className="px-5 py-3 bg-[#181c24] hover:bg-[#353942] text-[#dfe2ee] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-colors border border-[#3d4a42]"
-              >
-                Dismiss
+                <span>
+                  {selectedRole === 'driver' ? 'CONTINUE TO KYC WIZARD' : 'GO TO BOOKING CONSOLE'}
+                </span>
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </button>
             </div>
-
-            <span className="text-[10px] font-mono text-[#bccac0]">
-              System Auth Token: 89f4b-chffr-92a01
-            </span>
           </div>
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="w-full border-t border-[#262a33] bg-[#0a0e16] py-6 px-4 sm:px-6 lg:px-8 text-xs font-mono text-[#bccac0]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span>&copy; 2026 Get Apna Driver Inc. Enterprise Mobility Systems.</span>
+      {/* FOOTER */}
+      <footer className="w-full bg-[#0a0e16] py-6 border-t border-[#262a33]">
+        <div className="w-full px-4 sm:px-8 max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-[#bccac0]">
+          <div className="flex items-center gap-2">
+            <span>&copy; 2026 Get Apna Driver Inc. Enterprise Mobility Systems.</span>
+          </div>
           <div className="flex items-center gap-4">
-            <span className="text-[#68dba9]">Tier-4 Sovereign Compliance</span>
-            <span>Security Protocol v4.19</span>
+            <span className="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+            <span>
+              Tier-4 Sovereign Compliance • MoRTH Sarathi API Sync Ready • Security Protocol v4.19
+            </span>
           </div>
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0a0e16] text-[#dfe2ee] flex items-center justify-center font-mono text-xs">
+          <div className="flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full bg-[#68dba9] animate-ping"></span>
+            <span>LOADING TELEMATICS REGISTER TERMINAL...</span>
+          </div>
+        </div>
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   );
 }
