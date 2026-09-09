@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 
 type AvailabilityStatus = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE';
@@ -71,8 +71,22 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus | null>(null);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore network errors, proceed with client redirect
+    } finally {
+      router.push('/login');
+      router.refresh();
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -234,6 +248,15 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                 <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9]">
                   {(userEmail ?? 'D').charAt(0).toUpperCase()}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => void handleLogout()}
+                  disabled={isLoggingOut}
+                  className="ml-2 flex items-center justify-center p-1.5 rounded-lg text-[#87948b] hover:text-[#ffb4ab] hover:bg-[#262a33] transition-colors disabled:opacity-50"
+                  title="Logout Session"
+                >
+                  <span className="material-symbols-outlined text-lg">logout</span>
+                </button>
               </div>
             </div>
           </div>

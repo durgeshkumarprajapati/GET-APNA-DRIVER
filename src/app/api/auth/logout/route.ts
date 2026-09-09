@@ -5,6 +5,7 @@ import { withAuth } from '@/modules/identity/authorization/route-guard';
 import {
   validateSessionToken,
   revokeSession,
+  clearSessionCookie,
 } from '@/modules/identity/application/services/session-service';
 
 export const POST = withAuth(async (_req, { principal }) => {
@@ -18,8 +19,9 @@ export const POST = withAuth(async (_req, { principal }) => {
         await revokeSession(validated.session.id, principal.userId);
       }
     }
+    await clearSessionCookie();
   } catch {
-    // Session token revocation fallback
+    await clearSessionCookie();
   }
 
   return NextResponse.json({ message: 'Successfully logged out' }, { status: 200 });

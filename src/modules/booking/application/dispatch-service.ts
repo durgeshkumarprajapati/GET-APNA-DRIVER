@@ -579,3 +579,119 @@ export async function forceAssignDriver(
   }
   return detail;
 }
+
+export interface CancelBookingByOperatorInput {
+  bookingId: string;
+  actor: AuthenticatedPrincipal;
+  reason: string;
+}
+
+const OPERATOR_CANCELLABLE_STATUSES: BookingStatus[] = [
+  BookingStatus.DRAFT,
+  BookingStatus.SEARCHING_DRIVER,
+  BookingStatus.DRIVER_ASSIGNED,
+  BookingStatus.DRIVER_EN_ROUTE,
+  BookingStatus.DRIVER_ARRIVED,
+];
+
+/**
+ * Operator-initiated cancellation: cancels an active, non-terminal booking,
+ * releases any assigned driver (restoring their availability and live location index),
+ * cancels pending assignment attempts, logs the action, and emits outbox + audit logs.
+ */
+export async function cancelBookingByOperator(
+  input: CancelBookingByOperatorInput,
+  db: Db = prisma,
+): Promise<DispatchBookingDetail> {
+  const { bookingId, actor, reason } = input;
+  requirePermission(actor, PERMISSIONS.BOOKINGS_CANCEL);
+
+  const { previousDriverId } = await db.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) {
+      throw new BookingNotFoundError(bookingId);
+    }
+    if (!OPERATOR_CANCELLABLE_STATUSES.includes(booking.status)) {
+      throw new DispatchInvalidBookingStateError(
+        bookingId,
+        booking.status,
+        OPERATOR_CANCELLABLE_STATUSES,
+      );
+    }
+    validateBookingStatusTransition(booking.status, BookingStatus.CANCELLED);
+
+    const previousDriverProfileId = booking.driverProfileId;
+
+    await tx.bookingAssignmentAttempt.updateMany({
+      where: { bookingId, status: AssignmentAttemptStatus.PENDING },
+      data: { status: AssignmentAttemptStatus.CANCELLED },
+    });
+
+    if (previousDriverProfileId) {
+      await tx.driverProfile.update({
+        where: { id: previousDriverProfileId },
+        data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
+      });
+    }
+
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: BookingStatus.CANCELLED,
+        driverProfileId: null,
+      },
+    });
+
+    await tx.bookingLog.create({
+      data: {
+        bookingId,
+        actorUserId: actor.userId,
+        fromStatus: booking.status,
+        toStatus: BookingStatus.CANCELLED,
+        action: 'dispatch.booking.cancelled',
+        reason,
+      },
+    });
+
+    await insertOutboxEvent(tx, {
+      eventType: 'dispatch.booking.cancelled',
+      aggregateType: 'Booking',
+      aggregateId: bookingId,
+      payload: {
+        bookingId,
+        cancelledBy: actor.userId,
+        previousDriverProfileId,
+        reason,
+      },
+    });
+
+    return { previousDriverId: previousDriverProfileId };
+  });
+
+  if (previousDriverId) {
+    const eligibility = await evaluateDriverEligibility(previousDriverId, db);
+    if (eligibility.isEligible) {
+      await addDriverToLiveIndex(previousDriverId, db);
+    }
+  }
+
+  await recordAuditLog(db, {
+    actorUserId: actor.userId,
+    action: 'dispatch.booking.cancelled',
+    entityType: 'Booking',
+    entityId: bookingId,
+    beforeState: { driverProfileId: previousDriverId },
+    afterState: { status: BookingStatus.CANCELLED, reason },
+  });
+
+  realtime.publishBookingUpdate(bookingId, 'dispatch.booking.cancelled', {
+    bookingId,
+    reason,
+  });
+
+  const detail = await getDispatchBookingDetail(bookingId, db);
+  if (!detail) {
+    throw new BookingNotFoundError(bookingId);
+  }
+  return detail;
+}

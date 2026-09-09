@@ -172,6 +172,13 @@ export default function AdminDispatchConsolePage({
   const canRestartSearch = booking.status === 'EXPIRED';
   const canForceAssign =
     booking.status === 'SEARCHING_DRIVER' || booking.status === 'DRIVER_ASSIGNED';
+  const canCancel = [
+    'DRAFT',
+    'SEARCHING_DRIVER',
+    'DRIVER_ASSIGNED',
+    'DRIVER_EN_ROUTE',
+    'DRIVER_ARRIVED',
+  ].includes(booking.status);
 
   return (
     <AdminLayout>
@@ -323,9 +330,25 @@ export default function AdminDispatchConsolePage({
                 Restart Search
               </button>
             )}
-            {!canReassign && !canRestartSearch && (
+            {canCancel && (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() =>
+                  runAction(
+                    `/api/admin/bookings/${bookingId}/cancel`,
+                    {},
+                    'Booking cancelled by operator; driver released.',
+                  )
+                }
+                className="px-4 py-2 bg-[#93000a] hover:bg-[#690005] disabled:opacity-50 text-[#ffdad6] font-semibold text-xs rounded-lg transition-colors"
+              >
+                Cancel Booking (Operator)
+              </button>
+            )}
+            {!canReassign && !canRestartSearch && !canCancel && (
               <p className="text-xs text-[#87948b]">
-                No reassignment or restart action is valid from the current booking status.
+                No operator actions are valid from the current booking status.
               </p>
             )}
           </div>

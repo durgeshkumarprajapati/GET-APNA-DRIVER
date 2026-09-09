@@ -3,6 +3,7 @@ import {
   reassignBookingDriver,
   restartBookingSearch,
   forceAssignDriver,
+  cancelBookingByOperator,
 } from '@/modules/booking/application/dispatch-service';
 import {
   BookingNotFoundError,
@@ -72,6 +73,7 @@ const adminPrincipal: AuthenticatedPrincipal = {
     PERMISSIONS.DISPATCH_BOOKING_OVERRIDE,
     PERMISSIONS.DISPATCH_ASSIGNMENT_FORCE,
     PERMISSIONS.DISPATCH_ASSIGNMENT_FORCE_ELIGIBILITY_BYPASS,
+    PERMISSIONS.BOOKINGS_CANCEL,
   ],
 };
 
@@ -444,5 +446,83 @@ describe('getDispatchBookingDetail via dispatch mutations', () => {
     );
 
     expect(getContactInfoForUsers).toHaveBeenCalled();
+  });
+});
+
+describe('cancelBookingByOperator', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb.$transaction.mockImplementation((cb: (tx: unknown) => unknown) => cb(mockTx));
+    stubGetDispatchDetail();
+  });
+
+  it('rejects an actor without bookings.cancel', async () => {
+    await expect(
+      cancelBookingByOperator(
+        { bookingId: 'booking-1', actor: noPermissionPrincipal, reason: 'test' },
+        mockDb as never,
+      ),
+    ).rejects.toThrow(ForbiddenError);
+  });
+
+  it('throws BookingNotFoundError when booking is not found', async () => {
+    mockTx.booking.findUnique.mockResolvedValue(null);
+
+    await expect(
+      cancelBookingByOperator(
+        { bookingId: 'missing', actor: adminPrincipal, reason: 'test' },
+        mockDb as never,
+      ),
+    ).rejects.toThrow(BookingNotFoundError);
+  });
+
+  it('rejects cancellation when booking is in a terminal status like TRIP_COMPLETED', async () => {
+    mockTx.booking.findUnique.mockResolvedValue({
+      id: 'booking-1',
+      status: BookingStatus.TRIP_COMPLETED,
+    });
+
+    await expect(
+      cancelBookingByOperator(
+        { bookingId: 'booking-1', actor: adminPrincipal, reason: 'test' },
+        mockDb as never,
+      ),
+    ).rejects.toThrow(DispatchInvalidBookingStateError);
+    expect(mockTx.booking.update).not.toHaveBeenCalled();
+  });
+
+  it('cancels active booking, releases assigned driver to AVAILABLE, creates outbox + audit logs', async () => {
+    mockTx.booking.findUnique.mockResolvedValue({
+      id: 'booking-1',
+      status: BookingStatus.DRIVER_ASSIGNED,
+      driverProfileId: 'driver-1',
+    });
+
+    await cancelBookingByOperator(
+      { bookingId: 'booking-1', actor: adminPrincipal, reason: 'operator override cancel' },
+      mockDb as never,
+    );
+
+    expect(mockTx.bookingAssignmentAttempt.updateMany).toHaveBeenCalledWith({
+      where: { bookingId: 'booking-1', status: AssignmentAttemptStatus.PENDING },
+      data: { status: AssignmentAttemptStatus.CANCELLED },
+    });
+    expect(mockTx.driverProfile.update).toHaveBeenCalledWith({
+      where: { id: 'driver-1' },
+      data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
+    });
+    expect(mockTx.booking.update).toHaveBeenCalledWith({
+      where: { id: 'booking-1' },
+      data: { status: BookingStatus.CANCELLED, driverProfileId: null },
+    });
+    expect(insertOutboxEvent).toHaveBeenCalledWith(
+      mockTx,
+      expect.objectContaining({ eventType: 'dispatch.booking.cancelled' }),
+    );
+    expect(recordAuditLog).toHaveBeenCalledWith(
+      mockDb,
+      expect.objectContaining({ action: 'dispatch.booking.cancelled' }),
+    );
+    expect(addDriverToLiveIndex).toHaveBeenCalledWith('driver-1', mockDb);
   });
 });

@@ -2,7 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 
 interface CustomerLayoutProps {
@@ -56,6 +56,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function CustomerLayout({ children, userEmail = null }: CustomerLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -102,6 +103,24 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] ring-2 ring-[#0a0e16]" />
             </div>
           </Link>
+
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+              } catch {
+                // Ignore
+              }
+              router.push('/login');
+              router.refresh();
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-xs font-semibold text-red-300 transition-colors"
+            title="Log Out"
+          >
+            <span className="material-symbols-outlined text-sm">logout</span>
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 

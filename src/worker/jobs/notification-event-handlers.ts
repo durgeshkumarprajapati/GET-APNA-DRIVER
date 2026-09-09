@@ -594,6 +594,55 @@ export function registerNotificationEventHandlers(): void {
     },
   );
 
+  eventHandlerRegistry.register(
+    'dispatch.booking.cancelled',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const bookingId = payload.bookingId as string;
+      const previousDriverProfileId = payload.previousDriverProfileId as string | undefined;
+      const reason = (payload.reason as string) || 'Cancelled by operations operator';
+      if (!bookingId) return;
+      const client = db ?? prisma;
+
+      const booking = await client.booking.findUnique({
+        where: { id: bookingId },
+        select: { customerId: true },
+      });
+      if (booking) {
+        await createNotification(
+          {
+            userId: booking.customerId,
+            type: NotificationType.BOOKING_CANCELLED,
+            title: 'Booking Cancelled by Dispatch',
+            body: `Your booking was cancelled by operations support. Reason: ${reason}`,
+            data: { bookingId, reason },
+            idempotencyKey: `${event.id}-customer-dispatch-cancelled`,
+          },
+          client,
+        );
+      }
+
+      if (previousDriverProfileId) {
+        const previousProfile = await client.driverProfile.findUnique({
+          where: { id: previousDriverProfileId },
+          select: { userId: true },
+        });
+        if (previousProfile) {
+          await createNotification(
+            {
+              userId: previousProfile.userId,
+              type: NotificationType.BOOKING_CANCELLED,
+              title: 'Assigned Trip Cancelled',
+              body: `The trip you were assigned to was cancelled by operations support. You are now available for new offers.`,
+              data: { bookingId, reason },
+              idempotencyKey: `${event.id}-driver-dispatch-cancelled`,
+            },
+            client,
+          );
+        }
+      }
+    },
+  );
+
   // -------------------------------------------------------------------------
   // System Campaign Dispatch
   // -------------------------------------------------------------------------
