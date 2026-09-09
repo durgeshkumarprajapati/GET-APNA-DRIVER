@@ -8,6 +8,10 @@ import { RateLimitExceededError } from '@/modules/identity/domain/errors';
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+  accountType: z.enum(['CUSTOMER', 'DRIVER']).optional(),
+  fullName: z.string().nullable().optional(),
+  phoneNumber: z.string().nullable().optional(),
+  referralCode: z.string().nullable().optional(),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -33,6 +37,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       userAgent,
     });
 
+    const redirectRoute =
+      parsed.data.accountType === 'DRIVER' ? '/driver/onboarding' : '/customer/dashboard';
+
     return NextResponse.json(
       {
         user: {
@@ -48,6 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
               verifiedAt: result.identity.verifiedAt,
             }
           : undefined,
+        redirectRoute,
       },
       { status: 201 },
     );

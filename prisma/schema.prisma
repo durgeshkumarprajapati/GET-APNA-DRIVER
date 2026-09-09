@@ -89,6 +89,9 @@ model User {
   userRaisedDisputes      Dispute[]                @relation("UserRaisedDisputes")
   assignedDisputes        Dispute[]                @relation("AssignedDisputes")
   disputeLogs             DisputeLog[]
+  referralCode            UserReferralCode?
+  givenReferrals          Referral[]               @relation("ReferrerUser")
+  receivedReferral        Referral?                @relation("ReferredUser")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -1629,5 +1632,50 @@ model DisputeLog {
   @@map("dispute_logs")
 }
 
+// ---------------------------------------------------------------------------
+// Phase 14: Referral Infrastructure, Referral Codes & Reward Qualifications
+// ---------------------------------------------------------------------------
 
+enum ReferralStatus {
+  PENDING
+  QUALIFIED
+  REWARDED
+  REJECTED
 
+  @@map("referral_status")
+}
+
+/// Unique referral code generated for each User.
+model UserReferralCode {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   @unique
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("user_referral_codes")
+}
+
+/// Referral relationship tracking between referrer and newly registered user.
+model Referral {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrerUserId String         @map("referrer_user_id") @db.Uuid
+  referrerUser   User           @relation("ReferrerUser", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referredUserId String         @unique @map("referred_user_id") @db.Uuid
+  referredUser   User           @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  codeUsed       String         @map("code_used")
+  status         ReferralStatus @default(PENDING)
+  rewardAmount   Decimal?       @map("reward_amount") @db.Decimal(19, 4)
+  rejectionReason String?       @map("rejection_reason")
+  qualifiedAt    DateTime?      @map("qualified_at") @db.Timestamptz(6)
+  rewardedAt     DateTime?      @map("rewarded_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([referrerUserId])
+  @@index([status])
+  @@map("referrals")
+}

@@ -88,7 +88,14 @@ async function seedDevUser(seed: DevUserSeed): Promise<void> {
   const role = await prisma.role.findUniqueOrThrow({ where: { code: seed.roleCode } });
   await upsertRoleAssignment(prisma, { userId, roleId: role.id, assignedBy: null });
 
-  console.log(`  ${seed.label}: ${email} / ${seed.password}`);
+  const refCode = `REF-${seed.label.substring(0, 3).toUpperCase()}${userId.substring(0, 4).toUpperCase()}`;
+  await prisma.userReferralCode.upsert({
+    where: { userId },
+    create: { userId, code: refCode },
+    update: {},
+  });
+
+  console.log(`  ${seed.label}: ${email} / ${seed.password} (Referral Code: ${refCode})`);
 }
 
 /**
@@ -348,10 +355,28 @@ async function main(): Promise<void> {
     },
     {
       key: 'finance.pricing.base_fare_amount',
-      value: '100.0000',
+      value: '299.0000',
       valueType: 'DECIMAL' as const,
       category: 'finance',
-      description: 'Base fare amount used by the placeholder booking pricing calculation',
+      description: 'Default base fare amount for one-way driver bookings in INR',
+      isPublic: true,
+    },
+    {
+      key: 'referral.customer_reward_amount',
+      value: '200.0000',
+      valueType: 'DECIMAL' as const,
+      category: 'referral',
+      description:
+        'Reward amount in INR credited when a referred customer completes their first trip',
+      isPublic: true,
+    },
+    {
+      key: 'referral.driver_reward_amount',
+      value: '500.0000',
+      valueType: 'DECIMAL' as const,
+      category: 'referral',
+      description:
+        'Reward amount in INR credited when a referred driver partner completes approved onboarding',
       isPublic: true,
     },
     {

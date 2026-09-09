@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
   const [termsAgreed, setTermsAgreed] = useState(false);
 
   // Telemetry Switches State
@@ -82,11 +83,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    if (selectedRole === 'driver') {
-      router.push('/driver/onboarding');
-      return;
-    }
-
     if (!termsAgreed) {
       setError('Please accept the Charter Service Protocols to proceed.');
       return;
@@ -96,24 +92,36 @@ export default function RegisterPage() {
 
     try {
       const fullFullName = `${firstName} ${lastName}`.trim();
+      const accountType = selectedRole === 'driver' ? 'DRIVER' : 'CUSTOMER';
+
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           password,
+          accountType,
           fullName: fullFullName,
           phoneNumber: phone ? `+91${phone}` : undefined,
+          referralCode: referralCode.trim() || undefined,
         }),
       });
 
-      const data = (await res.json()) as { message?: string; error?: string };
+      const data = (await res.json()) as {
+        message?: string;
+        error?: string;
+        redirectRoute?: string;
+      };
 
       if (!res.ok) {
         throw new Error(data.error || 'Registration failed');
       }
 
-      setShowCompletionModal(true);
+      if (data.redirectRoute) {
+        router.push(data.redirectRoute);
+      } else {
+        setShowCompletionModal(true);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -572,6 +580,29 @@ export default function RegisterPage() {
                       className="w-full bg-transparent text-[#dfe2ee] px-3 py-2.5 text-sm focus:outline-none"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Referral Code (Optional) */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="referral-code"
+                  className="text-[11px] font-mono text-[#bccac0] uppercase"
+                >
+                  Referral Code (Optional)
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    id="referral-code"
+                    type="text"
+                    placeholder="e.g. REF-CUS5F10"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    className="w-full bg-[#0a0e16] text-[#68dba9] font-mono uppercase px-4 py-2.5 rounded-lg text-sm border border-[#262a33] focus:outline-none focus:border-[#68dba9]"
+                  />
+                  <span className="material-symbols-outlined absolute right-3 text-[#3d4a42] text-sm">
+                    featured_seasonal_and_gifts
+                  </span>
                 </div>
               </div>
 

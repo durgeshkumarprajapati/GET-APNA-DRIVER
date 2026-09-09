@@ -4,6 +4,7 @@ import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
+import { useAutoLocation } from './use-auto-location';
 
 interface CustomerLayoutProps {
   children: ReactNode;
@@ -59,6 +60,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const router = useRouter();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  useAutoLocation('CUSTOMER');
 
   const isActive = (href: string) =>
     pathname === href || (href !== '/customer/dashboard' && pathname?.startsWith(`${href}/`));
