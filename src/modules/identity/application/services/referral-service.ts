@@ -263,3 +263,39 @@ export async function getReferralSummaryForUser(
     totalEarnedRewards,
   };
 }
+
+export interface ReferralProgramMetrics {
+  totalReferrals: number;
+  byStatus: Record<ReferralStatus, number>;
+  /** Sum of rewardAmount across all REWARDED referrals, as a Decimal string. */
+  totalRewardedAmount: string;
+}
+
+/**
+ * Program-wide referral metrics for the admin referral configuration page.
+ * No admin-wide aggregate existed before this — getReferralSummaryForUser
+ * is scoped to a single referrer.
+ */
+export async function getReferralProgramMetrics(db: Db = prisma): Promise<ReferralProgramMetrics> {
+  const [totalReferrals, statusGroups, rewardedAggregate] = await Promise.all([
+    db.referral.count(),
+    db.referral.groupBy({ by: ['status'], _count: true }),
+    db.referral.aggregate({
+      where: { status: ReferralStatus.REWARDED },
+      _sum: { rewardAmount: true },
+    }),
+  ]);
+
+  const byStatus = Object.fromEntries(
+    Object.values(ReferralStatus).map((status) => [status, 0]),
+  ) as Record<ReferralStatus, number>;
+  for (const group of statusGroups) {
+    byStatus[group.status] = group._count;
+  }
+
+  return {
+    totalReferrals,
+    byStatus,
+    totalRewardedAmount: (rewardedAggregate._sum.rewardAmount ?? 0).toString(),
+  };
+}
