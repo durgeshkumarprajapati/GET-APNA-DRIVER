@@ -50,6 +50,13 @@ export const PERMISSIONS = {
   LOCATION_DRIVER_UPDATE: 'location.driver.update',
   LOCATION_NEARBY_READ: 'location.nearby.read',
 
+  // Notifications (Phase 9 domain & admin)
+  NOTIFICATIONS_READ: 'notifications.read',
+  NOTIFICATIONS_MANAGE: 'notifications.manage',
+  NOTIFICATIONS_CAMPAIGN_CREATE: 'notifications.campaign.create',
+  NOTIFICATIONS_CAMPAIGN_SEND: 'notifications.campaign.send',
+  NOTIFICATIONS_CAMPAIGN_CANCEL: 'notifications.campaign.cancel',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
 } as const;
@@ -136,6 +143,18 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
 
   { code: PERMISSIONS.LOCATION_DRIVER_UPDATE, description: 'Update driver live location.' },
   { code: PERMISSIONS.LOCATION_NEARBY_READ, description: 'Search nearby available drivers.' },
+
+  { code: PERMISSIONS.NOTIFICATIONS_READ, description: 'View own notifications and preferences.' },
+  { code: PERMISSIONS.NOTIFICATIONS_MANAGE, description: 'Manage notification system (admin).' },
+  {
+    code: PERMISSIONS.NOTIFICATIONS_CAMPAIGN_CREATE,
+    description: 'Create notification campaigns.',
+  },
+  { code: PERMISSIONS.NOTIFICATIONS_CAMPAIGN_SEND, description: 'Send notification campaigns.' },
+  {
+    code: PERMISSIONS.NOTIFICATIONS_CAMPAIGN_CANCEL,
+    description: 'Cancel notification campaigns.',
+  },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
 ];

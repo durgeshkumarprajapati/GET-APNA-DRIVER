@@ -72,6 +72,9 @@ model User {
   driverProfile           DriverProfile?
   customerBookings        Booking[]                @relation("CustomerBookings")
   payments                Payment[]
+  notifications           Notification[]
+  pushSubscriptions       PushSubscription[]
+  notificationPreferences NotificationPreference[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -232,6 +235,7 @@ model AuditLog {
 
 enum OutboxEventStatus {
   PENDING
+  PROCESSING
   PROCESSED
   FAILED
 
@@ -239,8 +243,7 @@ enum OutboxEventStatus {
 }
 
 /// Reliable-event foundation: written in the same transaction as the domain
-/// change it describes, consumed asynchronously later. No worker processes
-/// this table yet (introduced when the first async consumer needs it).
+/// change it describes, consumed asynchronously by outbox worker.
 model OutboxEvent {
   id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   eventType     String            @map("event_type")
@@ -251,9 +254,15 @@ model OutboxEvent {
   attempts      Int               @default(0)
   lastError     String?           @map("last_error")
 
+  availableAt   DateTime  @default(now()) @map("available_at") @db.Timestamptz(6)
+  lastAttemptAt DateTime? @map("last_attempt_at") @db.Timestamptz(6)
+  lockedAt      DateTime? @map("locked_at") @db.Timestamptz(6)
+  lockedBy      String?   @map("locked_by")
+
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
 
+  @@index([status, availableAt, createdAt])
   @@index([status, createdAt])
   @@map("outbox_events")
 }
@@ -1216,4 +1225,208 @@ model Refund {
   @@index([paymentId, status])
   @@map("refunds")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 9: Notifications, Push Delivery, Preferences & Admin Campaigns
+// ---------------------------------------------------------------------------
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_DRIVER_OFFERED
+  BOOKING_DRIVER_ASSIGNED
+  BOOKING_DRIVER_EN_ROUTE
+  BOOKING_DRIVER_ARRIVED
+  BOOKING_TRIP_STARTED
+  BOOKING_TRIP_COMPLETED
+  BOOKING_CANCELLED
+  BOOKING_EXPIRED
+  PAYMENT_CREATED
+  PAYMENT_PROCESSING
+  PAYMENT_CAPTURED
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  DRIVER_APPLICATION_APPROVED
+  DRIVER_APPLICATION_REJECTED
+  DRIVER_APPLICATION_CHANGES_REQUESTED
+  DRIVER_DOCUMENT_VERIFIED
+  DRIVER_DOCUMENT_REJECTED
+  DRIVER_EARNINGS_RECOGNIZED
+  SETTLEMENT_CREATED
+  SETTLEMENT_COMPLETED
+  SETTLEMENT_FAILED
+  SYSTEM_ANNOUNCEMENT
+  SYSTEM_OFFER
+  SYSTEM_COUPON
+
+  @@map("notification_type")
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+
+  @@map("notification_priority")
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+
+  @@map("notification_status")
+}
+
+enum DeliveryChannel {
+  IN_APP
+  PUSH
+  EMAIL
+  SMS
+
+  @@map("delivery_channel")
+}
+
+enum DeliveryStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  DELIVERED
+  FAILED
+  SKIPPED
+
+  @@map("delivery_status")
+}
+
+enum CampaignTargetAudience {
+  ALL_CUSTOMERS
+  ALL_DRIVERS
+  ALL_USERS
+  SELECTED_USERS
+
+  @@map("campaign_target_audience")
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  FAILED
+
+  @@map("campaign_status")
+}
+
+/// Core in-app notification entity.
+model Notification {
+  id             String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String               @map("user_id") @db.Uuid
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           NotificationType
+  title          String
+  body           String
+  data           Json?                @db.JsonB
+  priority       NotificationPriority @default(NORMAL)
+  status         NotificationStatus   @default(UNREAD)
+  idempotencyKey String?              @unique @map("idempotency_key")
+  campaignId     String?              @map("campaign_id") @db.Uuid
+  campaign       NotificationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  readAt         DateTime?            @map("read_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  deliveries NotificationDelivery[]
+
+  @@index([userId, status, createdAt])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("notifications")
+}
+
+/// Delivery tracking per notification channel (In-App, Push, Email, SMS).
+model NotificationDelivery {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  notificationId    String          @map("notification_id") @db.Uuid
+  notification      Notification    @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  channel           DeliveryChannel
+  status            DeliveryStatus  @default(PENDING)
+  attemptCount      Int             @default(0) @map("attempt_count")
+  provider          String?
+  providerMessageId String?         @map("provider_message_id")
+  lastAttemptAt     DateTime?       @map("last_attempt_at") @db.Timestamptz(6)
+  deliveredAt       DateTime?       @map("delivered_at") @db.Timestamptz(6)
+  failedAt          DateTime?       @map("failed_at") @db.Timestamptz(6)
+  failureReason     String?         @map("failure_reason")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([notificationId, channel])
+  @@index([status])
+  @@map("notification_deliveries")
+}
+
+/// Web push notification subscriptions for browser clients.
+model PushSubscription {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint   String    @unique
+  p256dhKey  String    @map("p256dh_key")
+  authKey    String    @map("auth_key")
+  userAgent  String?   @map("user_agent")
+  deviceName String?   @map("device_name")
+  isActive   Boolean   @default(true) @map("is_active")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, isActive])
+  @@map("push_subscriptions")
+}
+
+/// Category-level notification preferences for users (BOOKING, PAYMENT, PROMOTION, SYSTEM, MARKETING, SAFETY).
+model NotificationPreference {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String  @map("user_id") @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String  // BOOKING, PAYMENT, PROMOTION, SYSTEM, MARKETING, SAFETY
+  push      Boolean @default(true)
+  email     Boolean @default(true)
+  sms       Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, category])
+  @@map("notification_preferences")
+}
+
+/// Administrative broadcast notification campaigns.
+model NotificationCampaign {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String
+  body           String
+  targetAudience CampaignTargetAudience @map("target_audience")
+  targetUserIds  Json?                  @map("target_user_ids") @db.JsonB
+  status         CampaignStatus         @default(DRAFT)
+  createdBy      String                 @map("created_by") @db.Uuid
+  scheduledAt    DateTime?              @map("scheduled_at") @db.Timestamptz(6)
+  sentAt         DateTime?              @map("sent_at") @db.Timestamptz(6)
+  totalTargeted  Int                    @default(0) @map("total_targeted")
+  totalSent      Int                    @default(0) @map("total_sent")
+  totalFailed    Int                    @default(0) @map("total_failed")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  notifications Notification[]
+
+  @@index([status, scheduledAt])
+  @@map("notification_campaigns")
+}
+
 
