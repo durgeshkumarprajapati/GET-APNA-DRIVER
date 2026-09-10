@@ -320,9 +320,7 @@ export async function getCustomerOffers(
   ]);
 
   const usageCountByPromotion = new Map<string, number>();
-  const usedPromotionIds = new Set<string>();
   for (const usage of usages) {
-    usedPromotionIds.add(usage.promotionId);
     usageCountByPromotion.set(
       usage.promotionId,
       (usageCountByPromotion.get(usage.promotionId) ?? 0) + 1,
