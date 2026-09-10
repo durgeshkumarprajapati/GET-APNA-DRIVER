@@ -1,4 +1,4 @@
-import { ReferralStatus } from '@prisma/client';
+import { Prisma, ReferralStatus } from '@prisma/client';
 import {
   generateReferralCodeForUser,
   applyReferralCode,
@@ -6,6 +6,15 @@ import {
   getReferralSummaryForUser,
 } from '@/modules/identity/application/services/referral-service';
 import { getDecimal } from '@/shared/config/configuration-service';
+import { applyWalletChange } from '@/modules/finance/application/services/wallet-service';
+
+let referralUpdateMock = jest.fn().mockResolvedValue({
+  id: 'ref-1',
+  status: ReferralStatus.REWARDED,
+  rewardAmount: 200,
+});
+const financialTransactionCreateMock = jest.fn().mockResolvedValue({ id: 'ft-1' });
+const ledgerEntryCreateMock = jest.fn();
 
 const mockDb = {
   userReferralCode: {
@@ -18,18 +27,17 @@ const mockDb = {
     count: jest.fn(),
     findMany: jest.fn(),
   },
+  driverProfile: {
+    findUnique: jest.fn().mockResolvedValue(null),
+  },
   $transaction: jest.fn((cb: (tx: unknown) => unknown) =>
     cb({
       referral: {
-        update: jest.fn().mockResolvedValue({
-          id: 'ref-1',
-          status: ReferralStatus.REWARDED,
-          rewardAmount: 200,
-        }),
+        update: referralUpdateMock,
       },
       financialTransaction: {
         findUnique: jest.fn().mockResolvedValue(null),
-        create: jest.fn().mockResolvedValue({ id: 'ft-1' }),
+        create: financialTransactionCreateMock,
       },
       ledgerAccount: {
         findUnique: jest
@@ -39,7 +47,7 @@ const mockDb = {
           ),
       },
       ledgerEntry: {
-        create: jest.fn(),
+        create: ledgerEntryCreateMock,
         createMany: jest.fn(),
       },
     }),
@@ -52,10 +60,21 @@ jest.mock('@/shared/outbox/outbox-service', () => ({ insertOutboxEvent: jest.fn(
 jest.mock('@/shared/config/configuration-service', () => ({
   getDecimal: jest.fn().mockResolvedValue(200),
 }));
+jest.mock('@/modules/finance/application/services/wallet-service', () => ({
+  applyWalletChange: jest.fn().mockResolvedValue({ id: 'wallet-1' }),
+}));
+
+const mockedApplyWalletChange = applyWalletChange as jest.Mock;
 
 describe('Referral Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDb.driverProfile.findUnique.mockResolvedValue(null);
+    referralUpdateMock = jest.fn().mockResolvedValue({
+      id: 'ref-1',
+      status: ReferralStatus.REWARDED,
+      rewardAmount: 200,
+    });
   });
 
   describe('generateReferralCodeForUser', () => {
@@ -177,6 +196,131 @@ describe('Referral Service', () => {
 
       expect(res).not.toBeNull();
       expect(getDecimal).toHaveBeenCalledWith('referral.customer_reward_amount', 200, mockDb);
+    });
+
+    it('posts a REFERRAL_REWARD transaction (not the old reused PAYMENT_CAPTURED) for every referrer', async () => {
+      mockDb.referral.findUnique.mockResolvedValue({
+        id: 'ref-1',
+        referrerUserId: 'user-1',
+        referredUserId: 'user-2',
+        status: ReferralStatus.PENDING,
+      });
+
+      await evaluateAndQualifyReferral(
+        { userId: 'user-2', trigger: 'CUSTOMER_FIRST_TRIP' },
+        mockDb as never,
+      );
+
+      expect(financialTransactionCreateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ transactionType: 'REFERRAL_REWARD' }),
+        }),
+      );
+    });
+
+    it('credits CUSTOMER_PAYABLE (not DRIVER_PAYABLE) when the referrer has no DriverProfile', async () => {
+      mockDb.referral.findUnique.mockResolvedValue({
+        id: 'ref-1',
+        referrerUserId: 'customer-referrer-1',
+        referredUserId: 'user-2',
+        status: ReferralStatus.PENDING,
+      });
+      mockDb.driverProfile.findUnique.mockResolvedValue(null);
+
+      await evaluateAndQualifyReferral(
+        { userId: 'user-2', trigger: 'CUSTOMER_FIRST_TRIP' },
+        mockDb as never,
+      );
+
+      expect(ledgerEntryCreateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            ledgerAccountId: 'acc-CUSTOMER_PAYABLE',
+            creditAmount: '200.0000',
+          }),
+        }),
+      );
+      expect(mockedApplyWalletChange).not.toHaveBeenCalled();
+    });
+
+    it('credits DRIVER_PAYABLE and the DriverWallet when the referrer is an onboarded driver (unchanged from before)', async () => {
+      mockDb.referral.findUnique.mockResolvedValue({
+        id: 'ref-1',
+        referrerUserId: 'driver-referrer-1',
+        referredUserId: 'user-2',
+        status: ReferralStatus.PENDING,
+      });
+      mockDb.driverProfile.findUnique.mockResolvedValue({
+        id: 'driver-profile-1',
+        userId: 'driver-referrer-1',
+      });
+
+      await evaluateAndQualifyReferral(
+        { userId: 'user-2', trigger: 'CUSTOMER_FIRST_TRIP' },
+        mockDb as never,
+      );
+
+      expect(ledgerEntryCreateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            ledgerAccountId: 'acc-DRIVER_PAYABLE',
+            creditAmount: '200.0000',
+          }),
+        }),
+      );
+      expect(mockedApplyWalletChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          driverProfileId: 'driver-profile-1',
+          availableDelta: '200.0000',
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('preserves exact decimal precision through the reward posting (no floating-point drift)', async () => {
+      (getDecimal as jest.Mock).mockResolvedValueOnce(new Prisma.Decimal('100.25'));
+      mockDb.referral.findUnique.mockResolvedValue({
+        id: 'ref-1',
+        referrerUserId: 'customer-referrer-1',
+        referredUserId: 'user-2',
+        status: ReferralStatus.PENDING,
+      });
+      mockDb.driverProfile.findUnique.mockResolvedValue(null);
+
+      await evaluateAndQualifyReferral(
+        { userId: 'user-2', trigger: 'CUSTOMER_FIRST_TRIP' },
+        mockDb as never,
+      );
+
+      expect(ledgerEntryCreateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ creditAmount: '100.2500' }),
+        }),
+      );
+    });
+
+    it('is a no-op (returns null, no ledger posting) when a concurrent call already rewarded this referral', async () => {
+      mockDb.referral.findUnique.mockResolvedValue({
+        id: 'ref-1',
+        referrerUserId: 'user-1',
+        referredUserId: 'user-2',
+        status: ReferralStatus.PENDING,
+      });
+      referralUpdateMock = jest.fn().mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Record not found', {
+          code: 'P2025',
+          clientVersion: 'test',
+        }),
+      );
+
+      const res = await evaluateAndQualifyReferral(
+        { userId: 'user-2', trigger: 'CUSTOMER_FIRST_TRIP' },
+        mockDb as never,
+      );
+
+      expect(res).toBeNull();
+      expect(financialTransactionCreateMock).not.toHaveBeenCalled();
+      expect(mockedApplyWalletChange).not.toHaveBeenCalled();
     });
   });
 

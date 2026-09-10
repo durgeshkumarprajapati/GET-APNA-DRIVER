@@ -10,6 +10,7 @@ import { PERMISSIONS } from '../../domain/permission-catalog';
 import { SYSTEM_ROLE_CODES } from '../../domain/role-catalog';
 import {
   LastAdministratorError,
+  RoleAlreadyAssignedError,
   RoleNotAssignedError,
   RoleNotFoundError,
   SelfRoleEscalationError,
@@ -48,6 +49,21 @@ export async function assignRole(input: AssignRoleInput): Promise<UserRole> {
     const role = await rbacRepository.findRoleByCode(tx, roleCode);
     if (!role) {
       throw new RoleNotFoundError(roleCode);
+    }
+
+    // Mirrors role-selection-service.ts's self-service invariant: a user
+    // holds exactly one active role at a time. Without this, an admin could
+    // silently grant a second, different role to a user who already has
+    // one (e.g. DRIVER on top of CUSTOMER), producing a dual-portal
+    // principal that both src/app/customer/layout.tsx and
+    // src/app/driver/layout.tsx would then honor simultaneously. Revoking
+    // the existing role first (revokeRole) remains the correct way to
+    // change a user's role.
+    const currentActiveRoles = await tx.userRole.findMany({
+      where: { userId, revokedAt: null },
+    });
+    if (currentActiveRoles.some((r) => r.roleId !== role.id)) {
+      throw new RoleAlreadyAssignedError();
     }
 
     const existing = await rbacRepository.findUserRoleAssignment(tx, userId, role.id);
