@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
+import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -32,6 +33,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [badgeCounts, setBadgeCounts] = useState<DashboardBadgeCounts | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -147,8 +149,18 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
-      {/* FIXED SIDEBAR */}
-      <aside className="fixed left-0 top-0 h-full w-72 bg-[#0a0e16] border-r border-[#262a33] z-50 flex flex-col overflow-y-auto shadow-2xl">
+      <MobileNavDrawer
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        navGroups={navGroups}
+        isActive={isActive}
+        brandLabel="Get Apna Driver"
+        brandSubLabel="Chauffeur Matrix OS"
+        brandHref="/admin/mission-dashboard"
+      />
+
+      {/* FIXED SIDEBAR — desktop only, md and up */}
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-[#0a0e16] border-r border-[#262a33] z-50 flex-col overflow-y-auto shadow-2xl">
         {/* Brand Header */}
         <div className="h-16 px-6 flex items-center gap-3 border-b border-[#262a33] shrink-0 bg-[#0a0e16]/80 backdrop-blur-md">
           <Link href="/admin/mission-dashboard" className="flex items-center gap-3">
@@ -213,16 +225,17 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       </aside>
 
       {/* HEADER BAR */}
-      <div className="pl-72">
-        <header className="fixed top-0 left-72 right-0 h-16 bg-[#0a0e16]/85 backdrop-blur-xl border-b border-[#262a33] z-40 px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="px-3 py-1 rounded bg-[#181c24] border border-[#262a33] flex items-center gap-2">
+      <div className="md:pl-72">
+        <header className="fixed top-0 left-0 md:left-72 right-0 h-16 bg-[#0a0e16]/85 backdrop-blur-xl border-b border-[#262a33] z-40 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <MobileNavTrigger onClick={() => setMobileNavOpen(true)} />
+            <div className="hidden sm:flex px-3 py-1 rounded bg-[#181c24] border border-[#262a33] items-center gap-2 shrink-0">
               <span className="inline-block w-2 h-2 rounded-full bg-[#68dba9] animate-pulse" />
               <span className="font-mono text-xs text-[#68dba9] font-bold">SYSTEM ONLINE</span>
             </div>
           </div>
 
-          <div className="flex-1 max-w-xl mx-4">
+          <div className="flex-1 max-w-xl mx-2 sm:mx-4 hidden sm:block">
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#87948b] text-[18px]">
                 search

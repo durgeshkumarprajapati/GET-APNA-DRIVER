@@ -225,6 +225,29 @@ describe('Auth Service', () => {
       expect(tokenRepository.createOtpChallenge).toHaveBeenCalled();
     });
 
+    it('honors the configured identity.otp.ttl_seconds value (300s here)', async () => {
+      const before = Date.now();
+      const result = await requestPhoneOtp({ phoneNumber: '+919876543210' });
+      const secondsUntilExpiry = (result.expiresAt.getTime() - before) / 1000;
+      expect(secondsUntilExpiry).toBeGreaterThan(295);
+      expect(secondsUntilExpiry).toBeLessThanOrEqual(300);
+    });
+
+    it('falls back to a 180-second (3 minute) TTL when no configuration row exists', async () => {
+      const { getInteger } = jest.requireMock('@/shared/config/configuration-service') as {
+        getInteger: jest.Mock;
+      };
+      getInteger.mockImplementationOnce((key: string, defaultValue: number) =>
+        key === 'identity.otp.ttl_seconds' ? Promise.resolve(defaultValue) : Promise.resolve(5),
+      );
+
+      const before = Date.now();
+      const result = await requestPhoneOtp({ phoneNumber: '+919876543210' });
+      const secondsUntilExpiry = (result.expiresAt.getTime() - before) / 1000;
+      expect(secondsUntilExpiry).toBeGreaterThan(175);
+      expect(secondsUntilExpiry).toBeLessThanOrEqual(180);
+    });
+
     it('verifies correct OTP code and creates active session', async () => {
       const phone = '+919876543210';
       const otp = '123456';

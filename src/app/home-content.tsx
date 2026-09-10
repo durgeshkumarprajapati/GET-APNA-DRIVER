@@ -110,7 +110,7 @@ export default function HomeContent() {
               </button>
               <div className="absolute right-0 mt-2 w-64 bg-surface-container-high border border-surface-variant/60 rounded-xl shadow-2xl p-2 hidden group-hover:block z-50">
                 <Link
-                  href="/register"
+                  href="/register?role=customer"
                   className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-surface-container transition-colors"
                 >
                   <span className="material-symbols-outlined text-primary mt-0.5">person</span>
@@ -135,22 +135,6 @@ export default function HomeContent() {
                       Driver Partner Enrollment
                     </p>
                     <p className="text-[11px] text-on-surface-variant">Zero platform deductions</p>
-                  </div>
-                </Link>
-                <Link
-                  href="/login"
-                  className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-surface-container transition-colors border-t border-surface-variant/20 mt-1 pt-1"
-                >
-                  <span className="material-symbols-outlined text-secondary mt-0.5">
-                    admin_panel_settings
-                  </span>
-                  <div>
-                    <p className="text-xs font-bold text-on-surface font-['Space_Grotesk']">
-                      Enterprise Fleet Admin
-                    </p>
-                    <p className="text-[11px] text-on-surface-variant">
-                      Corporate accounts &amp; audit console
-                    </p>
                   </div>
                 </Link>
               </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface ProfileData {
   firstName: string | null;
@@ -68,6 +69,7 @@ export default function ProfilePage() {
     isDefault: false,
   });
   const [locationSaving, setLocationSaving] = useState(false);
+  const { toast, showToast, dismissToast } = useToast();
 
   // Preferences State
   const [preferences, setPreferences] = useState<PreferenceData>({
@@ -217,7 +219,7 @@ export default function ProfilePage() {
       });
       await loadLocations();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error adding location');
+      showToast(err instanceof Error ? err.message : 'Error adding location', 'error');
     } finally {
       setLocationSaving(false);
     }
@@ -1275,6 +1277,7 @@ export default function ProfilePage() {
           )}
         </div>
       )}
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }

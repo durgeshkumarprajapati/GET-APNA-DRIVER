@@ -139,7 +139,7 @@ async function main(): Promise<void> {
   const defaultConfigs = [
     {
       key: 'identity.otp.ttl_seconds',
-      value: '300',
+      value: '180',
       valueType: 'INTEGER' as const,
       category: 'identity',
       description: 'OTP Time to Live in seconds',

@@ -2,18 +2,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { env } from '@/shared/config/env';
 import { getPrincipalFromSessionToken } from '@/modules/identity/application/services/principal-service';
-import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
+import { resolveDashboardHref } from '@/modules/identity/application/services/dashboard-redirect-service';
 import HomeContent from './home-content';
-
-function resolveDashboardHref(roles: string[]): string {
-  if (roles.includes(SYSTEM_ROLE_CODES.ADMINISTRATOR)) {
-    return '/admin/mission-dashboard';
-  }
-  if (roles.includes(SYSTEM_ROLE_CODES.DRIVER)) {
-    return '/driver';
-  }
-  return '/customer/dashboard';
-}
 
 /**
  * A visitor with a still-valid session is sent straight to their
@@ -28,7 +18,7 @@ export default async function LandingPage() {
   const principal = token ? await getPrincipalFromSessionToken(token) : null;
 
   if (principal) {
-    redirect(resolveDashboardHref(principal.roles));
+    redirect(await resolveDashboardHref(principal.roles, principal.userId));
   }
 
   return <HomeContent />;

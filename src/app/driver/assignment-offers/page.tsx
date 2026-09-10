@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface AssignmentOffer {
   id: string;
@@ -28,6 +29,7 @@ export default function DriverAssignmentOffersPage() {
   const [error, setError] = useState<string | null>(null);
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const { toast, showToast, dismissToast } = useToast();
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -72,13 +74,13 @@ export default function DriverAssignmentOffersPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert('Booking assignment accepted successfully!');
+        showToast('Booking assignment accepted successfully!', 'success');
         void fetchOffers();
       } else {
-        alert(data.message || 'Failed to accept offer.');
+        showToast(data.message || 'Failed to accept offer.', 'error');
       }
     } catch {
-      alert('Error accepting offer.');
+      showToast('Error accepting offer.', 'error');
     } finally {
       setActioningId(null);
     }
@@ -99,10 +101,10 @@ export default function DriverAssignmentOffersPage() {
         setRejectReason('');
         void fetchOffers();
       } else {
-        alert(data.message || 'Failed to reject offer.');
+        showToast(data.message || 'Failed to reject offer.', 'error');
       }
     } catch {
-      alert('Error rejecting offer.');
+      showToast('Error rejecting offer.', 'error');
     } finally {
       setActioningId(null);
     }
@@ -311,6 +313,7 @@ export default function DriverAssignmentOffersPage() {
           </div>
         )}
       </div>
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }
