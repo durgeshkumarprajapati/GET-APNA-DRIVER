@@ -153,10 +153,13 @@ export default function DriverDocumentsPage() {
       if (res.ok && data.downloadUrl) {
         window.open(data.downloadUrl, '_blank');
       } else {
-        alert(data.message || 'Failed to get document download link.');
+        setMessage({
+          type: 'error',
+          text: data.message || 'Failed to get document download link.',
+        });
       }
     } catch {
-      alert('Error fetching download link.');
+      setMessage({ type: 'error', text: 'Error fetching download link.' });
     }
   };
 

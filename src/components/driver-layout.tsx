@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
+import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 
 type AvailabilityStatus = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE';
 
@@ -76,6 +77,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus | null>(null);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   useAutoLocation('DRIVER');
 
   const handleLogout = async () => {
@@ -136,8 +138,18 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
-      {/* FIXED SIDEBAR */}
-      <aside className="fixed left-0 top-0 h-full w-72 bg-[#0a0e16] z-50 flex flex-col justify-between py-4 border-r border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.45)]">
+      <MobileNavDrawer
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        navGroups={NAV_GROUPS}
+        isActive={isActive}
+        brandLabel="Apna Driver"
+        brandSubLabel="Cockpit Terminal"
+        brandHref="/driver"
+      />
+
+      {/* FIXED SIDEBAR — desktop only, md and up */}
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-[#0a0e16] z-50 flex-col justify-between py-4 border-r border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col h-full">
           {/* Logo & Brand Header */}
           <div className="px-4 flex items-center justify-between pb-4 border-b border-[#262a33]">
@@ -196,13 +208,14 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
       </aside>
 
       {/* HEADER BAR */}
-      <div className="pl-72">
-        <header className="fixed top-0 left-72 right-0 h-16 bg-[#0a0e16]/90 backdrop-blur-xl z-40 shadow-[0_1px_8px_rgba(0,0,0,0.45)] border-b border-[#262a33]">
-          <div className="w-full px-6 h-16 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+      <div className="md:pl-72">
+        <header className="fixed top-0 left-0 md:left-72 right-0 h-16 bg-[#0a0e16]/90 backdrop-blur-xl z-40 shadow-[0_1px_8px_rgba(0,0,0,0.45)] border-b border-[#262a33]">
+          <div className="w-full px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <MobileNavTrigger onClick={() => setMobileNavOpen(true)} />
               {/* Duty Shift Pill Switcher */}
-              <div className="flex items-center bg-[#1c2028] px-3 py-1.5 rounded-full gap-2 border border-[#262a33]">
-                <div className="relative flex items-center justify-center">
+              <div className="flex items-center bg-[#1c2028] px-2 sm:px-3 py-1.5 rounded-full gap-1.5 sm:gap-2 border border-[#262a33] min-w-0">
+                <div className="relative flex items-center justify-center shrink-0">
                   <span
                     className={`w-2.5 h-2.5 rounded-full ${
                       isOnDuty ? 'bg-[#68dba9]' : 'bg-[#87948b]'
@@ -212,7 +225,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                     <span className="absolute w-4 h-4 rounded-full bg-[#68dba9]/40 animate-ping" />
                   )}
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wide text-[#68dba9] font-['Space_Grotesk']">
+                <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wide text-[#68dba9] font-['Space_Grotesk']">
                   {availabilityStatus === null
                     ? 'LOADING...'
                     : isOnDuty
@@ -223,17 +236,17 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                   type="button"
                   onClick={() => void toggleDuty()}
                   disabled={updatingAvailability || availabilityStatus === null}
-                  className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+                  className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-2 py-0.5 rounded transition-colors disabled:opacity-50 shrink-0"
                 >
                   {isOnDuty ? 'Toggle Off' : 'Toggle On'}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <Link
                 href="/customer/dashboard"
-                className="px-2.5 py-1 rounded-lg bg-[#1c2028] hover:bg-[#262a33] text-[#68dba9] font-mono text-xs border border-[#3d4a42]"
+                className="hidden lg:inline-block px-2.5 py-1 rounded-lg bg-[#1c2028] hover:bg-[#262a33] text-[#68dba9] font-mono text-xs border border-[#3d4a42]"
                 title="Switch to Customer Hub"
               >
                 Customer Hub
@@ -242,12 +255,12 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
               <NotificationCenter />
 
               <div className="flex items-center gap-2 pl-1">
-                <div className="flex flex-col text-right">
+                <div className="hidden md:flex flex-col text-right">
                   <span className="text-xs font-semibold text-[#dfe2ee] max-w-[160px] truncate">
                     {userEmail ?? 'Driver'}
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9]">
+                <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9] shrink-0">
                   {(userEmail ?? 'D').charAt(0).toUpperCase()}
                 </div>
                 <button

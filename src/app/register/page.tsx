@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { validateRegistrationForm } from '@/shared/validation/auth-form-validation';
 
 function RegisterFormContent() {
   const router = useRouter();
@@ -116,8 +117,20 @@ function RegisterFormContent() {
     e.preventDefault();
     setError(null);
 
-    if (!termsAgreed) {
-      setError('Please accept the Statutory Clearance & Safety Charter to proceed.');
+    // Client-side validation is only for immediate UX feedback — the server
+    // (zod schema + registerWithEmailPassword) remains the authoritative
+    // validator and is never relaxed or bypassed by this check.
+    const validationError = validateRegistrationForm({
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      referralCode,
+      termsAgreed,
+    });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -461,7 +474,8 @@ function RegisterFormContent() {
                   }
                 }}
                 className={`p-6 sm:p-8 rounded-2xl shadow-md flex flex-col justify-between border transition-all cursor-pointer ${
-                  selectedRole === 'customer' || (selectedRole === 'driver' && driverFleetType === 'fleet')
+                  selectedRole === 'customer' ||
+                  (selectedRole === 'driver' && driverFleetType === 'fleet')
                     ? 'bg-[#262a33] border-[#68dba9]/70 shadow-[0_0_24px_rgba(104,219,169,0.15)]'
                     : 'bg-[#181c24] border-[#262a33] hover:bg-[#1c2028]'
                 }`}
@@ -648,19 +662,11 @@ function RegisterFormContent() {
                       </div>
                     </div>
 
-                    {/* Mobile Contact with OTP verified pill */}
+                    {/* Mobile Contact — phone verification (OTP) happens at login, not here */}
                     <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between">
-                        <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
-                          PRIMARY MOBILE (TELEMETRY LINKED)
-                        </label>
-                        <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#68dba9] font-bold">
-                          <span className="material-symbols-outlined text-[13px]">
-                            check_circle
-                          </span>
-                          OTP Verified
-                        </span>
-                      </div>
+                      <label className="font-mono text-[10px] text-[#bccac0] uppercase font-bold">
+                        PRIMARY MOBILE NUMBER
+                      </label>
                       <div className="flex items-center bg-[#0a0e16] px-4 py-2.5 rounded-xl border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
                         <span className="font-mono text-xs text-[#dfe2ee] font-bold mr-3 flex items-center gap-1 shrink-0">
                           <span>🇮🇳</span> +91
@@ -670,16 +676,10 @@ function RegisterFormContent() {
                           className="w-full bg-transparent text-[#dfe2ee] text-sm placeholder:text-[#3d4a42] focus:outline-none"
                           placeholder="98765 43210"
                           type="tel"
+                          inputMode="numeric"
                           value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         />
-                        <button
-                          type="button"
-                          onClick={() => alert('Mobile OTP verification active.')}
-                          className="text-[#68dba9] hover:text-[#85f8c4] font-mono text-[10px] uppercase font-bold shrink-0 ml-2"
-                        >
-                          Change
-                        </button>
                       </div>
                     </div>
 

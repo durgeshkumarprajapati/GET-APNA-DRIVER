@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
+import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 
 interface CustomerLayoutProps {
   children: ReactNode;
@@ -61,6 +62,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const router = useRouter();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   useAutoLocation('CUSTOMER');
 
   const isActive = (href: string) =>
@@ -68,14 +70,24 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
+      <MobileNavDrawer
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        navGroups={NAV_GROUPS}
+        isActive={isActive}
+        brandLabel="Get Apna Driver"
+        brandHref="/customer/dashboard"
+      />
+
       {/* HEADER NAVBAR */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#0a0e16]/90 backdrop-blur-xl z-50 flex items-center justify-between px-6 border-b border-[#262a33]">
-        <div className="flex items-center gap-5">
-          <Link href="/customer/dashboard" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-lg bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#0a0e16]/90 backdrop-blur-xl z-50 flex items-center justify-between px-3 sm:px-6 border-b border-[#262a33]">
+        <div className="flex items-center gap-2 sm:gap-5 min-w-0">
+          <MobileNavTrigger onClick={() => setMobileNavOpen(true)} />
+          <Link href="/customer/dashboard" className="flex items-center gap-3 group min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold shrink-0">
               <span className="material-symbols-outlined text-xl">directions_car</span>
             </div>
-            <span className="font-bold text-base tracking-tight text-[#dfe2ee] uppercase font-['Space_Grotesk']">
+            <span className="font-bold text-base tracking-tight text-[#dfe2ee] uppercase font-['Space_Grotesk'] hidden sm:inline truncate">
               GET APNA DRIVER
             </span>
           </Link>
@@ -127,8 +139,8 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
         </div>
       </header>
 
-      {/* FIXED SIDEBAR */}
-      <aside className="fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex flex-col justify-between border-r border-[#262a33]">
+      {/* FIXED SIDEBAR — desktop only, md and up */}
+      <aside className="hidden md:flex fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex-col justify-between border-r border-[#262a33]">
         <div className="space-y-5">
           {NAV_GROUPS.map((group) => (
             <div key={group.label} className="space-y-1">
@@ -167,20 +179,23 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       </aside>
 
       {/* MAIN BODY AREA */}
-      <div className="pl-64">
-        <main className="w-full pt-16 pb-12 px-6 min-h-screen bg-[#0f131c]">{children}</main>
+      <div className="md:pl-64">
+        <main className="w-full pt-16 pb-12 px-4 sm:px-6 min-h-screen bg-[#0f131c]">
+          {children}
+        </main>
       </div>
 
       {/* FOOTER BAR */}
-      <footer className="fixed bottom-0 left-0 right-0 h-10 bg-[#0a0e16] z-50 flex items-center justify-between px-6 border-t border-[#262a33]">
-        <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0]">
+      <footer className="fixed bottom-0 left-0 right-0 h-10 bg-[#0a0e16] z-50 flex items-center justify-between px-3 sm:px-6 border-t border-[#262a33] gap-2">
+        <div className="hidden sm:flex items-center gap-2 font-mono text-xs text-[#bccac0] shrink-0">
           <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse" />
           <span>SYSTEM ONLINE</span>
         </div>
-        <div className="flex items-center gap-2 font-mono text-xs text-[#bccac0]">
-          <span className="material-symbols-outlined text-[#ffb4ab] text-sm">call</span>
-          <span>
-            EMERGENCY SOS: <strong className="text-[#ffb4ab]">+91 11 4099 2200</strong>
+        <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-xs text-[#bccac0] min-w-0 ml-auto">
+          <span className="material-symbols-outlined text-[#ffb4ab] text-sm shrink-0">call</span>
+          <span className="truncate">
+            <span className="hidden sm:inline">EMERGENCY SOS: </span>
+            <strong className="text-[#ffb4ab]">+91 11 4099 2200</strong>
           </span>
         </div>
       </footer>

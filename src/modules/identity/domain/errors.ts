@@ -9,7 +9,7 @@ export class UserNotFoundError extends AppError {
 
 export class DuplicateIdentityError extends AppError {
   constructor(providerName: string) {
-    super(`An identity of type "${providerName}" is already in use`, 409, 'IDENTITY_DUPLICATE');
+    super(`This ${providerName} is already registered`, 409, 'IDENTITY_DUPLICATE');
   }
 }
 

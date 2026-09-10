@@ -281,7 +281,7 @@ export async function requestPhoneOtp(input: {
     throw new InvalidPhoneNumberError();
   }
 
-  const ttlSeconds = await getInteger('identity.otp.ttl_seconds', 300);
+  const ttlSeconds = await getInteger('identity.otp.ttl_seconds', 180);
   const maxAttempts = await getInteger('identity.otp.max_attempts', 5);
 
   const otp = generateOtp(6);

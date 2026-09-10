@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { RatingStars } from '@/components/ui/rating-stars';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface DriverBookingDetail {
   id: string;
@@ -42,6 +43,7 @@ export default function DriverJourneyControlPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionPending, setActionPending] = useState(false);
+  const { toast, showToast, dismissToast } = useToast();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [review, setReview] = useState<BookingReview | null>(null);
 
@@ -102,10 +104,10 @@ export default function DriverJourneyControlPage({
         setBooking(data.booking);
         setActionMessage(successText);
       } else {
-        alert(data.message || 'Action failed.');
+        showToast(data.message || 'Action failed.', 'error');
       }
     } catch {
-      alert('Error updating trip status.');
+      showToast('Error updating trip status.', 'error');
     } finally {
       setActionPending(false);
     }
@@ -323,6 +325,7 @@ export default function DriverJourneyControlPage({
           </div>
         </div>
       </div>
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }

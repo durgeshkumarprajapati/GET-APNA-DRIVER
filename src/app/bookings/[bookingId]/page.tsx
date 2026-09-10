@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { RatingStars } from '@/components/ui/rating-stars';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface BookingDetail {
   id: string;
@@ -61,6 +62,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [cancelling, setCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const { toast, showToast, dismissToast } = useToast();
   const [review, setReview] = useState<BookingReview | null>(null);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
@@ -224,10 +226,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
         setBooking(data.booking);
         setShowCancelModal(false);
       } else {
-        alert(data.message || 'Failed to cancel booking.');
+        showToast(data.message || 'Failed to cancel booking.', 'error');
       }
     } catch {
-      alert('Error sending cancel request.');
+      showToast('Error sending cancel request.', 'error');
     } finally {
       setCancelling(false);
     }
@@ -611,6 +613,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
           </div>
         )}
       </div>
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }
