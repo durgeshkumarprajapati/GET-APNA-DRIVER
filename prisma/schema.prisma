@@ -93,6 +93,7 @@ model User {
   givenReferrals          Referral[]               @relation("ReferrerUser")
   receivedReferral        Referral?                @relation("ReferredUser")
   customerReviews         Review[]                 @relation("CustomerReviews")
+  promotionUsages         PromotionUsage[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -766,6 +767,16 @@ model Booking {
   pricingSnapshot       Json?    @map("pricing_snapshot")
   routeEstimateSnapshot Json?    @map("route_estimate_snapshot")
 
+  /// Frozen promotion terms, if any, validated and applied at booking
+  /// creation time (see promotion-eligibility-service.ts). A later change to
+  /// the Promotion row (or its deactivation) never alters these — the same
+  /// immutable-snapshot treatment as pricingSnapshot above and
+  /// Payment.commissionPercentageSnapshot.
+  promotionId           String?               @map("promotion_id") @db.Uuid
+  promotionCodeSnapshot String?               @map("promotion_code_snapshot")
+  discountType          PromotionDiscountType? @map("discount_type")
+  discountAmount        Decimal?              @map("discount_amount") @db.Decimal(12, 4)
+
   requestedStartTime       DateTime? @map("requested_start_time") @db.Timestamptz(6)
   estimatedDurationMinutes Int?      @map("estimated_duration_minutes")
   customerNotes            String?   @map("customer_notes")
@@ -791,6 +802,7 @@ model Booking {
   safetyIncidents    SafetyIncident[]        @relation("BookingSafetyIncidents")
   disputes           Dispute[]               @relation("BookingDisputes")
   review             Review?
+  promotionUsage     PromotionUsage?
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -987,6 +999,17 @@ model Payment {
   commissionPercentageSnapshot Decimal? @map("commission_percentage_snapshot") @db.Decimal(7, 4)
   commissionAmount             Decimal? @map("commission_amount") @db.Decimal(19, 4)
   driverEarningsAmount         Decimal? @map("driver_earnings_amount") @db.Decimal(19, 4)
+
+  /// Copied from the Booking's frozen promotion snapshot at payment-creation
+  /// time (never recalculated). `amount` above is already net of this
+  /// discount — it is what Razorpay actually charges. Commission and driver
+  /// earnings are calculated on the gross fare (amount + discountAmount), so
+  /// a platform-funded promotion never reduces what the driver is owed; see
+  /// capturePayment's ledger posting, which books the gap as
+  /// PROMOTION_DISCOUNT_EXPENSE.
+  promotionId           String?  @map("promotion_id") @db.Uuid
+  promotionCodeSnapshot String?  @map("promotion_code_snapshot")
+  discountAmount        Decimal? @map("discount_amount") @db.Decimal(19, 4)
 
   failureReason String?   @map("failure_reason")
   capturedAt    DateTime? @map("captured_at") @db.Timestamptz(6)
@@ -1270,6 +1293,137 @@ model Refund {
 
   @@index([paymentId, status])
   @@map("refunds")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 20: Promotions, Coupons, Offers & Growth Eligibility Engine
+//
+// Deliberately minimal: two models cover every required capability
+// (code-based and automatic promotions, date windows, global and per-user
+// usage limits, percentage/fixed discounts with a cap, minimum booking
+// value, first-ride eligibility) without a generic "PromotionRule" table —
+// the rule set is small and fixed today, so plain typed/indexed columns are
+// simpler and more query-able than a polymorphic rules blob.
+//
+// Concurrency-safe usage limits: application code takes `SELECT ... FOR
+// UPDATE` on the Promotion row inside the same transaction that creates the
+// Booking, serializing every concurrent redemption attempt for that
+// promotion (see promotion-eligibility-service.ts) — the same idiom already
+// used by outbox-dispatcher-service.ts's `FOR UPDATE SKIP LOCKED` claim
+// query. `totalUsageCount` is only ever mutated under that lock. The
+// `@@unique([bookingId])` below is the second, independent guarantee: a
+// single booking can never register two promotion usages even if
+// application logic were ever called twice for it.
+//
+// Historical immutability: Booking and Payment each freeze the promotion
+// terms that applied to them (promotionCodeSnapshot, discountType,
+// discountAmount, ...) at the moment the discount was applied/charged —
+// exactly the same pattern as Booking.pricingSnapshot and
+// Payment.commissionPercentageSnapshot. A later edit to the Promotion row
+// (e.g. an admin changing discountValue) never touches these snapshots.
+// ---------------------------------------------------------------------------
+
+enum PromotionDiscountType {
+  PERCENTAGE
+  FIXED
+
+  @@map("promotion_discount_type")
+}
+
+/// DRAFT -> ACTIVE -> PAUSED -> ACTIVE (resume) -> ARCHIVED, or ACTIVE ->
+/// ARCHIVED directly. EXPIRED is deliberately NOT a stored transition here —
+/// there is no background scheduler in this codebase to sweep promotions on
+/// their endsAt date (adding one would mean introducing a second
+/// job-scheduling mechanism alongside the transactional outbox/worker, which
+/// Phase 20 explicitly must not do). Instead "expired" is a *derived* read
+/// state: an ACTIVE promotion whose endsAt has passed is treated as
+/// unavailable wherever eligibility is evaluated, without ever mutating its
+/// stored status column. See promotion-state-machine.ts.
+enum PromotionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+
+  @@map("promotion_status")
+}
+
+model Promotion {
+  id   String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Null => an automatic promotion (e.g. first-ride) that is evaluated and
+  /// applied without the customer entering a code. Unique so a code can
+  /// unambiguously resolve to one promotion.
+  code String? @unique
+
+  name        String
+  description String?
+
+  discountType      PromotionDiscountType @map("discount_type")
+  /// Percentage points (0-100) when discountType=PERCENTAGE, or a flat
+  /// rupee amount when discountType=FIXED.
+  discountValue     Decimal  @db.Decimal(12, 4) @map("discount_value")
+  /// Caps the computed discount; only meaningful for PERCENTAGE (a FIXED
+  /// discount is already a hard amount). Null = uncapped.
+  maxDiscountAmount Decimal? @db.Decimal(12, 4) @map("max_discount_amount")
+  /// Minimum gross fare required for this promotion to apply.
+  minBookingValue   Decimal? @db.Decimal(12, 4) @map("min_booking_value")
+
+  /// Eligibility restricted to a customer with zero prior TRIP_COMPLETED
+  /// bookings (see promotion-eligibility-service.ts's isFirstRideCustomer).
+  firstRideOnly Boolean @default(false) @map("first_ride_only")
+  /// True = auto-applied to an eligible booking with no code required
+  /// (still subject to every other eligibility rule). A promotion may be
+  /// both code-based (non-null code) and NOT automatic — the normal case —
+  /// or code-less and automatic (e.g. first-ride).
+  isAutomatic   Boolean @default(false) @map("is_automatic")
+
+  status   PromotionStatus @default(DRAFT)
+  startsAt DateTime        @map("starts_at") @db.Timestamptz(6)
+  endsAt   DateTime?       @map("ends_at") @db.Timestamptz(6)
+
+  /// Null = unlimited redemptions platform-wide.
+  totalUsageLimit   Int? @map("total_usage_limit")
+  /// Authoritative running counter — mutated only inside a transaction that
+  /// holds a `FOR UPDATE` lock on this row (see module doc comment above).
+  totalUsageCount   Int  @default(0) @map("total_usage_count")
+  /// Null = unlimited redemptions per customer.
+  perUserUsageLimit Int? @default(1) @map("per_user_usage_limit")
+
+  createdBy String?  @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  usages PromotionUsage[]
+
+  @@index([status])
+  @@index([startsAt, endsAt])
+  @@map("promotions")
+}
+
+/// One redemption record per booking. The authoritative snapshot a Booking
+/// carries (promotionCodeSnapshot etc. on Booking itself) is what payment
+/// and refund logic actually reads; this row exists to enforce usage limits
+/// and to give admins a queryable redemption history per promotion.
+model PromotionUsage {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promotionId String    @map("promotion_id") @db.Uuid
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Restrict)
+  userId      String    @map("user_id") @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  bookingId   String    @unique @map("booking_id") @db.Uuid
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  discountAmount        Decimal               @db.Decimal(12, 4) @map("discount_amount")
+  /// Frozen at redemption time — a later change to the Promotion row (code,
+  /// discount type/value) never alters this historical record.
+  promotionCodeSnapshot String?               @map("promotion_code_snapshot")
+  discountTypeSnapshot  PromotionDiscountType @map("discount_type_snapshot")
+  discountValueSnapshot Decimal               @db.Decimal(12, 4) @map("discount_value_snapshot")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([promotionId, userId])
+  @@map("promotion_usages")
 }
 
 // ---------------------------------------------------------------------------

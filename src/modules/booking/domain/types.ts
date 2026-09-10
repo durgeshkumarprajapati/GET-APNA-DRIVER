@@ -24,6 +24,8 @@ export interface CreateBookingInput {
   numberOfDays?: number | null;
   hourlyPackageHours?: number | null;
   returnDate?: string | null;
+  /** Optional promotion code the customer entered/selected. Always re-validated server-side — see promotion-eligibility-service.ts. */
+  promotionCode?: string | null;
 }
 
 export interface CandidateDriverRanked {

@@ -16,14 +16,14 @@ export default function LoginPage() {
   const [authMode, setAuthMode] = useState<'otp' | 'email'>('otp');
 
   // OTP Form State
-  const [phone, setPhone] = useState('98201 44829');
-  const [otpDigits, setOtpDigits] = useState(['7', '4', '1', '9', '', '']);
+  const [phone, setPhone] = useState('');
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [resendTimer, setResendTimer] = useState(32);
   const [otpDispatched] = useState(true);
 
   // Email Form State
-  const [email, setEmail] = useState('vip.dispatch@apnadriver.in');
-  const [password, setPassword] = useState('UltraSecureFleetToken2025#');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [trustDevice, setTrustDevice] = useState(true);
 
@@ -220,11 +220,10 @@ export default function LoginPage() {
                 key={st}
                 type="button"
                 onClick={() => setTestHarnessState(st)}
-                className={`px-3 py-1 rounded text-xs font-mono uppercase tracking-wider transition-all ${
-                  testHarnessState === st
-                    ? 'bg-[#262a33] text-[#68dba9] font-bold border border-[#68dba9]/50 shadow'
-                    : 'bg-[#181c24] text-[#bccac0] hover:text-[#dfe2ee]'
-                }`}
+                className={`px-3 py-1 rounded text-xs font-mono uppercase tracking-wider transition-all ${testHarnessState === st
+                  ? 'bg-[#262a33] text-[#68dba9] font-bold border border-[#68dba9]/50 shadow'
+                  : 'bg-[#181c24] text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
               >
                 {st === 'default'
                   ? 'Normal'
@@ -348,11 +347,10 @@ export default function LoginPage() {
                     key={tab}
                     type="button"
                     onClick={() => setActiveRoleTab(tab)}
-                    className={`py-1.5 px-3 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${
-                      activeRoleTab === tab
-                        ? 'bg-[#262a33] text-[#68dba9] font-bold shadow'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                    }`}
+                    className={`py-1.5 px-3 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${activeRoleTab === tab
+                      ? 'bg-[#262a33] text-[#68dba9] font-bold shadow'
+                      : 'text-[#bccac0] hover:text-[#dfe2ee]'
+                      }`}
                   >
                     {tab === 'customer'
                       ? 'Customer'
@@ -517,22 +515,20 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setAuthMode('otp')}
-                className={`w-1/2 py-2 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${
-                  authMode === 'otp'
-                    ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
-                    : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                }`}
+                className={`w-1/2 py-2 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${authMode === 'otp'
+                  ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
+                  : 'text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
               >
                 Mobile Number + OTP
               </button>
               <button
                 type="button"
                 onClick={() => setAuthMode('email')}
-                className={`w-1/2 py-2 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${
-                  authMode === 'email'
-                    ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
-                    : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                }`}
+                className={`w-1/2 py-2 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${authMode === 'email'
+                  ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
+                  : 'text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
               >
                 Email &amp; Password
               </button>

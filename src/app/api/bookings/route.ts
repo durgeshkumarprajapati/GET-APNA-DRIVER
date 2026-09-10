@@ -5,6 +5,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { createBooking, listCustomerBookings } from '@/modules/booking/application/booking-service';
 import { DuplicateBookingIdempotencyError } from '@/modules/booking/domain/errors';
+import { AppError } from '@/shared/errors/app-error';
 
 const locationSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -24,6 +25,7 @@ const createBookingSchema = z.object({
   hourlyPackageHours: z.number().int().min(1).max(24).nullable().optional(),
   returnDate: z.string().datetime().nullable().optional(),
   idempotencyKey: z.string().trim().max(200).nullable().optional(),
+  promotionCode: z.string().trim().max(50).nullable().optional(),
 });
 
 export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
@@ -44,6 +46,7 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
         numberOfDays: parsed.numberOfDays,
         hourlyPackageHours: parsed.hourlyPackageHours,
         returnDate: parsed.returnDate,
+        promotionCode: parsed.promotionCode,
       },
       idempotencyKey,
     );
@@ -60,6 +63,12 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
       return NextResponse.json(
         { error: 'DUPLICATE_IDEMPOTENCY', message: err.message },
         { status: 409 },
+      );
+    }
+    if (err instanceof AppError) {
+      return NextResponse.json(
+        { error: err.code, message: err.message },
+        { status: err.statusCode },
       );
     }
     const message = err instanceof Error ? err.message : 'Failed to create booking.';

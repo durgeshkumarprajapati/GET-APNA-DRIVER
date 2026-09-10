@@ -11,7 +11,15 @@ import { postFinancialTransaction } from './ledger-service';
 import { applyWalletChange } from './wallet-service';
 import { validatePaymentStatusTransition } from '../../domain/payment-state-machine';
 import { LEDGER_ACCOUNT_CODES } from '../../domain/ledger-accounts';
-import { fromMinorUnits, roundMoney, toDecimal, toMinorUnits } from '../../domain/money';
+import type { LedgerPosting } from '../../domain/types';
+import {
+  ZERO,
+  fromMinorUnits,
+  isPositive,
+  roundMoney,
+  toDecimal,
+  toMinorUnits,
+} from '../../domain/money';
 import {
   BookingNotEligibleForPaymentError,
   DuplicatePaymentIdempotencyError,
@@ -46,6 +54,9 @@ export interface PaymentSummary {
   provider: string;
   commissionAmount: string | null;
   driverEarningsAmount: string | null;
+  promotionId: string | null;
+  promotionCodeSnapshot: string | null;
+  discountAmount: string | null;
   capturedAt: string | null;
   createdAt: string;
 }
@@ -63,6 +74,9 @@ function mapPaymentToSummary(payment: Payment): PaymentSummary {
     driverEarningsAmount: payment.driverEarningsAmount
       ? payment.driverEarningsAmount.toFixed(4)
       : null,
+    promotionId: payment.promotionId,
+    promotionCodeSnapshot: payment.promotionCodeSnapshot,
+    discountAmount: payment.discountAmount ? payment.discountAmount.toFixed(4) : null,
     capturedAt: payment.capturedAt ? payment.capturedAt.toISOString() : null,
     createdAt: payment.createdAt.toISOString(),
   };
@@ -129,18 +143,32 @@ export async function createPaymentForBooking(
     throw new PaymentAlreadyInProgressError(input.bookingId);
   }
 
-  const { amount } = await calculateBookingAmount(booking, db);
+  const { amount: grossAmount } = await calculateBookingAmount(booking, db);
   const currency = await getString('finance.currency', 'INR', db);
+
+  // The booking may carry a frozen promotion discount (applied and locked
+  // in at booking-creation time — see promotion-eligibility-service.ts).
+  // The customer is only ever charged the gross fare net of that discount;
+  // never recalculated here, only copied forward from the booking snapshot.
+  const discountAmount = booking.discountAmount
+    ? roundMoney(toDecimal(booking.discountAmount)).toFixed(4)
+    : null;
+  const chargeAmount = discountAmount
+    ? roundMoney(toDecimal(grossAmount).sub(toDecimal(discountAmount))).toFixed(4)
+    : grossAmount;
 
   const payment = await db.payment.create({
     data: {
       bookingId: booking.id,
       customerId: customerUserId,
       driverProfileId: booking.driverProfileId,
-      amount,
+      amount: chargeAmount,
       currency,
       status: 'CREATED',
       idempotencyKey: input.idempotencyKey ?? null,
+      promotionId: booking.promotionId,
+      promotionCodeSnapshot: booking.promotionCodeSnapshot,
+      discountAmount,
     },
   });
 
@@ -150,14 +178,14 @@ export async function createPaymentForBooking(
     entityType: 'Payment',
     entityId: payment.id,
     beforeState: null,
-    afterState: { status: payment.status, amount },
+    afterState: { status: payment.status, amount: chargeAmount },
     requestMetadata: null,
   });
 
   let providerOrderId: string;
   try {
     const order = await paymentProvider.createOrder({
-      amountMinorUnits: toMinorUnits(toDecimal(amount)),
+      amountMinorUnits: toMinorUnits(toDecimal(chargeAmount)),
       currency,
       receipt: payment.id,
       notes: { bookingId: booking.id, paymentId: payment.id },
@@ -199,7 +227,12 @@ export async function createPaymentForBooking(
       eventType: 'payment.created',
       aggregateType: 'Payment',
       aggregateId: payment.id,
-      payload: { paymentId: payment.id, bookingId: booking.id, amount, providerOrderId },
+      payload: {
+        paymentId: payment.id,
+        bookingId: booking.id,
+        amount: chargeAmount,
+        providerOrderId,
+      },
     });
 
     return result;
@@ -324,8 +357,15 @@ export async function capturePayment(
       );
     }
 
+    // Commission and driver earnings are always computed on the GROSS fare
+    // (charged amount + any promotion discount), never on the discounted
+    // amount actually charged — a platform-funded promotion must not reduce
+    // what the driver is owed. See the PROMOTION_DISCOUNT_EXPENSE posting
+    // below, which books the resulting gap.
+    const discountAmount = payment.discountAmount ? toDecimal(payment.discountAmount) : ZERO;
+    const grossAmount = roundMoney(toDecimal(payment.amount).add(discountAmount)).toFixed(4);
     const { commissionPercentage, commissionAmount, driverEarningsAmount } =
-      await calculateCommission(payment.amount.toFixed(4), tx);
+      await calculateCommission(grossAmount, tx);
 
     const capturedAt = new Date();
     const updated = await tx.payment.update({
@@ -351,6 +391,35 @@ export async function capturePayment(
       },
     });
 
+    const postings: LedgerPosting[] = [
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.PAYMENT_PROVIDER_CLEARING,
+        debitAmount: payment.amount.toFixed(4),
+        creditAmount: '0',
+      },
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.PLATFORM_REVENUE_COMMISSION,
+        debitAmount: '0',
+        creditAmount: commissionAmount,
+      },
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+        debitAmount: '0',
+        creditAmount: driverEarningsAmount,
+      },
+    ];
+    // Closes the gap between the gross fare (what commission/driver payable
+    // are computed on) and the discounted amount actually collected from
+    // the customer above — without this leg the transaction would not
+    // balance whenever a promotion discount applies.
+    if (isPositive(discountAmount)) {
+      postings.push({
+        accountCode: LEDGER_ACCOUNT_CODES.PROMOTION_DISCOUNT_EXPENSE,
+        debitAmount: discountAmount.toFixed(4),
+        creditAmount: '0',
+      });
+    }
+
     const financialTransaction = await postFinancialTransaction(
       {
         transactionType: 'PAYMENT_CAPTURED',
@@ -358,23 +427,7 @@ export async function capturePayment(
         referenceEntityId: payment.id,
         idempotencyKey: `payment_captured:${payment.id}`,
         description: `Payment captured for booking ${payment.bookingId}`,
-        postings: [
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.PAYMENT_PROVIDER_CLEARING,
-            debitAmount: payment.amount.toFixed(4),
-            creditAmount: '0',
-          },
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.PLATFORM_REVENUE_COMMISSION,
-            debitAmount: '0',
-            creditAmount: commissionAmount,
-          },
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
-            debitAmount: '0',
-            creditAmount: driverEarningsAmount,
-          },
-        ],
+        postings,
       },
       tx,
     );

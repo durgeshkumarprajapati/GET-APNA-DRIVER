@@ -490,6 +490,31 @@ export function registerNotificationEventHandlers(): void {
     },
   );
 
+  eventHandlerRegistry.register(
+    'promotion.redeemed',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      // booking-service.ts's payload carries customerId directly (it's
+      // already a User id, unlike driverProfileId elsewhere in this file) —
+      // no profile lookup needed.
+      const customerId = payload.customerId as string;
+      const discountAmount = payload.discountAmount as string | number;
+      if (!customerId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: customerId,
+          type: NotificationType.SYSTEM_COUPON,
+          title: 'Promo Code Applied',
+          body: `You saved ₹${discountAmount} on this booking.`,
+          data: payload,
+          idempotencyKey: `${event.id}-promotion-redeemed`,
+        },
+        client,
+      );
+    },
+  );
+
   // -------------------------------------------------------------------------
   // Driver Onboarding Events
   // -------------------------------------------------------------------------

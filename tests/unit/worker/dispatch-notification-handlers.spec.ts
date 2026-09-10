@@ -295,3 +295,55 @@ describe('settlement outbox notification handlers', () => {
     );
   });
 });
+
+describe('promotion outbox notification handlers', () => {
+  beforeAll(() => {
+    registerNotificationEventHandlers();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('registers the promotion.redeemed event type', () => {
+    expect(eventHandlerRegistry.hasHandler('promotion.redeemed')).toBe(true);
+  });
+
+  it('promotion.redeemed notifies the customer directly (customerId is already a User id, no profile lookup)', async () => {
+    const handler = eventHandlerRegistry.getHandler('promotion.redeemed')!;
+    await handler(
+      fakeEvent('evt-promotion-redeemed'),
+      {
+        bookingId: 'booking-1',
+        customerId: 'customer-1',
+        promotionId: 'promotion-1',
+        promotionCodeSnapshot: 'SAVE20',
+        discountAmount: '200.0000',
+      },
+      prisma as never,
+    );
+
+    expect(prisma.driverProfile.findUnique).not.toHaveBeenCalled();
+    expect(createNotification).toHaveBeenCalledTimes(1);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'customer-1',
+        type: 'SYSTEM_COUPON',
+        idempotencyKey: 'evt-promotion-redeemed-promotion-redeemed',
+        body: expect.stringContaining('200.0000'),
+      }),
+      prisma,
+    );
+  });
+
+  it('promotion.redeemed is a no-op when the payload has no customerId', async () => {
+    const handler = eventHandlerRegistry.getHandler('promotion.redeemed')!;
+    await handler(
+      fakeEvent('evt-promotion-redeemed-missing'),
+      { bookingId: 'booking-1' },
+      prisma as never,
+    );
+
+    expect(createNotification).not.toHaveBeenCalled();
+  });
+});

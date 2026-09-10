@@ -1,5 +1,5 @@
 import 'server-only';
-import type { Refund } from '@prisma/client';
+import { Prisma, type Refund } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getBoolean, getInteger } from '@/shared/config/configuration-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
@@ -10,6 +10,7 @@ import { applyWalletChange } from './wallet-service';
 import { validatePaymentStatusTransition } from '../../domain/payment-state-machine';
 import { LEDGER_ACCOUNT_CODES } from '../../domain/ledger-accounts';
 import { ZERO, isPositive, roundMoney, toDecimal, toMinorUnits } from '../../domain/money';
+import type { LedgerPosting } from '../../domain/types';
 import {
   DuplicateRefundIdempotencyError,
   InsufficientRefundableAmountError,
@@ -216,11 +217,65 @@ export async function completeRefund(
     const payment = await tx.payment.findUniqueOrThrow({ where: { id: refund.paymentId } });
 
     const refundAmount = toDecimal(refund.amount);
-    const commissionPercentage = payment.commissionPercentageSnapshot
-      ? toDecimal(payment.commissionPercentageSnapshot)
-      : ZERO;
-    const commissionReversal = roundMoney(refundAmount.mul(commissionPercentage).div(100));
-    const driverReversal = roundMoney(refundAmount.sub(commissionReversal));
+    const hasDiscount = payment.discountAmount && isPositive(toDecimal(payment.discountAmount));
+
+    let commissionReversal: Prisma.Decimal;
+    let driverReversal: Prisma.Decimal;
+    let discountReversal = ZERO;
+    const postings: LedgerPosting[] = [];
+
+    if (!hasDiscount) {
+      // No promotion on this payment: unchanged from the original formula.
+      const commissionPercentage = payment.commissionPercentageSnapshot
+        ? toDecimal(payment.commissionPercentageSnapshot)
+        : ZERO;
+      commissionReversal = roundMoney(refundAmount.mul(commissionPercentage).div(100));
+      driverReversal = roundMoney(refundAmount.sub(commissionReversal));
+    } else {
+      // A discounted payment: `refundAmount` is a fraction of the amount
+      // actually charged (payment.amount), which is smaller than the gross
+      // fare that commission/driverEarnings were computed on at capture. So
+      // the commission and discount-expense reversals must be scaled by
+      // that same fraction of the *captured* amounts, and driverReversal
+      // absorbs whatever remainder balances the transaction exactly (the
+      // same "remainder absorbs rounding" convention calculateCommission
+      // already uses at capture time) — reversing a fixed percentage of
+      // refundAmount alone (the no-discount formula) would not balance,
+      // since payment.amount + payment.discountAmount = grossAmount, not
+      // payment.amount alone.
+      const capturedAmount = toDecimal(payment.amount);
+      const capturedCommission = toDecimal(payment.commissionAmount ?? '0');
+      const capturedDiscount = toDecimal(payment.discountAmount ?? '0');
+      const refundRatio = capturedAmount.isZero() ? ZERO : refundAmount.div(capturedAmount);
+
+      commissionReversal = roundMoney(capturedCommission.mul(refundRatio));
+      discountReversal = roundMoney(capturedDiscount.mul(refundRatio));
+      driverReversal = roundMoney(refundAmount.add(discountReversal).sub(commissionReversal));
+
+      postings.push({
+        accountCode: LEDGER_ACCOUNT_CODES.PROMOTION_DISCOUNT_EXPENSE,
+        debitAmount: '0',
+        creditAmount: discountReversal.toFixed(4),
+      });
+    }
+
+    postings.push(
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.PLATFORM_REVENUE_COMMISSION,
+        debitAmount: commissionReversal.toFixed(4),
+        creditAmount: '0',
+      },
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+        debitAmount: driverReversal.toFixed(4),
+        creditAmount: '0',
+      },
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.PAYMENT_PROVIDER_CLEARING,
+        debitAmount: '0',
+        creditAmount: refundAmount.toFixed(4),
+      },
+    );
 
     const financialTransaction = await postFinancialTransaction(
       {
@@ -229,23 +284,7 @@ export async function completeRefund(
         referenceEntityId: refund.id,
         idempotencyKey: `refund_processed:${refund.id}`,
         description: `Refund processed for payment ${payment.id}`,
-        postings: [
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.PLATFORM_REVENUE_COMMISSION,
-            debitAmount: commissionReversal.toFixed(4),
-            creditAmount: '0',
-          },
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
-            debitAmount: driverReversal.toFixed(4),
-            creditAmount: '0',
-          },
-          {
-            accountCode: LEDGER_ACCOUNT_CODES.PAYMENT_PROVIDER_CLEARING,
-            debitAmount: '0',
-            creditAmount: refundAmount.toFixed(4),
-          },
-        ],
+        postings,
       },
       tx,
     );

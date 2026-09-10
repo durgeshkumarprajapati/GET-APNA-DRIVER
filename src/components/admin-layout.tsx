@@ -101,6 +101,17 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       ],
     },
     {
+      label: 'Growth',
+      items: [
+        { href: '/admin/coupons', label: 'Coupons & Promotions', icon: 'confirmation_number' },
+        {
+          href: '/admin/referral-engines',
+          label: 'Referral Engines',
+          icon: 'featured_seasonal_and_gifts',
+        },
+      ],
+    },
+    {
       label: 'Finance & Audit',
       items: [
         { href: '/admin/payments', label: 'Payments', icon: 'credit_card' },

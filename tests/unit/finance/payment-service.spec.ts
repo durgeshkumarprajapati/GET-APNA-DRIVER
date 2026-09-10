@@ -52,6 +52,8 @@ import {
 } from '@/modules/finance/application/services/payment-service';
 import { prisma } from '@/shared/database/prisma';
 import { paymentProvider } from '@/modules/finance/infrastructure/payment-provider';
+import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
+import { calculateCommission } from '@/modules/finance/application/services/pricing-service';
 import {
   BookingNotEligibleForPaymentError,
   PaymentAlreadyInProgressError,
@@ -162,6 +164,54 @@ describe('createPaymentForBooking', () => {
     expect(result.providerOrderId).toBe('order_new');
     expect(result.razorpayKeyId).toBeNull(); // no RAZORPAY_KEY_ID configured in the test environment
   });
+
+  it("charges only the gross fare net of the booking's frozen promotion discount", async () => {
+    mockedPrisma.payment.findUnique.mockResolvedValue(null);
+    mockedPrisma.booking.findUnique.mockResolvedValue({
+      id: 'booking-1',
+      customerId: 'customer-1',
+      status: 'TRIP_COMPLETED',
+      driverProfileId: 'driver-1',
+      estimatedDurationMinutes: 30,
+      // calculateBookingAmount is mocked to always return amount: '150.0000' (gross).
+      promotionId: 'promotion-1',
+      promotionCodeSnapshot: 'SAVE30',
+      discountAmount: new Prisma.Decimal('30.0000'),
+    });
+    mockedPrisma.payment.findFirst.mockResolvedValue(null);
+    mockedPrisma.payment.create.mockResolvedValue({
+      id: 'payment-1',
+      provider: 'razorpay',
+      amount: new Prisma.Decimal('120.0000'),
+      currency: 'INR',
+    });
+    (paymentProvider.createOrder as jest.Mock).mockResolvedValue({
+      providerOrderId: 'order_new',
+      status: 'created',
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-1',
+      providerOrderId: 'order_new',
+      amount: new Prisma.Decimal('120.0000'),
+      currency: 'INR',
+    });
+    mockTx.paymentAttempt.create.mockResolvedValue({ id: 'attempt-1' });
+
+    await createPaymentForBooking('customer-1', { bookingId: 'booking-1' });
+
+    expect(mockedPrisma.payment.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        amount: '120.0000',
+        discountAmount: '30.0000',
+        promotionId: 'promotion-1',
+        promotionCodeSnapshot: 'SAVE30',
+      }),
+    });
+    // Razorpay is only ever asked to collect the discounted charge amount.
+    expect(paymentProvider.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ amountMinorUnits: 12000 }),
+    );
+  });
 });
 
 describe('capturePayment', () => {
@@ -221,6 +271,98 @@ describe('capturePayment', () => {
         source: 'webhook',
       }),
     ).rejects.toThrow(PaymentNotFoundError);
+  });
+
+  it('computes commission on the gross fare (charged amount + discount) and books the gap as a promotion discount expense', async () => {
+    mockTx.payment.findUnique.mockResolvedValue({
+      id: 'payment-1',
+      status: 'PROCESSING',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('120.0000'), // charged (net of discount)
+      discountAmount: new Prisma.Decimal('30.0000'),
+      currency: 'INR',
+      provider: 'razorpay',
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-1',
+      status: 'CAPTURED',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('120.0000'),
+      currency: 'INR',
+      provider: 'razorpay',
+      commissionAmount: new Prisma.Decimal('30.0000'),
+      driverEarningsAmount: new Prisma.Decimal('120.0000'),
+      capturedAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await capturePayment({
+      paymentId: 'payment-1',
+      providerPaymentId: 'pay_1',
+      amountMinorUnits: 12000, // matches payment.amount (120.00)
+      source: 'client_verify',
+    });
+
+    // Gross = 120 (charged) + 30 (discount) = 150 — never the charged amount alone.
+    expect(calculateCommission).toHaveBeenCalledWith('150.0000', expect.anything());
+    expect(postFinancialTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postings: expect.arrayContaining([
+          expect.objectContaining({
+            accountCode: 'PROMOTION_DISCOUNT_EXPENSE',
+            debitAmount: '30.0000',
+            creditAmount: '0',
+          }),
+        ]),
+      }),
+      expect.anything(),
+    );
+  });
+
+  it('never adds a PROMOTION_DISCOUNT_EXPENSE leg for a payment with no discount', async () => {
+    mockTx.payment.findUnique.mockResolvedValue({
+      id: 'payment-1',
+      status: 'PROCESSING',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('150.0000'),
+      discountAmount: null,
+      currency: 'INR',
+      provider: 'razorpay',
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-1',
+      status: 'CAPTURED',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('150.0000'),
+      currency: 'INR',
+      provider: 'razorpay',
+      commissionAmount: new Prisma.Decimal('30.0000'),
+      driverEarningsAmount: new Prisma.Decimal('120.0000'),
+      capturedAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await capturePayment({
+      paymentId: 'payment-1',
+      providerPaymentId: 'pay_1',
+      amountMinorUnits: 15000,
+      source: 'client_verify',
+    });
+
+    expect(calculateCommission).toHaveBeenCalledWith('150.0000', expect.anything());
+    const call = (postFinancialTransaction as jest.Mock).mock.calls[0][0];
+    expect(call.postings).toHaveLength(3);
+    expect(
+      call.postings.some(
+        (p: { accountCode: string }) => p.accountCode === 'PROMOTION_DISCOUNT_EXPENSE',
+      ),
+    ).toBe(false);
   });
 });
 

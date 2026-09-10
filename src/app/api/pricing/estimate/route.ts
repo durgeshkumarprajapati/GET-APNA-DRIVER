@@ -4,6 +4,7 @@ import { BookingType } from '@prisma/client';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calculation-service';
+import { evaluateEligiblePromotions } from '@/modules/promotion/application/services/promotion-eligibility-service';
 
 const coordinatesSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -19,7 +20,7 @@ const estimateSchema = z.object({
   hourlyPackageHours: z.number().int().min(1).max(24).nullable().optional(),
 });
 
-export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req) => {
+export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
   try {
     const body = await req.json();
     const parsed = estimateSchema.parse(body);
@@ -33,7 +34,15 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req) => {
       hourlyPackageHours: parsed.hourlyPackageHours,
     });
 
-    return NextResponse.json({ estimate }, { status: 200 });
+    // Advisory only — the booking-creation flow re-validates and re-computes
+    // the discount from scratch server-side; nothing here is ever trusted
+    // back from the client.
+    const eligiblePromotions = await evaluateEligiblePromotions(
+      principal.userId,
+      estimate.breakdown.totalFareAmount,
+    );
+
+    return NextResponse.json({ estimate, eligiblePromotions }, { status: 200 });
   } catch (err: unknown) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(

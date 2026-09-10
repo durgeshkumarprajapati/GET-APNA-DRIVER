@@ -15,6 +15,7 @@ export const LEDGER_ACCOUNT_CODES = {
   SETTLEMENT_CLEARING: 'SETTLEMENT_CLEARING',
   PLATFORM_BANK_ACCOUNT: 'PLATFORM_BANK_ACCOUNT',
   MARKETING_REFERRAL_EXPENSE: 'MARKETING_REFERRAL_EXPENSE',
+  PROMOTION_DISCOUNT_EXPENSE: 'PROMOTION_DISCOUNT_EXPENSE',
 } as const;
 
 export type LedgerAccountCode = (typeof LEDGER_ACCOUNT_CODES)[keyof typeof LEDGER_ACCOUNT_CODES];
@@ -67,6 +68,13 @@ export const LEDGER_ACCOUNT_CATALOG: readonly LedgerAccountSeedDefinition[] = [
     name: 'Marketing & Referral Expense',
     description:
       'Platform promotional expenses for customer and driver referral milestone rewards. Debited when referral rewards are granted.',
+    normalBalance: 'DEBIT',
+  },
+  {
+    code: LEDGER_ACCOUNT_CODES.PROMOTION_DISCOUNT_EXPENSE,
+    name: 'Promotion & Coupon Discount Expense',
+    description:
+      "The gap between a booking's gross fare and what the customer actually pays after a promotion/coupon discount. Debited at payment capture so commission and driver payable are still computed on the gross fare (the platform funds the discount, not the driver); reversed proportionally on refund.",
     normalBalance: 'DEBIT',
   },
 ];
