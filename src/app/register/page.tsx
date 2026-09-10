@@ -10,10 +10,11 @@ function RegisterFormContent() {
   const searchParams = useSearchParams();
 
   // Role Selection ('customer' | 'driver')
-  const [selectedRole, setSelectedRole] = useState<'customer' | 'driver'>(() => {
-    const roleParam = searchParams.get('role');
-    return roleParam === 'driver' || roleParam === 'pilot' ? 'driver' : 'customer';
-  });
+  const roleParam = searchParams.get('role');
+  const urlRole = roleParam === 'driver' || roleParam === 'pilot' ? 'driver' : roleParam === 'customer' ? 'customer' : null;
+  const [overrideRole, setOverrideRole] = useState<'customer' | 'driver' | null>(null);
+  const selectedRole = overrideRole ?? urlRole ?? 'customer';
+  const setSelectedRole = (role: 'customer' | 'driver') => setOverrideRole(role);
 
   // Form State
   const [firstName, setFirstName] = useState('');
