@@ -1,5 +1,5 @@
 import 'server-only';
-import type { User, UserIdentity, UserSession } from '@prisma/client';
+import { Prisma, type User, type UserIdentity, type UserSession } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
@@ -428,108 +428,156 @@ export async function verifyPhoneOtp(
   };
 }
 
+export interface GoogleProfileHint {
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+}
+
+export interface GoogleOAuthCallbackResult extends AuthSessionResponse {
+  /** True only for a brand-new identity that has no role yet — the caller uses this to know whether to route to role selection. */
+  isNewIdentity: boolean;
+  /**
+   * Google-supplied name/picture for a brand-new identity, to prefill the
+   * role-specific profile once a role is chosen. Null for an
+   * existing/linked identity — Google authentication must never overwrite
+   * a profile the user already owns and may have edited (see
+   * role-selection-service.ts and profile-completion-service.ts).
+   */
+  profileHint: GoogleProfileHint | null;
+}
+
 /**
- * Handles Google OAuth callback code exchange and safe identity resolution/linking.
+ * Handles Google OAuth callback code exchange and safe identity
+ * resolution/linking. Never assigns a role — a brand-new identity is left
+ * roleless (see `isNewIdentity`/`profileHint` on the result); the caller
+ * (the callback route, via dashboard-redirect-service.ts) is responsible
+ * for routing a roleless session to explicit role selection. This is what
+ * prevents every Google sign-in from being silently defaulted to CUSTOMER.
  */
 export async function handleGoogleOAuthCallback(
   code: string,
   requestMetadata?: { ipAddress?: string | null; userAgent?: string | null },
-): Promise<AuthSessionResponse> {
+): Promise<GoogleOAuthCallbackResult> {
   const profile = await exchangeGoogleCodeForProfile(code);
+  const normalizedEmail = profile.email ? normalizeEmail(profile.email) : null;
 
-  const { user, identity } = await prisma.$transaction(async (tx: Db) => {
-    // 1. Check if OAuth identity already exists
-    const existingGoogleIdentity = await userRepository.findIdentityWithUser(
-      tx,
-      'google',
-      profile.sub,
-    );
+  const runResolution = () =>
+    prisma.$transaction(async (tx: Db) => {
+      // 1. Already-linked Google identity — the common, fast path.
+      const existingGoogleIdentity = await userRepository.findIdentityWithUser(
+        tx,
+        'google',
+        profile.sub,
+      );
 
-    let targetUser: User;
-    let targetIdentity: UserIdentity;
+      let targetUser: User;
+      let targetIdentity: UserIdentity;
+      let isNewIdentity: boolean;
 
-    if (existingGoogleIdentity) {
-      targetUser = existingGoogleIdentity.user;
-      targetIdentity = existingGoogleIdentity;
-    } else {
-      // 2. Safe identity linking: check if verified Google email matches existing email identity
-      const normalizedEmail = profile.email ? normalizeEmail(profile.email) : null;
-      let existingAccountToLink: User | null = null;
-
-      if (normalizedEmail && profile.emailVerified) {
-        const existingEmailIdentity = await userRepository.findIdentityByEmail(tx, normalizedEmail);
-        if (existingEmailIdentity) {
-          existingAccountToLink = existingEmailIdentity.user;
-        }
-      }
-
-      if (existingAccountToLink) {
-        // Link Google identity to existing user account
-        targetIdentity = await userRepository.addUserIdentityToUser(
-          tx,
-          existingAccountToLink.id,
-          {
-            providerType: 'OAUTH',
-            providerName: 'google',
-            providerSubject: profile.sub,
-            email: normalizedEmail,
-            phoneNumber: null,
-          },
-          profile.emailVerified ? new Date() : null,
-        );
-        targetUser = existingAccountToLink;
+      if (existingGoogleIdentity) {
+        targetUser = existingGoogleIdentity.user;
+        targetIdentity = existingGoogleIdentity;
+        isNewIdentity = false;
       } else {
-        // Create brand new User + Google identity
-        const { user: newUser, identity: newIdentity } =
-          await userRepository.createUserWithIdentity(tx, {
-            providerType: 'OAUTH',
-            providerName: 'google',
-            providerSubject: profile.sub,
-            email: normalizedEmail,
-            phoneNumber: null,
-          });
-
-        if (profile.emailVerified) {
-          await userRepository.markIdentityVerified(tx, newIdentity.id);
+        // 2. Safe identity linking: a verified Google email matching an
+        // existing identity's email is treated as proof of ownership — the
+        // same trust boundary UserIdentity.email's own schema doc comment
+        // documents this table exists to support (never linking on an
+        // unverified email).
+        let existingAccountToLink: User | null = null;
+        if (normalizedEmail && profile.emailVerified) {
+          const existingEmailIdentity = await userRepository.findIdentityByEmail(
+            tx,
+            normalizedEmail,
+          );
+          if (existingEmailIdentity) {
+            existingAccountToLink = existingEmailIdentity.user;
+          }
         }
 
-        const customerRole = await rbacRepository.findRoleByCode(tx, SYSTEM_ROLE_CODES.CUSTOMER);
-        if (customerRole) {
-          await rbacRepository.upsertRoleAssignment(tx, {
-            userId: newUser.id,
-            roleId: customerRole.id,
-            assignedBy: null,
-          });
+        if (existingAccountToLink) {
+          // Link a new Google identity row to the existing user.
+          // Deliberately NOT storing `email` on this row: the pre-existing
+          // identity row already owns that unique email value
+          // (@@unique([email]) on UserIdentity) — duplicating it here
+          // would violate that constraint on every single linking attempt.
+          targetIdentity = await userRepository.addUserIdentityToUser(
+            tx,
+            existingAccountToLink.id,
+            {
+              providerType: 'OAUTH',
+              providerName: 'google',
+              providerSubject: profile.sub,
+              email: null,
+              phoneNumber: null,
+            },
+            profile.emailVerified ? new Date() : null,
+          );
+          targetUser = existingAccountToLink;
+          isNewIdentity = false;
+        } else {
+          // 3. Brand-new identity. No role assignment here — see the
+          // function doc comment above.
+          const { user: newUser, identity: newIdentity } =
+            await userRepository.createUserWithIdentity(tx, {
+              providerType: 'OAUTH',
+              providerName: 'google',
+              providerSubject: profile.sub,
+              email: normalizedEmail,
+              phoneNumber: null,
+            });
+          if (profile.emailVerified) {
+            await userRepository.markIdentityVerified(tx, newIdentity.id);
+          }
+          targetUser = newUser;
+          targetIdentity = newIdentity;
+          isNewIdentity = true;
         }
-
-        targetUser = newUser;
-        targetIdentity = newIdentity;
       }
-    }
 
-    if (['SUSPENDED', 'DEACTIVATED', 'DELETED'].includes(targetUser.accountStatus)) {
-      throw new AccountNotActiveError(targetUser.accountStatus);
-    }
+      if (['SUSPENDED', 'DEACTIVATED', 'DELETED'].includes(targetUser.accountStatus)) {
+        throw new AccountNotActiveError(targetUser.accountStatus);
+      }
 
-    await recordAuditLog(tx, {
-      actorUserId: targetUser.id,
-      action: 'identity.google_oauth_success',
-      entityType: 'User',
-      entityId: targetUser.id,
-      beforeState: null,
-      afterState: { googleSub: profile.sub, email: profile.email },
-      requestMetadata: requestMetadata ? { ...requestMetadata } : null,
+      await recordAuditLog(tx, {
+        actorUserId: targetUser.id,
+        action: 'identity.google_oauth_success',
+        entityType: 'User',
+        entityId: targetUser.id,
+        beforeState: null,
+        afterState: { googleSub: profile.sub, email: profile.email, isNewIdentity },
+        requestMetadata: requestMetadata ? { ...requestMetadata } : null,
+      });
+
+      await insertOutboxEvent(tx, {
+        eventType: 'identity.google_oauth_success',
+        aggregateType: 'User',
+        aggregateId: targetUser.id,
+        payload: { userId: targetUser.id, googleSub: profile.sub, isNewIdentity },
+      });
+
+      return { user: targetUser, identity: targetIdentity, isNewIdentity };
     });
 
-    await insertOutboxEvent(tx, {
-      eventType: 'identity.google_oauth_success',
-      aggregateType: 'User',
-      aggregateId: targetUser.id,
-      payload: { userId: targetUser.id, googleSub: profile.sub },
-    });
+  // Two concurrent callbacks for the same brand-new Google subject race on
+  // the (providerName, providerSubject) unique constraint — the loser's
+  // transaction fails with P2002 instead of silently creating a duplicate
+  // User. Retrying resolution once picks up the winner's row via the
+  // "already-linked" branch above, exactly like the concurrent-insert
+  // pattern in user-service.ts.
+  let result: { user: User; identity: UserIdentity; isNewIdentity: boolean };
+  try {
+    result = await runResolution();
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      result = await runResolution();
+    } else {
+      throw err;
+    }
+  }
 
-    return { user: targetUser, identity: targetIdentity };
-  });
+  const { user, identity, isNewIdentity } = result;
 
   const sessionResult = await createSessionForUser(user.id, requestMetadata);
 
@@ -538,6 +586,14 @@ export async function handleGoogleOAuthCallback(
     identity,
     session: sessionResult.session,
     rawSessionToken: sessionResult.rawToken,
+    isNewIdentity,
+    profileHint: isNewIdentity
+      ? {
+          firstName: profile.givenName ?? profile.name?.split(/\s+/)[0] ?? null,
+          lastName: profile.familyName ?? (profile.name?.split(/\s+/).slice(1).join(' ') || null),
+          avatarUrl: profile.picture ?? null,
+        }
+      : null,
   };
 }
 

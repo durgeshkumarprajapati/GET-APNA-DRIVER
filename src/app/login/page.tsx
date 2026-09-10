@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { isValidIndianMobile } from '@/shared/validation/auth-form-validation';
+import { useToast, ToastViewport } from '@/components/ui/toast';
+
+const GOOGLE_OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  google_not_configured:
+    'Google sign-in is not available right now. Please try mobile or email login.',
+  google_invalid_callback: 'Google sign-in was interrupted. Please try again.',
+  google_auth_failed: 'Google sign-in failed. Please try again, or use mobile or email login.',
+};
 export default function LoginPage() {
   // Test Harness State
   const [testHarnessState, setTestHarnessState] = useState<
@@ -44,6 +52,36 @@ export default function LoginPage() {
   // General Loading & Error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Google OAuth
+  const [connectingToGoogle, setConnectingToGoogle] = useState(false);
+  const { toast, showToast, dismissToast } = useToast();
+
+  // Surface a Google sign-in failure the callback route redirected back
+  // with (?error=...) as a toast, instead of a raw query string sitting in
+  // the address bar with no explanation.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('error');
+    if (oauthError) {
+      showToast(
+        GOOGLE_OAUTH_ERROR_MESSAGES[oauthError] ?? 'Google sign-in failed. Please try again.',
+        'error',
+      );
+      params.delete('error');
+      params.delete('reason');
+      const cleanUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGoogleLogin = () => {
+    if (connectingToGoogle) return;
+    setConnectingToGoogle(true);
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.href = '/api/auth/google';
+  };
 
   // OTP expiry countdown — driven by the server's `expiresAt`, never a
   // client-invented duration. This timer is a visual aid only; the backend
@@ -859,30 +897,36 @@ export default function LoginPage() {
             </div>
 
             {/* Google Workspace Button */}
-            <a
-              href="/api/auth/google"
-              className="w-full py-2.5 px-4 bg-[#0a0e16] hover:bg-[#262a33] rounded-lg font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33]"
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={connectingToGoogle}
+              className="w-full min-h-[48px] py-2.5 px-4 bg-[#0a0e16] hover:bg-[#262a33] disabled:opacity-60 disabled:cursor-not-allowed rounded-lg font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33]"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  fill="#4285F4"
-                ></path>
-                <path
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                  fill="#34A853"
-                ></path>
-                <path
-                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  fill="#FBBC05"
-                ></path>
-                <path
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  fill="#EA4335"
-                ></path>
-              </svg>
-              <span>Continue with Google Workspace</span>
-            </a>
+              {connectingToGoogle ? (
+                <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#dfe2ee] border-t-transparent" />
+              ) : (
+                <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                    fill="#4285F4"
+                  ></path>
+                  <path
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                    fill="#34A853"
+                  ></path>
+                  <path
+                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                    fill="#FBBC05"
+                  ></path>
+                  <path
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                    fill="#EA4335"
+                  ></path>
+                </svg>
+              )}
+              <span>{connectingToGoogle ? 'Connecting to Google…' : 'Continue with Google'}</span>
+            </button>
 
             {/* Register Link */}
             <div className="mt-6 pt-3 text-center bg-[#0a0e16]/50 p-2.5 rounded-lg border border-[#262a33]">
@@ -1021,6 +1065,7 @@ export default function LoginPage() {
           </div>
         </div>
       </footer>
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </div>
   );
 }

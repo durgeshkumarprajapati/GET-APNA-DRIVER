@@ -6,6 +6,7 @@ import { DriverLayout } from '@/components/driver-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface DriverProfile {
   firstName: string | null;
@@ -92,6 +93,24 @@ export default function DriverOnboardingPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { toast, showToast, dismissToast } = useToast();
+
+  // Arriving here right after login with onboarding incomplete (e.g. a
+  // brand-new Google sign-in that selected Driver) — see
+  // src/app/page.tsx's redirect. A one-time notice, not a persistent banner.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('profileIncomplete') === '1') {
+      showToast(
+        'Your driver profile is not complete. Please complete your information before continuing.',
+        'info',
+      );
+      params.delete('profileIncomplete');
+      const cleanUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -478,6 +497,7 @@ export default function DriverOnboardingPage() {
           </div>
         )}
       </div>
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </DriverLayout>
   );
 }

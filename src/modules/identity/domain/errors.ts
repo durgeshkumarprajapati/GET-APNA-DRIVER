@@ -136,3 +136,55 @@ export class InvalidPasswordPolicyError extends AppError {
     super(`Password policy check failed: ${issues.join('; ')}`, 422, 'IDENTITY_INVALID_PASSWORD');
   }
 }
+
+/**
+ * Selecting CUSTOMER/DRIVER is only meaningful for a session that has no
+ * role yet — this is the tamper/replay guard for /api/auth/role-selection:
+ * once a role exists (assigned at registration, or by a prior selection),
+ * re-submitting a different role is always rejected, never silently
+ * applied. This is also what makes role selection impossible to use for
+ * privilege escalation on an already-provisioned account.
+ */
+export class RoleAlreadyAssignedError extends AppError {
+  constructor() {
+    super(
+      'A role has already been assigned to this account',
+      409,
+      'IDENTITY_ROLE_ALREADY_ASSIGNED',
+    );
+  }
+}
+
+/**
+ * Thrown for any role value other than CUSTOMER or DRIVER — in particular,
+ * this is what guarantees a client can never self-assign ADMINISTRATOR
+ * through this endpoint. Zod at the route layer already narrows the type;
+ * this is the defense-in-depth service-layer check.
+ */
+export class InvalidRoleSelectionError extends AppError {
+  constructor(role: string) {
+    super(`"${role}" is not a selectable role`, 400, 'IDENTITY_INVALID_ROLE_SELECTION');
+  }
+}
+
+export class GoogleOAuthStateMismatchError extends AppError {
+  constructor() {
+    super('OAuth state is missing, expired, or does not match', 400, 'GOOGLE_OAUTH_STATE_MISMATCH');
+  }
+}
+
+export class GoogleOAuthNotConfiguredError extends AppError {
+  constructor() {
+    super(
+      'Google sign-in is not configured in this environment',
+      503,
+      'GOOGLE_OAUTH_NOT_CONFIGURED',
+    );
+  }
+}
+
+export class GoogleOAuthExchangeFailedError extends AppError {
+  constructor(reason: string) {
+    super(`Google sign-in failed: ${reason}`, 502, 'GOOGLE_OAUTH_EXCHANGE_FAILED');
+  }
+}
