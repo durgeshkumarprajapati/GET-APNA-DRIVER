@@ -38,7 +38,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Rewards & Finance',
     items: [
-      { href: '/payments', label: 'Payments', icon: 'account_balance_wallet' },
+      { href: '/customer/wallet', label: 'Wallet', icon: 'account_balance_wallet' },
       { href: '/customer/offers', label: 'Offers & Coupons', icon: 'confirmation_number' },
       {
         href: '/customer/referral',
