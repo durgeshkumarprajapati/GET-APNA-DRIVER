@@ -5,6 +5,7 @@ import { env } from '@/shared/config/env';
 import { prisma } from '@/shared/database/prisma';
 import { getPrincipalFromSessionToken } from '@/modules/identity/application/services/principal-service';
 import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
+import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import { DriverLayout } from '@/components/driver-layout';
 
 export default async function DriverSectionLayout({ children }: { children: ReactNode }) {
@@ -12,11 +13,14 @@ export default async function DriverSectionLayout({ children }: { children: Reac
   const token = cookieStore.get(env.AUTH_SESSION_COOKIE_NAME)?.value;
   const principal = token ? await getPrincipalFromSessionToken(token) : null;
 
-  // Not role-gated to DRIVER here: /driver/onboarding must stay reachable by
-  // an authenticated user who has not been granted the DRIVER role yet (its
-  // API route only requires `withAuth`). Each driver-only endpoint enforces
-  // its own role/permission server-side.
-  if (!principal) {
+  // Role-gated to DRIVER, matching src/app/customer/layout.tsx and
+  // src/app/admin/layout.tsx. Every path that can reach /driver/onboarding
+  // (self-registration, Google role selection, admin role assignment)
+  // assigns the DRIVER role BEFORE ever redirecting here — there is no
+  // legitimate "authenticated but roleless" driver-portal visitor, so a
+  // plain auth-only check previously left this whole segment reachable by
+  // any authenticated Customer.
+  if (!principal || !principal.roles.includes(SYSTEM_ROLE_CODES.DRIVER)) {
     redirect('/login');
   }
 

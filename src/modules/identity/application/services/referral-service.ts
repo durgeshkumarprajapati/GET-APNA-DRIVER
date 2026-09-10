@@ -1,5 +1,6 @@
 import 'server-only';
 import {
+  Prisma,
   ReferralStatus,
   FinancialTransactionType,
   WalletChangeType,
@@ -152,20 +153,47 @@ export async function evaluateAndQualifyReferral(
     : null;
 
   const updatedReferral = await db.$transaction(async (tx) => {
-    const updated = await tx.referral.update({
-      where: { id: referral.id },
-      data: {
-        status: ReferralStatus.REWARDED,
-        rewardAmount,
-        qualifiedAt: now,
-        rewardedAt: now,
-      },
-    });
+    // Guard the PENDING -> REWARDED transition in the `where` clause itself
+    // (not just the pre-check read above) so two concurrent calls for the
+    // same referral can't both "win": Prisma's update() throws P2025 when
+    // 0 rows match, which the catch below treats as "already handled by a
+    // concurrent call" rather than an error. This is belt-and-suspenders —
+    // postFinancialTransaction's per-referral idempotencyKey already
+    // prevents a double financial posting even without this guard — but it
+    // also stops the Referral row itself from being redundantly rewritten
+    // under a race.
+    let updated: Referral;
+    try {
+      updated = await tx.referral.update({
+        where: { id: referral.id, status: ReferralStatus.PENDING },
+        data: {
+          status: ReferralStatus.REWARDED,
+          rewardAmount,
+          qualifiedAt: now,
+          rewardedAt: now,
+        },
+      });
+    } catch (error: unknown) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        return null;
+      }
+      throw error;
+    }
 
-    // Financial recognition via double-entry ledger
+    // Money owed to a DRIVER referrer is booked to DRIVER_PAYABLE (as
+    // before, unchanged); money owed to a plain CUSTOMER referrer — who has
+    // no DriverWallet to hold it — is booked to the dedicated
+    // CUSTOMER_PAYABLE account instead of being incorrectly parked in
+    // DRIVER_PAYABLE with no owner. Either way this is now a real,
+    // correctly-labeled REFERRAL_REWARD posting, not a reused
+    // PAYMENT_CAPTURED transaction.
+    const payableAccountCode = referrerDriverProfile
+      ? LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE
+      : LEDGER_ACCOUNT_CODES.CUSTOMER_PAYABLE;
+
     const rewardTransaction = await postFinancialTransaction(
       {
-        transactionType: FinancialTransactionType.PAYMENT_CAPTURED,
+        transactionType: FinancialTransactionType.REFERRAL_REWARD,
         referenceEntityType: 'Referral',
         referenceEntityId: referral.id,
         idempotencyKey: `ref-reward-${referral.id}`,
@@ -177,7 +205,7 @@ export async function evaluateAndQualifyReferral(
             creditAmount: '0.0000',
           },
           {
-            accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+            accountCode: payableAccountCode,
             debitAmount: '0.0000',
             creditAmount: rewardAmountStr,
           },

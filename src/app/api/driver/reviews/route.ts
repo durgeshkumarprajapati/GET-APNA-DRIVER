@@ -1,11 +1,14 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
-import { withPermission } from '@/modules/identity/authorization/route-guard';
-import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
+import { withRole } from '@/modules/identity/authorization/route-guard';
+import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { listDriverReviews } from '@/modules/review/application/review-service';
 
-export const GET = withPermission(PERMISSIONS.REVIEWS_READ, async (req, { principal }) => {
+// REVIEWS_READ is shared with CUSTOMER (for /customer/reviews), so it cannot
+// gate this driver-only endpoint — role-gated instead, matching
+// /api/driver/portfolio.
+export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal }) => {
   const profile = await getOrCreateDriverProfile(principal.userId);
 
   const searchParams = req.nextUrl.searchParams;

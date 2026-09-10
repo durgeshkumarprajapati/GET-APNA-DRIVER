@@ -16,6 +16,7 @@ export const LEDGER_ACCOUNT_CODES = {
   PLATFORM_BANK_ACCOUNT: 'PLATFORM_BANK_ACCOUNT',
   MARKETING_REFERRAL_EXPENSE: 'MARKETING_REFERRAL_EXPENSE',
   PROMOTION_DISCOUNT_EXPENSE: 'PROMOTION_DISCOUNT_EXPENSE',
+  CUSTOMER_PAYABLE: 'CUSTOMER_PAYABLE',
 } as const;
 
 export type LedgerAccountCode = (typeof LEDGER_ACCOUNT_CODES)[keyof typeof LEDGER_ACCOUNT_CODES];
@@ -76,5 +77,12 @@ export const LEDGER_ACCOUNT_CATALOG: readonly LedgerAccountSeedDefinition[] = [
     description:
       "The gap between a booking's gross fare and what the customer actually pays after a promotion/coupon discount. Debited at payment capture so commission and driver payable are still computed on the gross fare (the platform funds the discount, not the driver); reversed proportionally on refund.",
     normalBalance: 'DEBIT',
+  },
+  {
+    code: LEDGER_ACCOUNT_CODES.CUSTOMER_PAYABLE,
+    name: 'Customer Payable',
+    description:
+      'What the platform owes a customer directly — currently only customer-referrer referral rewards, since customers have no prepaid/stored-value balance. Credited when a customer-referrer reward is granted. Distinct from DRIVER_PAYABLE, which only ever represents money owed to drivers.',
+    normalBalance: 'CREDIT',
   },
 ];

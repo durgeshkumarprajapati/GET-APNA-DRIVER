@@ -933,6 +933,7 @@ enum FinancialTransactionType {
   SETTLEMENT_CREATED
   SETTLEMENT_PAID
   SETTLEMENT_REVERSED
+  REFERRAL_REWARD
 
   @@map("financial_transaction_type")
 }

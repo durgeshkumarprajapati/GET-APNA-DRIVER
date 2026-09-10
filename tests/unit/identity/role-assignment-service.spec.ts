@@ -1,5 +1,11 @@
+const mockedUserRoleFindMany = jest.fn().mockResolvedValue([]);
+
 jest.mock('@/shared/database/prisma', () => ({
-  prisma: { $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback({})) },
+  prisma: {
+    $transaction: jest.fn((callback: (tx: unknown) => unknown) =>
+      callback({ userRole: { findMany: mockedUserRoleFindMany } }),
+    ),
+  },
 }));
 
 jest.mock('@/shared/audit/audit-service', () => ({
@@ -35,6 +41,7 @@ import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import {
   ForbiddenError,
   LastAdministratorError,
+  RoleAlreadyAssignedError,
   RoleNotAssignedError,
   RoleNotFoundError,
   SelfRoleEscalationError,
@@ -127,6 +134,41 @@ describe('assignRole', () => {
     await expect(
       assignRole({ userId: 'user-1', roleCode: 'NOT_A_ROLE', actor: adminPrincipal }),
     ).rejects.toThrow(RoleNotFoundError);
+  });
+
+  it('rejects granting a different role to a user who already holds an active role — must revoke first', async () => {
+    mockedFindUserById.mockResolvedValue({ id: 'user-1' });
+    mockedFindRoleByCode.mockResolvedValue({ id: 'role-driver', code: SYSTEM_ROLE_CODES.DRIVER });
+    mockedUserRoleFindMany.mockResolvedValueOnce([
+      { userId: 'user-1', roleId: 'role-customer', revokedAt: null },
+    ]);
+
+    await expect(
+      assignRole({
+        userId: 'user-1',
+        roleCode: SYSTEM_ROLE_CODES.DRIVER,
+        actor: adminPrincipal,
+      }),
+    ).rejects.toThrow(RoleAlreadyAssignedError);
+    expect(mockedUpsertRoleAssignment).not.toHaveBeenCalled();
+  });
+
+  it('allows re-assigning the same role the user already actively holds (idempotent)', async () => {
+    mockedFindUserById.mockResolvedValue({ id: 'user-1' });
+    mockedFindRoleByCode.mockResolvedValue({ id: 'role-driver', code: SYSTEM_ROLE_CODES.DRIVER });
+    mockedUserRoleFindMany.mockResolvedValueOnce([
+      { userId: 'user-1', roleId: 'role-driver', revokedAt: null },
+    ]);
+    mockedFindUserRoleAssignment.mockResolvedValue({ id: 'assignment-1', revokedAt: null });
+    mockedUpsertRoleAssignment.mockResolvedValue({ id: 'assignment-1', revokedAt: null });
+
+    const result = await assignRole({
+      userId: 'user-1',
+      roleCode: SYSTEM_ROLE_CODES.DRIVER,
+      actor: adminPrincipal,
+    });
+
+    expect(result.id).toBe('assignment-1');
   });
 
   it('does not write a duplicate audit entry when the role is already active', async () => {

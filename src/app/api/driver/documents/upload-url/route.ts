@@ -2,7 +2,8 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverDocumentType } from '@prisma/client';
-import { withAuth } from '@/modules/identity/authorization/route-guard';
+import { withRole } from '@/modules/identity/authorization/route-guard';
+import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import { createDocumentUploadUrl } from '@/modules/driver/application/services/driver-document-service';
 
 const uploadUrlSchema = z.object({
@@ -12,7 +13,7 @@ const uploadUrlSchema = z.object({
   fileSizeBytes: z.number().int().positive(),
 });
 
-export const POST = withAuth(async (req, { principal }) => {
+export const POST = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal }) => {
   const body = await req.json();
   const parsed = uploadUrlSchema.parse(body);
 

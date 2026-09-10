@@ -2,7 +2,8 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverDocumentType } from '@prisma/client';
-import { withAuth } from '@/modules/identity/authorization/route-guard';
+import { withRole } from '@/modules/identity/authorization/route-guard';
+import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import {
   listDriverDocuments,
@@ -19,13 +20,13 @@ const registerDocumentSchema = z.object({
   expiresAt: z.string().nullable().optional(),
 });
 
-export const GET = withAuth(async (_req, { principal }) => {
+export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (_req, { principal }) => {
   const profile = await getOrCreateDriverProfile(principal.userId);
   const documents = await listDriverDocuments(profile.id, true);
   return NextResponse.json({ documents }, { status: 200 });
 });
 
-export const POST = withAuth(async (req, { principal }) => {
+export const POST = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal }) => {
   const body = await req.json();
   const parsed = registerDocumentSchema.parse(body);
 

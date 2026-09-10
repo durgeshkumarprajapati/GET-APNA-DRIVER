@@ -2,7 +2,8 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DriverAvailabilityStatus } from '@prisma/client';
-import { withAuth } from '@/modules/identity/authorization/route-guard';
+import { withRole } from '@/modules/identity/authorization/route-guard';
+import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import {
   getDriverAvailability,
   setDriverAvailability,
@@ -12,12 +13,12 @@ const setAvailabilitySchema = z.object({
   targetStatus: z.nativeEnum(DriverAvailabilityStatus),
 });
 
-export const GET = withAuth(async (_req, { principal }) => {
+export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (_req, { principal }) => {
   const result = await getDriverAvailability(principal.userId);
   return NextResponse.json(result, { status: 200 });
 });
 
-export const PUT = withAuth(async (req, { principal }) => {
+export const PUT = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal }) => {
   const body = await req.json();
   const parsed = setAvailabilitySchema.parse(body);
 
