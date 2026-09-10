@@ -1,99 +1,196 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CustomerLayout } from '@/components/customer-layout';
+import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PromotionStatusBadge } from '@/components/ui/transaction-status-badge';
+import { DiscountLabel } from '@/components/ui/discount-label';
+import { formatCurrency } from '@/shared/formatting/money';
+import { formatDateTime } from '@/shared/formatting/date';
+
+interface CustomerOffer {
+  id: string;
+  code: string | null;
+  name: string;
+  description: string | null;
+  discountType: string;
+  discountValue: string;
+  maxDiscountAmount: string | null;
+  minBookingValue: string | null;
+  firstRideOnly: boolean;
+  status: string;
+  isExpired: boolean;
+  endsAt: string | null;
+  usedByCustomerCount: number;
+}
+
+interface OffersResponse {
+  available: CustomerOffer[];
+  used: CustomerOffer[];
+  expired: CustomerOffer[];
+}
+
+function OfferCard({ offer }: { offer: CustomerOffer }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <div className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between gap-4 shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        {offer.code ? (
+          <span className="font-mono text-sm px-3 py-1 rounded bg-[#25a475] text-[#00311f] font-bold">
+            {offer.code}
+          </span>
+        ) : (
+          <span className="font-mono text-xs px-3 py-1 rounded bg-[#262a33] text-[#68dba9] font-bold uppercase">
+            Auto-applied
+          </span>
+        )}
+        <PromotionStatusBadge status={offer.status} isExpired={offer.isExpired} />
+      </div>
+
+      <div>
+        <h3 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">{offer.name}</h3>
+        {offer.description && <p className="text-xs text-[#bccac0] mt-1">{offer.description}</p>}
+        <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider">
+          <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#68dba9]">
+            <DiscountLabel
+              discountType={offer.discountType}
+              discountValue={offer.discountValue}
+              maxDiscountAmount={offer.maxDiscountAmount}
+            />
+          </span>
+          {offer.minBookingValue && (
+            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">
+              Min. fare {formatCurrency(offer.minBookingValue)}
+            </span>
+          )}
+          {offer.firstRideOnly && (
+            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">First ride only</span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-3 border-t border-[#262a33]">
+        <span className="font-mono text-[10px] text-[#87948b]">
+          {offer.endsAt ? `Valid till ${formatDateTime(offer.endsAt)}` : 'No expiry'}
+        </span>
+        {offer.code ? (
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(offer.code as string);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-xs font-bold transition-all"
+          >
+            {copied ? 'COPIED ✓' : 'COPY CODE'}
+          </button>
+        ) : (
+          <span className="text-[10px] text-[#87948b]">Applied automatically at checkout</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function CustomerOffersPage() {
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [offers, setOffers] = useState<OffersResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const offers = [
-    {
-      code: 'FIRSTDRIVE',
-      title: '₹100 Off First Rental / Intercity Ride',
-      desc: 'Valid on 8-hour rentals and outstation inter-city trips.',
-      expiry: 'Valid till 31 Mar 2025',
-      badge: 'POPULAR',
-    },
-    {
-      code: 'AIRPORT50',
-      title: 'Flat 15% Off IGI Airport Transfers',
-      desc: 'Applicable on all luxury sedan airport drops and pickups.',
-      expiry: 'Valid till 30 Apr 2025',
-      badge: 'AIRPORT SPECIAL',
-    },
-    {
-      code: 'NIGHTSAFE',
-      title: '₹150 Off Night Out Party Safe',
-      desc: 'Enjoy weekend party return trips between 10 PM and 5 AM.',
-      expiry: 'Valid till 15 Apr 2025',
-      badge: 'WEEKEND PRIVILEGE',
-    },
-    {
-      code: 'CORP18',
-      title: 'Automated 18% GST Input Credit Claim',
-      desc: 'Sync your GSTIN for instant B2B tax deduction invoice.',
-      expiry: 'Always Active',
-      badge: 'ENTERPRISE',
-    },
-  ];
-
-  const handleCopy = (code: string) => {
-    setCopiedCode(code);
-    alert(`Promo code ${code} copied to clipboard!`);
-  };
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/customer/offers');
+        if (!isMounted) return;
+        if (res.ok) {
+          setOffers(await res.json());
+          setError(null);
+        } else {
+          setError('Failed to load offers.');
+        }
+      } catch (err) {
+        if (isMounted) setError(err instanceof Error ? err.message : 'Failed to load offers.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
-        <div className="flex items-center justify-between p-6 rounded-xl bg-[#181c24] border border-[#262a33]">
-          <div>
-            <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk'] block">
-              VIP CORPORATE &amp; LOYALTY PRIVILEGES
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-              Offers &amp; Promo Coupons
-            </h1>
-            <p className="text-xs text-[#bccac0] mt-1">
-              Apply valid promotional codes for instant savings on luxury chauffeur deployments.
-            </p>
+        <PageHeader
+          eyebrow="Rewards & Finance"
+          title="Offers & Promo Coupons"
+          subtitle="Apply a valid promo code at checkout for instant savings, or let an eligible automatic offer apply itself."
+        />
+
+        {error && (
+          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+            {error}
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {offers.map((o) => (
-            <div
-              key={o.code}
-              className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between gap-4 shadow-sm"
-            >
-              <div className="flex items-start justify-between">
-                <span className="font-mono text-sm px-3 py-1 rounded bg-[#25a475] text-[#00311f] font-bold">
-                  {o.code}
-                </span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#262a33] text-[#68dba9] uppercase font-['Space_Grotesk']">
-                  {o.badge}
-                </span>
-              </div>
+        {loading ? (
+          <LoadingState message="Loading offers…" />
+        ) : (
+          offers && (
+            <>
+              <section className="flex flex-col gap-3">
+                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  Available Offers
+                </h2>
+                {offers.available.length === 0 ? (
+                  <EmptyState
+                    icon="confirmation_number"
+                    message="No offers available for you right now."
+                  />
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {offers.available.map((o) => (
+                      <OfferCard key={o.id} offer={o} />
+                    ))}
+                  </div>
+                )}
+              </section>
 
-              <div>
-                <h3 className="font-bold text-base text-[#dfe2ee] font-['Space_Grotesk']">
-                  {o.title}
-                </h3>
-                <p className="text-xs text-[#bccac0] mt-1">{o.desc}</p>
-              </div>
+              {offers.used.length > 0 && (
+                <section className="flex flex-col gap-3">
+                  <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    Used Offers
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {offers.used.map((o) => (
+                      <OfferCard key={o.id} offer={o} />
+                    ))}
+                  </div>
+                </section>
+              )}
 
-              <div className="flex items-center justify-between pt-3 border-t border-[#262a33]">
-                <span className="font-mono text-[10px] text-[#87948b]">{o.expiry}</span>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(o.code)}
-                  className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-xs font-bold transition-all"
-                >
-                  {copiedCode === o.code ? 'COPIED ✓' : 'COPY CODE'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+              {offers.expired.length > 0 && (
+                <section className="flex flex-col gap-3">
+                  <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    Expired Offers
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {offers.expired.map((o) => (
+                      <OfferCard key={o.id} offer={o} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          )
+        )}
       </div>
     </CustomerLayout>
   );

@@ -24,6 +24,14 @@ const mockTx = {
   outboxEvent: {
     create: jest.fn(),
   },
+  // No promotion applied in these tests by default: no prior usage for this
+  // booking, and no automatic promotions to consider.
+  promotionUsage: {
+    findUnique: jest.fn().mockResolvedValue(null),
+  },
+  promotion: {
+    findMany: jest.fn().mockResolvedValue([]),
+  },
 };
 
 jest.mock('@/shared/database/prisma', () => ({

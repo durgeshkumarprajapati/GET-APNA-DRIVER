@@ -39,6 +39,7 @@ import {
 import { prisma } from '@/shared/database/prisma';
 import { paymentProvider } from '@/modules/finance/infrastructure/payment-provider';
 import { applyWalletChange } from '@/modules/finance/application/services/wallet-service';
+import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
 import {
   DuplicateRefundIdempotencyError,
   InsufficientRefundableAmountError,
@@ -193,6 +194,135 @@ describe('completeRefund', () => {
         totalEarnedDelta: '-40.0000',
       }),
       expect.anything(),
+    );
+  });
+
+  it('fully reverses a discounted payment (commission, discount expense, and driver payable all balance)', async () => {
+    mockTx.refund.findUnique.mockResolvedValue({
+      id: 'refund-1',
+      paymentId: 'payment-1',
+      amount: new Prisma.Decimal('120.0000'), // full refund of the charged (discounted) amount
+      status: 'PROCESSING',
+    });
+    mockTx.payment.findUniqueOrThrow.mockResolvedValue(
+      capturedPayment({
+        amount: new Prisma.Decimal('120.0000'), // charged (gross 150 - discount 30)
+        discountAmount: new Prisma.Decimal('30.0000'),
+        commissionAmount: new Prisma.Decimal('30.0000'), // 20% of gross 150
+        driverEarningsAmount: new Prisma.Decimal('120.0000'),
+      }),
+    );
+    mockTx.refund.update.mockResolvedValue({
+      id: 'refund-1',
+      paymentId: 'payment-1',
+      amount: new Prisma.Decimal('120.0000'),
+      currency: 'INR',
+      status: 'PROCESSED',
+      reason: null,
+      processedAt: new Date(),
+      createdAt: new Date(),
+    });
+    mockTx.refund.findMany.mockResolvedValue([{ amount: new Prisma.Decimal('120.0000') }]);
+    mockTx.payment.update.mockResolvedValue({ status: 'REFUNDED' });
+
+    await completeRefund({ refundId: 'refund-1', providerRefundId: 'rfnd_1', source: 'webhook' });
+
+    const postings = (postFinancialTransaction as jest.Mock).mock.calls[0][0].postings as Array<{
+      accountCode: string;
+      debitAmount: string;
+      creditAmount: string;
+    }>;
+    const totalDebits = postings.reduce((sum, p) => sum + Number(p.debitAmount), 0);
+    const totalCredits = postings.reduce((sum, p) => sum + Number(p.creditAmount), 0);
+    expect(totalDebits).toBeCloseTo(totalCredits, 4);
+
+    expect(postings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          accountCode: 'PROMOTION_DISCOUNT_EXPENSE',
+          debitAmount: '0',
+          creditAmount: '30.0000',
+        }),
+        expect.objectContaining({
+          accountCode: 'PLATFORM_REVENUE_COMMISSION',
+          debitAmount: '30.0000',
+          creditAmount: '0',
+        }),
+        expect.objectContaining({
+          accountCode: 'DRIVER_PAYABLE',
+          debitAmount: '120.0000',
+          creditAmount: '0',
+        }),
+        expect.objectContaining({
+          accountCode: 'PAYMENT_PROVIDER_CLEARING',
+          debitAmount: '0',
+          creditAmount: '120.0000',
+        }),
+      ]),
+    );
+
+    expect(applyWalletChange).toHaveBeenCalledWith(
+      expect.objectContaining({ availableDelta: '-120.0000', totalEarnedDelta: '-120.0000' }),
+      expect.anything(),
+    );
+  });
+
+  it('partially reverses a discounted payment proportionally and still balances', async () => {
+    mockTx.refund.findUnique.mockResolvedValue({
+      id: 'refund-1',
+      paymentId: 'payment-1',
+      amount: new Prisma.Decimal('60.0000'), // half of the charged 120
+      status: 'PROCESSING',
+    });
+    mockTx.payment.findUniqueOrThrow.mockResolvedValue(
+      capturedPayment({
+        amount: new Prisma.Decimal('120.0000'),
+        discountAmount: new Prisma.Decimal('30.0000'),
+        commissionAmount: new Prisma.Decimal('30.0000'),
+        driverEarningsAmount: new Prisma.Decimal('120.0000'),
+      }),
+    );
+    mockTx.refund.update.mockResolvedValue({
+      id: 'refund-1',
+      paymentId: 'payment-1',
+      amount: new Prisma.Decimal('60.0000'),
+      currency: 'INR',
+      status: 'PROCESSED',
+      reason: null,
+      processedAt: new Date(),
+      createdAt: new Date(),
+    });
+    mockTx.refund.findMany.mockResolvedValue([{ amount: new Prisma.Decimal('60.0000') }]);
+    mockTx.payment.update.mockResolvedValue({ status: 'PARTIALLY_REFUNDED' });
+
+    await completeRefund({ refundId: 'refund-1', providerRefundId: 'rfnd_1', source: 'webhook' });
+
+    const postings = (postFinancialTransaction as jest.Mock).mock.calls[0][0].postings as Array<{
+      accountCode: string;
+      debitAmount: string;
+      creditAmount: string;
+    }>;
+    const totalDebits = postings.reduce((sum, p) => sum + Number(p.debitAmount), 0);
+    const totalCredits = postings.reduce((sum, p) => sum + Number(p.creditAmount), 0);
+    expect(totalDebits).toBeCloseTo(totalCredits, 4);
+
+    // 50% ratio: commission 15, discount 15, driver = 60 + 15 - 15 = 60.
+    expect(postings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          accountCode: 'PROMOTION_DISCOUNT_EXPENSE',
+          creditAmount: '15.0000',
+        }),
+        expect.objectContaining({
+          accountCode: 'PLATFORM_REVENUE_COMMISSION',
+          debitAmount: '15.0000',
+        }),
+        expect.objectContaining({ accountCode: 'DRIVER_PAYABLE', debitAmount: '60.0000' }),
+        expect.objectContaining({
+          accountCode: 'PAYMENT_PROVIDER_CLEARING',
+          creditAmount: '60.0000',
+        }),
+      ]),
     );
   });
 

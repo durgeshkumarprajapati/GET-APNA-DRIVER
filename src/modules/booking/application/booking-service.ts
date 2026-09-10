@@ -31,6 +31,7 @@ import {
   createPricingQuoteSnapshot,
   toPrismaJson,
 } from '@/modules/pricing/application/pricing-quote-service';
+import { validateAndReservePromotionUsage } from '@/modules/promotion/application/services/promotion-eligibility-service';
 
 const MAX_CUSTOMER_BOOKINGS_RETURNED = 200;
 
@@ -61,6 +62,9 @@ export interface BookingDetail {
   finalFareAmount?: string | null;
   pricingSnapshot?: Prisma.JsonValue;
   routeEstimateSnapshot?: Prisma.JsonValue;
+  promotionId?: string | null;
+  promotionCodeSnapshot?: string | null;
+  discountAmount?: string | null;
   requestedStartTime: Date | null;
   estimatedDurationMinutes: number | null;
   customerNotes: string | null;
@@ -174,6 +178,28 @@ export async function createBooking(
       },
     });
 
+    // Never trusts a client-supplied discount — recomputed and reserved
+    // atomically against the gross estimated fare, inside this same
+    // transaction, so it commits or rolls back together with the booking.
+    const appliedPromotion = await validateAndReservePromotionUsage(tx, {
+      userId: customerUserId,
+      bookingId: created.id,
+      fareAmount: fareResult.breakdown.totalFareAmount,
+      promotionCode: input.promotionCode ?? null,
+    });
+
+    const finalCreated = appliedPromotion
+      ? await tx.booking.update({
+          where: { id: created.id },
+          data: {
+            promotionId: appliedPromotion.promotionId,
+            promotionCodeSnapshot: appliedPromotion.promotionCodeSnapshot,
+            discountType: appliedPromotion.discountType,
+            discountAmount: appliedPromotion.discountAmount,
+          },
+        })
+      : created;
+
     await insertOutboxEvent(tx, {
       eventType: 'booking.created',
       aggregateType: 'Booking',
@@ -189,7 +215,22 @@ export async function createBooking(
       },
     });
 
-    return created;
+    if (appliedPromotion) {
+      await insertOutboxEvent(tx, {
+        eventType: 'promotion.redeemed',
+        aggregateType: 'Booking',
+        aggregateId: created.id,
+        payload: {
+          bookingId: created.id,
+          customerId: customerUserId,
+          promotionId: appliedPromotion.promotionId,
+          promotionCodeSnapshot: appliedPromotion.promotionCodeSnapshot,
+          discountAmount: appliedPromotion.discountAmount,
+        },
+      });
+    }
+
+    return finalCreated;
   });
 
   await recordAuditLog(db, {
@@ -449,6 +490,9 @@ function mapBookingToDetail(
     finalFareAmount: booking.finalFareAmount ? booking.finalFareAmount.toString() : null,
     pricingSnapshot: booking.pricingSnapshot,
     routeEstimateSnapshot: booking.routeEstimateSnapshot,
+    promotionId: booking.promotionId,
+    promotionCodeSnapshot: booking.promotionCodeSnapshot,
+    discountAmount: booking.discountAmount ? booking.discountAmount.toString() : null,
     requestedStartTime: booking.requestedStartTime,
     estimatedDurationMinutes: booking.estimatedDurationMinutes,
     customerNotes: booking.customerNotes,

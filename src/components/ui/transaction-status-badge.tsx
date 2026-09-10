@@ -36,3 +36,24 @@ const REFUND_STATUS_TONE: Record<string, StatusBadgeTone> = {
 export function RefundStatusBadge({ status }: { status: string }) {
   return <StatusBadge label={status} tone={REFUND_STATUS_TONE[status] ?? 'neutral'} />;
 }
+
+const PROMOTION_STATUS_TONE: Record<string, StatusBadgeTone> = {
+  DRAFT: 'neutral',
+  ACTIVE: 'success',
+  PAUSED: 'warning',
+  ARCHIVED: 'neutral',
+};
+
+/** `isExpired` overrides the stored status visually — see the PromotionStatus schema doc comment on why expiry is never a stored transition. */
+export function PromotionStatusBadge({
+  status,
+  isExpired,
+}: {
+  status: string;
+  isExpired?: boolean;
+}) {
+  if (isExpired) {
+    return <StatusBadge label="EXPIRED" tone="danger" />;
+  }
+  return <StatusBadge label={status} tone={PROMOTION_STATUS_TONE[status] ?? 'neutral'} />;
+}
