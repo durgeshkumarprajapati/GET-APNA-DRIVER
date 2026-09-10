@@ -23,3 +23,12 @@ prisma/generated/
 .DS_Store
 coverage/
 *.tsbuildinfo
+
+# local editor/CLI tooling state (never part of the app; Tailwind v4's
+# automatic content detection otherwise walks into these — .claude in
+# particular contains sandboxed/masked files that crash Turbopack's build-
+# time glob tracking when it isn't excluded here)
+.claude/
+.vscode/
+.idea/
+.mcp.json

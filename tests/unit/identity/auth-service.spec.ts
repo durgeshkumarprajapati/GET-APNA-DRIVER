@@ -87,6 +87,11 @@ jest.mock('@/modules/identity/application/services/session-service', () => ({
   revokeAllSessionsForUser: jest.fn(),
 }));
 
+jest.mock('@/modules/identity/infrastructure/oauth-provider', () => ({
+  exchangeGoogleCodeForProfile: jest.fn(),
+}));
+
+import { Prisma } from '@prisma/client';
 import {
   registerWithEmailPassword,
   loginWithEmailPassword,
@@ -94,11 +99,13 @@ import {
   verifyPhoneOtp,
   verifyEmailWithToken,
   resetPasswordWithToken,
+  handleGoogleOAuthCallback,
 } from '@/modules/identity/application/services/auth-service';
 import * as userRepository from '@/modules/identity/infrastructure/user-repository';
 import * as credentialRepository from '@/modules/identity/infrastructure/credential-repository';
 import * as tokenRepository from '@/modules/identity/infrastructure/token-repository';
 import * as rbacRepository from '@/modules/identity/infrastructure/rbac-repository';
+import { exchangeGoogleCodeForProfile } from '@/modules/identity/infrastructure/oauth-provider';
 import { hashPassword } from '@/modules/identity/security/password';
 import { hashOtp } from '@/modules/identity/security/otp';
 import {
@@ -312,5 +319,194 @@ describe('Auth Service', () => {
 
       expect(credentialRepository.updateUserCredentialPassword).toHaveBeenCalled();
     });
+  });
+});
+
+describe('Google OAuth', () => {
+  const mockedExchange = exchangeGoogleCodeForProfile as jest.Mock;
+  const mockedFindIdentityWithUser = userRepository.findIdentityWithUser as jest.Mock;
+  const mockedFindIdentityByEmail = userRepository.findIdentityByEmail as jest.Mock;
+  const mockedCreateUserWithIdentity = userRepository.createUserWithIdentity as jest.Mock;
+  const mockedAddUserIdentityToUser = userRepository.addUserIdentityToUser as jest.Mock;
+  const mockedMarkIdentityVerified = userRepository.markIdentityVerified as jest.Mock;
+  const mockedUpsertRole = rbacRepository.upsertRoleAssignment as jest.Mock;
+
+  afterEach(() => jest.clearAllMocks());
+
+  it('logs an existing Google identity straight into a session, with no role change', async () => {
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-1',
+      email: 'existing@example.com',
+      emailVerified: true,
+    });
+    mockedFindIdentityWithUser.mockResolvedValue({
+      id: 'identity-1',
+      userId: 'user-1',
+      user: { id: 'user-1', accountStatus: 'ACTIVE' },
+    });
+
+    const result = await handleGoogleOAuthCallback('valid-auth-code');
+
+    expect(result.isNewIdentity).toBe(false);
+    expect(result.profileHint).toBeNull();
+    expect(result.session.userId).toBe('user-1');
+    expect(mockedUpsertRole).not.toHaveBeenCalled();
+    expect(mockedFindIdentityByEmail).not.toHaveBeenCalled();
+  });
+
+  it('creates a brand-new user for a never-seen Google subject, assigns no role, and returns a profile hint', async () => {
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-new',
+      email: 'new.person@example.com',
+      emailVerified: true,
+      givenName: 'Asha',
+      familyName: 'Rao',
+      picture: 'https://example.com/pic.png',
+    });
+    mockedFindIdentityWithUser.mockResolvedValue(null);
+    mockedFindIdentityByEmail.mockResolvedValue(null);
+    mockedCreateUserWithIdentity.mockResolvedValue({
+      user: { id: 'user-new', accountStatus: 'PENDING' },
+      identity: { id: 'identity-new', userId: 'user-new' },
+    });
+
+    const result = await handleGoogleOAuthCallback('valid-auth-code');
+
+    expect(result.isNewIdentity).toBe(true);
+    expect(result.profileHint).toEqual({
+      firstName: 'Asha',
+      lastName: 'Rao',
+      avatarUrl: 'https://example.com/pic.png',
+    });
+    expect(mockedMarkIdentityVerified).toHaveBeenCalledWith(expect.anything(), 'identity-new');
+    // The core anti-pattern this phase fixes: no automatic CUSTOMER assignment.
+    expect(mockedUpsertRole).not.toHaveBeenCalled();
+  });
+
+  it('links a new Google identity to an existing account by verified email, without duplicating the email field', async () => {
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-link',
+      email: 'phoneuser@example.com',
+      emailVerified: true,
+    });
+    mockedFindIdentityWithUser.mockResolvedValue(null);
+    mockedFindIdentityByEmail.mockResolvedValue({
+      id: 'identity-email-1',
+      email: 'phoneuser@example.com',
+      user: { id: 'user-existing', accountStatus: 'ACTIVE' },
+    });
+    mockedAddUserIdentityToUser.mockResolvedValue({
+      id: 'identity-linked',
+      userId: 'user-existing',
+    });
+
+    const result = await handleGoogleOAuthCallback('valid-auth-code');
+
+    expect(result.isNewIdentity).toBe(false);
+    expect(mockedAddUserIdentityToUser).toHaveBeenCalledWith(
+      expect.anything(),
+      'user-existing',
+      expect.objectContaining({
+        providerName: 'google',
+        providerSubject: 'google-sub-link',
+        email: null,
+      }),
+      expect.anything(),
+    );
+    expect(mockedCreateUserWithIdentity).not.toHaveBeenCalled();
+    expect(mockedUpsertRole).not.toHaveBeenCalled();
+  });
+
+  it('never links on an unverified Google email, even if it matches an existing identity', async () => {
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-unverified',
+      email: 'maybe-not-mine@example.com',
+      emailVerified: false,
+    });
+    mockedFindIdentityWithUser.mockResolvedValue(null);
+    mockedCreateUserWithIdentity.mockResolvedValue({
+      user: { id: 'user-brand-new', accountStatus: 'PENDING' },
+      identity: { id: 'identity-brand-new', userId: 'user-brand-new' },
+    });
+
+    await handleGoogleOAuthCallback('valid-auth-code');
+
+    // Never even attempts to look up a matching email identity when Google
+    // has not verified the email — the linking branch simply cannot fire.
+    expect(mockedFindIdentityByEmail).not.toHaveBeenCalled();
+    expect(mockedCreateUserWithIdentity).toHaveBeenCalled();
+  });
+
+  it('rejects a suspended existing account, even though the Google identity itself verified successfully', async () => {
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-suspended',
+      email: 'x@example.com',
+      emailVerified: true,
+    });
+    mockedFindIdentityWithUser.mockResolvedValue({
+      id: 'identity-1',
+      userId: 'user-suspended',
+      user: { id: 'user-suspended', accountStatus: 'SUSPENDED' },
+    });
+
+    await expect(handleGoogleOAuthCallback('valid-auth-code')).rejects.toThrow(
+      AccountNotActiveError,
+    );
+  });
+
+  it('retries identity resolution once on a concurrent-creation race (P2002), picking up the winning row', async () => {
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-race',
+      email: 'race@example.com',
+      emailVerified: true,
+    });
+    mockedFindIdentityByEmail.mockResolvedValue(null);
+    mockedFindIdentityWithUser
+      .mockResolvedValueOnce(null) // first attempt: nothing yet
+      .mockResolvedValueOnce({
+        id: 'identity-winner',
+        userId: 'user-winner',
+        user: { id: 'user-winner', accountStatus: 'ACTIVE' },
+      }); // retry: the concurrent request already committed
+    mockedCreateUserWithIdentity.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+
+    const result = await handleGoogleOAuthCallback('valid-auth-code');
+
+    expect(result.user.id).toBe('user-winner');
+    expect(result.isNewIdentity).toBe(false);
+    expect(mockedFindIdentityWithUser).toHaveBeenCalledTimes(2);
+  });
+
+  it('an existing Administrator linking Google keeps a normal identity-linking session — the callback itself never touches roles at all', async () => {
+    // handleGoogleOAuthCallback never reads or writes UserRole for an
+    // existing user in any branch — the admin's ADMINISTRATOR role lives
+    // entirely in RBAC tables this function never touches, so it is
+    // preserved by construction, not by a special case. This test proves
+    // that by asserting upsertRoleAssignment is never called.
+    mockedExchange.mockResolvedValue({
+      sub: 'google-sub-admin',
+      email: 'admin@example.com',
+      emailVerified: true,
+    });
+    mockedFindIdentityWithUser.mockResolvedValue(null);
+    mockedFindIdentityByEmail.mockResolvedValue({
+      id: 'identity-admin-email',
+      email: 'admin@example.com',
+      user: { id: 'user-admin', accountStatus: 'ACTIVE' },
+    });
+    mockedAddUserIdentityToUser.mockResolvedValue({
+      id: 'identity-admin-linked',
+      userId: 'user-admin',
+    });
+
+    const result = await handleGoogleOAuthCallback('valid-auth-code');
+
+    expect(result.user.id).toBe('user-admin');
+    expect(mockedUpsertRole).not.toHaveBeenCalled();
   });
 });

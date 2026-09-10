@@ -1,56 +1,44 @@
-jest.mock('@/shared/database/prisma', () => ({
-  prisma: {
-    driverProfile: { findUnique: jest.fn() },
-  },
+jest.mock('@/modules/identity/application/services/profile-completion-service', () => ({
+  evaluateProfileCompletion: jest.fn(),
 }));
 
 import { resolveDashboardHref } from '@/modules/identity/application/services/dashboard-redirect-service';
-import { prisma } from '@/shared/database/prisma';
+import { evaluateProfileCompletion } from '@/modules/identity/application/services/profile-completion-service';
 import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 
-const mockedFindUnique = prisma.driverProfile.findUnique as jest.Mock;
+const mockedEvaluate = evaluateProfileCompletion as jest.Mock;
 
 describe('resolveDashboardHref', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('sends an administrator to the mission dashboard regardless of other roles', async () => {
-    const href = await resolveDashboardHref(
-      [SYSTEM_ROLE_CODES.ADMINISTRATOR, SYSTEM_ROLE_CODES.CUSTOMER],
-      'user-1',
-    );
-    expect(href).toBe('/admin/mission-dashboard');
-    expect(mockedFindUnique).not.toHaveBeenCalled();
-  });
+  it('is a thin passthrough to evaluateProfileCompletion.nextPath — the detailed completeness matrix lives in profile-completion-service.spec.ts', async () => {
+    mockedEvaluate.mockResolvedValue({
+      isComplete: true,
+      role: 'CUSTOMER',
+      missingFields: [],
+      nextPath: '/customer/dashboard',
+    });
 
-  it('sends a customer to the customer dashboard', async () => {
     const href = await resolveDashboardHref([SYSTEM_ROLE_CODES.CUSTOMER], 'user-1');
+
     expect(href).toBe('/customer/dashboard');
+    expect(mockedEvaluate).toHaveBeenCalledWith(
+      [SYSTEM_ROLE_CODES.CUSTOMER],
+      'user-1',
+      expect.anything(),
+    );
   });
 
-  it('sends a driver who has completed onboarding to the driver dashboard', async () => {
-    mockedFindUnique.mockResolvedValue({ onboardingStatus: 'COMPLETED' });
-    const href = await resolveDashboardHref([SYSTEM_ROLE_CODES.DRIVER], 'user-1');
-    expect(href).toBe('/driver');
-  });
+  it('forwards whatever nextPath evaluateProfileCompletion returns, unchanged', async () => {
+    mockedEvaluate.mockResolvedValue({
+      isComplete: false,
+      role: null,
+      missingFields: ['role'],
+      nextPath: '/auth/select-role',
+    });
 
-  it('sends a driver who has not completed onboarding to /driver/onboarding', async () => {
-    mockedFindUnique.mockResolvedValue({ onboardingStatus: 'IN_PROGRESS' });
-    const href = await resolveDashboardHref([SYSTEM_ROLE_CODES.DRIVER], 'user-1');
-    expect(href).toBe('/driver/onboarding');
-  });
+    const href = await resolveDashboardHref([], 'user-2');
 
-  it('sends a driver with no profile row at all to /driver (nothing to redirect on)', async () => {
-    mockedFindUnique.mockResolvedValue(null);
-    const href = await resolveDashboardHref([SYSTEM_ROLE_CODES.DRIVER], 'user-1');
-    expect(href).toBe('/driver');
+    expect(href).toBe('/auth/select-role');
   });
-
-  it.each(['NOT_STARTED', 'SUBMITTED', 'UNDER_REVIEW', 'CHANGES_REQUESTED'])(
-    'sends a driver with onboardingStatus %s to /driver/onboarding',
-    async (status) => {
-      mockedFindUnique.mockResolvedValue({ onboardingStatus: status });
-      const href = await resolveDashboardHref([SYSTEM_ROLE_CODES.DRIVER], 'user-1');
-      expect(href).toBe('/driver/onboarding');
-    },
-  );
 });

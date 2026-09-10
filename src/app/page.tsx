@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { env } from '@/shared/config/env';
 import { getPrincipalFromSessionToken } from '@/modules/identity/application/services/principal-service';
-import { resolveDashboardHref } from '@/modules/identity/application/services/dashboard-redirect-service';
+import { evaluateProfileCompletion } from '@/modules/identity/application/services/profile-completion-service';
 import HomeContent from './home-content';
 
 /**
@@ -11,6 +11,13 @@ import HomeContent from './home-content';
  * server-side so there's no flash of marketing content before redirecting.
  * Anyone without a session (or whose session has expired/been logged out)
  * falls through to the real homepage.
+ *
+ * Calls evaluateProfileCompletion directly (rather than going through
+ * dashboard-redirect-service's resolveDashboardHref) so this one query
+ * result can both pick the destination AND decide whether to flag it
+ * `?profileIncomplete=1` — the signal /profile and /driver/onboarding use
+ * to show a one-time "your profile isn't complete yet" toast right after
+ * a fresh login, without a second round-trip.
  */
 export default async function LandingPage() {
   const cookieStore = await cookies();
@@ -18,7 +25,9 @@ export default async function LandingPage() {
   const principal = token ? await getPrincipalFromSessionToken(token) : null;
 
   if (principal) {
-    redirect(await resolveDashboardHref(principal.roles, principal.userId));
+    const completion = await evaluateProfileCompletion(principal.roles, principal.userId);
+    const suffix = !completion.isComplete && completion.role ? '?profileIncomplete=1' : '';
+    redirect(`${completion.nextPath}${suffix}`);
   }
 
   return <HomeContent />;

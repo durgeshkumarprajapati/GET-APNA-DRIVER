@@ -71,6 +71,23 @@ export default function ProfilePage() {
   const [locationSaving, setLocationSaving] = useState(false);
   const { toast, showToast, dismissToast } = useToast();
 
+  // Arriving here right after login with an incomplete profile (e.g. a
+  // brand-new Google sign-in) — see src/app/page.tsx's redirect. A
+  // one-time notice, not a persistent banner.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('profileIncomplete') === '1') {
+      showToast(
+        'Your profile is not complete. Please update your information to continue.',
+        'info',
+      );
+      params.delete('profileIncomplete');
+      const cleanUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Preferences State
   const [preferences, setPreferences] = useState<PreferenceData>({
     theme: 'SYSTEM',
