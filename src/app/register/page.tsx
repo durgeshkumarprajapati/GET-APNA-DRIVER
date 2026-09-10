@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { validateRegistrationForm } from '@/shared/validation/auth-form-validation';
+import { useGeolocationCapture } from '@/components/use-geolocation-capture';
 
 function RegisterFormContent() {
   const router = useRouter();
@@ -41,11 +42,14 @@ function RegisterFormContent() {
   const [arrivalPings, setArrivalPings] = useState(true);
   const [smsOtpAlerts, setSmsOtpAlerts] = useState(true);
 
-  // GPS State
-  const [gpsStatus, setGpsStatus] = useState<'Standby' | 'Active' | 'Manual'>('Standby');
-  const [gpsCoordinates, setGpsCoordinates] = useState(
-    '28.5562° N, 77.1000° E [IGI T3 TERMINAL HUB]',
-  );
+  // GPS State — a preview only; registration's own API has no location
+  // field (accountType/fullName/phoneNumber/etc. only), so this never
+  // persists anywhere. The real, persisted location capture is on
+  // /driver/onboarding's Primary Service Area field, immediately after
+  // registration.
+  const [gpsStatus, setGpsStatus] = useState<'Standby' | 'Active' | 'Manual' | 'Denied'>('Standby');
+  const [gpsLabel, setGpsLabel] = useState('Delhi NCR Hub (default)');
+  const { status: geoCaptureStatus, capture: captureLocation } = useGeolocationCapture();
 
   // Driver Fleet Sub-Tier Selection
   const [driverFleetType, setDriverFleetType] = useState<'pilot' | 'fleet'>('pilot');
@@ -89,22 +93,13 @@ function RegisterFormContent() {
     if (hasSpecial || password.length >= 8) entropyScore++;
   }
 
-  const handleActivateGps = () => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setGpsCoordinates(
-            `${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° E [LIVE GPS]`,
-          );
-          setGpsStatus('Active');
-        },
-        () => {
-          setGpsCoordinates('28.5562° N, 77.1000° E [IGI T3 TERMINAL HUB]');
-          setGpsStatus('Active');
-        },
-      );
-    } else {
+  const handleActivateGps = async () => {
+    const result = await captureLocation();
+    if (result) {
+      setGpsLabel('Current location detected');
       setGpsStatus('Active');
+    } else {
+      setGpsStatus('Denied');
     }
   };
 
@@ -114,7 +109,7 @@ function RegisterFormContent() {
       'Delhi-NCR Hub',
     );
     if (sector) {
-      setGpsCoordinates(`ZONE: ${sector.toUpperCase()} SECTOR`);
+      setGpsLabel(`${sector} sector`);
       setGpsStatus('Manual');
     }
   };
@@ -971,7 +966,7 @@ function RegisterFormContent() {
 
                       {/* Coordinates Overlay Bottom */}
                       <div className="absolute bottom-2 inset-x-2 flex justify-between items-center text-[9px] font-mono text-[#bccac0] bg-[#0a0e16]/90 px-3 py-1 rounded border border-[#262a33]">
-                        <span>{gpsCoordinates}</span>
+                        <span>{gpsLabel}</span>
                         <span className="text-[#68dba9] font-bold">[ACTIVE NCR]</span>
                       </div>
                     </div>
@@ -980,11 +975,17 @@ function RegisterFormContent() {
                     <div className="grid grid-cols-2 gap-3 pt-1">
                       <button
                         type="button"
-                        onClick={handleActivateGps}
-                        className="w-full py-2.5 bg-[#68dba9] text-[#003825] font-mono text-[11px] font-bold rounded-xl hover:bg-[#85f8c4] transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                        onClick={() => void handleActivateGps()}
+                        disabled={geoCaptureStatus === 'ACQUIRING'}
+                        aria-busy={geoCaptureStatus === 'ACQUIRING'}
+                        className="w-full py-2.5 bg-[#68dba9] text-[#003825] font-mono text-[11px] font-bold rounded-xl hover:bg-[#85f8c4] disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5 shadow-sm"
                       >
                         <span className="material-symbols-outlined text-[16px]">my_location</span>
-                        <span>SET GPS HOME BASE</span>
+                        <span>
+                          {geoCaptureStatus === 'ACQUIRING'
+                            ? 'GETTING LOCATION…'
+                            : 'USE MY CURRENT LOCATION'}
+                        </span>
                       </button>
                       <button
                         type="button"
@@ -997,6 +998,12 @@ function RegisterFormContent() {
                         <span>CUSTOM SECTOR</span>
                       </button>
                     </div>
+                    {gpsStatus === 'Denied' && (
+                      <p role="alert" className="text-[10px] text-[#ffb4ab] px-1">
+                        Location permission was denied. You can still set your base hub manually
+                        using &quot;Custom Sector&quot;.
+                      </p>
+                    )}
                   </div>
 
                   {/* STEP 03: TELEMETRY & SHIFT ALERTS */}

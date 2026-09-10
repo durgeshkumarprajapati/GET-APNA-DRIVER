@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DriverLayout } from '@/components/driver-layout';
 
 interface DriverDocument {
   id: string;
@@ -200,28 +201,23 @@ export default function DriverDocumentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
-          <p className="text-slate-400">Loading document portal...</p>
+      <DriverLayout>
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
+            <p className="text-slate-400">Loading document portal...</p>
+          </div>
         </div>
-      </div>
+      </DriverLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Navigation & Header */}
+    <DriverLayout>
+      <div className="flex flex-col w-full gap-6">
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/driver" className="hover:text-emerald-400 transition-colors">
-                Driver Dashboard
-              </Link>
-              <span>/</span>
-              <span className="text-slate-200 font-medium">Documents</span>
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
               Driver Verification Documents
             </h1>
@@ -377,6 +373,6 @@ export default function DriverDocumentsPage() {
           )}
         </div>
       </div>
-    </div>
+    </DriverLayout>
   );
 }

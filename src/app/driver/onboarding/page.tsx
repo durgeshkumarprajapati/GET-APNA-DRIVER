@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { CurrentLocationButton } from '@/components/ui/current-location-button';
+import type { CapturedLocation } from '@/components/use-geolocation-capture';
 
 interface DriverProfile {
   firstName: string | null;
@@ -84,6 +86,15 @@ export default function DriverOnboardingPage() {
   const [bio, setBio] = useState('');
   const [drivingExperienceYears, setDrivingExperienceYears] = useState(0);
   const [primaryServiceArea, setPrimaryServiceArea] = useState('');
+
+  // DriverProfile has no latitude/longitude columns — primaryServiceArea is
+  // a free-text descriptor, and there is no client-facing reverse-geocoding
+  // provider (the only one in the codebase is a server-only dev mock), so a
+  // successful capture is labeled honestly rather than fabricating a
+  // resolved place name; the driver can still edit the text afterward.
+  const handleUseCurrentLocation = (_location: CapturedLocation) => {
+    setPrimaryServiceArea('Current location selected');
+  };
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -357,15 +368,18 @@ export default function DriverOnboardingPage() {
                   className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
                 />
               </label>
-              <label className="text-xs text-[#87948b] flex flex-col gap-1">
-                Primary Service Area
-                <input
-                  value={primaryServiceArea}
-                  onChange={(e) => setPrimaryServiceArea(e.target.value)}
-                  placeholder="e.g. South Delhi"
-                  className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-                />
-              </label>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                  Primary Service Area
+                  <input
+                    value={primaryServiceArea}
+                    onChange={(e) => setPrimaryServiceArea(e.target.value)}
+                    placeholder="e.g. South Delhi"
+                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  />
+                </label>
+                <CurrentLocationButton onLocated={handleUseCurrentLocation} />
+              </div>
             </div>
             <label className="text-xs text-[#87948b] flex flex-col gap-1">
               Bio (optional)

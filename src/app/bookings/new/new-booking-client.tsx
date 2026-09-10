@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ControlStationLayout } from '@/components/control-station-layout';
+import { CustomerLayout } from '@/components/customer-layout';
+import { CurrentLocationButton } from '@/components/ui/current-location-button';
+import type { CapturedLocation } from '@/components/use-geolocation-capture';
 
 interface FareEstimateData {
   estimatedDistanceKm: number;
@@ -37,8 +39,18 @@ export default function BookDriverPage() {
   const [error, setError] = useState<string | null>(null);
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
 
-  const pickupCoords = { latitude: 28.5603, longitude: 77.1627 };
+  const [pickupCoords, setPickupCoords] = useState({ latitude: 28.5603, longitude: 77.1627 });
   const dropoffCoords = { latitude: 28.6315, longitude: 77.2167 };
+
+  // No reverse-geocoding provider is wired up client-side (the only one in
+  // the codebase, src/modules/location/infrastructure/map-provider.ts, is a
+  // server-only dev mock) — rather than fabricate a resolved address, a
+  // successful capture is labeled honestly and the real coordinates are
+  // what's actually sent to /api/bookings.
+  const handleUseCurrentLocation = (location: CapturedLocation) => {
+    setPickupCoords({ latitude: location.latitude, longitude: location.longitude });
+    setPickupZone('Current location selected');
+  };
 
   useEffect(() => {
     async function fetchEstimate() {
@@ -53,8 +65,8 @@ export default function BookDriverPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            pickup: { latitude: 28.5603, longitude: 77.1627, address: pickupZone },
-            dropoff: { latitude: 28.6315, longitude: 77.2167, address: dropoffZone },
+            pickup: { ...pickupCoords, address: pickupZone },
+            dropoff: { ...dropoffCoords, address: dropoffZone },
             bookingType,
             estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
           }),
@@ -68,7 +80,11 @@ export default function BookDriverPage() {
       }
     }
     fetchEstimate();
-  }, [selectedTab, pickupZone, dropoffZone]);
+    // dropoffCoords is a stable literal (never reassigned), so it's
+    // intentionally omitted rather than included as an always-new object
+    // reference that would re-run this effect on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTab, pickupZone, dropoffZone, pickupCoords]);
 
   const drivers = [
     {
@@ -176,8 +192,8 @@ export default function BookDriverPage() {
   };
 
   return (
-    <ControlStationLayout activePersona="customer" activePath="customer-book-driver">
-      <div className="w-full px-6 py-4 flex flex-col gap-6">
+    <CustomerLayout>
+      <div className="w-full flex flex-col gap-6">
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
           {/* Left Panel: Booking & Driver Triage (42% width) */}
           <section className="w-full xl:w-[42%] flex flex-col gap-4 shrink-0">
@@ -196,9 +212,7 @@ export default function BookDriverPage() {
                     Pickup Telemetry Locked
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-[#bccac0]">
-                  GPS: 28.5603° N, 77.1627° E
-                </span>
+                <span className="font-mono text-[10px] text-[#bccac0]">Pickup location set</span>
               </div>
 
               <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
@@ -227,6 +241,8 @@ export default function BookDriverPage() {
                   <span>Change</span>
                 </button>
               </div>
+
+              <CurrentLocationButton onLocated={handleUseCurrentLocation} className="w-full" />
 
               <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
                 <div className="flex items-center gap-3 min-w-0">
@@ -961,6 +977,6 @@ export default function BookDriverPage() {
           </section>
         </div>
       </div>
-    </ControlStationLayout>
+    </CustomerLayout>
   );
 }

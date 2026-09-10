@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DriverLayout } from '@/components/driver-layout';
 
 interface DriverBooking {
   id: string;
@@ -75,12 +76,14 @@ export default function DriverBookingsListPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-400">
-          <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-          Loading assigned trips...
+      <DriverLayout>
+        <div className="flex items-center justify-center py-24">
+          <div className="flex items-center gap-3 text-slate-400">
+            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
+            Loading assigned trips...
+          </div>
         </div>
-      </div>
+      </DriverLayout>
     );
   }
 
@@ -92,18 +95,11 @@ export default function DriverBookingsListPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <DriverLayout>
+      <div className="flex flex-col w-full gap-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/driver/profile" className="hover:text-emerald-400 transition-colors">
-                Driver Portal
-              </Link>
-              <span>/</span>
-              <span className="text-slate-200 font-medium">Assigned Trips</span>
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white">Driver Journey Portal</h1>
           </div>
           <button
@@ -206,6 +202,6 @@ export default function DriverBookingsListPage() {
           </div>
         )}
       </div>
-    </div>
+    </DriverLayout>
   );
 }

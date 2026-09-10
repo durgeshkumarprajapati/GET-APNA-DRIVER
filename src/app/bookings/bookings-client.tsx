@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { CustomerLayout } from '@/components/customer-layout';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface Booking {
   id: string;
@@ -78,28 +80,21 @@ export default function BookingsListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Navigation & Action Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/profile" className="hover:text-emerald-400 transition-colors">
-                Customer Portal
-              </Link>
-              <span>/</span>
-              <span className="text-slate-200 font-medium">My Bookings</span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Driver Bookings</h1>
-          </div>
-
-          <Link
-            href="/bookings/new"
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow transition-colors text-center"
-          >
-            + Create New Booking
-          </Link>
-        </div>
+    <CustomerLayout>
+      <div className="flex flex-col w-full gap-6">
+        <PageHeader
+          eyebrow="Bookings"
+          title="My Bookings"
+          subtitle="Your booking history and live status."
+          actions={
+            <Link
+              href="/bookings/new"
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow transition-colors text-center"
+            >
+              + Create New Booking
+            </Link>
+          }
+        />
 
         {loading ? (
           <div className="flex items-center justify-center p-12 text-slate-400">
@@ -112,7 +107,9 @@ export default function BookingsListPage() {
           </div>
         ) : bookings.length === 0 ? (
           <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-12 text-center space-y-4">
-            <p className="text-slate-300 font-medium text-lg">No active or past bookings found.</p>
+            <p className="text-slate-300 font-medium text-lg">
+              You don&apos;t have any bookings yet.
+            </p>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
               Create your first booking to request a verified professional driver for your trip.
             </p>
@@ -163,6 +160,6 @@ export default function BookingsListPage() {
           </div>
         )}
       </div>
-    </div>
+    </CustomerLayout>
   );
 }

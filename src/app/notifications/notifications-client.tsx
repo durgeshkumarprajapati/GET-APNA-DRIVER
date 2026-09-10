@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { CustomerLayout } from '@/components/customer-layout';
+import { DriverLayout } from '@/components/driver-layout';
+import { AdminLayout } from '@/components/admin-layout';
 
 interface NotificationItem {
   id: string;
@@ -12,7 +15,22 @@ interface NotificationItem {
   createdAt: string;
 }
 
-export default function UserNotificationsPage() {
+type Portal = 'CUSTOMER' | 'DRIVER' | 'ADMIN';
+
+const PORTAL_HOME: Record<Portal, string> = {
+  CUSTOMER: '/customer/dashboard',
+  DRIVER: '/driver',
+  ADMIN: '/admin',
+};
+
+const PORTAL_LAYOUT: Record<Portal, React.ComponentType<{ children: React.ReactNode }>> = {
+  CUSTOMER: CustomerLayout,
+  DRIVER: DriverLayout,
+  ADMIN: AdminLayout,
+};
+
+export default function UserNotificationsPage({ portal }: { portal: Portal }) {
+  const PortalLayout = PORTAL_LAYOUT[portal];
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'UNREAD'>('ALL');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -145,8 +163,8 @@ export default function UserNotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased p-6">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
+    <PortalLayout>
+      <div className="flex flex-col w-full gap-6">
         {notificationMsg && (
           <div className="fixed top-6 right-6 z-50 bg-[#25a475] text-[#00311f] px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border border-[#68dba9]">
             <span className="material-symbols-outlined">check_circle</span>
@@ -175,7 +193,7 @@ export default function UserNotificationsPage() {
               {pushStatus === 'ACTIVE' ? 'Push Active' : 'Enable Web Push'}
             </button>
             <Link
-              href="/customer/dashboard"
+              href={PORTAL_HOME[portal]}
               className="px-3.5 py-2 rounded-xl bg-[#181c24] text-[#dfe2ee] border border-[#262a33] text-xs font-mono"
             >
               Back to Dashboard
@@ -267,6 +285,6 @@ export default function UserNotificationsPage() {
           )}
         </div>
       </div>
-    </div>
+    </PortalLayout>
   );
 }

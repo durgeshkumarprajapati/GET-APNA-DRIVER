@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
+import { CustomerLayout } from '@/components/customer-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 
@@ -237,28 +238,32 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-400">
-          <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-          Loading booking status...
+      <CustomerLayout>
+        <div className="flex items-center justify-center py-24">
+          <div className="flex items-center gap-3 text-slate-400">
+            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
+            Loading booking status...
+          </div>
         </div>
-      </div>
+      </CustomerLayout>
     );
   }
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10 flex items-center justify-center">
-        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-xl">
-          <p className="text-red-400 font-medium text-sm">{error || 'Booking not found.'}</p>
-          <Link
-            href="/bookings"
-            className="inline-block px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
-          >
-            ← Back to My Bookings
-          </Link>
+      <CustomerLayout>
+        <div className="flex items-center justify-center py-24">
+          <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-xl">
+            <p className="text-red-400 font-medium text-sm">{error || 'Booking not found.'}</p>
+            <Link
+              href="/bookings"
+              className="inline-block px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              ← Back to My Bookings
+            </Link>
+          </div>
         </div>
-      </div>
+      </CustomerLayout>
     );
   }
 
@@ -270,18 +275,14 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   ].includes(booking.status);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <CustomerLayout>
+      <div className="flex flex-col w-full gap-6">
         {/* Navigation & Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/profile" className="hover:text-emerald-400 transition-colors">
-                Customer Portal
-              </Link>
-              <span>/</span>
               <Link href="/bookings" className="hover:text-emerald-400 transition-colors">
-                Bookings
+                My Bookings
               </Link>
               <span>/</span>
               <span className="text-slate-200 font-medium">Live Trip Tracker</span>
@@ -614,6 +615,6 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
         )}
       </div>
       <ToastViewport toast={toast} onDismiss={dismissToast} />
-    </div>
+    </CustomerLayout>
   );
 }
