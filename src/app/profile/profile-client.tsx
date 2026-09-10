@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { CustomerLayout } from '@/components/customer-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface ProfileData {
@@ -298,624 +299,545 @@ export default function ProfilePage() {
   };
 
   return (
-    <div
-      style={{ minHeight: '100vh', padding: '2rem 1.5rem', maxWidth: '1000px', margin: '0 auto' }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '2rem',
-          paddingBottom: '1rem',
-          borderBottom: '1px solid var(--color-border)',
-        }}
-      >
-        <div>
-          <h1
+    <CustomerLayout>
+      <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+        {/* Header */}
+        <header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+            paddingBottom: '1rem',
+            borderBottom: '1px solid var(--color-border)',
+          }}
+        >
+          <div>
+            <h1
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                margin: 0,
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              Account & Settings
+            </h1>
+            <p
+              style={{
+                margin: '0.25rem 0 0 0',
+                fontSize: '0.875rem',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              Manage your personal profile, saved locations, and system preferences.
+            </p>
+          </div>
+          <Link
+            href="/"
             style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              margin: 0,
+              padding: '0.5rem 1rem',
+              borderRadius: '0.375rem',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface)',
               color: 'var(--color-text-primary)',
-            }}
-          >
-            Account & Settings
-          </h1>
-          <p
-            style={{
-              margin: '0.25rem 0 0 0',
+              textDecoration: 'none',
               fontSize: '0.875rem',
-              color: 'var(--color-text-secondary)',
+              fontWeight: 500,
             }}
           >
-            Manage your personal profile, saved locations, and system preferences.
-          </p>
-        </div>
-        <Link
-          href="/"
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            border: '1px solid var(--color-border)',
-            backgroundColor: 'var(--color-surface)',
-            color: 'var(--color-text-primary)',
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-          }}
-        >
-          ← Home
-        </Link>
-      </header>
+            ← Home
+          </Link>
+        </header>
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '1rem',
-          marginBottom: '2rem',
-          borderBottom: '1px solid var(--color-border)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setActiveTab('profile')}
-          style={{
-            padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
-            fontWeight: 600,
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            color: activeTab === 'profile' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-            borderBottom:
-              activeTab === 'profile' ? '3px solid var(--color-primary)' : '3px solid transparent',
-          }}
-        >
-          Personal Profile
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('locations')}
-          style={{
-            padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
-            fontWeight: 600,
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            color:
-              activeTab === 'locations' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-            borderBottom:
-              activeTab === 'locations'
-                ? '3px solid var(--color-primary)'
-                : '3px solid transparent',
-          }}
-        >
-          Saved Locations ({locations.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('preferences')}
-          style={{
-            padding: '0.75rem 1.25rem',
-            fontSize: '1rem',
-            fontWeight: 600,
-            border: 'none',
-            background: 'none',
-            cursor: 'pointer',
-            color:
-              activeTab === 'preferences' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-            borderBottom:
-              activeTab === 'preferences'
-                ? '3px solid var(--color-primary)'
-                : '3px solid transparent',
-          }}
-        >
-          Preferences
-        </button>
-      </div>
-
-      {/* Profile Tab Content */}
-      {activeTab === 'profile' && (
+        {/* Tabs */}
         <div
           style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '0.75rem',
-            padding: '2rem',
+            display: 'flex',
+            gap: '1rem',
+            marginBottom: '2rem',
+            borderBottom: '1px solid var(--color-border)',
           }}
         >
-          <h2
-            style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: 0, marginBottom: '1.5rem' }}
-          >
-            Customer Profile
-          </h2>
-
-          {profileMessage && (
-            <div
-              style={{
-                padding: '0.75rem 1rem',
-                borderRadius: '0.5rem',
-                marginBottom: '1.5rem',
-                backgroundColor:
-                  profileMessage.type === 'success'
-                    ? 'rgba(34, 197, 94, 0.1)'
-                    : 'rgba(220, 38, 38, 0.1)',
-                border: `1px solid ${profileMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
-                color: profileMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)',
-                fontSize: '0.875rem',
-              }}
-            >
-              {profileMessage.text}
-            </div>
-          )}
-
-          {profileLoading ? (
-            <p style={{ color: 'var(--color-text-secondary)' }}>Loading profile data...</p>
-          ) : (
-            <form
-              onSubmit={handleSaveProfile}
-              style={{ display: 'grid', gap: '1.25rem', maxWidth: '600px' }}
-            >
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <label
-                    htmlFor="firstName"
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    First Name
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    placeholder="Enter first name"
-                    value={profile.firstName || ''}
-                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="lastName"
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    Last Name
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    placeholder="Enter last name"
-                    value={profile.lastName || ''}
-                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="displayName"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Display Name
-                </label>
-                <input
-                  id="displayName"
-                  type="text"
-                  placeholder="How should drivers address you?"
-                  value={profile.displayName || ''}
-                  onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem 0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="avatarUrl"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Avatar Image URL
-                </label>
-                <input
-                  id="avatarUrl"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={profile.avatarUrl || ''}
-                  onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem 0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="dateOfBirth"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Date of Birth
-                </label>
-                <input
-                  id="dateOfBirth"
-                  type="date"
-                  value={profile.dateOfBirth || ''}
-                  onChange={(e) => setProfile({ ...profile, dateOfBirth: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem 0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div style={{ marginTop: '1rem' }}>
-                <button
-                  type="submit"
-                  disabled={profileSaving}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: 'var(--color-primary)',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: profileSaving ? 'not-allowed' : 'pointer',
-                    opacity: profileSaving ? 0.7 : 1,
-                  }}
-                >
-                  {profileSaving ? 'Saving...' : 'Save Profile Changes'}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      )}
-
-      {/* Locations Tab Content */}
-      {activeTab === 'locations' && (
-        <div>
-          <div
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1.5rem',
+              padding: '0.75rem 1.25rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color:
+                activeTab === 'profile' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'profile'
+                  ? '3px solid var(--color-primary)'
+                  : '3px solid transparent',
             }}
           >
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
-              Saved Pickup & Destination Addresses
-            </h2>
-            <button
-              type="button"
-              onClick={() => setShowLocationModal(true)}
-              style={{
-                padding: '0.625rem 1.25rem',
-                borderRadius: '0.375rem',
-                backgroundColor: 'var(--color-primary)',
-                color: '#ffffff',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              + Add New Location
-            </button>
-          </div>
+            Personal Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('locations')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color:
+                activeTab === 'locations' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'locations'
+                  ? '3px solid var(--color-primary)'
+                  : '3px solid transparent',
+            }}
+          >
+            Saved Locations ({locations.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('preferences')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color:
+                activeTab === 'preferences'
+                  ? 'var(--color-primary)'
+                  : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'preferences'
+                  ? '3px solid var(--color-primary)'
+                  : '3px solid transparent',
+            }}
+          >
+            Preferences
+          </button>
+        </div>
 
-          {locationsLoading ? (
-            <p style={{ color: 'var(--color-text-secondary)' }}>Loading saved locations...</p>
-          ) : locations.length === 0 ? (
+        {/* Profile Tab Content */}
+        {activeTab === 'profile' && (
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '0.75rem',
+              padding: '2rem',
+            }}
+          >
+            <h2
+              style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: 0, marginBottom: '1.5rem' }}
+            >
+              Customer Profile
+            </h2>
+
+            {profileMessage && (
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1.5rem',
+                  backgroundColor:
+                    profileMessage.type === 'success'
+                      ? 'rgba(34, 197, 94, 0.1)'
+                      : 'rgba(220, 38, 38, 0.1)',
+                  border: `1px solid ${profileMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
+                  color: profileMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {profileMessage.text}
+              </div>
+            )}
+
+            {profileLoading ? (
+              <p style={{ color: 'var(--color-text-secondary)' }}>Loading profile data...</p>
+            ) : (
+              <form
+                onSubmit={handleSaveProfile}
+                style={{ display: 'grid', gap: '1.25rem', maxWidth: '600px' }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label
+                      htmlFor="firstName"
+                      style={{
+                        display: 'block',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        marginBottom: '0.375rem',
+                      }}
+                    >
+                      First Name
+                    </label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      placeholder="Enter first name"
+                      value={profile.firstName || ''}
+                      onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem 0.875rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="lastName"
+                      style={{
+                        display: 'block',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        marginBottom: '0.375rem',
+                      }}
+                    >
+                      Last Name
+                    </label>
+                    <input
+                      id="lastName"
+                      type="text"
+                      placeholder="Enter last name"
+                      value={profile.lastName || ''}
+                      onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem 0.875rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="displayName"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Display Name
+                  </label>
+                  <input
+                    id="displayName"
+                    type="text"
+                    placeholder="How should drivers address you?"
+                    value={profile.displayName || ''}
+                    onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="avatarUrl"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Avatar Image URL
+                  </label>
+                  <input
+                    id="avatarUrl"
+                    type="url"
+                    placeholder="https://example.com/avatar.jpg"
+                    value={profile.avatarUrl || ''}
+                    onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="dateOfBirth"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Date of Birth
+                  </label>
+                  <input
+                    id="dateOfBirth"
+                    type="date"
+                    value={profile.dateOfBirth || ''}
+                    onChange={(e) => setProfile({ ...profile, dateOfBirth: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginTop: '1rem' }}>
+                  <button
+                    type="submit"
+                    disabled={profileSaving}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.375rem',
+                      backgroundColor: 'var(--color-primary)',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: profileSaving ? 'not-allowed' : 'pointer',
+                      opacity: profileSaving ? 0.7 : 1,
+                    }}
+                  >
+                    {profileSaving ? 'Saving...' : 'Save Profile Changes'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Locations Tab Content */}
+        {activeTab === 'locations' && (
+          <div>
             <div
               style={{
-                padding: '3rem 1.5rem',
-                textAlign: 'center',
-                backgroundColor: 'var(--color-surface)',
-                borderRadius: '0.75rem',
-                border: '1px dashed var(--color-border)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
               }}
             >
-              <p style={{ color: 'var(--color-text-secondary)', margin: '0 0 1rem 0' }}>
-                No saved locations found. Add your Home, Work, or favorite pickup points for quick
-                1-tap bookings.
-              </p>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
+                Saved Pickup & Destination Addresses
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowLocationModal(true)}
                 style={{
-                  padding: '0.5rem 1rem',
+                  padding: '0.625rem 1.25rem',
                   borderRadius: '0.375rem',
                   backgroundColor: 'var(--color-primary)',
                   color: '#ffffff',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   border: 'none',
                   cursor: 'pointer',
                 }}
               >
-                Add Your First Location
+                + Add New Location
               </button>
             </div>
-          ) : (
-            <div
-              style={{
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              }}
-            >
-              {locations.map((loc) => (
-                <div
-                  key={loc.id}
+
+            {locationsLoading ? (
+              <p style={{ color: 'var(--color-text-secondary)' }}>Loading saved locations...</p>
+            ) : locations.length === 0 ? (
+              <div
+                style={{
+                  padding: '3rem 1.5rem',
+                  textAlign: 'center',
+                  backgroundColor: 'var(--color-surface)',
+                  borderRadius: '0.75rem',
+                  border: '1px dashed var(--color-border)',
+                }}
+              >
+                <p style={{ color: 'var(--color-text-secondary)', margin: '0 0 1rem 0' }}>
+                  No saved locations found. Add your Home, Work, or favorite pickup points for quick
+                  1-tap bookings.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowLocationModal(true)}
                   style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: `1px solid ${loc.isDefault ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    borderRadius: '0.75rem',
-                    padding: '1.25rem',
-                    position: 'relative',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    fontWeight: 500,
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
+                  Add Your First Location
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gap: '1rem',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                }}
+              >
+                {locations.map((loc) => (
                   <div
+                    key={loc.id}
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '0.5rem',
+                      backgroundColor: 'var(--color-surface)',
+                      border: `1px solid ${loc.isDefault ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                      borderRadius: '0.75rem',
+                      padding: '1.25rem',
+                      position: 'relative',
                     }}
                   >
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>{loc.label}</h3>
-                    {loc.isDefault && (
-                      <span
-                        style={{
-                          backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                          color: 'var(--color-primary)',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '0.25rem',
-                        }}
-                      >
-                        DEFAULT
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    style={{
-                      margin: '0 0 0.5rem 0',
-                      fontSize: '0.875rem',
-                      color: 'var(--color-text-primary)',
-                    }}
-                  >
-                    {loc.addressLine1}
-                    {loc.addressLine2 ? `, ${loc.addressLine2}` : ''}
-                  </p>
-                  <p
-                    style={{
-                      margin: '0 0 1rem 0',
-                      fontSize: '0.75rem',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
-                    {loc.city}, {loc.state} {loc.postalCode} | Coordinates: [
-                    {loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}]
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    {!loc.isDefault && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>
+                        {loc.label}
+                      </h3>
+                      {loc.isDefault && (
+                        <span
+                          style={{
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            color: 'var(--color-primary)',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '0.25rem',
+                          }}
+                        >
+                          DEFAULT
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      style={{
+                        margin: '0 0 0.5rem 0',
+                        fontSize: '0.875rem',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      {loc.addressLine1}
+                      {loc.addressLine2 ? `, ${loc.addressLine2}` : ''}
+                    </p>
+                    <p
+                      style={{
+                        margin: '0 0 1rem 0',
+                        fontSize: '0.75rem',
+                        color: 'var(--color-text-secondary)',
+                      }}
+                    >
+                      {loc.city}, {loc.state} {loc.postalCode} | Coordinates: [
+                      {loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}]
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      {!loc.isDefault && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetDefaultLocation(loc.id)}
+                          style={{
+                            padding: '0.375rem 0.75rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Set as Default
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => handleSetDefaultLocation(loc.id)}
+                        onClick={() => handleDeleteLocation(loc.id)}
                         style={{
                           padding: '0.375rem 0.75rem',
                           borderRadius: '0.25rem',
-                          border: '1px solid var(--color-border)',
-                          backgroundColor: 'var(--color-background)',
-                          color: 'var(--color-text-primary)',
+                          border: '1px solid var(--color-danger)',
+                          backgroundColor: 'transparent',
+                          color: 'var(--color-danger)',
                           fontSize: '0.75rem',
                           cursor: 'pointer',
                         }}
                       >
-                        Set as Default
+                        Delete
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteLocation(loc.id)}
-                      style={{
-                        padding: '0.375rem 0.75rem',
-                        borderRadius: '0.25rem',
-                        border: '1px solid var(--color-danger)',
-                        backgroundColor: 'transparent',
-                        color: 'var(--color-danger)',
-                        fontSize: '0.75rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Delete
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
 
-          {/* Add Location Modal */}
-          {showLocationModal && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 100,
-                padding: '1rem',
-              }}
-            >
+            {/* Add Location Modal */}
+            {showLocationModal && (
               <div
                 style={{
-                  backgroundColor: 'var(--color-surface-elevated)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '0.75rem',
-                  padding: '2rem',
-                  width: '100%',
-                  maxWidth: '500px',
-                  maxHeight: '90vh',
-                  overflowY: 'auto',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 100,
+                  padding: '1rem',
                 }}
               >
-                <h3 style={{ marginTop: 0, marginBottom: '1.25rem', fontSize: '1.25rem' }}>
-                  Add Saved Location
-                </h3>
-                <form onSubmit={handleSaveLocation} style={{ display: 'grid', gap: '1rem' }}>
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      Label (e.g. Home, Work, Gym)
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Home"
-                      value={newLocation.label}
-                      onChange={(e) => setNewLocation({ ...newLocation, label: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        borderRadius: '0.25rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-background)',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      Address Line 1
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="123 MG Road"
-                      value={newLocation.addressLine1}
-                      onChange={(e) =>
-                        setNewLocation({ ...newLocation, addressLine1: e.target.value })
-                      }
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        borderRadius: '0.25rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-background)',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      Address Line 2 (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Apt 4B"
-                      value={newLocation.addressLine2}
-                      onChange={(e) =>
-                        setNewLocation({ ...newLocation, addressLine2: e.target.value })
-                      }
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        borderRadius: '0.25rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-background)',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '0.75rem',
+                    padding: '2rem',
+                    width: '100%',
+                    maxWidth: '500px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <h3 style={{ marginTop: 0, marginBottom: '1.25rem', fontSize: '1.25rem' }}>
+                    Add Saved Location
+                  </h3>
+                  <form onSubmit={handleSaveLocation} style={{ display: 'grid', gap: '1rem' }}>
                     <div>
                       <label
                         style={{
@@ -925,13 +847,14 @@ export default function ProfilePage() {
                           marginBottom: '0.25rem',
                         }}
                       >
-                        City
+                        Label (e.g. Home, Work, Gym)
                       </label>
                       <input
                         type="text"
                         required
-                        value={newLocation.city}
-                        onChange={(e) => setNewLocation({ ...newLocation, city: e.target.value })}
+                        placeholder="Home"
+                        value={newLocation.label}
+                        onChange={(e) => setNewLocation({ ...newLocation, label: e.target.value })}
                         style={{
                           width: '100%',
                           padding: '0.5rem',
@@ -951,48 +874,15 @@ export default function ProfilePage() {
                           marginBottom: '0.25rem',
                         }}
                       >
-                        Postal Code
+                        Address Line 1
                       </label>
                       <input
                         type="text"
                         required
-                        value={newLocation.postalCode}
+                        placeholder="123 MG Road"
+                        value={newLocation.addressLine1}
                         onChange={(e) =>
-                          setNewLocation({ ...newLocation, postalCode: e.target.value })
-                        }
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          borderRadius: '0.25rem',
-                          border: '1px solid var(--color-border)',
-                          backgroundColor: 'var(--color-background)',
-                          color: 'var(--color-text-primary)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                    <div>
-                      <label
-                        style={{
-                          display: 'block',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        Latitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        required
-                        value={newLocation.latitude}
-                        onChange={(e) =>
-                          setNewLocation({
-                            ...newLocation,
-                            latitude: parseFloat(e.target.value) || 0,
-                          })
+                          setNewLocation({ ...newLocation, addressLine1: e.target.value })
                         }
                         style={{
                           width: '100%',
@@ -1013,18 +903,14 @@ export default function ProfilePage() {
                           marginBottom: '0.25rem',
                         }}
                       >
-                        Longitude
+                        Address Line 2 (Optional)
                       </label>
                       <input
-                        type="number"
-                        step="any"
-                        required
-                        value={newLocation.longitude}
+                        type="text"
+                        placeholder="Apt 4B"
+                        value={newLocation.addressLine2}
                         onChange={(e) =>
-                          setNewLocation({
-                            ...newLocation,
-                            longitude: parseFloat(e.target.value) || 0,
-                          })
+                          setNewLocation({ ...newLocation, addressLine2: e.target.value })
                         }
                         style={{
                           width: '100%',
@@ -1036,265 +922,387 @@ export default function ProfilePage() {
                         }}
                       />
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      id="isDefault"
-                      type="checkbox"
-                      checked={newLocation.isDefault}
-                      onChange={(e) =>
-                        setNewLocation({ ...newLocation, isDefault: e.target.checked })
-                      }
-                    />
-                    <label htmlFor="isDefault" style={{ fontSize: '0.875rem' }}>
-                      Set as Default Location
-                    </label>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      gap: '0.75rem',
-                      marginTop: '1rem',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setShowLocationModal(false)}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newLocation.city}
+                          onChange={(e) => setNewLocation({ ...newLocation, city: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          Postal Code
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newLocation.postalCode}
+                          onChange={(e) =>
+                            setNewLocation({ ...newLocation, postalCode: e.target.value })
+                          }
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          Latitude
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          required
+                          value={newLocation.latitude}
+                          onChange={(e) =>
+                            setNewLocation({
+                              ...newLocation,
+                              latitude: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          Longitude
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          required
+                          value={newLocation.longitude}
+                          onChange={(e) =>
+                            setNewLocation({
+                              ...newLocation,
+                              longitude: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-background)',
+                            color: 'var(--color-text-primary)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        id="isDefault"
+                        type="checkbox"
+                        checked={newLocation.isDefault}
+                        onChange={(e) =>
+                          setNewLocation({ ...newLocation, isDefault: e.target.checked })
+                        }
+                      />
+                      <label htmlFor="isDefault" style={{ fontSize: '0.875rem' }}>
+                        Set as Default Location
+                      </label>
+                    </div>
+                    <div
                       style={{
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.25rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'transparent',
-                        color: 'var(--color-text-primary)',
-                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: '0.75rem',
+                        marginTop: '1rem',
                       }}
                     >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={locationSaving}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.25rem',
-                        border: 'none',
-                        backgroundColor: 'var(--color-primary)',
-                        color: '#ffffff',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {locationSaving ? 'Saving...' : 'Save Location'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Preferences Tab Content */}
-      {activeTab === 'preferences' && (
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '0.75rem',
-            padding: '2rem',
-          }}
-        >
-          <h2
-            style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: 0, marginBottom: '1.5rem' }}
-          >
-            System & Notification Preferences
-          </h2>
-
-          {prefMessage && (
-            <div
-              style={{
-                padding: '0.75rem 1rem',
-                borderRadius: '0.5rem',
-                marginBottom: '1.5rem',
-                backgroundColor:
-                  prefMessage.type === 'success'
-                    ? 'rgba(34, 197, 94, 0.1)'
-                    : 'rgba(220, 38, 38, 0.1)',
-                border: `1px solid ${prefMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
-                color: prefMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)',
-                fontSize: '0.875rem',
-              }}
-            >
-              {prefMessage.text}
-            </div>
-          )}
-
-          {prefLoading ? (
-            <p style={{ color: 'var(--color-text-secondary)' }}>Loading preferences...</p>
-          ) : (
-            <form
-              onSubmit={handleSavePreferences}
-              style={{ display: 'grid', gap: '1.5rem', maxWidth: '600px' }}
-            >
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  UI Theme Mode
-                </label>
-                <select
-                  value={preferences.theme}
-                  onChange={(e) =>
-                    setPreferences({
-                      ...preferences,
-                      theme: e.target.value as PreferenceData['theme'],
-                    })
-                  }
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem 0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="SYSTEM">System Preference</option>
-                  <option value="LIGHT">Light Mode</option>
-                  <option value="DARK">Dark Mode</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  Language
-                </label>
-                <select
-                  value={preferences.language}
-                  onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem 0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="en">English</option>
-                  <option value="hi">Hindi (हिंदी)</option>
-                  <option value="kn">Kannada (ಕನ್ನಡ)</option>
-                  <option value="ta">Tamil (தமிழ்)</option>
-                  <option value="te">Telugu (ತೆಲುಗು)</option>
-                </select>
-              </div>
-
-              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>
-                  Notification Channels
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={preferences.pushNotificationsEnabled}
-                      onChange={(e) =>
-                        setPreferences({
-                          ...preferences,
-                          pushNotificationsEnabled: e.target.checked,
-                        })
-                      }
-                    />
-                    <span style={{ fontSize: '0.875rem' }}>Enable Mobile Push Notifications</span>
-                  </label>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={preferences.smsNotificationsEnabled}
-                      onChange={(e) =>
-                        setPreferences({
-                          ...preferences,
-                          smsNotificationsEnabled: e.target.checked,
-                        })
-                      }
-                    />
-                    <span style={{ fontSize: '0.875rem' }}>Enable SMS Alerts</span>
-                  </label>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={preferences.emailNotificationsEnabled}
-                      onChange={(e) =>
-                        setPreferences({
-                          ...preferences,
-                          emailNotificationsEnabled: e.target.checked,
-                        })
-                      }
-                    />
-                    <span style={{ fontSize: '0.875rem' }}>Enable Email Updates & Receipts</span>
-                  </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationModal(false)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.25rem',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'transparent',
+                          color: 'var(--color-text-primary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={locationSaving}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.25rem',
+                          border: 'none',
+                          backgroundColor: 'var(--color-primary)',
+                          color: '#ffffff',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {locationSaving ? 'Saving...' : 'Save Location'}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
+            )}
+          </div>
+        )}
 
-              <div>
-                <button
-                  type="submit"
-                  disabled={prefSaving}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: 'var(--color-primary)',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: prefSaving ? 'not-allowed' : 'pointer',
-                    opacity: prefSaving ? 0.7 : 1,
-                  }}
-                >
-                  {prefSaving ? 'Saving...' : 'Save Preferences'}
-                </button>
+        {/* Preferences Tab Content */}
+        {activeTab === 'preferences' && (
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '0.75rem',
+              padding: '2rem',
+            }}
+          >
+            <h2
+              style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: 0, marginBottom: '1.5rem' }}
+            >
+              System & Notification Preferences
+            </h2>
+
+            {prefMessage && (
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1.5rem',
+                  backgroundColor:
+                    prefMessage.type === 'success'
+                      ? 'rgba(34, 197, 94, 0.1)'
+                      : 'rgba(220, 38, 38, 0.1)',
+                  border: `1px solid ${prefMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
+                  color: prefMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {prefMessage.text}
               </div>
-            </form>
-          )}
-        </div>
-      )}
-      <ToastViewport toast={toast} onDismiss={dismissToast} />
-    </div>
+            )}
+
+            {prefLoading ? (
+              <p style={{ color: 'var(--color-text-secondary)' }}>Loading preferences...</p>
+            ) : (
+              <form
+                onSubmit={handleSavePreferences}
+                style={{ display: 'grid', gap: '1.5rem', maxWidth: '600px' }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    UI Theme Mode
+                  </label>
+                  <select
+                    value={preferences.theme}
+                    onChange={(e) =>
+                      setPreferences({
+                        ...preferences,
+                        theme: e.target.value as PreferenceData['theme'],
+                      })
+                    }
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="SYSTEM">System Preference</option>
+                    <option value="LIGHT">Light Mode</option>
+                    <option value="DARK">Dark Mode</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    Language
+                  </label>
+                  <select
+                    value={preferences.language}
+                    onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="en">English</option>
+                    <option value="hi">Hindi (हिंदी)</option>
+                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ta">Tamil (தமிழ்)</option>
+                    <option value="te">Telugu (ತೆಲುಗು)</option>
+                  </select>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>
+                    Notification Channels
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={preferences.pushNotificationsEnabled}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            pushNotificationsEnabled: e.target.checked,
+                          })
+                        }
+                      />
+                      <span style={{ fontSize: '0.875rem' }}>Enable Mobile Push Notifications</span>
+                    </label>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={preferences.smsNotificationsEnabled}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            smsNotificationsEnabled: e.target.checked,
+                          })
+                        }
+                      />
+                      <span style={{ fontSize: '0.875rem' }}>Enable SMS Alerts</span>
+                    </label>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={preferences.emailNotificationsEnabled}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            emailNotificationsEnabled: e.target.checked,
+                          })
+                        }
+                      />
+                      <span style={{ fontSize: '0.875rem' }}>Enable Email Updates & Receipts</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    type="submit"
+                    disabled={prefSaving}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '0.375rem',
+                      backgroundColor: 'var(--color-primary)',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: prefSaving ? 'not-allowed' : 'pointer',
+                      opacity: prefSaving ? 0.7 : 1,
+                    }}
+                  >
+                    {prefSaving ? 'Saving...' : 'Save Preferences'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+        <ToastViewport toast={toast} onDismiss={dismissToast} />
+      </div>
+    </CustomerLayout>
   );
 }

@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DriverLayout } from '@/components/driver-layout';
+import { CurrentLocationButton } from '@/components/ui/current-location-button';
+import type { CapturedLocation } from '@/components/use-geolocation-capture';
 
 interface DriverProfileData {
   firstName: string;
@@ -67,6 +70,14 @@ export default function DriverProfileEditPage() {
     };
   }, []);
 
+  // DriverProfile has no latitude/longitude columns — primaryServiceArea is
+  // a free-text descriptor, and there is no client-facing reverse-geocoding
+  // provider, so a successful capture is labeled honestly rather than
+  // fabricating a resolved place name; the driver can still edit the text.
+  const handleUseCurrentLocation = (_location: CapturedLocation) => {
+    setForm((prev) => ({ ...prev, primaryServiceArea: 'Current location selected' }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -99,87 +110,140 @@ export default function DriverProfileEditPage() {
   };
 
   return (
-    <div
-      style={{ minHeight: '100vh', padding: '2rem 1.5rem', maxWidth: '800px', margin: '0 auto' }}
-    >
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '2rem',
-          paddingBottom: '1rem',
-          borderBottom: '1px solid var(--color-border)',
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              margin: 0,
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            Driver Professional Profile
-          </h1>
-          <p
-            style={{
-              margin: '0.25rem 0 0 0',
-              fontSize: '0.875rem',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            Provide your driving experience and primary operational service area.
-          </p>
-        </div>
-        <Link
-          href="/driver"
+    <DriverLayout>
+      <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+        <header
           style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            border: '1px solid var(--color-border)',
-            backgroundColor: 'var(--color-surface)',
-            color: 'var(--color-text-primary)',
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-            fontWeight: 500,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem',
+            paddingBottom: '1rem',
+            borderBottom: '1px solid var(--color-border)',
           }}
         >
-          ← Driver Portal
-        </Link>
-      </header>
-
-      <div
-        style={{
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '0.75rem',
-          padding: '2rem',
-        }}
-      >
-        {message && (
-          <div
+          <div>
+            <h1
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                margin: 0,
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              Driver Professional Profile
+            </h1>
+            <p
+              style={{
+                margin: '0.25rem 0 0 0',
+                fontSize: '0.875rem',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              Provide your driving experience and primary operational service area.
+            </p>
+          </div>
+          <Link
+            href="/driver"
             style={{
-              padding: '0.75rem 1rem',
-              borderRadius: '0.5rem',
-              marginBottom: '1.5rem',
-              backgroundColor:
-                message.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(220, 38, 38, 0.1)',
-              border: `1px solid ${message.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
-              color: message.type === 'success' ? '#22c55e' : 'var(--color-danger)',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.375rem',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text-primary)',
+              textDecoration: 'none',
               fontSize: '0.875rem',
+              fontWeight: 500,
             }}
           >
-            {message.text}
-          </div>
-        )}
+            ← Driver Portal
+          </Link>
+        </header>
 
-        {loading ? (
-          <p style={{ color: 'var(--color-text-secondary)' }}>Loading profile data...</p>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '0.75rem',
+            padding: '2rem',
+          }}
+        >
+          {message && (
+            <div
+              style={{
+                padding: '0.75rem 1rem',
+                borderRadius: '0.5rem',
+                marginBottom: '1.5rem',
+                backgroundColor:
+                  message.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                border: `1px solid ${message.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
+                color: message.type === 'success' ? '#22c55e' : 'var(--color-danger)',
+                fontSize: '0.875rem',
+              }}
+            >
+              {message.text}
+            </div>
+          )}
+
+          {loading ? (
+            <p style={{ color: 'var(--color-text-secondary)' }}>Loading profile data...</p>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.firstName}
+                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  />
+                </div>
+              </div>
+
               <div>
                 <label
                   style={{
@@ -189,13 +253,102 @@ export default function DriverProfileEditPage() {
                     marginBottom: '0.375rem',
                   }}
                 >
-                  First Name
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Captain Ramesh"
+                  value={form.displayName}
+                  onChange={(e) => setForm({ ...form, displayName: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Date of Birth (Min 18 Yrs)
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={form.dateOfBirth}
+                    onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Driving Experience (Years)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    value={form.drivingExperienceYears}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        drivingExperienceYears: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    marginBottom: '0.375rem',
+                  }}
+                >
+                  Primary Service Area
                 </label>
                 <input
                   type="text"
                   required
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                  placeholder="e.g. Bengaluru, Koramangala, Indiranagar"
+                  value={form.primaryServiceArea}
+                  onChange={(e) => setForm({ ...form, primaryServiceArea: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '0.625rem',
@@ -205,7 +358,11 @@ export default function DriverProfileEditPage() {
                     color: 'var(--color-text-primary)',
                   }}
                 />
+                <div style={{ marginTop: '0.5rem' }}>
+                  <CurrentLocationButton onLocated={handleUseCurrentLocation} />
+                </div>
               </div>
+
               <div>
                 <label
                   style={{
@@ -215,13 +372,13 @@ export default function DriverProfileEditPage() {
                     marginBottom: '0.375rem',
                   }}
                 >
-                  Last Name
+                  Professional Biography
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                <textarea
+                  rows={3}
+                  placeholder="Tell riders about your driving experience..."
+                  value={form.bio}
+                  onChange={(e) => setForm({ ...form, bio: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '0.625rem',
@@ -232,169 +389,29 @@ export default function DriverProfileEditPage() {
                   }}
                 />
               </div>
-            </div>
 
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: '0.375rem',
-                }}
-              >
-                Display Name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Captain Ramesh"
-                value={form.displayName}
-                onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  borderRadius: '0.375rem',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-background)',
-                  color: 'var(--color-text-primary)',
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label
+              <div style={{ marginTop: '1rem' }}>
+                <button
+                  type="submit"
+                  disabled={saving}
                   style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                    opacity: saving ? 0.7 : 1,
                   }}
                 >
-                  Date of Birth (Min 18 Yrs)
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={form.dateOfBirth}
-                  onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                />
+                  {saving ? 'Saving Profile...' : 'Save Profile Details'}
+                </button>
               </div>
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Driving Experience (Years)
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  required
-                  value={form.drivingExperienceYears}
-                  onChange={(e) =>
-                    setForm({ ...form, drivingExperienceYears: parseInt(e.target.value, 10) || 0 })
-                  }
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: '0.375rem',
-                }}
-              >
-                Primary Service Area
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Bengaluru, Koramangala, Indiranagar"
-                value={form.primaryServiceArea}
-                onChange={(e) => setForm({ ...form, primaryServiceArea: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  borderRadius: '0.375rem',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-background)',
-                  color: 'var(--color-text-primary)',
-                }}
-              />
-            </div>
-
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: '0.375rem',
-                }}
-              >
-                Professional Biography
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Tell riders about your driving experience..."
-                value={form.bio}
-                onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  borderRadius: '0.375rem',
-                  border: '1px solid var(--color-border)',
-                  backgroundColor: 'var(--color-background)',
-                  color: 'var(--color-text-primary)',
-                }}
-              />
-            </div>
-
-            <div style={{ marginTop: '1rem' }}>
-              <button
-                type="submit"
-                disabled={saving}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.375rem',
-                  backgroundColor: 'var(--color-primary)',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  border: 'none',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  opacity: saving ? 0.7 : 1,
-                }}
-              >
-                {saving ? 'Saving Profile...' : 'Save Profile Details'}
-              </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </div>
-    </div>
+    </DriverLayout>
   );
 }

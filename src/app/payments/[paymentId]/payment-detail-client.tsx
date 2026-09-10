@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { CustomerLayout } from '@/components/customer-layout';
 
 interface PaymentDetail {
   id: string;
@@ -44,29 +45,33 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ paymen
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
-        <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent mr-3" />
-        Loading payment...
-      </div>
+      <CustomerLayout>
+        <div className="flex items-center justify-center py-24">
+          <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent mr-3" />
+          Loading payment...
+        </div>
+      </CustomerLayout>
     );
   }
 
   if (error || !payment) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center gap-4 p-6">
-        <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm text-center max-w-sm">
-          {error ?? 'Payment not found.'}
+      <CustomerLayout>
+        <div className="flex flex-col items-center justify-center gap-4 py-24">
+          <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm text-center max-w-sm">
+            {error ?? 'Payment not found.'}
+          </div>
+          <Link href="/payments" className="text-emerald-400 hover:text-emerald-300 text-sm">
+            ← Back to payments
+          </Link>
         </div>
-        <Link href="/payments" className="text-emerald-400 hover:text-emerald-300 text-sm">
-          ← Back to payments
-        </Link>
-      </div>
+      </CustomerLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <CustomerLayout>
+      <div className="flex flex-col w-full gap-6">
         <div className="border-b border-slate-800 pb-6">
           <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
             <Link href="/payments" className="hover:text-emerald-400 transition-colors">
@@ -114,7 +119,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ paymen
           ← View booking
         </Link>
       </div>
-    </div>
+    </CustomerLayout>
   );
 }
 

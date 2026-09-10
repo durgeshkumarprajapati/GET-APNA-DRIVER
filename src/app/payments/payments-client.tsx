@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { CustomerLayout } from '@/components/customer-layout';
 
 interface Payment {
   id: string;
@@ -74,17 +75,10 @@ export default function PaymentsListPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <CustomerLayout>
+      <div className="flex flex-col w-full gap-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/bookings" className="hover:text-emerald-400 transition-colors">
-                Customer Portal
-              </Link>
-              <span>/</span>
-              <span className="text-slate-200 font-medium">Payments</span>
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white">Payment History</h1>
           </div>
         </div>
@@ -130,6 +124,6 @@ export default function PaymentsListPage() {
           </div>
         )}
       </div>
-    </div>
+    </CustomerLayout>
   );
 }

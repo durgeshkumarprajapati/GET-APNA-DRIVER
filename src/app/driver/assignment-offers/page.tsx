@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { DriverLayout } from '@/components/driver-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface AssignmentOffer {
@@ -114,18 +115,11 @@ export default function DriverAssignmentOffersPage() {
   const pastOffers = offers.filter((o) => o.status !== 'PENDING');
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Navigation & Header */}
+    <DriverLayout>
+      <div className="flex flex-col w-full gap-6">
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/driver" className="hover:text-emerald-400 transition-colors">
-                Driver Portal
-              </Link>
-              <span>/</span>
-              <span className="text-slate-200 font-medium">Assignment Offers</span>
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
               Booking Assignment Offers
             </h1>
@@ -314,6 +308,6 @@ export default function DriverAssignmentOffersPage() {
         )}
       </div>
       <ToastViewport toast={toast} onDismiss={dismissToast} />
-    </div>
+    </DriverLayout>
   );
 }

@@ -3,6 +3,7 @@
 import { use, useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { CustomerLayout } from '@/components/customer-layout';
 
 interface CheckoutInit {
   paymentId: string;
@@ -117,8 +118,8 @@ export default function PaymentCheckoutPage({
   }, [checkout, router]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-lg mx-auto space-y-8">
+    <CustomerLayout>
+      <div className="flex flex-col w-full gap-6 max-w-lg">
         <div className="border-b border-slate-800 pb-6">
           <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
             <Link
@@ -190,6 +191,6 @@ export default function PaymentCheckoutPage({
           )}
         </div>
       </div>
-    </div>
+    </CustomerLayout>
   );
 }

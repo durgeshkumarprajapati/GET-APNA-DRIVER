@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { DriverLayout } from '@/components/driver-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 
@@ -115,34 +116,38 @@ export default function DriverJourneyControlPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-400">
-          <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-          Loading trip journey...
+      <DriverLayout>
+        <div className="flex items-center justify-center py-24">
+          <div className="flex items-center gap-3 text-slate-400">
+            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
+            Loading trip journey...
+          </div>
         </div>
-      </div>
+      </DriverLayout>
     );
   }
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10 flex items-center justify-center">
-        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-xl">
-          <p className="text-red-400 font-medium text-sm">{error || 'Trip not found.'}</p>
-          <Link
-            href="/driver/bookings"
-            className="inline-block px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
-          >
-            ← Back to Assigned Trips
-          </Link>
+      <DriverLayout>
+        <div className="flex items-center justify-center py-24">
+          <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-xl">
+            <p className="text-red-400 font-medium text-sm">{error || 'Trip not found.'}</p>
+            <Link
+              href="/driver/bookings"
+              className="inline-block px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              ← Back to Assigned Trips
+            </Link>
+          </div>
         </div>
-      </div>
+      </DriverLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <DriverLayout>
+      <div className="flex flex-col w-full gap-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
@@ -326,6 +331,6 @@ export default function DriverJourneyControlPage({
         </div>
       </div>
       <ToastViewport toast={toast} onDismiss={dismissToast} />
-    </div>
+    </DriverLayout>
   );
 }

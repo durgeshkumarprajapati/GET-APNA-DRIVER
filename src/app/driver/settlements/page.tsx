@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { DriverLayout } from '@/components/driver-layout';
 
 interface Settlement {
   id: string;
@@ -68,16 +68,9 @@ export default function DriverSettlementsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-10">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <DriverLayout>
+      <div className="flex flex-col w-full gap-6">
         <div className="border-b border-slate-800 pb-6">
-          <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-            <Link href="/driver/wallet" className="hover:text-emerald-400 transition-colors">
-              Wallet
-            </Link>
-            <span>/</span>
-            <span className="text-slate-200 font-medium">Settlements</span>
-          </div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Settlement History</h1>
         </div>
 
@@ -121,6 +114,6 @@ export default function DriverSettlementsPage() {
           </div>
         )}
       </div>
-    </div>
+    </DriverLayout>
   );
 }
