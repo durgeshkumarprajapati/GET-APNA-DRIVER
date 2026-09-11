@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CustomerLayout } from '@/components/customer-layout';
 import { SupportTicketCategory, SupportTicketStatus } from '@prisma/client';
+import { DirectCallResponse } from '@/modules/calling/domain/types';
 
 interface SupportMessage {
   id: string;
@@ -71,9 +72,34 @@ export default function CustomerSupportPage() {
   const [closing, setClosing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Call Customer Care state
+  const [callingSupport, setCallingSupport] = useState(false);
+  const [callData, setCallData] = useState<DirectCallResponse | null>(null);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleCallSupport = async () => {
+    try {
+      setCallingSupport(true);
+      const res = await fetch('/api/customer/support/call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ supportTicketId: selectedTicket?.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initiate support call');
+      }
+      setCallData(data.data);
+      showToast('Call initiated! Connecting to Customer Care.');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Error initiating support call');
+    } finally {
+      setCallingSupport(false);
+    }
   };
 
   const fetchTickets = async () => {
@@ -294,15 +320,52 @@ export default function CustomerSupportPage() {
               Track issues, contact operations concierge, and view resolution logs for your rides.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsCreateOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk']"
-          >
-            <span className="material-symbols-outlined text-lg">add_comment</span>
-            <span>Create New Request</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={callingSupport}
+              onClick={handleCallSupport}
+              className="px-4 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk']"
+            >
+              <span className="material-symbols-outlined text-lg">call</span>
+              <span>{callingSupport ? 'Connecting…' : 'Call Customer Care'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCreateOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk']"
+            >
+              <span className="material-symbols-outlined text-lg">add_comment</span>
+              <span>Create New Request</span>
+            </button>
+          </div>
         </div>
+
+        {/* Active Call Banner */}
+        {callData && (
+          <div className="p-4 rounded-xl bg-[#0053db]/20 border border-[#70a1ff]/40 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#70a1ff] text-2xl animate-pulse">
+                phone_in_talk
+              </span>
+              <div>
+                <span className="text-sm font-bold text-[#dfe2ee] block font-['Space_Grotesk']">
+                  Customer Care Call Connected (Session ID: {callData.callSessionId.substring(0, 8)})
+                </span>
+                <span className="text-xs text-[#70a1ff]">
+                  Dial Helpline: <strong className="text-white font-mono">{callData.dialNumber}</strong> • {callData.instructions}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCallData(null)}
+              className="text-xs text-[#87948b] hover:text-[#dfe2ee]"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Safety SOS Escalation Banner */}
         <div className="p-4 rounded-xl bg-[#93000a]/20 border border-[#ffb4ab]/30 flex flex-wrap items-center justify-between gap-4">

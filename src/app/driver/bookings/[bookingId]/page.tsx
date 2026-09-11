@@ -6,6 +6,7 @@ import { DriverLayout } from '@/components/driver-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { RidePinModal } from '@/components/driver/ride-pin-modal';
+import { DirectCallResponse } from '@/modules/calling/domain/types';
 
 interface DriverBookingDetail {
   id: string;
@@ -49,6 +50,28 @@ export default function DriverJourneyControlPage({
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [review, setReview] = useState<BookingReview | null>(null);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+  const [callingCustomer, setCallingCustomer] = useState(false);
+  const [customerCallData, setCustomerCallData] = useState<DirectCallResponse | null>(null);
+
+  const handleCallCustomer = async () => {
+    try {
+      setCallingCustomer(true);
+      const res = await fetch(`/api/driver/bookings/${bookingId}/call-customer`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initiate customer call');
+      }
+      setCustomerCallData(data.data);
+      showToast('Call initiated! Connecting to customer via proxy.', 'success');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Error calling customer', 'error');
+    } finally {
+      setCallingCustomer(false);
+    }
+  };
 
   const handleVerifyAndStartPin = async (ridePin: string) => {
     setActionPending(true);
@@ -213,9 +236,30 @@ export default function DriverJourneyControlPage({
 
           {/* Action Trigger Buttons */}
           <div className="space-y-3">
-            <span className="text-xs font-medium text-slate-400 uppercase block">
-              Next Journey Step
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400 uppercase block">
+                Next Journey Step & Communication
+              </span>
+              {['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS', 'TRIP_COMPLETED'].includes(booking.status) && (
+                <button
+                  type="button"
+                  disabled={callingCustomer}
+                  onClick={handleCallCustomer}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg shadow transition-colors flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">call</span>
+                  <span>{callingCustomer ? 'Calling…' : 'Call Customer'}</span>
+                </button>
+              )}
+            </div>
+
+            {customerCallData && (
+              <div className="p-3 rounded-lg bg-emerald-900/40 border border-emerald-500/50 text-xs text-emerald-300 space-y-1 font-mono">
+                <div>Proxy Session ID: {customerCallData.callSessionId.substring(0, 8)}</div>
+                <div>Masked Driver: {customerCallData.callerPhoneMasked} → Masked Customer: {customerCallData.recipientPhoneMasked}</div>
+                <div className="text-[11px] text-emerald-200">{customerCallData.instructions}</div>
+              </div>
+            )}
 
             {booking.status === 'DRIVER_ASSIGNED' && (
               <button

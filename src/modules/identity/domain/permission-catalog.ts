@@ -96,6 +96,12 @@ export const PERMISSIONS = {
   ADMIN_SUPPORT_MANAGE: 'admin.support.manage',
   ADMIN_SUPPORT_RESPOND: 'admin.support.respond',
 
+  // Calling & Communication (Phase 28 domain & admin)
+  CALL_DRIVER_INITIATE: 'calling.driver.initiate',
+  CALL_CUSTOMER_INITIATE: 'calling.customer.initiate',
+  CALL_SUPPORT_INITIATE: 'calling.support.initiate',
+  ADMIN_CALLS_READ: 'admin.calls.read',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -286,6 +292,11 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.ADMIN_SUPPORT_RESPOND,
     description: 'Respond to customer support tickets and add internal notes (admin).',
   },
+
+  { code: PERMISSIONS.CALL_DRIVER_INITIATE, description: 'Initiate masked phone call to assigned driver.' },
+  { code: PERMISSIONS.CALL_CUSTOMER_INITIATE, description: 'Initiate masked phone call to assigned customer.' },
+  { code: PERMISSIONS.CALL_SUPPORT_INITIATE, description: 'Initiate voice call to Customer Care.' },
+  { code: PERMISSIONS.ADMIN_CALLS_READ, description: 'View platform call sessions and telephony logs (admin).' },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
   {
