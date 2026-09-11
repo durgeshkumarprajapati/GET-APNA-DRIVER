@@ -422,6 +422,10 @@ model CustomerProfile {
   dateOfBirth       DateTime? @map("date_of_birth") @db.Timestamptz(6)
   defaultLocationId String?   @map("default_location_id") @db.Uuid
 
+  customerRidePinHash      String?   @map("customer_ride_pin_hash")
+  customerRidePinCreatedAt DateTime? @map("customer_ride_pin_created_at") @db.Timestamptz(6)
+  customerRidePinUpdatedAt DateTime? @map("customer_ride_pin_updated_at") @db.Timestamptz(6)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -792,6 +796,10 @@ model Booking {
   cancelledBy        String?   @map("cancelled_by") @db.Uuid
   cancellationReason String?   @map("cancellation_reason")
   expiresAt          DateTime? @map("expires_at") @db.Timestamptz(6)
+
+  ridePinVerifiedAt               DateTime? @map("ride_pin_verified_at") @db.Timestamptz(6)
+  ridePinVerifiedByDriverId       String?   @map("ride_pin_verified_by_driver_id") @db.Uuid
+  ridePinVerificationAttemptCount Int       @default(0) @map("ride_pin_verification_attempt_count")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)

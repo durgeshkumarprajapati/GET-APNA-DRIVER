@@ -13,6 +13,7 @@ interface CustomerRow {
   paymentCount: number;
   createdAt: string;
   user: {
+    id: string;
     accountStatus: string;
     email: string | null;
     phoneNumber: string | null;
@@ -36,6 +37,7 @@ function customerDisplayName(customer: CustomerRow): string {
 
 function statusBadgeClass(status: string): string {
   if (status === 'ACTIVE') return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
+  if (status === 'PENDING') return 'bg-[#3b2b00] text-[#facc15] border border-[#856404]';
   if (status === 'SUSPENDED' || status === 'DELETED') {
     return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
   }
@@ -52,8 +54,28 @@ export default function AdminCustomersPage() {
     useState<(typeof ACCOUNT_STATUS_FILTERS)[number]>('ALL');
   const [page, setPage] = useState(1);
 
+  // Current session permissions & approval modal state
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerRow | null>(null);
+  const [approving, setApproving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const [refreshKey, setRefreshKey] = useState(0);
+
   useEffect(() => {
-    let isMounted = true;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.principal?.permissions) {
+          setUserPermissions(data.principal.permissions);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    let active = true;
     const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
     if (search.trim()) params.set('search', search.trim());
     if (accountStatus !== 'ALL') params.set('accountStatus', accountStatus);
@@ -61,25 +83,82 @@ export default function AdminCustomersPage() {
     fetch(`/api/admin/customers?${params.toString()}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((json: CustomerListResponse) => {
-        if (isMounted) setData(json);
+        if (active) setData(json);
       })
       .catch(() => {
-        if (isMounted) setData(null);
+        if (active) setData(null);
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (active) setLoading(false);
       });
 
     return () => {
-      isMounted = false;
+      active = false;
     };
-  }, [search, accountStatus, page]);
+  }, [search, accountStatus, page, refreshKey]);
+
+  const canApprove = userPermissions.includes('admin.customer.approve');
+
+  const handleApprove = async () => {
+    if (!selectedCustomer) return;
+    setApproving(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/admin/customers/${selectedCustomer.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || 'Failed to approve customer');
+      }
+
+      setSuccessMsg(
+        `Customer ${customerDisplayName(selectedCustomer)} has been successfully approved!`,
+      );
+      setSelectedCustomer(null);
+      setRefreshKey((k) => k + 1);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Approval failed.';
+      setErrorMsg(message);
+    } finally {
+      setApproving(false);
+    }
+  };
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
     <AdminLayout>
       <div className="flex flex-col gap-6 w-full">
+        {successMsg && (
+          <div className="bg-[#00311f] border border-[#25a475] text-[#68dba9] px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
+            <span>{successMsg}</span>
+            <button
+              onClick={() => setSuccessMsg(null)}
+              className="text-[#68dba9] hover:text-white font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="bg-[#93000a]/20 border border-[#93000a] text-[#ffb4ab] px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
+            <span>{errorMsg}</span>
+            <button
+              onClick={() => setErrorMsg(null)}
+              className="text-[#ffb4ab] hover:text-white font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
@@ -139,7 +218,8 @@ export default function AdminCustomersPage() {
                     <th className="py-3 px-4">Bookings</th>
                     <th className="py-3 px-4">Payments</th>
                     <th className="py-3 px-4">Joined</th>
-                    <th className="py-3 px-4 text-right">Status</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#262a33] font-mono">
@@ -166,12 +246,23 @@ export default function AdminCustomersPage() {
                       <td className="py-3 px-4 text-[#87948b]">
                         {new Date(customer.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-center">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(customer.user.accountStatus)}`}
                         >
                           {customer.user.accountStatus}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {customer.user.accountStatus === 'PENDING' && canApprove && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedCustomer(customer)}
+                            className="px-3 py-1 bg-[#25a475] text-[#042116] font-bold rounded text-[11px] hover:bg-[#68dba9] transition-colors"
+                          >
+                            Approve
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -207,6 +298,55 @@ export default function AdminCustomersPage() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal for Admin Approval */}
+      {selectedCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-center gap-3 text-[#68dba9]">
+              <span className="material-symbols-outlined text-2xl">verified_user</span>
+              <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                Approve Customer?
+              </h2>
+            </div>
+
+            <div className="text-xs text-[#bccac0] space-y-3 leading-relaxed">
+              <p>You are about to approve customer account:</p>
+              <div className="bg-[#181c24] border border-[#262a33] p-3 rounded-lg font-mono">
+                <div className="text-sm font-bold text-[#dfe2ee]">
+                  {customerDisplayName(selectedCustomer)}
+                </div>
+                <div className="text-[11px] text-[#87948b] mt-0.5">
+                  {selectedCustomer.user.email ?? selectedCustomer.user.phoneNumber ?? 'No contact'}
+                </div>
+              </div>
+              <p>
+                The customer will become <strong className="text-[#68dba9]">ACTIVE</strong> and may
+                use customer services according to current account rules.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#262a33]">
+              <button
+                type="button"
+                disabled={approving}
+                onClick={() => setSelectedCustomer(null)}
+                className="px-4 py-2 rounded-xl bg-[#181c24] border border-[#262a33] text-xs font-semibold text-[#dfe2ee] hover:bg-[#262a33] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={approving}
+                onClick={handleApprove}
+                className="px-4 py-2 rounded-xl bg-[#25a475] text-[#042116] text-xs font-bold hover:bg-[#68dba9] transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {approving ? 'Approving...' : 'Approve Customer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

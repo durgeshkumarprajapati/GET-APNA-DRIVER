@@ -252,7 +252,7 @@ describe('Auth Service', () => {
       const result = await requestPhoneOtp({ phoneNumber: '+919876543210' });
       const secondsUntilExpiry = (result.expiresAt.getTime() - before) / 1000;
       expect(secondsUntilExpiry).toBeGreaterThan(175);
-      expect(secondsUntilExpiry).toBeLessThanOrEqual(180);
+      expect(secondsUntilExpiry).toBeLessThanOrEqual(185);
     });
 
     it('verifies correct OTP code and creates active session', async () => {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { RidePinModal } from '@/components/driver/ride-pin-modal';
 
 interface DriverBookingDetail {
   id: string;
@@ -47,6 +48,29 @@ export default function DriverJourneyControlPage({
   const { toast, showToast, dismissToast } = useToast();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [review, setReview] = useState<BookingReview | null>(null);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+  const handleVerifyAndStartPin = async (ridePin: string) => {
+    setActionPending(true);
+    setActionMessage(null);
+    try {
+      const res = await fetch(`/api/driver/bookings/${bookingId}/start-trip`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ridePin }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBooking(data.booking);
+        setActionMessage('Ride PIN verified. Trip In Progress.');
+        showToast('Ride PIN verified successfully! Trip started.', 'success');
+      } else {
+        throw new Error(data.message || 'Verification failed');
+      }
+    } finally {
+      setActionPending(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -225,16 +249,14 @@ export default function DriverJourneyControlPage({
 
             {booking.status === 'DRIVER_ARRIVED' && (
               <button
-                onClick={() =>
-                  handleStatusAction('start-trip', 'Status updated: Trip In Progress.')
-                }
+                onClick={() => setIsPinModalOpen(true)}
                 disabled={actionPending}
                 className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2"
               >
                 {actionPending && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                 )}
-                🚗 Start Trip
+                🔑 Verify Ride PIN & Start Trip
               </button>
             )}
 
@@ -309,13 +331,8 @@ export default function DriverJourneyControlPage({
                 <span className="text-slate-200">20.00%</span>
               </div>
               <div className="flex justify-between items-center text-sm font-bold text-emerald-400 pt-2 border-t border-slate-800">
-                <span>Estimated Driver Payout (80%):</span>
-                <span>
-                  ₹
-                  {booking.estimatedDurationMinutes
-                    ? (Math.max(150, 100 + booking.estimatedDurationMinutes * 2) * 0.8).toFixed(2)
-                    : '120.00'}
-                </span>
+                <span>Estimated Driver Payout:</span>
+                <span>N/A (Calculated upon settlement)</span>
               </div>
             </div>
 
@@ -330,6 +347,14 @@ export default function DriverJourneyControlPage({
           </div>
         </div>
       </div>
+
+      <RidePinModal
+        isOpen={isPinModalOpen}
+        bookingId={booking.id}
+        onClose={() => setIsPinModalOpen(false)}
+        onVerifyAndStart={handleVerifyAndStartPin}
+      />
+
       <ToastViewport toast={toast} onDismiss={dismissToast} />
     </DriverLayout>
   );

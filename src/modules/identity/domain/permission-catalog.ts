@@ -17,6 +17,7 @@ export const PERMISSIONS = {
 
   // Customers (admin)
   ADMIN_CUSTOMER_READ: 'admin.customer.read',
+  ADMIN_CUSTOMER_APPROVE: 'admin.customer.approve',
 
   // Drivers (Phase 4 domain & admin)
   DRIVER_PROFILE_MANAGE: 'driver.profile.manage',
@@ -123,6 +124,7 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   { code: PERMISSIONS.USERS_PROFILE_UPDATE, description: 'Update own user profile.' },
 
   { code: PERMISSIONS.ADMIN_CUSTOMER_READ, description: 'View customer accounts and history.' },
+  { code: PERMISSIONS.ADMIN_CUSTOMER_APPROVE, description: 'Approve pending customer accounts.' },
 
   { code: PERMISSIONS.DRIVER_PROFILE_MANAGE, description: 'Manage own driver profile.' },
   { code: PERMISSIONS.DRIVER_DOCUMENT_UPLOAD, description: 'Upload driver documents.' },

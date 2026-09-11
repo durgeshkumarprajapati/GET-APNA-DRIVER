@@ -36,7 +36,21 @@ interface PreferenceData {
 }
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'locations' | 'preferences'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'locations' | 'preferences' | 'security'>(
+    'profile',
+  );
+
+  // Ride Security / PIN State
+  const [pinStatus, setPinStatus] = useState<{
+    isPinSet: boolean;
+    updatedAt: string | null;
+  } | null>(null);
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+  const [pinMessage, setPinMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  );
 
   // Profile State
   const [profile, setProfile] = useState<ProfileData>({
@@ -122,10 +136,11 @@ export default function ProfilePage() {
 
     const loadAll = async () => {
       try {
-        const [profRes, locRes, prefRes] = await Promise.all([
+        const [profRes, locRes, prefRes, pinRes] = await Promise.all([
           fetch('/api/customer/profile'),
           fetch('/api/customer/locations'),
           fetch('/api/customer/preferences'),
+          fetch('/api/customer/ride-pin'),
         ]);
 
         if (active && profRes.ok) {
@@ -158,6 +173,13 @@ export default function ProfilePage() {
               smsNotificationsEnabled: data.preferences.smsNotificationsEnabled ?? true,
               emailNotificationsEnabled: data.preferences.emailNotificationsEnabled ?? true,
             });
+          }
+        }
+
+        if (active && pinRes.ok) {
+          const data = await pinRes.json();
+          if (data.status) {
+            setPinStatus(data.status);
           }
         }
       } catch {
@@ -298,6 +320,49 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSavePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPinSaving(true);
+    setPinMessage(null);
+
+    if (!/^\d{6}$/.test(newPin)) {
+      setPinMessage({ type: 'error', text: 'Ride PIN must be exactly 6 numeric digits.' });
+      setPinSaving(false);
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      setPinMessage({ type: 'error', text: 'New PIN and Confirm PIN do not match.' });
+      setPinSaving(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/customer/ride-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: newPin }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to update Ride PIN');
+      }
+
+      setPinStatus(data.status);
+      setNewPin('');
+      setConfirmPin('');
+      setPinMessage({ type: 'success', text: 'Ride PIN updated successfully!' });
+    } catch (err: unknown) {
+      setPinMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to update Ride PIN',
+      });
+    } finally {
+      setPinSaving(false);
+    }
+  };
+
   return (
     <CustomerLayout>
       <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
@@ -420,6 +485,26 @@ export default function ProfilePage() {
             }}
           >
             Preferences
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('security')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color:
+                activeTab === 'security' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'security'
+                  ? '3px solid var(--color-primary)'
+                  : '3px solid transparent',
+            }}
+          >
+            Ride Security
           </button>
         </div>
 
@@ -1299,6 +1384,198 @@ export default function ProfilePage() {
                 </div>
               </form>
             )}
+          </div>
+        )}
+
+        {/* Ride Security Tab Content */}
+        {activeTab === 'security' && (
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '0.75rem',
+              padding: '2rem',
+            }}
+          >
+            <h2
+              style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: 0, marginBottom: '0.5rem' }}
+            >
+              Ride Security & Verification PIN
+            </h2>
+            <p
+              style={{
+                fontSize: '0.875rem',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '1.5rem',
+              }}
+            >
+              Your 6-digit Ride PIN is used by your assigned driver to verify your identity before
+              starting your ride.
+            </p>
+
+            {pinMessage && (
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  marginBottom: '1.5rem',
+                  backgroundColor:
+                    pinMessage.type === 'success'
+                      ? 'rgba(34, 197, 94, 0.1)'
+                      : 'rgba(220, 38, 38, 0.1)',
+                  border: `1px solid ${pinMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
+                  color: pinMessage.type === 'success' ? '#22c55e' : 'var(--color-danger)',
+                  fontSize: '0.875rem',
+                }}
+              >
+                {pinMessage.text}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1rem 1.25rem',
+                borderRadius: '0.5rem',
+                backgroundColor: 'var(--color-background)',
+                border: '1px solid var(--color-border)',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  Current PIN Status
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--color-text-secondary)',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  {pinStatus?.isPinSet
+                    ? `Configured (Updated: ${pinStatus.updatedAt ? new Date(pinStatus.updatedAt).toLocaleDateString() : 'N/A'})`
+                    : 'PIN Not Set — Please configure your 6-digit PIN below.'}
+                </div>
+              </div>
+              <span
+                style={{
+                  padding: '0.25rem 0.625rem',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  backgroundColor: pinStatus?.isPinSet
+                    ? 'rgba(34, 197, 94, 0.15)'
+                    : 'rgba(234, 179, 8, 0.15)',
+                  color: pinStatus?.isPinSet ? '#22c55e' : '#eab308',
+                  border: `1px solid ${pinStatus?.isPinSet ? '#22c55e' : '#eab308'}`,
+                }}
+              >
+                {pinStatus?.isPinSet ? 'PIN SET' : 'PIN NOT SET'}
+              </span>
+            </div>
+
+            <form
+              onSubmit={handleSavePin}
+              style={{ display: 'grid', gap: '1.25rem', maxWidth: '450px' }}
+            >
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    marginBottom: '0.5rem',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  New 6-Digit Ride PIN
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Enter 6 numeric digits"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.875rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-text-primary)',
+                    fontFamily: 'monospace',
+                    fontSize: '1.125rem',
+                    letterSpacing: '0.25rem',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    marginBottom: '0.5rem',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  Confirm 6-Digit Ride PIN
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Re-enter 6 numeric digits"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.875rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-text-primary)',
+                    fontFamily: 'monospace',
+                    fontSize: '1.125rem',
+                    letterSpacing: '0.25rem',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={pinSaving || newPin.length !== 6 || confirmPin.length !== 6}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: pinSaving ? 'not-allowed' : 'pointer',
+                    opacity: pinSaving || newPin.length !== 6 || confirmPin.length !== 6 ? 0.7 : 1,
+                  }}
+                >
+                  {pinSaving ? 'Updating PIN...' : 'Save Ride PIN'}
+                </button>
+              </div>
+            </form>
           </div>
         )}
         <ToastViewport toast={toast} onDismiss={dismissToast} />

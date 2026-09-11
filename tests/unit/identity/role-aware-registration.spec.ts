@@ -60,12 +60,12 @@ describe('Role-Aware Registration', () => {
 
     expect(res.user.id).toBe('user-reg-1');
     expect(mockTx.customerProfile.create).toHaveBeenCalledWith({
-      data: {
+      data: expect.objectContaining({
         userId: 'user-reg-1',
         firstName: 'Anita',
         lastName: 'Sharma',
         displayName: 'Anita Sharma',
-      },
+      }),
     });
     expect(mockTx.driverProfile.create).not.toHaveBeenCalled();
   });

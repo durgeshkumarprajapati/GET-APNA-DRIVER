@@ -30,6 +30,8 @@ import {
   PaymentVerificationFailedError,
 } from '../../domain/errors';
 
+export { PaymentNotFoundError };
+
 export interface CreatePaymentForBookingInput {
   bookingId: string;
   idempotencyKey?: string | null;
@@ -61,6 +63,22 @@ export interface PaymentSummary {
   createdAt: string;
 }
 
+/** Customer-facing sanitized DTO excluding internal financial fields. */
+export interface CustomerPaymentSummary {
+  id: string;
+  bookingId: string;
+  customerId: string;
+  status: Payment['status'];
+  amount: string;
+  currency: string;
+  provider: string;
+  promotionId: string | null;
+  promotionCodeSnapshot: string | null;
+  discountAmount: string | null;
+  capturedAt: string | null;
+  createdAt: string;
+}
+
 function mapPaymentToSummary(payment: Payment): PaymentSummary {
   return {
     id: payment.id,
@@ -74,6 +92,23 @@ function mapPaymentToSummary(payment: Payment): PaymentSummary {
     driverEarningsAmount: payment.driverEarningsAmount
       ? payment.driverEarningsAmount.toFixed(4)
       : null,
+    promotionId: payment.promotionId,
+    promotionCodeSnapshot: payment.promotionCodeSnapshot,
+    discountAmount: payment.discountAmount ? payment.discountAmount.toFixed(4) : null,
+    capturedAt: payment.capturedAt ? payment.capturedAt.toISOString() : null,
+    createdAt: payment.createdAt.toISOString(),
+  };
+}
+
+function mapPaymentToCustomerSummary(payment: Payment): CustomerPaymentSummary {
+  return {
+    id: payment.id,
+    bookingId: payment.bookingId,
+    customerId: payment.customerId,
+    status: payment.status,
+    amount: payment.amount.toFixed(4),
+    currency: payment.currency,
+    provider: payment.provider,
     promotionId: payment.promotionId,
     promotionCodeSnapshot: payment.promotionCodeSnapshot,
     discountAmount: payment.discountAmount ? payment.discountAmount.toFixed(4) : null,
@@ -545,25 +580,25 @@ export async function getPaymentById(
   userId: string,
   paymentId: string,
   db: Db = prisma,
-): Promise<PaymentSummary> {
+): Promise<CustomerPaymentSummary> {
   const payment = await db.payment.findUnique({ where: { id: paymentId } });
   if (!payment || payment.customerId !== userId) {
     throw new PaymentNotFoundError(paymentId);
   }
-  return mapPaymentToSummary(payment);
+  return mapPaymentToCustomerSummary(payment);
 }
 
 export async function listCustomerPayments(
   customerUserId: string,
   db: Db = prisma,
-): Promise<PaymentSummary[]> {
+): Promise<CustomerPaymentSummary[]> {
   const payments = await db.payment.findMany({
     where: { customerId: customerUserId },
     orderBy: { createdAt: 'desc' },
     // Previously unbounded.
     take: 200,
   });
-  return payments.map(mapPaymentToSummary);
+  return payments.map(mapPaymentToCustomerSummary);
 }
 
 /** Admin visibility: no ownership restriction, gated by the finance.read/payments.read permission at the route layer. */
