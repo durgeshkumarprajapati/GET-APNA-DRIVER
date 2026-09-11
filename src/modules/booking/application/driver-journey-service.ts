@@ -10,7 +10,13 @@ import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
 import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
-import { BookingNotFoundError } from '../domain/errors';
+import { verifyPassword } from '@/modules/identity/security/password';
+import { CustomerPinNotSetError } from '@/modules/customer/application/services/ride-pin-service';
+import {
+  BookingNotFoundError,
+  InvalidRidePinError,
+  MaxRidePinAttemptsExceededError,
+} from '../domain/errors';
 
 export interface DriverBookingSummary {
   id: string;
@@ -199,16 +205,53 @@ export async function markArrived(
 }
 
 /**
- * Driver starts the trip.
+ * Driver starts the trip after verifying customer 6-digit Ride PIN.
  */
 export async function startTrip(
   driverUserId: string,
   bookingId: string,
+  ridePin: string,
   db: Db = prisma,
 ): Promise<DriverBookingSummary> {
   const { profile, booking } = await getAuthorizedDriverBooking(driverUserId, bookingId, db);
 
   validateBookingStatusTransition(booking.status, BookingStatus.TRIP_IN_PROGRESS);
+
+  const MAX_ATTEMPTS = 5;
+  if (booking.ridePinVerificationAttemptCount >= MAX_ATTEMPTS) {
+    throw new MaxRidePinAttemptsExceededError();
+  }
+
+  const customerProfile = await db.customerProfile.findUnique({
+    where: { userId: booking.customerId },
+    select: { customerRidePinHash: true },
+  });
+
+  if (!customerProfile || !customerProfile.customerRidePinHash) {
+    throw new CustomerPinNotSetError();
+  }
+
+  const isPinValid = await verifyPassword(ridePin, customerProfile.customerRidePinHash);
+
+  if (!isPinValid) {
+    const newAttemptCount = booking.ridePinVerificationAttemptCount + 1;
+    await db.booking.update({
+      where: { id: booking.id },
+      data: { ridePinVerificationAttemptCount: newAttemptCount },
+    });
+
+    await recordAuditLog(db, {
+      actorUserId: driverUserId,
+      action: 'RIDE_PIN_VERIFICATION_FAILED',
+      entityType: 'Booking',
+      entityId: booking.id,
+      beforeState: { attemptCount: booking.ridePinVerificationAttemptCount },
+      afterState: { attemptCount: newAttemptCount },
+      requestMetadata: null,
+    });
+
+    throw new InvalidRidePinError();
+  }
 
   const now = new Date();
 
@@ -218,6 +261,9 @@ export async function startTrip(
       data: {
         status: BookingStatus.TRIP_IN_PROGRESS,
         tripStartedAt: now,
+        ridePinVerifiedAt: now,
+        ridePinVerifiedByDriverId: profile.id,
+        ridePinVerificationAttemptCount: 0,
       },
     });
 
@@ -228,7 +274,7 @@ export async function startTrip(
         fromStatus: booking.status,
         toStatus: BookingStatus.TRIP_IN_PROGRESS,
         action: 'booking.trip.started',
-        reason: 'Driver started the trip',
+        reason: 'Driver verified Ride PIN and started trip',
       },
     });
 
@@ -240,17 +286,23 @@ export async function startTrip(
         bookingId: booking.id,
         driverProfileId: profile.id,
         tripStartedAt: now.toISOString(),
+        ridePinVerifiedAt: now.toISOString(),
       },
     });
   });
 
   await recordAuditLog(db, {
     actorUserId: driverUserId,
-    action: 'booking.trip.started',
+    action: 'RIDE_PIN_VERIFIED',
     entityType: 'Booking',
     entityId: bookingId,
-    beforeState: { status: booking.status },
-    afterState: { status: BookingStatus.TRIP_IN_PROGRESS },
+    beforeState: { status: booking.status, verified: false },
+    afterState: {
+      status: BookingStatus.TRIP_IN_PROGRESS,
+      verified: true,
+      verifiedByDriverId: profile.id,
+    },
+    requestMetadata: null,
   });
 
   realtime.publishBookingUpdate(bookingId, 'booking.trip.started', {

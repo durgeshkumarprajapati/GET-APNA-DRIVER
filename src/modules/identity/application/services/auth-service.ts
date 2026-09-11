@@ -130,12 +130,19 @@ export async function registerWithEmailPassword(
         },
       });
     } else {
+      const initialPin = Math.floor(100000 + Math.random() * 900000).toString();
+      const initialPinHash = await hashPassword(initialPin);
+      const now = new Date();
+
       await tx.customerProfile.create({
         data: {
           userId: newUser.id,
           firstName,
           lastName,
           displayName: input.fullName?.trim() || null,
+          customerRidePinHash: initialPinHash,
+          customerRidePinCreatedAt: now,
+          customerRidePinUpdatedAt: now,
         },
       });
     }

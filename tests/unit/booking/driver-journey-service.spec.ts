@@ -6,6 +6,7 @@ import {
   completeTrip,
   listDriverBookings,
 } from '@/modules/booking/application/driver-journey-service';
+import { hashPassword } from '@/modules/identity/security/password';
 
 const mockTx = {
   booking: {
@@ -26,6 +27,9 @@ jest.mock('@/shared/database/prisma', () => ({
     driverProfile: {
       findUnique: jest.fn(),
       create: jest.fn(),
+    },
+    customerProfile: {
+      findUnique: jest.fn(),
     },
     booking: {
       findUnique: jest.fn(),
@@ -143,10 +147,11 @@ describe('DriverJourneyService', () => {
   });
 
   describe('startTrip', () => {
-    it('transitions status to TRIP_IN_PROGRESS', async () => {
+    it('transitions status to TRIP_IN_PROGRESS after PIN verification', async () => {
       const mockArrivedBooking = {
         ...mockBookingAssigned,
         status: BookingStatus.DRIVER_ARRIVED,
+        ridePinVerificationAttemptCount: 0,
       };
       mockFindUniqueBooking.mockResolvedValue(mockArrivedBooking);
       mockFindUniqueOrThrowBooking.mockResolvedValue({
@@ -155,7 +160,12 @@ describe('DriverJourneyService', () => {
         tripStartedAt: new Date(),
       });
 
-      const result = await startTrip('user-drv-1', 'bk-100');
+      const hash = await hashPassword('729104');
+      (prisma.customerProfile.findUnique as jest.Mock).mockResolvedValue({
+        customerRidePinHash: hash,
+      });
+
+      const result = await startTrip('user-drv-1', 'bk-100', '729104');
       expect(result.status).toBe(BookingStatus.TRIP_IN_PROGRESS);
     });
   });

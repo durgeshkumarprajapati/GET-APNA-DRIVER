@@ -82,3 +82,17 @@ export class DriverNotAvailableForDispatchError extends Error {
     this.name = 'DriverNotAvailableForDispatchError';
   }
 }
+
+export class InvalidRidePinError extends Error {
+  constructor(message = 'Invalid ride PIN.') {
+    super(message);
+    this.name = 'InvalidRidePinError';
+  }
+}
+
+export class MaxRidePinAttemptsExceededError extends Error {
+  constructor() {
+    super('Maximum ride PIN verification attempts exceeded for this booking.');
+    this.name = 'MaxRidePinAttemptsExceededError';
+  }
+}
