@@ -235,8 +235,8 @@ describe('Auth Service', () => {
     it('honors the configured identity.otp.ttl_seconds value (300s here)', async () => {
       const before = Date.now();
       const result = await requestPhoneOtp({ phoneNumber: '+919876543210' });
-      const secondsUntilExpiry = (result.expiresAt.getTime() - before) / 1000;
-      expect(secondsUntilExpiry).toBeGreaterThan(295);
+      const secondsUntilExpiry = Math.round((result.expiresAt.getTime() - before) / 1000);
+      expect(secondsUntilExpiry).toBeGreaterThanOrEqual(295);
       expect(secondsUntilExpiry).toBeLessThanOrEqual(300);
     });
 

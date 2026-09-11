@@ -15,7 +15,7 @@ const CONTENT_SECURITY_POLICY = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob: https://lh3.googleusercontent.com",
-  "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com",
+  "connect-src 'self' wss: ws: https://api.razorpay.com https://lumberjack.razorpay.com *.trycloudflare.com",
   'frame-src https://api.razorpay.com https://checkout.razorpay.com',
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -27,6 +27,13 @@ const nextConfig: NextConfig = {
   // corner during `next dev`). Dev-only UI, has no effect on production
   // builds either way.
   devIndicators: false,
+
+  // Allows Cloudflare Tunnels and local proxies for Next.js dev server & Server Actions
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost:3000', '127.0.0.1:3000', '*.trycloudflare.com'],
+    },
+  },
 
   async headers() {
     return [

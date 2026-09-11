@@ -24,8 +24,7 @@ export function middleware(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  // Every request except static assets and the Next.js internal build
-  // manifest paths — those never reach application code, so a correlation
-  // ID for them would be pure overhead.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Exclude all Next.js framework-internal paths (_next/*) and favicon.ico from middleware.
+  // Intercepting _next paths breaks Turbopack/Webpack HMR WebSocket handshakes and origin tunnels.
+  matcher: ['/((?!_next|favicon.ico).*)'],
 };
