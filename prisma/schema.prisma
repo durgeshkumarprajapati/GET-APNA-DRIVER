@@ -97,6 +97,8 @@ model User {
   customerSupportTickets  SupportTicket[]          @relation("CustomerSupportTickets")
   assignedSupportTickets  SupportTicket[]          @relation("AssignedSupportTickets")
   supportMessages         SupportMessage[]
+  initiatedCalls          CallSession[]            @relation("InitiatedCalls")
+  customerCalls           CallSession[]            @relation("CustomerCalls")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -576,6 +578,7 @@ model DriverProfile {
   safetyIncidents    SafetyIncident[]        @relation("DriverSafetyIncidents")
   reviews            Review[]                @relation("DriverReviews")
   ratingSummary      DriverRatingSummary?
+  driverCalls        CallSession[]           @relation("DriverCalls")
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -815,6 +818,7 @@ model Booking {
   review             Review?
   promotionUsage     PromotionUsage?
   supportTickets     SupportTicket[]
+  callSessions       CallSession[]
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -2029,7 +2033,8 @@ model SupportTicket {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  messages SupportMessage[]
+  messages     SupportMessage[]
+  callSessions CallSession[]
 
   @@index([customerId, status, createdAt])
   @@index([status, priority, createdAt])
@@ -2053,4 +2058,71 @@ model SupportMessage {
   @@index([ticketId, isInternalNote, createdAt])
   @@index([authorUserId])
   @@map("support_messages")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 28: Production Calling & Masked Communication System
+// ---------------------------------------------------------------------------
+
+enum CallType {
+  CUSTOMER_TO_DRIVER
+  DRIVER_TO_CUSTOMER
+  CUSTOMER_TO_SUPPORT
+  DRIVER_TO_SUPPORT
+
+  @@map("call_type")
+}
+
+enum CallStatus {
+  REQUESTED
+  INITIATED
+  RINGING
+  ANSWERED
+  COMPLETED
+  FAILED
+  CANCELLED
+
+  @@map("call_status")
+}
+
+model CallSession {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider       String     @default("MOCK")
+  providerCallId String?    @unique @map("provider_call_id")
+  callType       CallType   @map("call_type")
+  status         CallStatus @default(REQUESTED)
+
+  initiatedByUserId String @map("initiated_by_user_id") @db.Uuid
+  initiatedByUser   User   @relation("InitiatedCalls", fields: [initiatedByUserId], references: [id], onDelete: Restrict)
+
+  customerId String @map("customer_id") @db.Uuid
+  customer   User   @relation("CustomerCalls", fields: [customerId], references: [id], onDelete: Restrict)
+
+  driverProfileId String?        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile? @relation("DriverCalls", fields: [driverProfileId], references: [id], onDelete: SetNull)
+
+  bookingId String?  @map("booking_id") @db.Uuid
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  supportTicketId String?        @map("support_ticket_id") @db.Uuid
+  supportTicket   SupportTicket? @relation(fields: [supportTicketId], references: [id], onDelete: SetNull)
+
+  callerPhoneMasked    String? @map("caller_phone_masked")
+  recipientPhoneMasked String? @map("recipient_phone_masked")
+
+  startedAt       DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  answeredAt      DateTime? @map("answered_at") @db.Timestamptz(6)
+  endedAt         DateTime? @map("ended_at") @db.Timestamptz(6)
+  durationSeconds Int?      @map("duration_seconds")
+  failureReason   String?   @map("failure_reason")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([customerId, createdAt])
+  @@index([driverProfileId, createdAt])
+  @@index([bookingId])
+  @@index([providerCallId])
+  @@index([status, createdAt])
+  @@map("call_sessions")
 }

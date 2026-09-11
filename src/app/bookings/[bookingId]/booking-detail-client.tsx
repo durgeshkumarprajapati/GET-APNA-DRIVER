@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { DirectCallResponse } from '@/modules/calling/domain/types';
 
 interface BookingDetail {
   id: string;
@@ -69,6 +70,28 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+
+  const [callingDriver, setCallingDriver] = useState(false);
+  const [driverCallData, setDriverCallData] = useState<DirectCallResponse | null>(null);
+
+  const handleCallDriver = async () => {
+    try {
+      setCallingDriver(true);
+      const res = await fetch(`/api/customer/bookings/${bookingId}/call-driver`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initiate driver call');
+      }
+      setDriverCallData(data.data);
+      showToast('Call initiated! Connecting to driver via proxy.', 'success');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Error calling driver', 'error');
+    } finally {
+      setCallingDriver(false);
+    }
+  };
 
   const fetchBooking = useCallback(async () => {
     try {
@@ -378,22 +401,42 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
               <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
                 Assigned Driver Profile
               </h3>
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-full bg-emerald-800/60 border border-emerald-500 flex items-center justify-center text-xl font-bold text-white uppercase">
-                  {booking.assignedDriver.displayName?.[0] || 'D'}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-full bg-emerald-800/60 border border-emerald-500 flex items-center justify-center text-xl font-bold text-white uppercase">
+                    {booking.assignedDriver.displayName?.[0] || 'D'}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-white">
+                      {booking.assignedDriver.displayName || 'Professional Driver'}
+                    </h4>
+                    <p className="text-xs text-slate-300">
+                      Service Area: {booking.assignedDriver.primaryServiceArea || 'Delhi NCR'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Experience: {booking.assignedDriver.drivingExperienceYears} Years
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white">
-                    {booking.assignedDriver.displayName || 'Professional Driver'}
-                  </h4>
-                  <p className="text-xs text-slate-300">
-                    Service Area: {booking.assignedDriver.primaryServiceArea || 'Delhi NCR'}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Experience: {booking.assignedDriver.drivingExperienceYears} Years
-                  </p>
-                </div>
+
+                <button
+                  type="button"
+                  disabled={callingDriver}
+                  onClick={handleCallDriver}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">call</span>
+                  <span>{callingDriver ? 'Connecting…' : 'Call Driver'}</span>
+                </button>
               </div>
+
+              {driverCallData && (
+                <div className="p-3 rounded-lg bg-emerald-900/40 border border-emerald-500/50 text-xs text-emerald-300 space-y-1 font-mono">
+                  <div>Masked Call Session: {driverCallData.callSessionId.substring(0, 8)}</div>
+                  <div>Masked Caller: {driverCallData.callerPhoneMasked} → Masked Driver: {driverCallData.recipientPhoneMasked}</div>
+                  <div className="text-[11px] text-emerald-200">{driverCallData.instructions}</div>
+                </div>
+              )}
             </div>
           )}
 

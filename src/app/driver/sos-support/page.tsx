@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { DriverLayout } from '@/components/driver-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -10,6 +11,7 @@ import { useActiveBooking } from '@/components/use-active-booking';
 import { useSosTrigger } from '@/components/use-sos-trigger';
 import { useSafetyIncidents } from '@/components/use-safety-incidents';
 import { formatDateTime } from '@/shared/formatting/date';
+import { DirectCallResponse } from '@/modules/calling/domain/types';
 
 interface DriverBooking {
   id: string;
@@ -36,6 +38,31 @@ export default function DriverSosSupportPage() {
   );
   const sos = useSosTrigger(activeBooking?.id);
   const { incidents, loading: incidentsLoading, refetch: refetchIncidents } = useSafetyIncidents();
+
+  const [calling, setCalling] = useState(false);
+  const [callData, setCallData] = useState<DirectCallResponse | null>(null);
+  const [callError, setCallError] = useState<string | null>(null);
+
+  const handleCallCustomerCare = async () => {
+    try {
+      setCalling(true);
+      setCallError(null);
+      const res = await fetch('/api/driver/support/call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Driver SOS Helpline' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initiate call');
+      }
+      setCallData(data.data);
+    } catch (err: unknown) {
+      setCallError(err instanceof Error ? err.message : 'Error connecting call');
+    } finally {
+      setCalling(false);
+    }
+  };
 
   const handleConfirm = async () => {
     await sos.confirmAndTrigger();
@@ -102,6 +129,36 @@ export default function DriverSosSupportPage() {
               )}
             </>
           )}
+        </div>
+
+        {/* 24x7 Customer Care Voice Helpline Card */}
+        <div className="p-6 rounded-xl bg-[#0053db]/10 border border-[#0053db]/40 flex flex-col md:flex-row items-center justify-between gap-4 max-w-xl mx-auto w-full">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[#70a1ff] text-3xl">phone_in_talk</span>
+            <div>
+              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                Direct Driver Support Helpline
+              </h3>
+              <p className="text-xs text-[#bccac0]">
+                Need immediate phone assistance from Customer Care? Click to connect.
+              </p>
+              {callData && (
+                <div className="mt-2 text-xs text-[#68dba9] font-mono">
+                  Call Session: {callData.callSessionId.substring(0, 8)} • Dial {callData.dialNumber}
+                </div>
+              )}
+              {callError && <p className="mt-1 text-xs text-[#ffb4ab] font-bold">{callError}</p>}
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={calling}
+            onClick={handleCallCustomerCare}
+            className="px-5 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0"
+          >
+            <span className="material-symbols-outlined text-lg">call</span>
+            <span>{calling ? 'Connecting…' : 'Call Support'}</span>
+          </button>
         </div>
 
         <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2">

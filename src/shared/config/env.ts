@@ -32,6 +32,13 @@ const envSchema = z.object({
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_SUBJECT: z.string().optional(),
+  TELEPHONY_PROVIDER: z.enum(['mock', 'exotel', 'twilio']).default('mock'),
+  TELEPHONY_ACCOUNT_SID: z.string().optional(),
+  TELEPHONY_AUTH_TOKEN: z.string().optional(),
+  TELEPHONY_WEBHOOK_SECRET: z.string().optional(),
+  TELEPHONY_PROXY_NUMBER: z.string().optional(),
+  TELEPHONY_SUPPORT_NUMBER: z.string().optional(),
+  DRIVER_CUSTOMER_CALL_WINDOW_MINUTES: z.coerce.number().int().default(30),
 });
 
 export type Env = z.infer<typeof envSchema>;
