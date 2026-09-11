@@ -50,7 +50,11 @@ describe('Phase 26 — Customer 6-Digit Ride PIN Service', () => {
       },
     };
 
-    const setRes = await setCustomerRidePin('user-1', '849201', mockDb as unknown as Parameters<typeof setCustomerRidePin>[2]);
+    const setRes = await setCustomerRidePin(
+      'user-1',
+      '849201',
+      mockDb as unknown as Parameters<typeof setCustomerRidePin>[2],
+    );
     expect(setRes.isPinSet).toBe(true);
 
     mockDb.customerProfile.findFirst.mockResolvedValue({
@@ -59,10 +63,18 @@ describe('Phase 26 — Customer 6-Digit Ride PIN Service', () => {
       customerRidePinHash: storedHash,
     });
 
-    const isValid = await verifyCustomerRidePin('user-1', '849201', mockDb as unknown as Parameters<typeof verifyCustomerRidePin>[2]);
+    const isValid = await verifyCustomerRidePin(
+      'user-1',
+      '849201',
+      mockDb as unknown as Parameters<typeof verifyCustomerRidePin>[2],
+    );
     expect(isValid).toBe(true);
 
-    const isWrong = await verifyCustomerRidePin('user-1', '999999', mockDb as unknown as Parameters<typeof verifyCustomerRidePin>[2]);
+    const isWrong = await verifyCustomerRidePin(
+      'user-1',
+      '999999',
+      mockDb as unknown as Parameters<typeof verifyCustomerRidePin>[2],
+    );
     expect(isWrong).toBe(false);
   });
 
@@ -78,7 +90,11 @@ describe('Phase 26 — Customer 6-Digit Ride PIN Service', () => {
     };
 
     await expect(
-      verifyCustomerRidePin('user-null', '123456', mockDb as unknown as Parameters<typeof verifyCustomerRidePin>[2]),
+      verifyCustomerRidePin(
+        'user-null',
+        '123456',
+        mockDb as unknown as Parameters<typeof verifyCustomerRidePin>[2],
+      ),
     ).rejects.toThrow(CustomerPinNotSetError);
   });
 });

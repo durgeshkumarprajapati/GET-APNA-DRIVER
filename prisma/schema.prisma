@@ -94,6 +94,9 @@ model User {
   receivedReferral        Referral?                @relation("ReferredUser")
   customerReviews         Review[]                 @relation("CustomerReviews")
   promotionUsages         PromotionUsage[]
+  customerSupportTickets  SupportTicket[]          @relation("CustomerSupportTickets")
+  assignedSupportTickets  SupportTicket[]          @relation("AssignedSupportTickets")
+  supportMessages         SupportMessage[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -811,6 +814,7 @@ model Booking {
   disputes           Dispute[]               @relation("BookingDisputes")
   review             Review?
   promotionUsage     PromotionUsage?
+  supportTickets     SupportTicket[]
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -1956,4 +1960,97 @@ model DriverRatingSummary {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("driver_rating_summaries")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 27: Production Customer Support & Ticketing System
+// ---------------------------------------------------------------------------
+
+enum SupportTicketCategory {
+  BOOKING_ISSUE
+  DRIVER_CONDUCT
+  PAYMENT_FARE
+  REFUND_REQUEST
+  PROMOTION_CODE
+  ACCOUNT_PROFILE
+  APP_TECHNICAL
+  SAFETY_CONCERN
+  OTHER
+
+  @@map("support_ticket_category")
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+  REOPENED
+
+  @@map("support_ticket_status")
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+
+  @@map("support_ticket_priority")
+}
+
+enum SupportTicketAuthorRole {
+  CUSTOMER
+  SUPPORT_AGENT
+  SYSTEM
+
+  @@map("support_ticket_author_role")
+}
+
+model SupportTicket {
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketNumber    String                @unique @map("ticket_number")
+  customerId      String                @map("customer_id") @db.Uuid
+  customer        User                  @relation("CustomerSupportTickets", fields: [customerId], references: [id], onDelete: Restrict)
+  bookingId       String?               @map("booking_id") @db.Uuid
+  booking         Booking?              @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  category        SupportTicketCategory
+  status          SupportTicketStatus   @default(OPEN)
+  priority        SupportTicketPriority @default(NORMAL)
+  subject         String
+  description     String
+  assignedAdminId String?               @map("assigned_admin_id") @db.Uuid
+  assignedAdmin   User?                 @relation("AssignedSupportTickets", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz(6)
+  closedAt   DateTime? @map("closed_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  messages SupportMessage[]
+
+  @@index([customerId, status, createdAt])
+  @@index([status, priority, createdAt])
+  @@index([bookingId])
+  @@index([assignedAdminId])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id             String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId       String                  @map("ticket_id") @db.Uuid
+  ticket         SupportTicket           @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorUserId   String                  @map("author_user_id") @db.Uuid
+  authorUser     User                    @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  authorRole     SupportTicketAuthorRole @map("author_role")
+  isInternalNote Boolean                 @default(false) @map("is_internal_note")
+  body           String
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([ticketId, isInternalNote, createdAt])
+  @@index([authorUserId])
+  @@map("support_messages")
 }

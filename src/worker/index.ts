@@ -9,6 +9,7 @@ import { getInteger } from '@/shared/config/configuration-service';
 import { outboxDispatcherService } from './outbox/outbox-dispatcher-service';
 import { registerNotificationEventHandlers } from './jobs/notification-event-handlers';
 import { registerSafetyAndDisputeEventHandlers } from './jobs/safety-dispute-event-handlers';
+import { registerSupportEventHandlers } from './jobs/support-event-handlers';
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 
 /** Hard ceiling on how long shutdown waits for the current batch to drain before forcing exit. */
@@ -20,6 +21,7 @@ async function bootstrapWorker(): Promise<void> {
   // 1. Register domain outbox event handlers
   registerNotificationEventHandlers();
   registerSafetyAndDisputeEventHandlers();
+  registerSupportEventHandlers();
 
   let isRunning = true;
   let shutdownRequested = false;

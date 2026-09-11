@@ -90,6 +90,12 @@ export const PERMISSIONS = {
   REVIEWS_MANAGE: 'reviews.manage',
   DRIVER_PERFORMANCE_READ: 'driver.performance.read',
 
+  // Support Ticketing (Phase 27 domain & admin)
+  SUPPORT_TICKET_CREATE: 'support.ticket.create',
+  SUPPORT_TICKET_READ: 'support.ticket.read',
+  ADMIN_SUPPORT_MANAGE: 'admin.support.manage',
+  ADMIN_SUPPORT_RESPOND: 'admin.support.respond',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -268,6 +274,17 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.DRIVER_PERFORMANCE_READ,
     description: 'View own driver performance metrics.',
+  },
+
+  { code: PERMISSIONS.SUPPORT_TICKET_CREATE, description: 'Create support tickets.' },
+  { code: PERMISSIONS.SUPPORT_TICKET_READ, description: 'View support tickets.' },
+  {
+    code: PERMISSIONS.ADMIN_SUPPORT_MANAGE,
+    description: 'Manage, assign, and update support tickets (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_SUPPORT_RESPOND,
+    description: 'Respond to customer support tickets and add internal notes (admin).',
   },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
