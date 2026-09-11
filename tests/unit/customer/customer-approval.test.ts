@@ -42,7 +42,11 @@ describe('Phase 26 — Admin Customer Approval Service', () => {
       },
       $transaction: jest.fn().mockImplementation(async (callback) => {
         const txDb = {
-          user: { update: jest.fn().mockResolvedValue({ id: 'user-cust-100', accountStatus: AccountStatus.ACTIVE }) },
+          user: {
+            update: jest
+              .fn()
+              .mockResolvedValue({ id: 'user-cust-100', accountStatus: AccountStatus.ACTIVE }),
+          },
           auditLog: { create: jest.fn() },
           outboxEvent: { create: jest.fn() },
         };
