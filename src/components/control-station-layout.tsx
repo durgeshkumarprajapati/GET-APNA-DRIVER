@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/i18n/context';
 import { LanguageSelector } from '@/components/ui/language-selector';
 
 interface ControlStationLayoutProps {
@@ -15,6 +16,7 @@ export function ControlStationLayout({
   activePersona,
   activePath = 'customer-book-driver',
 }: ControlStationLayoutProps) {
+  const { t } = useTranslation();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -92,7 +94,7 @@ export function ControlStationLayout({
             {/* Customer Workspace */}
             <div className="space-y-1">
               <span className="text-[9px] font-bold uppercase tracking-wider text-[#bccac0] px-2 block font-['Space_Grotesk']">
-                Customer Workspace
+                {t('admin.nav.customerWorkspace')}
               </span>
               <nav className="flex flex-col gap-1 text-xs">
                 <Link
@@ -104,7 +106,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">hail</span>
-                  <span>Book Driver</span>
+                  <span>{t('admin.nav.bookDriver')}</span>
                 </Link>
                 <Link
                   href="/bookings"
@@ -115,7 +117,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">navigation</span>
-                  <span>Active Ride</span>
+                  <span>{t('admin.nav.activeRide')}</span>
                 </Link>
                 <Link
                   href="/bookings"
@@ -126,7 +128,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">calendar_month</span>
-                  <span>My Bookings</span>
+                  <span>{t('admin.nav.myBookings')}</span>
                 </Link>
                 <Link
                   href="/payments"
@@ -139,14 +141,14 @@ export function ControlStationLayout({
                   <span className="material-symbols-outlined text-base">
                     account_balance_wallet
                   </span>
-                  <span>Wallet & Coupons</span>
+                  <span>{t('admin.nav.walletAndCoupons')}</span>
                 </Link>
                 <Link
                   href="/profile"
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#ffb4ab] hover:bg-[#93000a]/40 hover:text-[#ffdad6] transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">emergency</span>
-                  <span className="font-bold">SOS Safety Desk</span>
+                  <span className="font-bold">{t('admin.nav.sosSafetyDesk')}</span>
                 </Link>
               </nav>
             </div>
@@ -154,7 +156,7 @@ export function ControlStationLayout({
             {/* Driver & Ops Terminal */}
             <div className="space-y-1">
               <span className="text-[9px] font-bold uppercase tracking-wider text-[#bccac0] px-2 block font-['Space_Grotesk']">
-                Driver & Ops Terminal
+                {t('admin.nav.driverOpsTerminal')}
               </span>
               <nav className="flex flex-col gap-1 text-xs">
                 <Link
@@ -166,7 +168,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">radar</span>
-                  <span>Dispatch Radar</span>
+                  <span>{t('admin.nav.dispatchRadar')}</span>
                 </Link>
                 <Link
                   href="/driver/wallet"
@@ -177,7 +179,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">payments</span>
-                  <span>Today&apos;s Earnings</span>
+                  <span>{t('admin.nav.todaysEarnings')}</span>
                 </Link>
                 <Link
                   href="/admin/live-ops-console"
@@ -188,7 +190,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">map</span>
-                  <span>Live Ops Map</span>
+                  <span>{t('admin.nav.liveOpsMap')}</span>
                 </Link>
                 <Link
                   href="/admin/driver-documents"
@@ -199,7 +201,7 @@ export function ControlStationLayout({
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">verified</span>
-                  <span>KYC Approvals</span>
+                  <span>{t('admin.nav.kycApprovals')}</span>
                 </Link>
               </nav>
             </div>

@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
@@ -26,60 +27,61 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: 'Operational Dispatch',
-    items: [
-      { href: '/driver', label: 'Dashboard', icon: 'radar' },
-      {
-        href: '/driver/assignment-offers',
-        label: 'Assignment Offers',
-        icon: 'notifications_active',
-      },
-      { href: '/driver/bookings', label: 'My Bookings', icon: 'explore' },
-    ],
-  },
-  {
-    label: 'Finance & Ledger',
-    items: [
-      {
-        href: '/driver/wallet-and-payouts',
-        label: 'Wallet & Payouts',
-        icon: 'account_balance_wallet',
-      },
-    ],
-  },
-  {
-    label: 'Growth & Reputation',
-    items: [
-      {
-        href: '/driver/performance-and-badges',
-        label: 'Performance & Badges',
-        icon: 'military_tech',
-      },
-      { href: '/driver/ratings-and-reviews', label: 'Ratings & Reviews', icon: 'star' },
-      { href: '/driver/public-portfolio', label: 'Public Portfolio', icon: 'badge' },
-    ],
-  },
-  {
-    label: 'Governance & Account',
-    items: [
-      { href: '/driver/profile', label: 'Profile', icon: 'person' },
-      { href: '/driver/documents', label: 'Documents', icon: 'verified_user' },
-      { href: '/driver/sos-support', label: 'SOS Emergency', icon: 'emergency_home' },
-      { href: '/driver/settings', label: 'Console Settings', icon: 'tune' },
-    ],
-  },
-];
-
 export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus | null>(null);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   useAutoLocation('DRIVER');
+
+  const navGroups: NavGroup[] = [
+    {
+      label: t('driver.nav.operationalDispatch'),
+      items: [
+        { href: '/driver', label: t('driver.nav.dashboard'), icon: 'radar' },
+        {
+          href: '/driver/assignment-offers',
+          label: t('driver.nav.assignmentOffers'),
+          icon: 'notifications_active',
+        },
+        { href: '/driver/bookings', label: t('driver.nav.bookings'), icon: 'explore' },
+      ],
+    },
+    {
+      label: t('driver.nav.financeLedger'),
+      items: [
+        {
+          href: '/driver/wallet-and-payouts',
+          label: t('driver.nav.walletAndPayouts'),
+          icon: 'account_balance_wallet',
+        },
+      ],
+    },
+    {
+      label: t('driver.nav.growthReputation'),
+      items: [
+        {
+          href: '/driver/performance-and-badges',
+          label: t('driver.nav.performanceAndBadges'),
+          icon: 'military_tech',
+        },
+        { href: '/driver/ratings-and-reviews', label: t('driver.nav.ratingsAndReviews'), icon: 'star' },
+        { href: '/driver/public-portfolio', label: t('driver.nav.publicPortfolio'), icon: 'badge' },
+      ],
+    },
+    {
+      label: t('driver.nav.governanceAccount'),
+      items: [
+        { href: '/driver/profile', label: t('driver.nav.profile'), icon: 'person' },
+        { href: '/driver/documents', label: t('driver.nav.documents'), icon: 'verified_user' },
+        { href: '/driver/sos-support', label: t('driver.nav.sosSupport'), icon: 'emergency_home' },
+        { href: '/driver/settings', label: t('driver.nav.settings'), icon: 'tune' },
+      ],
+    },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -142,7 +144,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
       <MobileNavDrawer
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
-        navGroups={NAV_GROUPS}
+        navGroups={navGroups}
         isActive={isActive}
         brandLabel="Apna Driver"
         brandSubLabel="Cockpit Terminal"
@@ -171,7 +173,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
           {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto px-3 space-y-4 mt-3">
-            {NAV_GROUPS.map((group) => (
+            {navGroups.map((group) => (
               <div key={group.label} className="space-y-1">
                 <span className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
                   {group.label}

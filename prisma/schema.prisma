@@ -102,6 +102,8 @@ model User {
   supportMessages         SupportMessage[]
   initiatedCalls          CallSession[]            @relation("InitiatedCalls")
   customerCalls           CallSession[]            @relation("CustomerCalls")
+  customerTaxInvoices     TaxInvoice[]             @relation("CustomerTaxInvoices")
+  favoriteDrivers         CustomerFavoriteDriver[] @relation("CustomerFavoriteDrivers")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -584,6 +586,7 @@ model DriverProfile {
   driverCalls        CallSession[]           @relation("DriverCalls")
   schedules          DriverSchedule[]
   scheduleExceptions DriverScheduleException[]
+  favoritedByCustomers CustomerFavoriteDriver[] @relation("DriverFavoriteCustomers")
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -824,6 +827,7 @@ model Booking {
   promotionUsage     PromotionUsage?
   supportTickets     SupportTicket[]
   callSessions       CallSession[]
+  taxInvoice         TaxInvoice?
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -1041,6 +1045,7 @@ model Payment {
 
   attempts PaymentAttempt[]
   refunds  Refund[]
+  taxInvoices TaxInvoice[]
 
   @@index([bookingId])
   @@index([customerId, status])
@@ -2190,4 +2195,58 @@ model DriverScheduleException {
   @@unique([driverProfileId, date])
   @@index([driverProfileId, date])
   @@map("driver_schedule_exceptions")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 31: Tax Invoices & Customer Favorites
+// ---------------------------------------------------------------------------
+
+enum TaxInvoiceStatus {
+  ISSUED
+  CANCELLED
+  CREDIT_NOTE_ISSUED
+
+  @@map("tax_invoice_status")
+}
+
+/// GST compliant tax invoices for bookings.
+model TaxInvoice {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceNumber    String           @unique @map("invoice_number")
+  customerId       String           @map("customer_id") @db.Uuid
+  customer         User             @relation("CustomerTaxInvoices", fields: [customerId], references: [id], onDelete: Cascade)
+  bookingId        String?          @unique @map("booking_id") @db.Uuid
+  booking          Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  paymentId        String?          @map("payment_id") @db.Uuid
+  payment          Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  subtotalAmount   Decimal          @map("subtotal_amount") @db.Decimal(10, 2)
+  discountAmount   Decimal          @default(0.00) @map("discount_amount") @db.Decimal(10, 2)
+  taxAmount        Decimal          @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount      Decimal          @map("total_amount") @db.Decimal(10, 2)
+  currency         String           @default("INR")
+  status           TaxInvoiceStatus @default(ISSUED)
+  supplierSnapshot Json             @map("supplier_snapshot")
+  customerSnapshot Json             @map("customer_snapshot")
+  taxDetails       Json?            @map("tax_details")
+  issuedAt         DateTime         @default(now()) @map("issued_at") @db.Timestamptz(6)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([customerId, createdAt])
+  @@index([status, createdAt])
+  @@map("tax_invoices")
+}
+
+/// Customer favorite drivers mapping.
+model CustomerFavoriteDriver {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId      String        @map("customer_id") @db.Uuid
+  customer        User          @relation("CustomerFavoriteDrivers", fields: [customerId], references: [id], onDelete: Cascade)
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation("DriverFavoriteCustomers", fields: [driverProfileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([customerId, driverProfileId])
+  @@index([customerId, createdAt])
+  @@map("customer_favorite_drivers")
 }

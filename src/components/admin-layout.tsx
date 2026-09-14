@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
@@ -31,6 +32,7 @@ interface DashboardBadgeCounts {
 export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [badgeCounts, setBadgeCounts] = useState<DashboardBadgeCounts | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -70,77 +72,77 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
 
   const navGroups: NavGroup[] = [
     {
-      label: 'Overview',
+      label: t('admin.nav.overview'),
       items: [
-        { href: '/admin/mission-dashboard', label: 'Mission Dashboard', icon: 'grid_view' },
-        { href: '/admin/live-fleet-radar', label: 'Live Fleet Radar', icon: 'radar' },
-        { href: '/admin/analytics-and-bi', label: 'Analytics & BI', icon: 'insights' },
+        { href: '/admin/mission-dashboard', label: t('admin.nav.missionDashboard'), icon: 'grid_view' },
+        { href: '/admin/live-fleet-radar', label: t('admin.nav.liveFleetRadar'), icon: 'radar' },
+        { href: '/admin/analytics-and-bi', label: t('admin.nav.analyticsAndBi'), icon: 'insights' },
       ],
     },
     {
-      label: 'User Mgmt',
+      label: t('admin.nav.userMgmt'),
       items: [
-        { href: '/admin/customers', label: 'Customers', icon: 'groups' },
-        { href: '/admin/drivers', label: 'Driver Directory', icon: 'id_card' },
+        { href: '/admin/customers', label: t('admin.nav.customers'), icon: 'groups' },
+        { href: '/admin/drivers', label: t('admin.nav.driverDirectory'), icon: 'id_card' },
         {
           href: '/admin/verification-queue',
-          label: 'Verification Queue',
+          label: t('admin.nav.verificationQueue'),
           icon: 'verified_user',
           badge: badgeCounts?.pendingDocumentVerifications,
         },
         {
           href: '/admin/admin-access-and-rbac',
-          label: 'Admin Access & RBAC',
+          label: t('admin.nav.adminAccessAndRbac'),
           icon: 'admin_panel_settings',
         },
       ],
     },
     {
-      label: 'Operations',
+      label: t('admin.nav.operations'),
       items: [
-        { href: '/admin/live-bookings', label: 'Live Bookings', icon: 'local_taxi' },
-        { href: '/admin/sos-and-disputes', label: 'SOS & Disputes', icon: 'crisis_alert' },
-        { href: '/admin/reviews', label: 'Reviews & Ratings', icon: 'reviews' },
+        { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
+        { href: '/admin/sos-and-disputes', label: t('admin.nav.sosAndDisputes'), icon: 'crisis_alert' },
+        { href: '/admin/reviews', label: t('admin.nav.reviews'), icon: 'reviews' },
       ],
     },
     {
-      label: 'Growth',
+      label: t('admin.nav.growth'),
       items: [
-        { href: '/admin/coupons', label: 'Coupons & Promotions', icon: 'confirmation_number' },
+        { href: '/admin/coupons', label: t('admin.nav.coupons'), icon: 'confirmation_number' },
         {
           href: '/admin/referral-engines',
-          label: 'Referral Engines',
+          label: t('admin.nav.referralEngines'),
           icon: 'featured_seasonal_and_gifts',
         },
       ],
     },
     {
-      label: 'Finance & Audit',
+      label: t('admin.nav.financeAudit'),
       items: [
-        { href: '/admin/payments', label: 'Payments', icon: 'credit_card' },
-        { href: '/admin/settlements', label: 'Driver Settlements', icon: 'payments' },
+        { href: '/admin/payments', label: t('admin.nav.payments'), icon: 'credit_card' },
+        { href: '/admin/settlements', label: t('admin.nav.settlements'), icon: 'payments' },
         {
           href: '/admin/finance/transactions',
-          label: 'Ledger Transactions',
+          label: t('admin.nav.ledgerTransactions'),
           icon: 'account_balance',
         },
-        { href: '/admin/vault', label: 'Vault', icon: 'lock' },
+        { href: '/admin/vault', label: t('admin.nav.vault'), icon: 'lock' },
         {
           href: '/admin/treasury-and-settlements',
-          label: 'Treasury & Settlements',
+          label: t('admin.nav.treasuryAndSettlements'),
           icon: 'account_balance_wallet',
         },
-        { href: '/admin/payout-rails', label: 'Payout Rails', icon: 'currency_rupee' },
-        { href: '/admin/commission-matrix', label: 'Commission Matrix', icon: 'percent' },
-        { href: '/admin/tax-invoices', label: 'Tax Invoices', icon: 'receipt_long' },
+        { href: '/admin/payout-rails', label: t('admin.nav.payoutRails'), icon: 'currency_rupee' },
+        { href: '/admin/commission-matrix', label: t('admin.nav.commissionMatrix'), icon: 'percent' },
+        { href: '/admin/tax-invoices', label: t('admin.nav.taxInvoices'), icon: 'receipt_long' },
       ],
     },
     {
-      label: 'Governance',
+      label: t('admin.nav.governance'),
       items: [
-        { href: '/admin/audit-logs', label: 'Audit Logs', icon: 'history_edu' },
-        { href: '/admin/system-config', label: 'System Config', icon: 'tune' },
-        { href: '/admin/outbox-health', label: 'Outbox Health', icon: 'monitor_heart' },
+        { href: '/admin/audit-logs', label: t('admin.nav.auditLogs'), icon: 'history_edu' },
+        { href: '/admin/system-config', label: t('admin.nav.systemConfig'), icon: 'tune' },
+        { href: '/admin/outbox-health', label: t('admin.nav.outboxHealth'), icon: 'monitor_heart' },
       ],
     },
   ];
