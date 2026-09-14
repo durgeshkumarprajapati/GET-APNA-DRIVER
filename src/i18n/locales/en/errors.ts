@@ -14,4 +14,11 @@ export const errorsEn = {
   SCHEDULE_CONFLICT: 'Driver schedule conflict detected.',
   INVALID_SCHEDULE_TIME: 'Invalid schedule time format provided.',
   SCHEDULE_EXCEPTION_NOT_FOUND: 'Schedule exception record not found.',
+  LOYALTY_ACCOUNT_NOT_FOUND: 'Loyalty account not found.',
+  INSUFFICIENT_LOYALTY_POINTS: 'Insufficient loyalty points to redeem this reward.',
+  REWARD_NOT_FOUND: 'Reward not found.',
+  REWARD_NOT_ACTIVE: 'This reward is currently inactive or expired.',
+  REWARD_TIER_NOT_MET: 'Your membership tier does not qualify for this reward.',
+  REWARD_LIMIT_EXCEEDED: 'Redemption limit reached for this reward.',
+  DUPLICATE_REDEMPTION: 'You have already redeemed this single-use reward.',
 };

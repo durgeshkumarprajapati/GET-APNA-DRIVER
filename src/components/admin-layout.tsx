@@ -110,6 +110,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       items: [
         { href: '/admin/coupons', label: t('admin.nav.coupons'), icon: 'confirmation_number' },
         {
+          href: '/admin/customer-loyalty',
+          label: t('admin.nav.customerLoyalty'),
+          icon: 'card_giftcard',
+        },
+        {
           href: '/admin/referral-engines',
           label: t('admin.nav.referralEngines'),
           icon: 'featured_seasonal_and_gifts',

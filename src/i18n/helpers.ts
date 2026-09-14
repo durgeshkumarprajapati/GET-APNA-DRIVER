@@ -69,6 +69,13 @@ export function formatLocalizedDate(
     en: 'en-IN',
     hi: 'hi-IN',
     gu: 'gu-IN',
+    mr: 'mr-IN',
+    ta: 'ta-IN',
+    te: 'te-IN',
+    kn: 'kn-IN',
+    ml: 'ml-IN',
+    pa: 'pa-IN',
+    bn: 'bn-IN',
   };
   return new Intl.DateTimeFormat(localeMap[locale] || 'en-IN', options).format(d);
 }
@@ -85,6 +92,13 @@ export function formatLocalizedNumber(
     en: 'en-IN',
     hi: 'hi-IN',
     gu: 'gu-IN',
+    mr: 'mr-IN',
+    ta: 'ta-IN',
+    te: 'te-IN',
+    kn: 'kn-IN',
+    ml: 'ml-IN',
+    pa: 'pa-IN',
+    bn: 'bn-IN',
   };
   return new Intl.NumberFormat(localeMap[locale] || 'en-IN', options).format(num);
 }

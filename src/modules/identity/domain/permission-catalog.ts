@@ -113,6 +113,13 @@ export const PERMISSIONS = {
   DRIVER_GOALS_MANAGE: 'driver.goals.manage',
   ADMIN_INCENTIVES_MANAGE: 'admin.incentives.manage',
 
+  // Customer Loyalty & Rewards (Phase 35 domain & admin)
+  CUSTOMER_LOYALTY_READ: 'customer.loyalty.read',
+  CUSTOMER_REWARDS_REDEEM: 'customer.rewards.redeem',
+  ADMIN_LOYALTY_READ: 'admin.loyalty.read',
+  ADMIN_LOYALTY_MANAGE: 'admin.loyalty.manage',
+  ADMIN_LOYALTY_ADJUST: 'admin.loyalty.adjust',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
