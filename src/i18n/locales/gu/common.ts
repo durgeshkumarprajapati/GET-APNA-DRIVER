@@ -45,6 +45,8 @@ export const commonGu = {
     unverified: 'અચકાસાયેલ',
     open: 'ખુલ્લું',
     closed: 'બંધ',
+    issued: 'જારી કરેલ',
+    creditNoteIssued: 'ક્રેડિટ નોટ જારી કરેલ',
   },
   labels: {
     language: 'ભાષા',
@@ -64,6 +66,10 @@ export const commonGu = {
     actions: 'ક્રિયાઓ',
     details: 'વિગતો',
     all: 'બધા',
+    dismiss: 'બંધ કરો',
+    navigationMenu: 'નેવિગેશન મેનૂ',
+    openNavigationMenu: 'નેવિગેશન મેનૂ ખોલો',
+    closeNavigationMenu: 'નેવિગેશન મેનૂ બંધ કરો',
   },
   dialogs: {
     confirmTitle: 'ક્રિયાની પુષ્ટિ કરો',

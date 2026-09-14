@@ -11,8 +11,6 @@ interface PaymentDetail {
   amount: string;
   currency: string;
   provider: string;
-  commissionAmount: string | null;
-  driverEarningsAmount: string | null;
   capturedAt: string | null;
   createdAt: string;
 }
@@ -89,18 +87,6 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ paymen
           <Row label="Status" value={payment.status} />
           <Row label="Booking" value={payment.bookingId} mono />
           <Row label="Provider" value={payment.provider} />
-          {payment.commissionAmount && (
-            <Row
-              label="Platform commission"
-              value={`${payment.currency} ${payment.commissionAmount}`}
-            />
-          )}
-          {payment.driverEarningsAmount && (
-            <Row
-              label="Driver earnings"
-              value={`${payment.currency} ${payment.driverEarningsAmount}`}
-            />
-          )}
           <Row
             label="Captured at"
             value={

@@ -7,6 +7,7 @@ import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { generateRandomToken, hashToken } from '../../security/tokens';
 import * as sessionRepository from '../../infrastructure/session-repository';
+import { LOCALE_COOKIE_NAME, isValidLocale } from '@/i18n/config';
 
 export interface CreatedSessionResult {
   session: UserSession;
@@ -64,8 +65,44 @@ export async function createSessionForUser(
   });
 
   await setSessionCookie(rawToken, expiresAt);
+  await restoreLocalePreferenceOnLogin(userId);
 
   return { session, rawToken };
+}
+
+/**
+ * The locale cookie is a device-level UI preference and User.preferredLocale
+ * a per-account DB preference — the two are otherwise never reconciled (see
+ * the i18n audit). This is the one thing every login path (phone OTP,
+ * Google OAuth, email/password) already funnels through, so it's the single
+ * place to restore a user's saved language on a device that doesn't already
+ * have an explicit choice — a device that DOES already have a gad_locale
+ * cookie (this user's own past choice, or someone else's on a shared
+ * device) is left alone rather than silently overridden.
+ */
+async function restoreLocalePreferenceOnLogin(userId: string): Promise<void> {
+  try {
+    const cookieStore = await cookies();
+    if (cookieStore.get(LOCALE_COOKIE_NAME)?.value) {
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { preferredLocale: true },
+    });
+    if (!user || !isValidLocale(user.preferredLocale)) {
+      return;
+    }
+
+    cookieStore.set(LOCALE_COOKIE_NAME, user.preferredLocale, {
+      path: '/',
+      maxAge: 31536000,
+      sameSite: 'lax',
+    });
+  } catch {
+    // Expected during non-request contexts or tests where cookies() is unbacked
+  }
 }
 
 /**

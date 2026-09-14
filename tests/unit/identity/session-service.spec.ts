@@ -1,6 +1,16 @@
+const mockCookieJar = {
+  get: jest.fn(),
+  set: jest.fn(),
+};
+
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => Promise.resolve(mockCookieJar)),
+}));
+
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     $transaction: jest.fn((cb: (tx: unknown) => unknown) => cb({})),
+    user: { findUnique: jest.fn() },
   },
 }));
 
@@ -27,6 +37,7 @@ import {
 } from '@/modules/identity/application/services/session-service';
 import * as sessionRepository from '@/modules/identity/infrastructure/session-repository';
 import { hashToken } from '@/modules/identity/security/tokens';
+import { prisma } from '@/shared/database/prisma';
 
 describe('Session Service', () => {
   const mockedCreateUserSession = sessionRepository.createUserSession as jest.Mock;
@@ -35,6 +46,8 @@ describe('Session Service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCookieJar.get.mockReturnValue(undefined);
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
   });
 
   it('creates session with hashed token and returns raw token', async () => {
@@ -53,6 +66,69 @@ describe('Session Service', () => {
     expect(result.rawToken).toBeDefined();
     expect(result.session.id).toBe('session-1');
     expect(mockedCreateUserSession).toHaveBeenCalled();
+  });
+
+  describe('locale preference restoration on login', () => {
+    beforeEach(() => {
+      mockedCreateUserSession.mockResolvedValue({
+        id: 'session-1',
+        userId: 'user-123',
+        sessionTokenHash: 'hash-val',
+        expiresAt: new Date(Date.now() + 100000),
+      });
+    });
+
+    it("restores the user's DB locale preference when no locale cookie exists yet", async () => {
+      mockCookieJar.get.mockReturnValue(undefined);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ preferredLocale: 'hi' });
+
+      await createSessionForUser('user-123');
+
+      expect(mockCookieJar.set).toHaveBeenCalledWith(
+        'gad_locale',
+        'hi',
+        expect.objectContaining({ path: '/' }),
+      );
+    });
+
+    it('does not override an existing locale cookie with the DB preference', async () => {
+      mockCookieJar.get.mockReturnValue({ value: 'gu' });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ preferredLocale: 'hi' });
+
+      await createSessionForUser('user-123');
+
+      expect(mockCookieJar.set).not.toHaveBeenCalledWith(
+        'gad_locale',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('does not set a locale cookie when the DB preference is not a supported locale', async () => {
+      mockCookieJar.get.mockReturnValue(undefined);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ preferredLocale: 'fr' });
+
+      await createSessionForUser('user-123');
+
+      expect(mockCookieJar.set).not.toHaveBeenCalledWith(
+        'gad_locale',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('does not set a locale cookie when the user cannot be found', async () => {
+      mockCookieJar.get.mockReturnValue(undefined);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await createSessionForUser('user-123');
+
+      expect(mockCookieJar.set).not.toHaveBeenCalledWith(
+        'gad_locale',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
   });
 
   it('validates active unexpired session token', async () => {

@@ -19,13 +19,19 @@ interface DriverDocument {
   createdAt: string;
 }
 
+// Must stay in sync with the DriverDocumentType enum in prisma/schema.prisma
+// — the server rejects any value outside this set (zod
+// z.nativeEnum(DriverDocumentType) in the upload-url/register routes), so a
+// mismatched list here would let a driver select a type that always fails
+// on submit. "(Required)" mirrors the default `driver.onboarding.required_
+// documents` configuration used by evaluateDriverEligibilityFromProfile.
 const DOCUMENT_TYPES = [
   { value: 'DRIVING_LICENSE', label: 'Driving License (Required)' },
   { value: 'AADHAAR_CARD', label: 'Aadhaar Card (Required)' },
-  { value: 'PAN_CARD', label: 'PAN Card' },
-  { value: 'VEHICLE_REGISTRATION', label: 'Vehicle Registration (RC)' },
-  { value: 'VEHICLE_INSURANCE', label: 'Vehicle Insurance' },
+  { value: 'PROFILE_PHOTO', label: 'Profile Photo' },
+  { value: 'ADDRESS_PROOF', label: 'Address Proof' },
   { value: 'POLICE_VERIFICATION', label: 'Police Verification Certificate' },
+  { value: 'BACKGROUND_VERIFICATION', label: 'Background Verification' },
 ];
 
 export default function DriverDocumentsPage() {

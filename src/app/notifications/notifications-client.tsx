@@ -6,6 +6,18 @@ import { CustomerLayout } from '@/components/customer-layout';
 import { DriverLayout } from '@/components/driver-layout';
 import { AdminLayout } from '@/components/admin-layout';
 
+/** Standard VAPID public-key conversion: base64url string -> Uint8Array, as required by PushManager.subscribe()'s applicationServerKey. */
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 interface NotificationItem {
   id: string;
   type: string;
@@ -36,10 +48,13 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [pushStatus, setPushStatus] = useState<string>('Check Status');
-  const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const [notificationMsg, setNotificationMsg] = useState<{
+    text: string;
+    tone: 'success' | 'error';
+  } | null>(null);
 
-  const showToast = (msg: string) => {
-    setNotificationMsg(msg);
+  const showToast = (text: string, tone: 'success' | 'error' = 'success') => {
+    setNotificationMsg({ text, tone });
     setTimeout(() => setNotificationMsg(null), 4000);
   };
 
@@ -96,33 +111,46 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
         return;
       }
 
+      const keyRes = await fetch('/api/push/vapid-public-key');
+      const keyData = await keyRes.json();
+      if (!keyRes.ok || !keyData.publicKey) {
+        showToast('Push notifications are not configured on this server yet.', 'error');
+        return;
+      }
+
       const reg = await navigator.serviceWorker.register('/sw.js');
       let sub = await reg.pushManager.getSubscription();
 
       if (!sub) {
-        // Generate mock VAPID subscription for demonstration/testing
         sub = await reg.pushManager
           .subscribe({
             userVisibleOnly: true,
-            applicationServerKey: new Uint8Array(65),
+            applicationServerKey: urlBase64ToUint8Array(keyData.publicKey) as BufferSource,
           })
           .catch(() => null);
       }
 
-      const endpoint = sub?.endpoint ?? `https://push.example.com/${Date.now()}`;
-      const p256dh = sub
-        ? btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')!)))
-        : 'mock_p256dh';
-      const auth = sub
-        ? btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')!)))
-        : 'mock_auth';
+      if (!sub) {
+        showToast('Could not enable push notifications on this device.', 'error');
+        return;
+      }
+
+      const p256dhKey = sub.getKey('p256dh');
+      const authKey = sub.getKey('auth');
+      if (!p256dhKey || !authKey) {
+        showToast('Could not enable push notifications on this device.', 'error');
+        return;
+      }
 
       const res = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          endpoint,
-          keys: { p256dh, auth },
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: btoa(String.fromCharCode(...new Uint8Array(p256dhKey))),
+            auth: btoa(String.fromCharCode(...new Uint8Array(authKey))),
+          },
           userAgent: navigator.userAgent,
         }),
       });
@@ -130,10 +158,11 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
       if (res.ok) {
         setPushStatus('ACTIVE');
         showToast('Browser Web Push Enabled Successfully!');
+      } else {
+        showToast('Failed to register push subscription with the server.', 'error');
       }
     } catch {
-      showToast('Push registration completed');
-      setPushStatus('ACTIVE');
+      showToast('Error enabling push notifications.', 'error');
     }
   };
 
@@ -166,9 +195,18 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
     <PortalLayout>
       <div className="flex flex-col w-full gap-6">
         {notificationMsg && (
-          <div className="fixed top-6 right-6 z-50 bg-[#25a475] text-[#00311f] px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border border-[#68dba9]">
-            <span className="material-symbols-outlined">check_circle</span>
-            <span>{notificationMsg}</span>
+          <div
+            role="status"
+            className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border ${
+              notificationMsg.tone === 'error'
+                ? 'bg-[#93000a]/20 text-[#ffb4ab] border-[#93000a]'
+                : 'bg-[#25a475] text-[#00311f] border-[#68dba9]'
+            }`}
+          >
+            <span className="material-symbols-outlined">
+              {notificationMsg.tone === 'error' ? 'error' : 'check_circle'}
+            </span>
+            <span>{notificationMsg.text}</span>
           </div>
         )}
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from '@/i18n/context';
 
 export type ToastTone = 'success' | 'error' | 'info';
 
@@ -55,6 +56,8 @@ export function ToastViewport({
   toast: ToastState | null;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
+
   if (!toast) return null;
 
   return (
@@ -69,7 +72,7 @@ export function ToastViewport({
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dismiss"
+          aria-label={t('common.labels.dismiss')}
           className="shrink-0 opacity-70 hover:opacity-100"
         >
           <span className="material-symbols-outlined text-base">close</span>

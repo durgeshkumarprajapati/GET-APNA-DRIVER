@@ -79,7 +79,9 @@ export async function createTaxInvoiceForBooking(bookingId: string): Promise<Tax
   }
 
   const payment = booking.payments[0];
-  const grossAmount = Number(booking.finalFareAmount ?? booking.estimatedFareAmount ?? payment?.amount ?? 0);
+  const grossAmount = Number(
+    booking.finalFareAmount ?? booking.estimatedFareAmount ?? payment?.amount ?? 0,
+  );
   const discountAmount = Number(payment?.discountAmount ?? 0);
   const netAmount = Math.max(0, grossAmount - discountAmount);
 
@@ -151,10 +153,18 @@ export async function createTaxInvoiceForBooking(bookingId: string): Promise<Tax
   return formatInvoiceResponse(invoice);
 }
 
+// Unbounded until Phase 32 — no caller ever created invoices, so no
+// customer had more than zero. Now that capturePayment generates one per
+// booking, a long-tenured customer's history could grow without limit;
+// cap it the same way the admin list is paginated, rather than fetching
+// every row on every page load.
+const CUSTOMER_INVOICE_LIST_LIMIT = 200;
+
 export async function getCustomerInvoices(customerId: string): Promise<TaxInvoiceItem[]> {
   const invoices = await prisma.taxInvoice.findMany({
     where: { customerId },
     orderBy: { issuedAt: 'desc' },
+    take: CUSTOMER_INVOICE_LIST_LIMIT,
   });
   return invoices.map(formatInvoiceResponse);
 }

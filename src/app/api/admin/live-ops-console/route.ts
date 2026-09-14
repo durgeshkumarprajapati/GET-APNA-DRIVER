@@ -3,7 +3,13 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { prisma } from '@/shared/database/prisma';
-import { BookingStatus, DriverAvailabilityStatus, DriverApprovalStatus, SafetyIncidentStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  DriverAvailabilityStatus,
+  DriverApprovalStatus,
+  SafetyIncidentStatus,
+} from '@prisma/client';
+import { getCommissionPolicy } from '@/modules/finance/application/services/commission-policy-service';
 
 export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
   try {
@@ -65,7 +71,11 @@ export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
       prisma.safetyIncident.count({
         where: {
           status: {
-            in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING, SafetyIncidentStatus.ESCALATED],
+            in: [
+              SafetyIncidentStatus.OPEN,
+              SafetyIncidentStatus.INVESTIGATING,
+              SafetyIncidentStatus.ESCALATED,
+            ],
           },
         },
       }),
@@ -86,12 +96,16 @@ export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
       const fare = b.finalFareAmount ?? b.estimatedFareAmount ?? 0;
       gmv24h += Number(fare);
     }
-    const netCommission24h = Math.round(gmv24h * 0.185 * 100) / 100;
+    // Reuses the same live, admin-configurable rate pricing-service.ts's
+    // calculateCommission() applies at capture time — this was previously
+    // a hardcoded 18.5% literal that silently diverged from the real rate
+    // shown on /admin/commission-matrix the moment an admin changed it.
+    const commissionPolicy = await getCommissionPolicy();
+    const commissionRate = Number(commissionPolicy.percentage) / 100;
+    const netCommission24h = Math.round(gmv24h * commissionRate * 100) / 100;
 
     const fleetUtilizationPercent =
-      driversOnlineCount > 0
-        ? Math.round((driversBusyCount / driversOnlineCount) * 1000) / 10
-        : 0;
+      driversOnlineCount > 0 ? Math.round((driversBusyCount / driversOnlineCount) * 1000) / 10 : 0;
 
     // 2. Active Bookings Log
     const activeBookings = await prisma.booking.findMany({
@@ -124,7 +138,11 @@ export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
         safetyIncidents: {
           where: {
             status: {
-              in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING, SafetyIncidentStatus.ESCALATED],
+              in: [
+                SafetyIncidentStatus.OPEN,
+                SafetyIncidentStatus.INVESTIGATING,
+                SafetyIncidentStatus.ESCALATED,
+              ],
             },
           },
           select: { id: true, incidentNumber: true, severity: true, status: true },
@@ -219,7 +237,9 @@ export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
           scheduledPickupTime: b.requestedStartTime?.toISOString() || b.requestedAt.toISOString(),
           totalFareAmount: Number(fare),
           customerName: custName,
-          driverName: b.driverProfile ? `${b.driverProfile.firstName} ${b.driverProfile.lastName}` : null,
+          driverName: b.driverProfile
+            ? `${b.driverProfile.firstName} ${b.driverProfile.lastName}`
+            : null,
           driverProfileId: b.driverProfileId,
           hasOpenSos: b.safetyIncidents.length > 0,
           sosSeverity: b.safetyIncidents[0]?.severity || null,
@@ -241,7 +261,8 @@ export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
       })),
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch live ops console telemetry.';
+    const message =
+      err instanceof Error ? err.message : 'Failed to fetch live ops console telemetry.';
     return NextResponse.json({ error: 'LIVE_OPS_FETCH_FAILED', message }, { status: 500 });
   }
 });
