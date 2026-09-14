@@ -26,6 +26,7 @@ const createBookingSchema = z.object({
   returnDate: z.string().datetime().nullable().optional(),
   idempotencyKey: z.string().trim().max(200).nullable().optional(),
   promotionCode: z.string().trim().max(50).nullable().optional(),
+  preferredDriverProfileId: z.string().uuid().nullable().optional(),
 });
 
 export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
@@ -47,6 +48,7 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
         hourlyPackageHours: parsed.hourlyPackageHours,
         returnDate: parsed.returnDate,
         promotionCode: parsed.promotionCode,
+        preferredDriverProfileId: parsed.preferredDriverProfileId,
       },
       idempotencyKey,
     );

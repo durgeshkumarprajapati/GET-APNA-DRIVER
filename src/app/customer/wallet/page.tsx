@@ -14,8 +14,7 @@ import {
   WalletTransactionItem,
   type WalletTransactionItemData,
 } from '@/components/ui/wallet-transaction-item';
-import { formatCurrency } from '@/shared/formatting/money';
-import { formatDateTime } from '@/shared/formatting/date';
+import { useTranslation } from '@/i18n/context';
 
 type WalletFilter = 'all' | 'credit' | 'debit' | 'booking_payment' | 'refund' | 'referral_reward';
 
@@ -60,6 +59,7 @@ const TYPE_LABEL: Record<WalletTransactionItemData['type'], string> = {
 const PAGE_SIZE = 10;
 
 export default function CustomerWalletPage() {
+  const { t, formatCurrency, formatDate } = useTranslation();
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export default function CustomerWalletPage() {
     {
       key: 'date',
       header: 'Date',
-      render: (tx) => <span className="text-[#87948b]">{formatDateTime(tx.occurredAt)}</span>,
+      render: (tx) => <span className="text-[#87948b]">{formatDate(tx.occurredAt)}</span>,
     },
     {
       key: 'description',
@@ -142,8 +142,8 @@ export default function CustomerWalletPage() {
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <PageHeader
-          eyebrow="Rewards & Finance"
-          title="Wallet"
+          eyebrow={t('customer.wallet.title')}
+          title={t('customer.wallet.title')}
           subtitle="A real-time view of your payments, refunds, promotions, and referral rewards."
         />
 
@@ -167,25 +167,25 @@ export default function CustomerWalletPage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
-                  label="Available Balance"
-                  value={formatCurrency(wallet.balance, wallet.currency)}
+                  label={t('customer.wallet.balance')}
+                  value={formatCurrency(Number(wallet.balance))}
                   accent="positive"
                   hint="From rewarded referrals"
                 />
                 <MetricCard
                   label="Total Debits"
-                  value={formatCurrency(wallet.summary.totalDebits, wallet.currency)}
+                  value={formatCurrency(Number(wallet.summary.totalDebits))}
                   hint="Booking payments"
                 />
                 <MetricCard
                   label="Total Credits"
-                  value={formatCurrency(wallet.summary.totalCredits, wallet.currency)}
+                  value={formatCurrency(Number(wallet.summary.totalCredits))}
                   accent="positive"
                   hint="Refunds + referral rewards"
                 />
                 <MetricCard
                   label="Refunds"
-                  value={formatCurrency(wallet.summary.totalRefunds, wallet.currency)}
+                  value={formatCurrency(Number(wallet.summary.totalRefunds))}
                   hint="Processed refunds"
                 />
               </div>

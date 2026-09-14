@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
   // postgis is intentionally not enabled: no column in this schema uses a
   // geography/geometry type yet (all location fields are plain Float
   // latitude/longitude columns). Add it back — with an actual geography
@@ -66,7 +66,7 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   identities UserIdentity[]
-  roles      UserRole[]       @relation("UserRoleUser")
+  roles      UserRole[]     @relation("UserRoleUser")
 
   rolesAssigned UserRole[] @relation("UserRoleAssignedBy")
   rolesRevoked  UserRole[] @relation("UserRoleRevokedBy")
@@ -119,22 +119,22 @@ model UserIdentity {
   userId String @map("user_id") @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  providerType IdentityProviderType @map("provider_type")
+  providerType    IdentityProviderType @map("provider_type")
   /// Exact source: "email", "phone", "google", etc. Always populated (never
   /// null) so the (providerName, providerSubject) unique constraint below
   /// works correctly — a nullable discriminator would let Postgres treat
   /// every NULL as distinct and silently allow duplicate email/phone rows.
-  providerName String @map("provider_name")
+  providerName    String               @map("provider_name")
   /// Canonical identifier within that provider's namespace: normalized
   /// lowercase email, normalized E.164 phone, or the OAuth `sub` claim.
-  providerSubject String @map("provider_subject")
+  providerSubject String               @map("provider_subject")
 
   /// Populated for EMAIL identities (canonical) and optionally for OAuth
   /// identities that supplied a verified email, so a Google sign-in that
   /// matches an existing email identity can be detected instead of silently
   /// creating a duplicate account. citext makes lookups case-insensitive at
   /// the database level (defense in depth alongside app-level normalization).
-  email String? @db.Citext
+  email       String? @db.Citext
   /// Populated for PHONE identities, stored pre-normalized to E.164.
   phoneNumber String? @map("phone_number")
 
@@ -164,7 +164,7 @@ model Role {
   description String?
   /// System roles (CUSTOMER/DRIVER/ADMINISTRATOR) are seeded and must not be
   /// deletable through future admin tooling.
-  isSystem Boolean @default(false) @map("is_system")
+  isSystem    Boolean @default(false) @map("is_system")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -248,7 +248,7 @@ model AuditLog {
   entityType String @map("entity_type")
   /// Stored as text (not a foreign key) so one audit table can reference any
   /// entity type across the whole application.
-  entityId String @map("entity_id")
+  entityId   String @map("entity_id")
 
   beforeState     Json? @map("before_state") @db.JsonB
   afterState      Json? @map("after_state") @db.JsonB
@@ -444,19 +444,19 @@ model CustomerProfile {
 
 /// Persistent user-saved locations with spatial coordinates for routing & PostGIS.
 model SavedLocation {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  label        String   // e.g. "Home", "Work", "Gym"
-  addressLine1 String   @map("address_line1")
-  addressLine2 String?  @map("address_line2")
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String  @map("user_id") @db.Uuid
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String // e.g. "Home", "Work", "Gym"
+  addressLine1 String  @map("address_line1")
+  addressLine2 String? @map("address_line2")
   city         String
   state        String
-  country      String   @default("India")
-  postalCode   String   @map("postal_code")
+  country      String  @default("India")
+  postalCode   String  @map("postal_code")
   latitude     Float
   longitude    Float
-  isDefault    Boolean  @default(false) @map("is_default")
+  isDefault    Boolean @default(false) @map("is_default")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -572,21 +572,22 @@ model DriverProfile {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  documents          DriverDocument[]
-  onboardingLogs     DriverOnboardingLog[]
-  currentLocation    DriverCurrentLocation?
-  locationHistory    DriverLocationHistory[]
-  assignedBookings   Booking[]                @relation("DriverBookings")
-  assignmentAttempts BookingAssignmentAttempt[]
-  wallet             DriverWallet?
-  settlements        DriverSettlement[]
-  safetyIncidents    SafetyIncident[]        @relation("DriverSafetyIncidents")
-  reviews            Review[]                @relation("DriverReviews")
-  ratingSummary      DriverRatingSummary?
-  driverCalls        CallSession[]           @relation("DriverCalls")
-  schedules          DriverSchedule[]
-  scheduleExceptions DriverScheduleException[]
-  favoritedByCustomers CustomerFavoriteDriver[] @relation("DriverFavoriteCustomers")
+  documents            DriverDocument[]
+  onboardingLogs       DriverOnboardingLog[]
+  currentLocation      DriverCurrentLocation?
+  locationHistory      DriverLocationHistory[]
+  assignedBookings     Booking[]                  @relation("DriverBookings")
+  preferredByBookings  Booking[]                  @relation("PreferredDriverBookings")
+  assignmentAttempts   BookingAssignmentAttempt[]
+  wallet               DriverWallet?
+  settlements          DriverSettlement[]
+  safetyIncidents      SafetyIncident[]           @relation("DriverSafetyIncidents")
+  reviews              Review[]                   @relation("DriverReviews")
+  ratingSummary        DriverRatingSummary?
+  driverCalls          CallSession[]              @relation("DriverCalls")
+  schedules            DriverSchedule[]
+  scheduleExceptions   DriverScheduleException[]
+  favoritedByCustomers CustomerFavoriteDriver[]   @relation("DriverFavoriteCustomers")
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -655,16 +656,16 @@ enum LocationSource {
 
 /// Authoritative PostgreSQL + PostGIS driver last known location.
 model DriverCurrentLocation {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  driverProfileId String        @unique @map("driver_profile_id") @db.Uuid
-  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String         @unique @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile  @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
   latitude        Float
   longitude       Float
   accuracy        Float?
   heading         Float?
   speed           Float?
   source          LocationSource @default(BROWSER_GPS)
-  capturedAt      DateTime      @map("captured_at") @db.Timestamptz(6)
+  capturedAt      DateTime       @map("captured_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -675,16 +676,16 @@ model DriverCurrentLocation {
 
 /// Sampled driver location telemetry history.
 model DriverLocationHistory {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  driverProfileId String        @map("driver_profile_id") @db.Uuid
-  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String         @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile  @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
   latitude        Float
   longitude       Float
   accuracy        Float?
   heading         Float?
   speed           Float?
   source          LocationSource @default(BROWSER_GPS)
-  capturedAt      DateTime      @map("captured_at") @db.Timestamptz(6)
+  capturedAt      DateTime       @map("captured_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -750,13 +751,23 @@ enum AssignmentAttemptStatus {
 /// Core marketplace booking record. Stores customer booking snapshot, status,
 /// location snapshot, driver assignment reference, and lifecycle metadata.
 model Booking {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  idempotencyKey String?       @unique @map("idempotency_key")
-  customerId     String        @map("customer_id") @db.Uuid
-  customer       User          @relation("CustomerBookings", fields: [customerId], references: [id], onDelete: Cascade)
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  idempotencyKey String? @unique @map("idempotency_key")
+  customerId     String  @map("customer_id") @db.Uuid
+  customer       User    @relation("CustomerBookings", fields: [customerId], references: [id], onDelete: Cascade)
 
   driverProfileId String?        @map("driver_profile_id") @db.Uuid
   driverProfile   DriverProfile? @relation("DriverBookings", fields: [driverProfileId], references: [id], onDelete: SetNull)
+
+  /// Customer's non-binding preference, set at booking creation from one of
+  /// their own CustomerFavoriteDriver entries. Read by matching-service to
+  /// prioritize this driver if (and only if) they surface as an eligible,
+  /// nearby candidate in the normal dispatch pool — never bypasses
+  /// eligibility/availability/schedule/compliance/distance checks, and never
+  /// guarantees assignment. driverProfileId above remains the sole source of
+  /// truth for who was actually assigned.
+  preferredDriverProfileId String?        @map("preferred_driver_profile_id") @db.Uuid
+  preferredDriver          DriverProfile? @relation("PreferredDriverBookings", fields: [preferredDriverProfileId], references: [id], onDelete: SetNull)
 
   status      BookingStatus @default(DRAFT)
   bookingType BookingType   @default(ONE_WAY) @map("booking_type")
@@ -790,10 +801,10 @@ model Booking {
   /// the Promotion row (or its deactivation) never alters these — the same
   /// immutable-snapshot treatment as pricingSnapshot above and
   /// Payment.commissionPercentageSnapshot.
-  promotionId           String?               @map("promotion_id") @db.Uuid
-  promotionCodeSnapshot String?               @map("promotion_code_snapshot")
+  promotionId           String?                @map("promotion_id") @db.Uuid
+  promotionCodeSnapshot String?                @map("promotion_code_snapshot")
   discountType          PromotionDiscountType? @map("discount_type")
-  discountAmount        Decimal?              @map("discount_amount") @db.Decimal(12, 4)
+  discountAmount        Decimal?               @map("discount_amount") @db.Decimal(12, 4)
 
   requestedStartTime       DateTime? @map("requested_start_time") @db.Timestamptz(6)
   estimatedDurationMinutes Int?      @map("estimated_duration_minutes")
@@ -821,8 +832,8 @@ model Booking {
   assignmentAttempts BookingAssignmentAttempt[]
   bookingLogs        BookingLog[]
   payments           Payment[]
-  safetyIncidents    SafetyIncident[]        @relation("BookingSafetyIncidents")
-  disputes           Dispute[]               @relation("BookingDisputes")
+  safetyIncidents    SafetyIncident[]           @relation("BookingSafetyIncidents")
+  disputes           Dispute[]                  @relation("BookingDisputes")
   review             Review?
   promotionUsage     PromotionUsage?
   supportTickets     SupportTicket[]
@@ -860,12 +871,12 @@ model BookingAssignmentAttempt {
 
 /// Append-only transition log for bookings.
 model BookingLog {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bookingId   String   @map("booking_id") @db.Uuid
-  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  actorUserId String?  @map("actor_user_id") @db.Uuid
-  fromStatus  String   @map("from_status")
-  toStatus    String   @map("to_status")
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId   String  @map("booking_id") @db.Uuid
+  booking     Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  actorUserId String? @map("actor_user_id") @db.Uuid
+  fromStatus  String  @map("from_status")
+  toStatus    String  @map("to_status")
   action      String
   reason      String?
 
@@ -1008,8 +1019,8 @@ model Payment {
   /// (e.g. Booking.cancelledBy) that intentionally don't force a back-relation.
   driverProfileId String? @map("driver_profile_id") @db.Uuid
 
-  amount   Decimal @db.Decimal(19, 4)
-  currency String  @default("INR")
+  amount   Decimal       @db.Decimal(19, 4)
+  currency String        @default("INR")
   status   PaymentStatus @default(CREATED)
 
   provider          String  @default("razorpay")
@@ -1043,8 +1054,8 @@ model Payment {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  attempts PaymentAttempt[]
-  refunds  Refund[]
+  attempts    PaymentAttempt[]
+  refunds     Refund[]
   taxInvoices TaxInvoice[]
 
   @@index([bookingId])
@@ -1067,15 +1078,15 @@ model PaymentAttempt {
   payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   provider          String
-  providerOrderId   String? @map("provider_order_id")
-  providerPaymentId String? @map("provider_payment_id")
+  providerOrderId   String?              @map("provider_order_id")
+  providerPaymentId String?              @map("provider_payment_id")
   status            PaymentAttemptStatus @default(INITIATED)
 
-  failureCode   String? @map("failure_code")
-  failureReason String? @map("failure_reason")
+  failureCode      String? @map("failure_code")
+  failureReason    String? @map("failure_reason")
   /// Sanitized snapshot only (status/ids/amount) — never the full raw
   /// provider payload, which may carry more than is safe to retain.
-  responseSnapshot Json? @map("response_snapshot") @db.JsonB
+  responseSnapshot Json?   @map("response_snapshot") @db.JsonB
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -1089,11 +1100,11 @@ model PaymentAttempt {
 /// stable across Razorpay's own retries of the same delivery, which is what
 /// the unique constraint relies on for duplicate-safe, idempotent processing.
 model PaymentWebhookEvent {
-  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  provider        String  @default("razorpay")
-  providerEventId String  @map("provider_event_id")
-  eventType       String  @map("event_type")
-  payload         Json    @db.JsonB
+  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider          String  @default("razorpay")
+  providerEventId   String  @map("provider_event_id")
+  eventType         String  @map("event_type")
+  payload           Json    @db.JsonB
   signatureVerified Boolean @map("signature_verified")
 
   processingStatus WebhookProcessingStatus @default(RECEIVED) @map("processing_status")
@@ -1117,7 +1128,7 @@ model LedgerAccount {
   normalBalance LedgerBalanceSide @map("normal_balance")
   /// Seeded system accounts (see chart of accounts above); not
   /// creatable/deletable through admin tooling.
-  isSystem Boolean @default(true) @map("is_system")
+  isSystem      Boolean           @default(true) @map("is_system")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -1144,7 +1155,7 @@ model FinancialTransaction {
   /// delivery processed twice must never post two FinancialTransactions).
   idempotencyKey String? @unique @map("idempotency_key")
 
-  description String
+  description           String
   /// Self-reference: set only on a compensating/reversing transaction.
   reversesTransactionId String? @map("reverses_transaction_id") @db.Uuid
   metadata              Json?   @db.JsonB
@@ -1198,12 +1209,12 @@ model DriverWallet {
   /// Reserved for future use by a hold-period policy; not populated by any
   /// code path in this phase (always 0). Kept so that policy can be added
   /// later without a schema migration.
-  pendingBalance Decimal @default(0) @map("pending_balance") @db.Decimal(19, 4)
+  pendingBalance   Decimal @default(0) @map("pending_balance") @db.Decimal(19, 4)
   /// Earmarked by an in-flight (PENDING/PROCESSING) settlement.
-  reservedBalance Decimal @default(0) @map("reserved_balance") @db.Decimal(19, 4)
-  totalEarned     Decimal @default(0) @map("total_earned") @db.Decimal(19, 4)
-  totalSettled    Decimal @default(0) @map("total_settled") @db.Decimal(19, 4)
-  currency        String  @default("INR")
+  reservedBalance  Decimal @default(0) @map("reserved_balance") @db.Decimal(19, 4)
+  totalEarned      Decimal @default(0) @map("total_earned") @db.Decimal(19, 4)
+  totalSettled     Decimal @default(0) @map("total_settled") @db.Decimal(19, 4)
+  currency         String  @default("INR")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1223,15 +1234,15 @@ model WalletTransaction {
   financialTransactionId String               @map("financial_transaction_id") @db.Uuid
   financialTransaction   FinancialTransaction @relation(fields: [financialTransactionId], references: [id], onDelete: Restrict)
 
-  changeType WalletChangeType @map("change_type")
+  changeType     WalletChangeType @map("change_type")
   /// Signed per-bucket deltas (positive increases, negative decreases). Kept
   /// separate rather than collapsed into one "amount" because a single
   /// change can move money *between* buckets (e.g. settlement reservation:
   /// availableDelta -100, reservedDelta +100) — netting those into one
   /// number would misleadingly show 0 for a real 100 movement.
-  availableDelta Decimal @default(0) @map("available_delta") @db.Decimal(19, 4)
-  pendingDelta   Decimal @default(0) @map("pending_delta") @db.Decimal(19, 4)
-  reservedDelta  Decimal @default(0) @map("reserved_delta") @db.Decimal(19, 4)
+  availableDelta Decimal          @default(0) @map("available_delta") @db.Decimal(19, 4)
+  pendingDelta   Decimal          @default(0) @map("pending_delta") @db.Decimal(19, 4)
+  reservedDelta  Decimal          @default(0) @map("reserved_delta") @db.Decimal(19, 4)
 
   balanceAfterAvailable Decimal @map("balance_after_available") @db.Decimal(19, 4)
   balanceAfterPending   Decimal @map("balance_after_pending") @db.Decimal(19, 4)
@@ -1259,10 +1270,10 @@ model DriverSettlement {
   driverWalletId  String        @map("driver_wallet_id") @db.Uuid
   driverWallet    DriverWallet  @relation(fields: [driverWalletId], references: [id], onDelete: Restrict)
 
-  amount      Decimal          @db.Decimal(19, 4)
-  amountPaid  Decimal?         @map("amount_paid") @db.Decimal(19, 4)
-  currency    String           @default("INR")
-  status      SettlementStatus @default(PENDING)
+  amount     Decimal          @db.Decimal(19, 4)
+  amountPaid Decimal?         @map("amount_paid") @db.Decimal(19, 4)
+  currency   String           @default("INR")
+  status     SettlementStatus @default(PENDING)
 
   /// "manual" in this phase (no automated payout provider is configured yet
   /// — see settlement-service.ts); ready for a future real payout provider.
@@ -1306,9 +1317,9 @@ model Refund {
   /// refund-service.ts) is the primary defense against over-refunding.
   idempotencyKey String? @unique @map("idempotency_key")
 
-  providerRefundId String? @map("provider_refund_id")
+  providerRefundId       String? @map("provider_refund_id")
   /// Loose reference to the actor (admin) who initiated this refund.
-  initiatedBy String @map("initiated_by") @db.Uuid
+  initiatedBy            String  @map("initiated_by") @db.Uuid
   /// Loose reference to the compensating FinancialTransaction once posted.
   financialTransactionId String? @map("financial_transaction_id") @db.Uuid
 
@@ -1388,12 +1399,12 @@ model Promotion {
   discountType      PromotionDiscountType @map("discount_type")
   /// Percentage points (0-100) when discountType=PERCENTAGE, or a flat
   /// rupee amount when discountType=FIXED.
-  discountValue     Decimal  @db.Decimal(12, 4) @map("discount_value")
+  discountValue     Decimal               @map("discount_value") @db.Decimal(12, 4)
   /// Caps the computed discount; only meaningful for PERCENTAGE (a FIXED
   /// discount is already a hard amount). Null = uncapped.
-  maxDiscountAmount Decimal? @db.Decimal(12, 4) @map("max_discount_amount")
+  maxDiscountAmount Decimal?              @map("max_discount_amount") @db.Decimal(12, 4)
   /// Minimum gross fare required for this promotion to apply.
-  minBookingValue   Decimal? @db.Decimal(12, 4) @map("min_booking_value")
+  minBookingValue   Decimal?              @map("min_booking_value") @db.Decimal(12, 4)
 
   /// Eligibility restricted to a customer with zero prior TRIP_COMPLETED
   /// bookings (see promotion-eligibility-service.ts's isFirstRideCustomer).
@@ -1440,12 +1451,12 @@ model PromotionUsage {
   bookingId   String    @unique @map("booking_id") @db.Uuid
   booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
 
-  discountAmount        Decimal               @db.Decimal(12, 4) @map("discount_amount")
+  discountAmount        Decimal               @map("discount_amount") @db.Decimal(12, 4)
   /// Frozen at redemption time — a later change to the Promotion row (code,
   /// discount type/value) never alters this historical record.
   promotionCodeSnapshot String?               @map("promotion_code_snapshot")
   discountTypeSnapshot  PromotionDiscountType @map("discount_type_snapshot")
-  discountValueSnapshot Decimal               @db.Decimal(12, 4) @map("discount_value_snapshot")
+  discountValueSnapshot Decimal               @map("discount_value_snapshot") @db.Decimal(12, 4)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -1554,19 +1565,19 @@ enum CampaignStatus {
 
 /// Core in-app notification entity.
 model Notification {
-  id             String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId         String               @map("user_id") @db.Uuid
-  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String                @map("user_id") @db.Uuid
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   type           NotificationType
   title          String
   body           String
-  data           Json?                @db.JsonB
-  priority       NotificationPriority @default(NORMAL)
-  status         NotificationStatus   @default(UNREAD)
-  idempotencyKey String?              @unique @map("idempotency_key")
-  campaignId     String?              @map("campaign_id") @db.Uuid
+  data           Json?                 @db.JsonB
+  priority       NotificationPriority  @default(NORMAL)
+  status         NotificationStatus    @default(UNREAD)
+  idempotencyKey String?               @unique @map("idempotency_key")
+  campaignId     String?               @map("campaign_id") @db.Uuid
   campaign       NotificationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  readAt         DateTime?            @map("read_at") @db.Timestamptz(6)
+  readAt         DateTime?             @map("read_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1604,16 +1615,16 @@ model NotificationDelivery {
 
 /// Web push notification subscriptions for browser clients.
 model PushSubscription {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  endpoint   String    @unique
-  p256dhKey  String    @map("p256dh_key")
-  authKey    String    @map("auth_key")
-  userAgent  String?   @map("user_agent")
-  deviceName String?   @map("device_name")
-  isActive   Boolean   @default(true) @map("is_active")
-  lastSeenAt DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint   String   @unique
+  p256dhKey  String   @map("p256dh_key")
+  authKey    String   @map("auth_key")
+  userAgent  String?  @map("user_agent")
+  deviceName String?  @map("device_name")
+  isActive   Boolean  @default(true) @map("is_active")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1624,13 +1635,13 @@ model PushSubscription {
 
 /// Category-level notification preferences for users (BOOKING, PAYMENT, PROMOTION, SYSTEM, MARKETING, SAFETY).
 model NotificationPreference {
-  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String  @map("user_id") @db.Uuid
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category  String  // BOOKING, PAYMENT, PROMOTION, SYSTEM, MARKETING, SAFETY
-  push      Boolean @default(true)
-  email     Boolean @default(true)
-  sms       Boolean @default(true)
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId   String  @map("user_id") @db.Uuid
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category String // BOOKING, PAYMENT, PROMOTION, SYSTEM, MARKETING, SAFETY
+  push     Boolean @default(true)
+  email    Boolean @default(true)
+  sms      Boolean @default(true)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1751,8 +1762,8 @@ model SafetyIncident {
   snapshotAddress  String? @map("snapshot_address")
 
   description       String?
-  resolutionSummary String?   @map("resolution_summary")
-  idempotencyKey    String?   @unique @map("idempotency_key")
+  resolutionSummary String? @map("resolution_summary")
+  idempotencyKey    String? @unique @map("idempotency_key")
 
   acknowledgedAt DateTime? @map("acknowledged_at") @db.Timestamptz(6)
   resolvedAt     DateTime? @map("resolved_at") @db.Timestamptz(6)
@@ -1795,12 +1806,12 @@ model SafetyIncidentTimeline {
 
 /// Customer or driver raised dispute regarding a booking, fare, or conduct.
 model Dispute {
-  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  disputeNumber  String          @unique @map("dispute_number")
-  bookingId      String          @map("booking_id") @db.Uuid
-  booking        Booking         @relation("BookingDisputes", fields: [bookingId], references: [id], onDelete: Cascade)
-  raisedByUserId String          @map("raised_by_user_id") @db.Uuid
-  raisedByUser   User            @relation("UserRaisedDisputes", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  disputeNumber  String  @unique @map("dispute_number")
+  bookingId      String  @map("booking_id") @db.Uuid
+  booking        Booking @relation("BookingDisputes", fields: [bookingId], references: [id], onDelete: Cascade)
+  raisedByUserId String  @map("raised_by_user_id") @db.Uuid
+  raisedByUser   User    @relation("UserRaisedDisputes", fields: [raisedByUserId], references: [id], onDelete: Cascade)
 
   assignedOperatorId String? @map("assigned_operator_id") @db.Uuid
   assignedOperator   User?   @relation("AssignedDisputes", fields: [assignedOperatorId], references: [id], onDelete: SetNull)
@@ -1809,10 +1820,10 @@ model Dispute {
   status   DisputeStatus   @default(OPEN)
 
   reason                     String
-  evidenceUrls               Json?     @map("evidence_urls") @db.JsonB
-  resolutionSummary          String?   @map("resolution_summary")
-  refundAmountMinorUnits     Int?      @map("refund_amount_minor_units")
-  financialAdjustmentSummary String?   @map("financial_adjustment_summary")
+  evidenceUrls               Json?   @map("evidence_urls") @db.JsonB
+  resolutionSummary          String? @map("resolution_summary")
+  refundAmountMinorUnits     Int?    @map("refund_amount_minor_units")
+  financialAdjustmentSummary String? @map("financial_adjustment_summary")
 
   resolvedAt DateTime? @map("resolved_at") @db.Timestamptz(6)
 
@@ -1864,10 +1875,10 @@ enum ReferralStatus {
 
 /// Unique referral code generated for each User.
 model UserReferralCode {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @unique @map("user_id") @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code      String   @unique
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @unique @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code   String @unique
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1877,17 +1888,17 @@ model UserReferralCode {
 
 /// Referral relationship tracking between referrer and newly registered user.
 model Referral {
-  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  referrerUserId String         @map("referrer_user_id") @db.Uuid
-  referrerUser   User           @relation("ReferrerUser", fields: [referrerUserId], references: [id], onDelete: Cascade)
-  referredUserId String         @unique @map("referred_user_id") @db.Uuid
-  referredUser   User           @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
-  codeUsed       String         @map("code_used")
-  status         ReferralStatus @default(PENDING)
-  rewardAmount   Decimal?       @map("reward_amount") @db.Decimal(19, 4)
-  rejectionReason String?       @map("rejection_reason")
-  qualifiedAt    DateTime?      @map("qualified_at") @db.Timestamptz(6)
-  rewardedAt     DateTime?      @map("rewarded_at") @db.Timestamptz(6)
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrerUserId  String         @map("referrer_user_id") @db.Uuid
+  referrerUser    User           @relation("ReferrerUser", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referredUserId  String         @unique @map("referred_user_id") @db.Uuid
+  referredUser    User           @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  codeUsed        String         @map("code_used")
+  status          ReferralStatus @default(PENDING)
+  rewardAmount    Decimal?       @map("reward_amount") @db.Decimal(19, 4)
+  rejectionReason String?        @map("rejection_reason")
+  qualifiedAt     DateTime?      @map("qualified_at") @db.Timestamptz(6)
+  rewardedAt      DateTime?      @map("rewarded_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)

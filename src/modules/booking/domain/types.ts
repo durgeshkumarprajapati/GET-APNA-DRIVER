@@ -26,6 +26,8 @@ export interface CreateBookingInput {
   returnDate?: string | null;
   /** Optional promotion code the customer entered/selected. Always re-validated server-side — see promotion-eligibility-service.ts. */
   promotionCode?: string | null;
+  /** Optional non-binding preference for one of the customer's own favorite drivers. Always re-validated server-side — see booking-service.ts. */
+  preferredDriverProfileId?: string | null;
 }
 
 export interface CandidateDriverRanked {

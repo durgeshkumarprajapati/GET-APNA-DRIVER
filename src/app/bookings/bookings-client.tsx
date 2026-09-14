@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { PageHeader } from '@/components/ui/page-header';
+import { useTranslation } from '@/i18n/context';
 
 interface Booking {
   id: string;
@@ -19,7 +20,15 @@ interface Booking {
   } | null;
 }
 
+const STATUS_TONE: Record<string, string> = {
+  SEARCHING_DRIVER: 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse',
+  DRIVER_ASSIGNED: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+  CANCELLED: 'bg-red-500/20 text-red-300 border border-red-500/30',
+  EXPIRED: 'bg-slate-700 text-slate-400 border border-slate-600',
+};
+
 export default function BookingsListPage() {
+  const { t, formatDate, statusLabel } = useTranslation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,66 +41,42 @@ export default function BookingsListPage() {
           const data = await res.json();
           setBookings(data.bookings || []);
         } else {
-          setError('Failed to load bookings.');
+          setError(t('customer.bookingsList.loadFailed'));
         }
       } catch {
-        setError('Error connecting to server.');
+        setError(t('customer.bookingsList.connectionError'));
       } finally {
         setLoading(false);
       }
     };
 
     void fetchBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'SEARCHING_DRIVER':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
-            Searching Driver
-          </span>
-        );
-      case 'DRIVER_ASSIGNED':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            Driver Assigned
-          </span>
-        );
-      case 'CANCELLED':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/30">
-            Cancelled
-          </span>
-        );
-      case 'EXPIRED':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">
-            Expired
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-            {status}
-          </span>
-        );
-    }
-  };
+  const getStatusBadge = (status: string) => (
+    <span
+      className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+        STATUS_TONE[status] ?? 'bg-slate-700 text-slate-300'
+      }`}
+    >
+      {statusLabel(status)}
+    </span>
+  );
 
   return (
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <PageHeader
-          eyebrow="Bookings"
-          title="My Bookings"
-          subtitle="Your booking history and live status."
+          eyebrow={t('customer.bookingsList.eyebrow')}
+          title={t('customer.nav.bookings')}
+          subtitle={t('customer.bookingsList.subtitle')}
           actions={
             <Link
               href="/bookings/new"
               className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow transition-colors text-center"
             >
-              + Create New Booking
+              {t('customer.bookingsList.createNew')}
             </Link>
           }
         />
@@ -99,7 +84,7 @@ export default function BookingsListPage() {
         {loading ? (
           <div className="flex items-center justify-center p-12 text-slate-400">
             <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent mr-3" />
-            Loading your bookings...
+            {t('customer.bookingsList.loadingMessage')}
           </div>
         ) : error ? (
           <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm text-center">
@@ -108,16 +93,16 @@ export default function BookingsListPage() {
         ) : bookings.length === 0 ? (
           <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-12 text-center space-y-4">
             <p className="text-slate-300 font-medium text-lg">
-              You don&apos;t have any bookings yet.
+              {t('customer.bookingsList.emptyTitle')}
             </p>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Create your first booking to request a verified professional driver for your trip.
+              {t('customer.bookingsList.emptyBody')}
             </p>
             <Link
               href="/bookings/new"
               className="inline-block px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow transition-colors"
             >
-              Book a Driver Now
+              {t('customer.bookingsList.bookNowCta')}
             </Link>
           </div>
         ) : (
@@ -131,28 +116,42 @@ export default function BookingsListPage() {
                   <div className="flex items-center gap-3">
                     {getStatusBadge(booking.status)}
                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      {booking.bookingType.replace('_', ' ')}
+                      {t(`booking.types.${booking.bookingType}`)}
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-white">
                     {booking.pickupLocation.address}
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Requested on: {new Date(booking.createdAt).toLocaleString()}
+                    {t('customer.bookingsList.requestedOn', {
+                      date: formatDate(booking.createdAt),
+                    })}
                   </p>
                   {booking.assignedDriver && (
                     <p className="text-xs text-emerald-400 font-medium">
-                      Assigned Driver: {booking.assignedDriver.displayName || 'Professional Driver'}
+                      {t('customer.bookingsList.assignedDriverLabel', {
+                        name:
+                          booking.assignedDriver.displayName ||
+                          t('customer.bookingsList.professionalDriverFallback'),
+                      })}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  {booking.status === 'TRIP_COMPLETED' && (
+                    <Link
+                      href={`/bookings/new?bookAgain=${booking.id}`}
+                      className="w-full md:w-auto px-4 py-2 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-semibold text-xs rounded-lg transition-colors text-center"
+                    >
+                      {t('customer.dashboard.bookAgain')}
+                    </Link>
+                  )}
                   <Link
                     href={`/bookings/${booking.id}`}
                     className="w-full md:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs rounded-lg transition-colors text-center"
                   >
-                    View Status Tracker →
+                    {t('customer.bookingsList.viewStatusTracker')} →
                   </Link>
                 </div>
               </div>

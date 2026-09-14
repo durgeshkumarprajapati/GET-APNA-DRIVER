@@ -40,6 +40,7 @@ export interface BookingDetail {
   idempotencyKey: string | null;
   customerId: string;
   driverProfileId: string | null;
+  preferredDriverProfileId: string | null;
   status: BookingStatus;
   bookingType: BookingType;
   pickupLocation: {
@@ -86,6 +87,39 @@ export interface BookingDetail {
 }
 
 /**
+ * Resolves a customer-supplied preferred-driver reference into a validated
+ * driver profile id, or null. Requires the driver to be one of the
+ * customer's own CustomerFavoriteDriver entries (never another customer's)
+ * and currently APPROVED — otherwise the preference is silently dropped so
+ * a stale/invalid reference never fails booking creation.
+ */
+async function resolvePreferredDriverPreference(
+  customerUserId: string,
+  preferredDriverProfileId: string | null | undefined,
+  db: Db,
+): Promise<string | null> {
+  if (!preferredDriverProfileId) return null;
+
+  const favorite = await db.customerFavoriteDriver.findUnique({
+    where: {
+      customerId_driverProfileId: {
+        customerId: customerUserId,
+        driverProfileId: preferredDriverProfileId,
+      },
+    },
+  });
+  if (!favorite) return null;
+
+  const driverProfile = await db.driverProfile.findUnique({
+    where: { id: preferredDriverProfileId },
+    select: { approvalStatus: true },
+  });
+  if (!driverProfile || driverProfile.approvalStatus !== 'APPROVED') return null;
+
+  return preferredDriverProfileId;
+}
+
+/**
  * Creates a new customer booking with pickup/dropoff location snapshots, fare calculation,
  * server-side idempotency, and automated driver matching.
  */
@@ -114,6 +148,15 @@ export async function createBooking(
   if (input.dropoffLocation) {
     validateCoordinates(input.dropoffLocation.latitude, input.dropoffLocation.longitude);
   }
+
+  // 2b. Resolve preferred-driver preference (never fails booking creation —
+  // an invalid/stale/unfavorited reference is silently dropped rather than
+  // rejected, since this is a preference, not a requirement).
+  const preferredDriverProfileId = await resolvePreferredDriverPreference(
+    customerUserId,
+    input.preferredDriverProfileId,
+    db,
+  );
 
   // 3. Calculate Estimated Fare and Route
   const bookingType = input.bookingType || BookingType.ONE_WAY;
@@ -161,6 +204,7 @@ export async function createBooking(
         requestedStartTime: input.requestedStartTime ? new Date(input.requestedStartTime) : null,
         estimatedDurationMinutes: fareResult.estimatedDurationMinutes,
         customerNotes: input.customerNotes || null,
+        preferredDriverProfileId,
         requestedAt: now,
         searchStartedAt: now,
         expiresAt: searchExpiresAt,
@@ -314,6 +358,28 @@ export async function listCustomerBookings(
   return bookings.map(mapBookingToDetail);
 }
 
+const MAX_RECENT_BOOKINGS_RETURNED = 5;
+
+/**
+ * Returns the customer's most recent completed bookings, for "recent
+ * destinations" / "Book Again" UI — a small, bounded set (not the full,
+ * unbounded-until-200-cap history listCustomerBookings returns), since this
+ * is meant for a quick-access widget rather than a history page.
+ */
+export async function listRecentCompletedBookings(
+  customerUserId: string,
+  db: Db = prisma,
+): Promise<BookingDetail[]> {
+  const bookings = await db.booking.findMany({
+    where: { customerId: customerUserId, status: BookingStatus.TRIP_COMPLETED },
+    include: { driverProfile: true },
+    orderBy: { tripCompletedAt: 'desc' },
+    take: MAX_RECENT_BOOKINGS_RETURNED,
+  });
+
+  return bookings.map(mapBookingToDetail);
+}
+
 /**
  * Cancels a booking. Server-authoritative cancellation rule enforcement.
  * Customer-initiated cancellation only — the caller must own the booking.
@@ -461,6 +527,7 @@ function mapBookingToDetail(
     idempotencyKey: booking.idempotencyKey,
     customerId: booking.customerId,
     driverProfileId: booking.driverProfileId,
+    preferredDriverProfileId: booking.preferredDriverProfileId,
     status: booking.status,
     bookingType: booking.bookingType,
     pickupLocation: {

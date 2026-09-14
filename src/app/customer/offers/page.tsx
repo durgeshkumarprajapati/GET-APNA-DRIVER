@@ -7,8 +7,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PromotionStatusBadge } from '@/components/ui/transaction-status-badge';
 import { DiscountLabel } from '@/components/ui/discount-label';
-import { formatCurrency } from '@/shared/formatting/money';
-import { formatDateTime } from '@/shared/formatting/date';
+import { useTranslation } from '@/i18n/context';
 
 interface CustomerOffer {
   id: string;
@@ -33,6 +32,7 @@ interface OffersResponse {
 }
 
 function OfferCard({ offer }: { offer: CustomerOffer }) {
+  const { t, formatCurrency, formatDate } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   return (
@@ -44,7 +44,7 @@ function OfferCard({ offer }: { offer: CustomerOffer }) {
           </span>
         ) : (
           <span className="font-mono text-xs px-3 py-1 rounded bg-[#262a33] text-[#68dba9] font-bold uppercase">
-            Auto-applied
+            {t('customer.offers.autoApplied')}
           </span>
         )}
         <PromotionStatusBadge status={offer.status} isExpired={offer.isExpired} />
@@ -63,18 +63,18 @@ function OfferCard({ offer }: { offer: CustomerOffer }) {
           </span>
           {offer.minBookingValue && (
             <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">
-              Min. fare {formatCurrency(offer.minBookingValue)}
+              {t('customer.offers.minFare', { amount: formatCurrency(Number(offer.minBookingValue)) })}
             </span>
           )}
           {offer.firstRideOnly && (
-            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">First ride only</span>
+            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">{t('customer.offers.firstRideOnly')}</span>
           )}
         </div>
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-[#262a33]">
         <span className="font-mono text-[10px] text-[#87948b]">
-          {offer.endsAt ? `Valid till ${formatDateTime(offer.endsAt)}` : 'No expiry'}
+          {offer.endsAt ? t('customer.offers.validTill', { date: formatDate(offer.endsAt) }) : t('customer.offers.noExpiry')}
         </span>
         {offer.code ? (
           <button
@@ -86,10 +86,10 @@ function OfferCard({ offer }: { offer: CustomerOffer }) {
             }}
             className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-xs font-bold transition-all"
           >
-            {copied ? 'COPIED ✓' : 'COPY CODE'}
+            {copied ? t('customer.offers.copied') : t('customer.offers.copyCode')}
           </button>
         ) : (
-          <span className="text-[10px] text-[#87948b]">Applied automatically at checkout</span>
+          <span className="text-[10px] text-[#87948b]">{t('customer.offers.autoAppliedAtCheckout')}</span>
         )}
       </div>
     </div>
@@ -97,6 +97,7 @@ function OfferCard({ offer }: { offer: CustomerOffer }) {
 }
 
 export default function CustomerOffersPage() {
+  const { t } = useTranslation();
   const [offers, setOffers] = useState<OffersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,10 +112,10 @@ export default function CustomerOffersPage() {
           setOffers(await res.json());
           setError(null);
         } else {
-          setError('Failed to load offers.');
+          setError(t('customer.offers.loadFailed'));
         }
       } catch (err) {
-        if (isMounted) setError(err instanceof Error ? err.message : 'Failed to load offers.');
+        if (isMounted) setError(err instanceof Error ? err.message : t('customer.offers.loadFailed'));
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -123,15 +124,15 @@ export default function CustomerOffersPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [t]);
 
   return (
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <PageHeader
-          eyebrow="Rewards & Finance"
-          title="Offers & Promo Coupons"
-          subtitle="Apply a valid promo code at checkout for instant savings, or let an eligible automatic offer apply itself."
+          eyebrow={t('customer.offers.eyebrow')}
+          title={t('customer.offers.title')}
+          subtitle={t('customer.offers.subtitle')}
         />
 
         {error && (
@@ -141,18 +142,18 @@ export default function CustomerOffersPage() {
         )}
 
         {loading ? (
-          <LoadingState message="Loading offers…" />
+          <LoadingState message={t('customer.offers.loadingMessage')} />
         ) : (
           offers && (
             <>
               <section className="flex flex-col gap-3">
                 <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Available Offers
+                  {t('customer.offers.availableOffers')}
                 </h2>
                 {offers.available.length === 0 ? (
                   <EmptyState
                     icon="confirmation_number"
-                    message="No offers available for you right now."
+                    message={t('customer.offers.noOffers')}
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -166,7 +167,7 @@ export default function CustomerOffersPage() {
               {offers.used.length > 0 && (
                 <section className="flex flex-col gap-3">
                   <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    Used Offers
+                    {t('customer.offers.usedOffers')}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {offers.used.map((o) => (
@@ -179,7 +180,7 @@ export default function CustomerOffersPage() {
               {offers.expired.length > 0 && (
                 <section className="flex flex-col gap-3">
                   <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    Expired Offers
+                    {t('customer.offers.expiredOffers')}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {offers.expired.map((o) => (

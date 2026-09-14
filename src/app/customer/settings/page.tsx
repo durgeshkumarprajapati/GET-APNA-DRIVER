@@ -4,21 +4,24 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { NotificationPreferencesPanel } from '@/components/notification-preferences-panel';
+import { useTranslation } from '@/i18n/context';
 
 export default function CustomerSettingsPage() {
+  const { t } = useTranslation();
+
   return (
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <PageHeader
-          eyebrow="Account"
-          title="Settings"
-          subtitle="Manage how we contact you. For your name, contact details, and saved locations, visit your profile."
+          eyebrow={t('customer.settings.eyebrow')}
+          title={t('customer.settings.title')}
+          subtitle={t('customer.settings.subtitle')}
           actions={
             <Link
               href="/profile"
               className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
             >
-              Go to Profile →
+              Profile →
             </Link>
           }
         />

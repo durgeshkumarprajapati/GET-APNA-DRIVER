@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from '@/i18n/context';
 
 interface RidePinModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export function RidePinModal({
   onClose,
   onVerifyAndStart,
 }: RidePinModalProps) {
+  const { t } = useTranslation();
   const [pinDigits, setPinDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -91,7 +93,7 @@ export function RidePinModal({
       await onVerifyAndStart(fullPin);
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Invalid ride PIN.';
+      const msg = err instanceof Error ? err.message : t('driver.ridePin.invalidPin');
       setErrorMsg(msg);
       // Highlight/focus first input on error
       inputRefs[0].current?.focus();
@@ -106,17 +108,18 @@ export function RidePinModal({
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#68dba9] bg-[#00311f] px-2.5 py-1 rounded-full border border-[#25a475]">
             <span className="material-symbols-outlined text-[14px]">lock</span>
-            <span>VERIFY RIDE PIN</span>
+            <span>{t('driver.ridePin.badge')}</span>
           </div>
           <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] pt-1">
-            Start Your Ride
+            {t('driver.ridePin.title')}
           </h3>
           <p className="text-xs text-[#87948b]">
-            Ask customer {customerName ? <strong>{customerName}</strong> : ''} for their 6-digit
-            Ride PIN.
+            {customerName
+              ? t('driver.ridePin.subtitleWithName', { name: customerName })
+              : t('driver.ridePin.subtitleGeneric')}
           </p>
           <div className="text-[11px] font-mono text-[#68dba9] pt-1">
-            Booking ID: #{bookingId.slice(0, 8).toUpperCase()}
+            {t('driver.ridePin.bookingIdLabel', { id: bookingId.slice(0, 8).toUpperCase() })}
           </div>
         </div>
 
@@ -152,14 +155,14 @@ export function RidePinModal({
               onClick={onClose}
               className="w-1/2 py-2.5 rounded-xl bg-[#181c24] border border-[#262a33] text-xs font-semibold text-[#dfe2ee] hover:bg-[#262a33] transition-colors disabled:opacity-50"
             >
-              Cancel
+              {t('common.actions.cancel')}
             </button>
             <button
               type="submit"
               disabled={!isComplete || loading}
               className="w-1/2 py-2.5 rounded-xl bg-[#25a475] text-[#042116] text-xs font-bold hover:bg-[#68dba9] transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
             >
-              {loading ? 'Verifying...' : 'VERIFY & START'}
+              {loading ? t('driver.ridePin.verifying') : t('driver.ridePin.verifyBtn')}
             </button>
           </div>
         </form>

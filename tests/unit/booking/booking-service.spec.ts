@@ -2,6 +2,7 @@ import {
   createBooking,
   cancelBooking,
   getBookingById,
+  listRecentCompletedBookings,
 } from '@/modules/booking/application/booking-service';
 import { BookingStatus, BookingType } from '@prisma/client';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
@@ -44,6 +45,12 @@ jest.mock('@/shared/database/prisma', () => ({
       create: jest.fn(),
       update: jest.fn(),
     },
+    customerFavoriteDriver: {
+      findUnique: jest.fn(),
+    },
+    driverProfile: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -80,9 +87,13 @@ import { prisma } from '@/shared/database/prisma';
 describe('BookingService', () => {
   const mockFindUnique = prisma.booking.findUnique as jest.Mock;
   const mockFindUniqueOrThrow = prisma.booking.findUniqueOrThrow as jest.Mock;
+  const mockFavoriteFindUnique = prisma.customerFavoriteDriver.findUnique as jest.Mock;
+  const mockDriverProfileFindUnique = prisma.driverProfile.findUnique as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFavoriteFindUnique.mockResolvedValue(null);
+    mockDriverProfileFindUnique.mockResolvedValue(null);
   });
 
   describe('createBooking', () => {
@@ -154,6 +165,133 @@ describe('BookingService', () => {
 
       expect(result.id).toBe('bk-existing');
       expect(mockTx.booking.create).not.toHaveBeenCalled();
+    });
+
+    describe('preferred driver preference', () => {
+      const mockBooking = {
+        id: 'bk-1',
+        customerId: 'cust-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.ONE_WAY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        pickupAddress: 'Connaught Place, New Delhi',
+        requestedAt: new Date(),
+        searchStartedAt: new Date(),
+        expiresAt: new Date(Date.now() + 300000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        driverProfile: null,
+      };
+
+      beforeEach(() => {
+        mockTx.booking.create.mockResolvedValue(mockBooking);
+        mockFindUniqueOrThrow.mockResolvedValue(mockBooking);
+        mockFindUnique.mockResolvedValue(null); // no idempotency-key collision
+      });
+
+      it('stores the preference when the driver is an approved favorite of this customer', async () => {
+        mockFavoriteFindUnique.mockResolvedValue({
+          customerId: 'cust-1',
+          driverProfileId: 'driver-1',
+        });
+        mockDriverProfileFindUnique.mockResolvedValue({ approvalStatus: 'APPROVED' });
+
+        await createBooking('cust-1', {
+          pickupLocation: {
+            latitude: 28.6139,
+            longitude: 77.209,
+            address: 'Connaught Place, New Delhi',
+          },
+          preferredDriverProfileId: 'driver-1',
+        });
+
+        expect(mockFavoriteFindUnique).toHaveBeenCalledWith({
+          where: {
+            customerId_driverProfileId: { customerId: 'cust-1', driverProfileId: 'driver-1' },
+          },
+        });
+        expect(mockTx.booking.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ preferredDriverProfileId: 'driver-1' }),
+          }),
+        );
+      });
+
+      it("silently drops the preference when the driver is not one of this customer's own favorites (IDOR guard)", async () => {
+        mockFavoriteFindUnique.mockResolvedValue(null); // belongs to a different customer, or never favorited
+
+        await createBooking('cust-1', {
+          pickupLocation: {
+            latitude: 28.6139,
+            longitude: 77.209,
+            address: 'Connaught Place, New Delhi',
+          },
+          preferredDriverProfileId: 'someone-elses-favorite-driver',
+        });
+
+        expect(mockTx.booking.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ preferredDriverProfileId: null }),
+          }),
+        );
+      });
+
+      it('silently drops the preference when the favorited driver is no longer approved', async () => {
+        mockFavoriteFindUnique.mockResolvedValue({
+          customerId: 'cust-1',
+          driverProfileId: 'driver-1',
+        });
+        mockDriverProfileFindUnique.mockResolvedValue({ approvalStatus: 'SUSPENDED' });
+
+        await createBooking('cust-1', {
+          pickupLocation: {
+            latitude: 28.6139,
+            longitude: 77.209,
+            address: 'Connaught Place, New Delhi',
+          },
+          preferredDriverProfileId: 'driver-1',
+        });
+
+        expect(mockTx.booking.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ preferredDriverProfileId: null }),
+          }),
+        );
+      });
+
+      it('does not look up a preference at all when none is supplied', async () => {
+        await createBooking('cust-1', {
+          pickupLocation: {
+            latitude: 28.6139,
+            longitude: 77.209,
+            address: 'Connaught Place, New Delhi',
+          },
+        });
+
+        expect(mockFavoriteFindUnique).not.toHaveBeenCalled();
+        expect(mockTx.booking.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ preferredDriverProfileId: null }),
+          }),
+        );
+      });
+    });
+  });
+
+  describe('listRecentCompletedBookings', () => {
+    it('scopes the query to the calling customer and caps it at 5, ordered by trip completion', async () => {
+      const mockFindMany = prisma.booking.findMany as jest.Mock;
+      mockFindMany.mockResolvedValue([]);
+
+      await listRecentCompletedBookings('cust-1');
+
+      expect(mockFindMany).toHaveBeenCalledWith({
+        where: { customerId: 'cust-1', status: BookingStatus.TRIP_COMPLETED },
+        include: { driverProfile: true },
+        orderBy: { tripCompletedAt: 'desc' },
+        take: 5,
+      });
     });
   });
 

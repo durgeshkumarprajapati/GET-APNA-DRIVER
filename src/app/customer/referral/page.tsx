@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CustomerLayout } from '@/components/customer-layout';
+import { useTranslation } from '@/i18n/context';
 
 interface ReferralSummary {
   referralCode: string;
@@ -11,6 +12,7 @@ interface ReferralSummary {
 }
 
 export default function CustomerReferralPage() {
+  const { t, formatCurrency } = useTranslation();
   const [summary, setSummary] = useState<ReferralSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -46,14 +48,13 @@ export default function CustomerReferralPage() {
         <div className="flex items-center justify-between p-6 rounded-xl bg-[#181c24] border border-[#262a33]">
           <div>
             <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk'] block">
-              COMMUNITY PRIVILEGES
+              {t('customer.referral.eyebrow')}
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-              Refer &amp; Earn Chauffeur Credits
+              {t('customer.referral.title')}
             </h1>
             <p className="text-xs text-[#bccac0] mt-1">
-              Invite executives, colleagues, and friends to Get Apna Driver. Earn wallet rewards for
-              every successful first ride.
+              {t('customer.referral.subtitle')}
             </p>
           </div>
         </div>
@@ -62,7 +63,7 @@ export default function CustomerReferralPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33]">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
-              Your Referral Code
+              {t('customer.referral.yourCode')}
             </span>
             <span className="text-lg font-bold font-mono text-[#68dba9] mt-1 block">
               {loading ? 'LOADING...' : summary?.referralCode || 'REF-AVAILABLE'}
@@ -71,7 +72,7 @@ export default function CustomerReferralPage() {
 
           <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33]">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
-              Total Friends Invited
+              {t('customer.referral.statTotalReferred')}
             </span>
             <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1 block">
               {loading ? '—' : (summary?.totalReferrals ?? 0)}
@@ -80,10 +81,10 @@ export default function CustomerReferralPage() {
 
           <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33]">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
-              Rewards Earned
+              {t('customer.referral.statEarnedCredits')}
             </span>
             <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1 block">
-              ₹{loading ? '0' : (summary?.totalEarnedRewards ?? 0)}
+              {loading ? formatCurrency(0) : formatCurrency(summary?.totalEarnedRewards ?? 0)}
             </span>
           </div>
         </div>
@@ -96,11 +97,10 @@ export default function CustomerReferralPage() {
 
           <div>
             <h2 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-              Give ₹200, Earn ₹200
+              {t('customer.referral.title')}
             </h2>
             <p className="text-xs text-[#bccac0] max-w-md mt-1">
-              Your friend applies your referral code during account creation, and you earn wallet
-              rewards upon their first completed ride.
+              {t('customer.referral.shareSubtitle')}
             </p>
           </div>
 
@@ -114,7 +114,7 @@ export default function CustomerReferralPage() {
               disabled={loading || !summary?.referralCode}
               className="px-4 py-2.5 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
             >
-              {copied ? 'Copied to Clipboard!' : 'Copy Code'}
+              {copied ? '✓' : t('customer.referral.copyCode')}
             </button>
           </div>
         </div>
