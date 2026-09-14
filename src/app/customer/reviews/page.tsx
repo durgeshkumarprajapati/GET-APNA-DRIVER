@@ -9,7 +9,7 @@ import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge'
 import { Pagination } from '@/components/ui/pagination';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingState } from '@/components/ui/loading-state';
-import { formatDate } from '@/shared/formatting/date';
+import { useTranslation } from '@/i18n/context';
 
 interface CustomerReview {
   id: string;
@@ -37,6 +37,7 @@ const STATUS_TONE: Record<string, StatusBadgeTone> = {
 const PAGE_SIZE = 10;
 
 export default function CustomerReviewHistoryPage() {
+  const { t, formatDate } = useTranslation();
   const [data, setData] = useState<CustomerReviewsResponse | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -64,9 +65,9 @@ export default function CustomerReviewHistoryPage() {
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <PageHeader
-          eyebrow="Your Feedback"
-          title="Review History"
-          subtitle="Reviews you've submitted for completed trips."
+          eyebrow={t('customer.reviews.eyebrow')}
+          title={t('customer.reviews.title')}
+          subtitle={t('customer.reviews.subtitle')}
         />
 
         {error && (
@@ -80,7 +81,7 @@ export default function CustomerReviewHistoryPage() {
         ) : !data || data.reviews.length === 0 ? (
           <EmptyState
             icon="reviews"
-            message="You haven't reviewed a driver yet. Complete a trip to leave a review."
+            message={t('customer.reviews.emptyBody')}
           />
         ) : (
           <>
@@ -109,7 +110,7 @@ export default function CustomerReviewHistoryPage() {
                     href={`/bookings/${review.bookingId}`}
                     className="text-[10px] text-[#68dba9] hover:underline"
                   >
-                    View booking →
+                    {t('customer.invoices.viewBooking')} →
                   </Link>
                 </div>
               ))}

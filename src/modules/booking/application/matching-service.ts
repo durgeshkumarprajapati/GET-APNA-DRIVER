@@ -120,8 +120,18 @@ export async function findAndOfferNextDriver(
     };
   }
 
-  // Rank candidate (closest candidate selected)
-  const targetDriver = unattempted[0];
+  // Rank candidates: honor the customer's preferred-driver preference if
+  // that driver happens to surface in this radius's eligible/nearby
+  // candidate pool; otherwise (or with no preference) fall back to the
+  // closest candidate. This never widens the pool or bypasses any
+  // eligibility/availability/schedule/compliance/distance check already
+  // applied by findNearbyDrivers — it only reorders within it, so a
+  // preference can never be "assigned" if the driver isn't actually
+  // dispatchable right now.
+  const preferredCandidate = booking.preferredDriverProfileId
+    ? unattempted.find((c) => c.driverId === booking.preferredDriverProfileId)
+    : undefined;
+  const targetDriver = preferredCandidate ?? unattempted[0];
   const offerExpiresAt = new Date(now.getTime() + responseTimeoutSeconds * 1000);
   const nextAttemptNumber = booking.assignmentAttempts.length + 1;
 

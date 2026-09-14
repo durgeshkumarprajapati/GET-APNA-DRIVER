@@ -51,10 +51,14 @@ export const driverEn = {
     confirmAddException: 'Confirm Leave / Exception',
   },
   ridePin: {
-    title: 'Verify Customer Ride PIN',
-    subtitle: 'Enter the 6-digit PIN provided by customer to start trip',
-    verifyBtn: 'Verify PIN & Start Trip',
-    invalidPin: 'Invalid Ride PIN. Please verify with customer.',
+    badge: 'Verify Ride PIN',
+    title: 'Start Your Ride',
+    subtitleWithName: 'Ask customer {{name}} for their 6-digit Ride PIN.',
+    subtitleGeneric: 'Ask the customer for their 6-digit Ride PIN.',
+    bookingIdLabel: 'Booking ID: #{{id}}',
+    verifying: 'Verifying...',
+    verifyBtn: 'Verify & Start',
+    invalidPin: 'Invalid ride PIN.',
   },
   calling: {
     callCustomer: 'Call Customer (Masked)',

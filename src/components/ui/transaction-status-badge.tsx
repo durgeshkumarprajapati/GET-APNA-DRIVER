@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslation } from '@/i18n/context';
 import { StatusBadge, type StatusBadgeTone } from './status-badge';
 
 const SETTLEMENT_STATUS_TONE: Record<string, StatusBadgeTone> = {
@@ -9,7 +12,10 @@ const SETTLEMENT_STATUS_TONE: Record<string, StatusBadgeTone> = {
 };
 
 export function SettlementStatusBadge({ status }: { status: string }) {
-  return <StatusBadge label={status} tone={SETTLEMENT_STATUS_TONE[status] ?? 'neutral'} />;
+  const { statusLabel } = useTranslation();
+  return (
+    <StatusBadge label={statusLabel(status)} tone={SETTLEMENT_STATUS_TONE[status] ?? 'neutral'} />
+  );
 }
 
 const PAYMENT_STATUS_TONE: Record<string, StatusBadgeTone> = {
@@ -23,7 +29,10 @@ const PAYMENT_STATUS_TONE: Record<string, StatusBadgeTone> = {
 };
 
 export function PaymentStatusBadge({ status }: { status: string }) {
-  return <StatusBadge label={status} tone={PAYMENT_STATUS_TONE[status] ?? 'neutral'} />;
+  const { statusLabel } = useTranslation();
+  return (
+    <StatusBadge label={statusLabel(status)} tone={PAYMENT_STATUS_TONE[status] ?? 'neutral'} />
+  );
 }
 
 const REFUND_STATUS_TONE: Record<string, StatusBadgeTone> = {
@@ -34,7 +43,8 @@ const REFUND_STATUS_TONE: Record<string, StatusBadgeTone> = {
 };
 
 export function RefundStatusBadge({ status }: { status: string }) {
-  return <StatusBadge label={status} tone={REFUND_STATUS_TONE[status] ?? 'neutral'} />;
+  const { statusLabel } = useTranslation();
+  return <StatusBadge label={statusLabel(status)} tone={REFUND_STATUS_TONE[status] ?? 'neutral'} />;
 }
 
 const PROMOTION_STATUS_TONE: Record<string, StatusBadgeTone> = {
@@ -52,8 +62,11 @@ export function PromotionStatusBadge({
   status: string;
   isExpired?: boolean;
 }) {
+  const { statusLabel } = useTranslation();
   if (isExpired) {
-    return <StatusBadge label="EXPIRED" tone="danger" />;
+    return <StatusBadge label={statusLabel('EXPIRED')} tone="danger" />;
   }
-  return <StatusBadge label={status} tone={PROMOTION_STATUS_TONE[status] ?? 'neutral'} />;
+  return (
+    <StatusBadge label={statusLabel(status)} tone={PROMOTION_STATUS_TONE[status] ?? 'neutral'} />
+  );
 }

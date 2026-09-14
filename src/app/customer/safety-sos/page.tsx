@@ -9,7 +9,7 @@ import { IncidentStatusBadge, IncidentSeverityBadge } from '@/components/ui/inci
 import { useActiveBooking } from '@/components/use-active-booking';
 import { useSosTrigger } from '@/components/use-sos-trigger';
 import { useSafetyIncidents } from '@/components/use-safety-incidents';
-import { formatDateTime } from '@/shared/formatting/date';
+import { useTranslation } from '@/i18n/context';
 
 interface CustomerBooking {
   id: string;
@@ -32,6 +32,7 @@ const GEOLOCATION_MESSAGES: Record<string, string> = {
 };
 
 export default function CustomerSafetySosPage() {
+  const { t, formatDate } = useTranslation();
   const { activeBooking, loading: bookingLoading } = useActiveBooking<CustomerBooking>(
     '/api/bookings',
     'bookings',
@@ -48,9 +49,9 @@ export default function CustomerSafetySosPage() {
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6">
         <PageHeader
-          eyebrow="Emergency"
-          title="Safety & SOS"
-          subtitle="Trigger an emergency alert at any time — this creates a real, tracked safety incident."
+          eyebrow={t('customer.safety.eyebrow')}
+          title={t('customer.safety.title')}
+          subtitle={t('customer.safety.subtitle')}
         />
 
         <section className="p-6 rounded-xl bg-[#93000a]/10 border border-[#93000a]/40 flex flex-col items-center gap-4 text-center">
@@ -60,11 +61,10 @@ export default function CustomerSafetySosPage() {
                 check_circle
               </span>
               <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                Help is on the way
+                {t('customer.safety.sosTriggeredTitle')}
               </h2>
               <p className="text-sm text-[#bccac0]">
-                Incident <strong className="text-[#dfe2ee]">{sos.incident.incidentNumber}</strong>{' '}
-                has been created and our safety team has been notified.
+                {t('customer.safety.sosTriggeredDesc')} (<strong className="text-[#dfe2ee]">{sos.incident.incidentNumber}</strong>)
               </p>
               <button
                 type="button"
@@ -85,8 +85,7 @@ export default function CustomerSafetySosPage() {
                 {sos.status === 'submitting' ? 'Sending…' : 'SOS'}
               </button>
               <p className="text-xs text-[#ffb4ab] max-w-md">
-                Press the button, then confirm. This creates a real emergency safety incident and
-                notifies our safety team immediately.
+                {t('customer.safety.emergencyDesc')}
               </p>
               {sos.status === 'error' && sos.error && (
                 <p className="text-xs text-[#ffb4ab] font-bold">{sos.error}</p>
@@ -157,7 +156,7 @@ export default function CustomerSafetySosPage() {
                       <IncidentSeverityBadge severity={incident.severity} />
                     </div>
                     <span className="text-[10px] font-mono text-[#87948b]">
-                      {incident.type} • {formatDateTime(incident.createdAt)}
+                      {incident.type} • {formatDate(incident.createdAt)}
                     </span>
                   </div>
                 </div>
@@ -169,8 +168,8 @@ export default function CustomerSafetySosPage() {
 
       <ConfirmDialog
         open={sos.status === 'confirming'}
-        title="Trigger Emergency SOS?"
-        message="This will immediately create a real safety incident and alert our safety team with your current location. Only proceed if you need help."
+        title={t('customer.safety.triggerSosBtn')}
+        message={t('customer.safety.emergencyDesc')}
         confirmLabel="Yes, Send SOS"
         cancelLabel="Cancel"
         danger

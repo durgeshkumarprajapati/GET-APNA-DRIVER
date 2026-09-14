@@ -98,6 +98,107 @@ describe('MatchingService', () => {
     expect(result.attemptId).toBe('att-1');
   });
 
+  describe('preferred driver preference', () => {
+    const candidates = [
+      {
+        driverId: 'dp-nearest',
+        displayName: 'Nearest Driver',
+        distanceMeters: 800,
+        distanceFormatted: '0.8 km',
+      },
+      {
+        driverId: 'dp-preferred',
+        displayName: 'Preferred Driver',
+        distanceMeters: 3000,
+        distanceFormatted: '3 km',
+      },
+    ];
+
+    it("offers the customer's preferred driver even when a closer candidate exists, as long as the preferred driver is in the eligible pool", async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        preferredDriverProfileId: 'dp-preferred',
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue(candidates);
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-1',
+        driverProfileId: 'dp-preferred',
+        attemptNumber: 1,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('OFFERED');
+      expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ driverProfileId: 'dp-preferred' }),
+        }),
+      );
+    });
+
+    it('falls back to the nearest candidate when the preferred driver is not in the current eligible/nearby pool', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        preferredDriverProfileId: 'dp-offline-elsewhere',
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue(candidates);
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-1',
+        driverProfileId: 'dp-nearest',
+        attemptNumber: 1,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('OFFERED');
+      expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ driverProfileId: 'dp-nearest' }),
+        }),
+      );
+    });
+
+    it('falls back to the nearest unattempted candidate once the preferred driver has already been offered and rejected', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        preferredDriverProfileId: 'dp-preferred',
+        assignmentAttempts: [{ driverProfileId: 'dp-preferred' }],
+      });
+      mockFindNearby.mockResolvedValue(candidates);
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-2',
+        driverProfileId: 'dp-nearest',
+        attemptNumber: 2,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('OFFERED');
+      expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ driverProfileId: 'dp-nearest' }),
+        }),
+      );
+    });
+  });
+
   it('expires search if maximum candidate attempts limit is reached', async () => {
     mockFindUniqueBooking.mockResolvedValue({
       id: 'bk-1',
