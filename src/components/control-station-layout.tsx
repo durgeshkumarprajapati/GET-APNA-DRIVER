@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
+import { LanguageSelector } from '@/components/ui/language-selector';
 
 interface ControlStationLayoutProps {
   children: ReactNode;
@@ -241,6 +242,7 @@ export function ControlStationLayout({
           </div>
 
           <div className="flex items-center gap-4">
+            <LanguageSelector variant="dark" />
             <button
               aria-label="Notifications"
               onClick={() => setSearchModalOpen(true)}

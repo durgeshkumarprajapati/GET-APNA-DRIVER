@@ -1,0 +1,17 @@
+export const errorsHi = {
+  UNAUTHORIZED: 'प्रमाणीकरण आवश्यक है। कृपया साइन इन करें।',
+  FORBIDDEN: 'आपको यह कार्रवाई करने की अनुमति नहीं है।',
+  VALIDATION_ERROR: 'सत्यापन विफल रहा। कृपया अपने इनपुट की जांच करें।',
+  INTERNAL_SERVER_ERROR: 'एक अप्रत्याशित सर्वर त्रुटि हुई।',
+  CUSTOMER_NOT_FOUND: 'ग्राहक प्रोफ़ाइल नहीं मिली।',
+  DRIVER_NOT_FOUND: 'ड्राइवर प्रोफ़ाइल नहीं मिली।',
+  BOOKING_NOT_FOUND: 'बुकिंग रिकॉर्ड नहीं मिला।',
+  BOOKING_NOT_CANCELLABLE: 'इस बुकिंग को वर्तमान स्थिति में रद्द नहीं किया जा सकता।',
+  DRIVER_NOT_AVAILABLE: 'ड्राइवर असाइनमेंट के लिए उपलब्ध नहीं है।',
+  INVALID_RIDE_PIN: 'अमान्य राइड पिन दर्ज किया गया।',
+  SUPPORT_TICKET_NOT_FOUND: 'सहायता टिकट नहीं मिला।',
+  CALL_NOT_ALLOWED: 'इस बुकिंग के लिए कॉलिंग सत्र की अनुमति नहीं है।',
+  SCHEDULE_CONFLICT: 'ड्राइवर शेड्यूल टकराव पाया गया।',
+  INVALID_SCHEDULE_TIME: 'अमान्य समय प्रारूप प्रदान किया गया।',
+  SCHEDULE_EXCEPTION_NOT_FOUND: 'शेड्यूल अपवाद रिकॉर्ड नहीं मिला।',
+};

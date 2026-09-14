@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     'Book background-verified executive chauffeurs for your personal car on demand, hourly, or outstation. Rated 4.9/5 across 185,000+ completed journeys.',
 };
 
+import { I18nProvider } from '@/i18n/context';
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className="dark">
@@ -25,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         />
       </head>
       <body className="bg-surface text-on-surface font-body-md antialiased min-h-screen">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

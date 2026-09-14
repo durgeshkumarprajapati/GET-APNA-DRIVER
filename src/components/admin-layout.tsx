@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
+import { LanguageSelector } from './ui/language-selector';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -251,6 +252,8 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            <LanguageSelector variant="dark" />
+
             <NotificationCenter />
 
             <div className="h-6 w-px bg-[#262a33]" />

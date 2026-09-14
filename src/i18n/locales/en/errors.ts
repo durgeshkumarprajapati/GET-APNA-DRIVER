@@ -1,0 +1,17 @@
+export const errorsEn = {
+  UNAUTHORIZED: 'Authentication required. Please sign in.',
+  FORBIDDEN: 'You do not have permission to perform this action.',
+  VALIDATION_ERROR: 'Validation failed. Please check your inputs.',
+  INTERNAL_SERVER_ERROR: 'An unexpected server error occurred.',
+  CUSTOMER_NOT_FOUND: 'Customer profile not found.',
+  DRIVER_NOT_FOUND: 'Driver profile not found.',
+  BOOKING_NOT_FOUND: 'Booking record not found.',
+  BOOKING_NOT_CANCELLABLE: 'This booking cannot be cancelled in its current state.',
+  DRIVER_NOT_AVAILABLE: 'Driver is not available for dispatch.',
+  INVALID_RIDE_PIN: 'Invalid Ride PIN provided.',
+  SUPPORT_TICKET_NOT_FOUND: 'Support ticket not found.',
+  CALL_NOT_ALLOWED: 'Calling session not permitted for this booking.',
+  SCHEDULE_CONFLICT: 'Driver schedule conflict detected.',
+  INVALID_SCHEDULE_TIME: 'Invalid schedule time format provided.',
+  SCHEDULE_EXCEPTION_NOT_FOUND: 'Schedule exception record not found.',
+};
