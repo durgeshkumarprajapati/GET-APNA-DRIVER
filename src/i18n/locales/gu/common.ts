@@ -80,6 +80,8 @@ export const commonGu = {
     navigationMenu: 'નેવિગેશન મેનૂ',
     openNavigationMenu: 'નેવિગેશન મેનૂ ખોલો',
     closeNavigationMenu: 'નેવિગેશન મેનૂ બંધ કરો',
+    rewards: 'રિવોર્ડ્સ અને લોયલ્ટી',
+    customerLoyalty: 'ગ્રાહક લોયલ્ટી',
   },
   dialogs: {
     confirmTitle: 'ક્રિયાની પુષ્ટિ કરો',

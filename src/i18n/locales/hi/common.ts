@@ -80,6 +80,8 @@ export const commonHi = {
     navigationMenu: 'नेविगेशन मेनू',
     openNavigationMenu: 'नेविगेशन मेनू खोलें',
     closeNavigationMenu: 'नेविगेशन मेनू बंद करें',
+    rewards: 'रिवॉर्ड्स और वफादारी',
+    customerLoyalty: 'ग्राहक वफादारी',
   },
   dialogs: {
     confirmTitle: 'कार्रवाई की पुष्टि करें',

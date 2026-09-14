@@ -95,6 +95,11 @@ export default function CustomerDashboardPage() {
   const [recentCompleted, setRecentCompleted] = useState<BookingSummary[]>([]);
   const [savedLocations, setSavedLocations] = useState<SavedLocationSummary[]>([]);
   const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverSummary[]>([]);
+  const [loyaltyAccount, setLoyaltyAccount] = useState<{
+    pointsBalance: number;
+    tierCode: string;
+    currentTier: { name: string } | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,12 +107,13 @@ export default function CustomerDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [profileRes, bookingsRes, recentRes, locationsRes, favoritesRes] = await Promise.all([
+        const [profileRes, bookingsRes, recentRes, locationsRes, favoritesRes, loyaltyRes] = await Promise.all([
           fetch('/api/customer/profile'),
           fetch('/api/bookings'),
           fetch('/api/customer/bookings/recent'),
           fetch('/api/customer/locations'),
           fetch('/api/customer/favorites'),
+          fetch('/api/customer/loyalty'),
         ]);
         if (!isMounted) return;
         if (profileRes.ok) {
@@ -129,6 +135,10 @@ export default function CustomerDashboardPage() {
         if (favoritesRes.ok) {
           const data = await favoritesRes.json();
           setFavoriteDrivers(data.favorites ?? []);
+        }
+        if (loyaltyRes.ok) {
+          const data = await loyaltyRes.json();
+          setLoyaltyAccount(data.account ?? null);
         }
       } catch (err) {
         if (isMounted) {
@@ -229,6 +239,34 @@ export default function CustomerDashboardPage() {
                 </span>
               </Link>
             </div>
+
+            {/* Loyalty & Rewards Widget */}
+            {loyaltyAccount && (
+              <section className="p-4 rounded-xl bg-gradient-to-r from-[#141822] to-[#1a202c] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#68dba9]/10 border border-[#68dba9]/30 flex items-center justify-center text-[#68dba9]">
+                    <span className="material-symbols-outlined text-xl">workspace_premium</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#68dba9]">
+                        {loyaltyAccount.currentTier?.name || loyaltyAccount.tierCode}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                      {loyaltyAccount.pointsBalance.toLocaleString()} Loyalty Points
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/customer/rewards"
+                  className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold font-mono transition-colors shrink-0 flex items-center gap-1"
+                >
+                  <span>{t('customer.nav.rewards')}</span>
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+              </section>
+            )}
 
             {/* Recent Ride / Book Again */}
             {mostRecentRide && (

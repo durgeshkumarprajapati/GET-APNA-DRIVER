@@ -80,6 +80,8 @@ export const commonEn = {
     navigationMenu: 'Navigation menu',
     openNavigationMenu: 'Open navigation menu',
     closeNavigationMenu: 'Close navigation menu',
+    rewards: 'Rewards & Loyalty',
+    customerLoyalty: 'Customer Loyalty',
   },
   dialogs: {
     confirmTitle: 'Confirm Action',

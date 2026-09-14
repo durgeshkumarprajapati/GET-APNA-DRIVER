@@ -104,6 +104,8 @@ model User {
   customerCalls           CallSession[]            @relation("CustomerCalls")
   customerTaxInvoices     TaxInvoice[]             @relation("CustomerTaxInvoices")
   favoriteDrivers         CustomerFavoriteDriver[] @relation("CustomerFavoriteDrivers")
+  customerLoyaltyAccount  CustomerLoyaltyAccount?  @relation("CustomerLoyaltyAccount")
+  adminLoyaltyAdjustments LoyaltyPointTransaction[] @relation("AdminLoyaltyAdjustments")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -841,6 +843,7 @@ model Booking {
   supportTickets     SupportTicket[]
   callSessions       CallSession[]
   taxInvoice         TaxInvoice?
+  loyaltyTransactions LoyaltyPointTransaction[] @relation("BookingLoyaltyTransactions")
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -1464,6 +1467,7 @@ model Promotion {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   usages PromotionUsage[]
+  loyaltyRewards LoyaltyReward[] @relation("RewardPromotion")
 
   @@index([status])
   @@index([startsAt, endsAt])
@@ -2351,4 +2355,163 @@ model DriverGoalPreference {
   updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("driver_goal_preferences")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 35 — Customer Loyalty, Rewards & Membership Engine
+// ---------------------------------------------------------------------------
+
+enum LoyaltyTransactionType {
+  RIDE_EARNED
+  TIER_BONUS
+  STREAK_BONUS
+  REFERRAL_BONUS
+  PROMOTIONAL_BONUS
+  REWARD_REDEMPTION
+  EXPIRATION
+  REVERSAL
+  ADMIN_ADJUSTMENT
+}
+
+enum LoyaltyTierCode {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum LoyaltyRewardType {
+  PROMOTION
+  DISCOUNT
+  FREE_RIDE
+  PRIORITY_BOOKING
+  POINT_MULTIPLIER
+}
+
+enum LoyaltyRewardStatus {
+  ACTIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+}
+
+enum LoyaltyRedemptionStatus {
+  COMPLETED
+  REVERSED
+  EXPIRED
+}
+
+/// Server-authoritative customer loyalty account balance & current tier.
+model CustomerLoyaltyAccount {
+  id                     String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId             String       @unique @map("customer_id") @db.Uuid
+  customer               User         @relation("CustomerLoyaltyAccount", fields: [customerId], references: [id], onDelete: Cascade)
+  currentPoints          Int          @default(0) @map("current_points")
+  lifetimeEarnedPoints   Int          @default(0) @map("lifetime_earned_points")
+  lifetimeRedeemedPoints Int          @default(0) @map("lifetime_redeemed_points")
+  currentTierId          String?      @map("current_tier_id") @db.Uuid
+  currentTier            LoyaltyTier? @relation("AccountCurrentTier", fields: [currentTierId], references: [id], onDelete: SetNull)
+  tierUpgradedAt         DateTime?    @map("tier_upgraded_at") @db.Timestamptz(6)
+  version                Int          @default(1)
+  createdAt              DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  transactions LoyaltyPointTransaction[]
+  redemptions  LoyaltyRewardRedemption[]
+
+  @@map("customer_loyalty_accounts")
+}
+
+/// Configurable customer loyalty membership tier definitions.
+model LoyaltyTier {
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                  LoyaltyTierCode @unique
+  name                  String
+  minimumLifetimePoints Int             @default(0) @map("minimum_lifetime_points")
+  minimumCompletedTrips Int             @default(0) @map("minimum_completed_trips")
+  priority              Int             @default(1)
+  pointMultiplier       Decimal         @default(1.00) @map("point_multiplier") @db.Decimal(5, 2)
+  benefits              Json?
+  status                String          @default("ACTIVE")
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  accounts CustomerLoyaltyAccount[] @relation("AccountCurrentTier")
+  rewards  LoyaltyReward[]          @relation("TierMinimumRequirement")
+
+  @@map("loyalty_tiers")
+}
+
+/// Immutable ledger of all earned, redeemed, expired, and reversed loyalty points.
+model LoyaltyPointTransaction {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  loyaltyAccountId String                 @map("loyalty_account_id") @db.Uuid
+  loyaltyAccount   CustomerLoyaltyAccount @relation(fields: [loyaltyAccountId], references: [id], onDelete: Cascade)
+  customerId       String                 @map("customer_id") @db.Uuid
+  type             LoyaltyTransactionType
+  points           Int
+  balanceAfter     Int                    @map("balance_after")
+  bookingId        String?                @map("booking_id") @db.Uuid
+  booking          Booking?               @relation("BookingLoyaltyTransactions", fields: [bookingId], references: [id], onDelete: SetNull)
+  rewardId         String?                @map("reward_id") @db.Uuid
+  reward           LoyaltyReward?         @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+  referenceId      String?                @map("reference_id")
+  idempotencyKey   String?                @unique @map("idempotency_key")
+  adminUserId      String?                @map("admin_user_id") @db.Uuid
+  adminUser        User?                  @relation("AdminLoyaltyAdjustments", fields: [adminUserId], references: [id], onDelete: SetNull)
+  description      String
+  expiresAt        DateTime?              @map("expires_at") @db.Timestamptz(6)
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([customerId, createdAt])
+  @@index([customerId, type])
+  @@index([customerId, expiresAt])
+  @@index([bookingId])
+  @@map("loyalty_point_transactions")
+}
+
+/// Catalog of rewards redeemable using customer loyalty points.
+model LoyaltyReward {
+  id                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                String
+  description          String?
+  rewardType           LoyaltyRewardType       @map("reward_type")
+  pointsRequired       Int                     @map("points_required")
+  minimumTierId        String?                 @map("minimum_tier_id") @db.Uuid
+  minimumTier          LoyaltyTier?            @relation("TierMinimumRequirement", fields: [minimumTierId], references: [id], onDelete: SetNull)
+  promotionId          String?                 @map("promotion_id") @db.Uuid
+  promotion            Promotion?              @relation("RewardPromotion", fields: [promotionId], references: [id], onDelete: SetNull)
+  discountValue        Decimal?                @map("discount_value") @db.Decimal(12, 4)
+  status               LoyaltyRewardStatus     @default(ACTIVE)
+  startsAt             DateTime                @default(now()) @map("starts_at") @db.Timestamptz(6)
+  expiresAt            DateTime?               @map("expires_at") @db.Timestamptz(6)
+  totalRedemptionLimit Int?                    @map("total_redemption_limit")
+  totalRedeemedCount   Int                     @default(0) @map("total_redeemed_count")
+  perCustomerLimit     Int                     @default(1) @map("per_customer_limit")
+  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  redemptions  LoyaltyRewardRedemption[]
+  transactions LoyaltyPointTransaction[]
+
+  @@map("loyalty_rewards")
+}
+
+/// Transactional record of redeemed rewards.
+model LoyaltyRewardRedemption {
+  id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  loyaltyAccountId String                  @map("loyalty_account_id") @db.Uuid
+  loyaltyAccount   CustomerLoyaltyAccount  @relation(fields: [loyaltyAccountId], references: [id], onDelete: Cascade)
+  customerId       String                  @map("customer_id") @db.Uuid
+  rewardId         String                  @map("reward_id") @db.Uuid
+  reward           LoyaltyReward           @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  pointsDeducted   Int                     @map("points_deducted")
+  status           LoyaltyRedemptionStatus @default(COMPLETED)
+  idempotencyKey   String?                 @unique @map("idempotency_key")
+  promotionUsageId String?                 @map("promotion_usage_id") @db.Uuid
+  redeemedAt       DateTime                @default(now()) @map("redeemed_at") @db.Timestamptz(6)
+
+  @@index([customerId, redeemedAt])
+  @@index([rewardId, customerId])
+  @@map("loyalty_reward_redemptions")
 }

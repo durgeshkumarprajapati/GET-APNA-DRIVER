@@ -11,6 +11,7 @@ import { realtime } from '@/shared/realtime/realtime-provider';
 import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
 import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 import { evaluateDriverIncentivesForCompletedTrip } from '@/modules/incentive/application/services/incentive-evaluator-service';
+import { evaluateCustomerLoyaltyForCompletedTrip } from '@/modules/loyalty/application/services/loyalty-evaluator-service';
 import { verifyPassword } from '@/modules/identity/security/password';
 import { CustomerPinNotSetError } from '@/modules/customer/application/services/ride-pin-service';
 import {
@@ -430,6 +431,21 @@ export async function completeTrip(
     );
   } catch {
     // Non-blocking incentive evaluation
+  }
+
+  // Evaluate customer loyalty points & tier progress for completed trip
+  try {
+    await evaluateCustomerLoyaltyForCompletedTrip(
+      {
+        customerId: booking.customerId,
+        bookingId: booking.id,
+        fareAmount: finalFareResult.breakdown.totalFareAmount,
+        completedAt: now,
+      },
+      db,
+    );
+  } catch {
+    // Non-blocking loyalty evaluation
   }
 
   // Re-index driver in Redis GEO set if driver is eligible & available
