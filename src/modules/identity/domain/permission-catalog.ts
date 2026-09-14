@@ -108,6 +108,11 @@ export const PERMISSIONS = {
   ADMIN_DRIVER_SCHEDULE_READ: 'admin.driver.schedule.read',
   ADMIN_DRIVER_SCHEDULE_MANAGE: 'admin.driver.schedule.manage',
 
+  // Driver Incentives & Earnings (Phase 34 domain & admin)
+  DRIVER_INCENTIVES_READ: 'driver.incentives.read',
+  DRIVER_GOALS_MANAGE: 'driver.goals.manage',
+  ADMIN_INCENTIVES_MANAGE: 'admin.incentives.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',

@@ -588,6 +588,8 @@ model DriverProfile {
   schedules            DriverSchedule[]
   scheduleExceptions   DriverScheduleException[]
   favoritedByCustomers CustomerFavoriteDriver[]   @relation("DriverFavoriteCustomers")
+  incentiveProgresses  DriverIncentiveProgress[]
+  goalPreference       DriverGoalPreference?
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -970,6 +972,7 @@ enum FinancialTransactionType {
   SETTLEMENT_PAID
   SETTLEMENT_REVERSED
   REFERRAL_REWARD
+  INCENTIVE_REWARD
 
   @@map("financial_transaction_type")
 }
@@ -999,8 +1002,36 @@ enum WalletChangeType {
   SETTLEMENT_RESERVED
   SETTLEMENT_RELEASED
   SETTLEMENT_COMPLETED
+  INCENTIVE_REWARD
 
   @@map("wallet_change_type")
+}
+
+enum IncentiveCampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+
+  @@map("incentive_campaign_status")
+}
+
+enum IncentiveType {
+  TRIP_COUNT
+  EARNINGS_THRESHOLD
+  TIME_WINDOW
+
+  @@map("incentive_type")
+}
+
+enum IncentiveProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  QUALIFIED
+  REWARDED
+
+  @@map("incentive_progress_status")
 }
 
 /// Business-level payment for a booking. A booking may have more than one
@@ -1165,6 +1196,7 @@ model FinancialTransaction {
 
   entries            LedgerEntry[]
   walletTransactions WalletTransaction[]
+  incentiveProgress  DriverIncentiveProgress?
 
   @@index([referenceEntityType, referenceEntityId])
   @@index([transactionType, postedAt])
@@ -2260,4 +2292,63 @@ model CustomerFavoriteDriver {
   @@unique([customerId, driverProfileId])
   @@index([customerId, createdAt])
   @@map("customer_favorite_drivers")
+}
+
+/// Driver Incentive Campaign definition created by admin.
+model DriverIncentiveCampaign {
+  id            String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  description   String?
+  status        IncentiveCampaignStatus @default(DRAFT)
+  incentiveType IncentiveType           @map("incentive_type")
+  targetValue   Decimal                 @map("target_value") @db.Decimal(12, 4)
+  rewardAmount  Decimal                 @map("reward_amount") @db.Decimal(12, 4)
+  startAt       DateTime                @map("start_at") @db.Timestamptz(6)
+  endAt         DateTime                @map("end_at") @db.Timestamptz(6)
+  timezone      String                  @default("Asia/Kolkata")
+  configuration Json?
+  createdAt     DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  progresses DriverIncentiveProgress[]
+
+  @@index([status, startAt, endAt])
+  @@map("driver_incentive_campaigns")
+}
+
+/// Idempotent driver progress & qualification for an incentive campaign.
+model DriverIncentiveProgress {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId             String                  @map("campaign_id") @db.Uuid
+  campaign               DriverIncentiveCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  driverProfileId        String                  @map("driver_profile_id") @db.Uuid
+  driverProfile          DriverProfile           @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  status                 IncentiveProgressStatus @default(IN_PROGRESS)
+  currentValue           Decimal                 @default(0.0000) @map("current_value") @db.Decimal(12, 4)
+  targetValue            Decimal                 @map("target_value") @db.Decimal(12, 4)
+  rewardAmount           Decimal                 @map("reward_amount") @db.Decimal(12, 4)
+  qualifiedAt            DateTime?               @map("qualified_at") @db.Timestamptz(6)
+  rewardedAt             DateTime?               @map("rewarded_at") @db.Timestamptz(6)
+  financialTransactionId String?                 @unique @map("financial_transaction_id") @db.Uuid
+  financialTransaction   FinancialTransaction?   @relation(fields: [financialTransactionId], references: [id], onDelete: SetNull)
+  metadata               Json?
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([campaignId, driverProfileId])
+  @@index([driverProfileId, status])
+  @@map("driver_incentive_progresses")
+}
+
+/// Driver daily & weekly target preferences for dashboard tracking.
+model DriverGoalPreference {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId    String        @unique @map("driver_profile_id") @db.Uuid
+  driverProfile      DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  dailyTripGoal      Int           @default(5) @map("daily_trip_goal")
+  weeklyEarningsGoal Decimal       @default(15000.0000) @map("weekly_earnings_goal") @db.Decimal(12, 4)
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("driver_goal_preferences")
 }

@@ -114,6 +114,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           label: t('admin.nav.referralEngines'),
           icon: 'featured_seasonal_and_gifts',
         },
+        {
+          href: '/admin/driver-incentives',
+          label: t('admin.nav.driverIncentives'),
+          icon: 'emoji_events',
+        },
       ],
     },
     {

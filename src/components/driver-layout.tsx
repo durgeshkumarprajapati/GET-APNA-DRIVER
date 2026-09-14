@@ -58,6 +58,11 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           label: t('driver.nav.walletAndPayouts'),
           icon: 'account_balance_wallet',
         },
+        {
+          href: '/driver/earnings',
+          label: t('driver.earnings.title'),
+          icon: 'trending_up',
+        },
       ],
     },
     {

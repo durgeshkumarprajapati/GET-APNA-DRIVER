@@ -60,6 +60,9 @@ export default function DriverDashboardPage() {
   const [bookings, setBookings] = useState<DriverBooking[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [todayShift, setTodayShift] = useState<{ isScheduled: boolean; startTime: string | null; endTime: string | null; status: string } | null>(null);
+  const [earningsSummary, setEarningsSummary] = useState<{ todayEarnings: string; completedTripsToday: number } | null>(null);
+  const [goals, setGoals] = useState<{ dailyTripGoal: number; completedTripsToday: number; dailyTripProgressPercentage: number } | null>(null);
+  const [incentives, setIncentives] = useState<{ campaignName: string; rewardAmount: number; currentValue: number; targetValue: number; status: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,12 +70,15 @@ export default function DriverDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [profileRes, offersRes, bookingsRes, walletRes, todayShiftRes] = await Promise.all([
+        const [profileRes, offersRes, bookingsRes, walletRes, todayShiftRes, earningsRes, goalsRes, incRes] = await Promise.all([
           fetch('/api/driver/profile'),
           fetch('/api/driver/assignment-offers'),
           fetch('/api/driver/bookings'),
           fetch('/api/driver/wallet'),
           fetch('/api/driver/schedule/today'),
+          fetch('/api/driver/earnings/summary'),
+          fetch('/api/driver/goals'),
+          fetch('/api/driver/incentives'),
         ]);
         if (isMounted) {
           if (profileRes.ok) {
@@ -94,6 +100,18 @@ export default function DriverDashboardPage() {
           if (todayShiftRes.ok) {
             const data = await todayShiftRes.json();
             setTodayShift(data.data?.todayShift ?? null);
+          }
+          if (earningsRes.ok) {
+            const data = await earningsRes.json();
+            setEarningsSummary(data.data);
+          }
+          if (goalsRes.ok) {
+            const data = await goalsRes.json();
+            setGoals(data.data);
+          }
+          if (incRes.ok) {
+            const data = await incRes.json();
+            setIncentives(data.data ?? []);
           }
         }
       } catch (err) {
@@ -156,6 +174,44 @@ export default function DriverDashboardPage() {
           <div className="py-16 text-center text-[#87948b] text-sm">Loading dashboard…</div>
         ) : (
           <>
+            {/* Earnings & Incentives Summary Banner */}
+            <div className="bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/30 rounded-xl p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+                    DRIVER EARNINGS & GOALS
+                  </span>
+                  {incentives.length > 0 && (
+                    <span className="text-[10px] font-bold text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800/60">
+                      {incentives.length} Active Challenges
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-2xl font-black text-white">
+                    Today: ₹{earningsSummary?.todayEarnings ?? '0.00'}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    ({earningsSummary?.completedTripsToday ?? 0} trips completed)
+                  </span>
+                </div>
+                {goals && (
+                  <div className="flex items-center gap-2 text-xs text-slate-300 pt-1">
+                    <span>Daily Goal: {goals.completedTripsToday} / {goals.dailyTripGoal} trips</span>
+                    <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${goals.dailyTripProgressPercentage}%` }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <Link
+                href="/driver/earnings"
+                className="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors shadow-md"
+              >
+                View Earnings Hub →
+              </Link>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
                 href="/driver/schedule"

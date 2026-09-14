@@ -17,6 +17,7 @@ export const LEDGER_ACCOUNT_CODES = {
   MARKETING_REFERRAL_EXPENSE: 'MARKETING_REFERRAL_EXPENSE',
   PROMOTION_DISCOUNT_EXPENSE: 'PROMOTION_DISCOUNT_EXPENSE',
   CUSTOMER_PAYABLE: 'CUSTOMER_PAYABLE',
+  DRIVER_INCENTIVE_EXPENSE: 'DRIVER_INCENTIVE_EXPENSE',
 } as const;
 
 export type LedgerAccountCode = (typeof LEDGER_ACCOUNT_CODES)[keyof typeof LEDGER_ACCOUNT_CODES];
@@ -84,5 +85,12 @@ export const LEDGER_ACCOUNT_CATALOG: readonly LedgerAccountSeedDefinition[] = [
     description:
       'What the platform owes a customer directly — currently only customer-referrer referral rewards, since customers have no prepaid/stored-value balance. Credited when a customer-referrer reward is granted. Distinct from DRIVER_PAYABLE, which only ever represents money owed to drivers.',
     normalBalance: 'CREDIT',
+  },
+  {
+    code: LEDGER_ACCOUNT_CODES.DRIVER_INCENTIVE_EXPENSE,
+    name: 'Driver Incentive Expense',
+    description:
+      'Platform promotional expense for driver goal and milestone incentive bonuses. Debited when a driver qualifies and earns an incentive reward.',
+    normalBalance: 'DEBIT',
   },
 ];
