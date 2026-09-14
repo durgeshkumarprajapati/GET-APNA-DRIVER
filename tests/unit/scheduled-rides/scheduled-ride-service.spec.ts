@@ -11,6 +11,7 @@ import {
   ScheduledRideForbiddenError,
   ScheduledRideNotActiveError,
 } from '@/modules/scheduled-rides/domain/errors';
+import { type Db } from '@/shared/database/prisma';
 
 // Mock dependencies
 jest.mock('@/shared/outbox/outbox-service', () => ({
@@ -60,8 +61,8 @@ describe('ScheduledRideService Unit Tests', () => {
   };
 
   const createMockDb = (customRideRecord: Record<string, unknown> | null = mockRideRecord) => {
-    const mockDb: Record<string, unknown> = {
-      $transaction: jest.fn().mockImplementation(async (cb) => cb(mockDb)),
+    const mockDb = {
+      $transaction: jest.fn().mockImplementation(async (cb: (db: unknown) => Promise<unknown>) => cb(mockDb)),
       scheduledRide: {
         create: jest.fn().mockResolvedValue(customRideRecord),
         findMany: jest.fn().mockResolvedValue([customRideRecord]),
@@ -90,12 +91,12 @@ describe('ScheduledRideService Unit Tests', () => {
           pickupAddress: 'Vasant Vihar, New Delhi',
         },
         customerId,
-        mockDb as any
+        mockDb as unknown as Db
       );
 
       expect(result.id).toBe('sch-ride-1');
       expect(result.customerId).toBe(customerId);
-      expect((mockDb as any).scheduledRide.create).toHaveBeenCalled();
+      expect(mockDb.scheduledRide.create).toHaveBeenCalled();
     });
   });
 
@@ -103,7 +104,7 @@ describe('ScheduledRideService Unit Tests', () => {
     it('throws ScheduledRideNotFoundError when schedule does not exist', async () => {
       const mockDb = createMockDb(null);
 
-      await expect(getScheduledRideById('non-existent', customerId, mockDb as any)).rejects.toThrow(
+      await expect(getScheduledRideById('non-existent', customerId, mockDb as unknown as Db)).rejects.toThrow(
         ScheduledRideNotFoundError
       );
     });
@@ -111,7 +112,7 @@ describe('ScheduledRideService Unit Tests', () => {
     it('throws ScheduledRideForbiddenError when requested by a different customer', async () => {
       const mockDb = createMockDb();
 
-      await expect(getScheduledRideById('sch-ride-1', 'other-customer-id', mockDb as any)).rejects.toThrow(
+      await expect(getScheduledRideById('sch-ride-1', 'other-customer-id', mockDb as unknown as Db)).rejects.toThrow(
         ScheduledRideForbiddenError
       );
     });
@@ -121,8 +122,8 @@ describe('ScheduledRideService Unit Tests', () => {
     it('pauses an active scheduled ride', async () => {
       const mockDb = createMockDb();
 
-      await pauseScheduledRide('sch-ride-1', customerId, mockDb as any);
-      expect((mockDb as any).scheduledRide.update).toHaveBeenCalledWith(
+      await pauseScheduledRide('sch-ride-1', customerId, mockDb as unknown as Db);
+      expect(mockDb.scheduledRide.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { status: ScheduledRideStatus.PAUSED },
         })
@@ -133,7 +134,7 @@ describe('ScheduledRideService Unit Tests', () => {
       const pausedRecord = { ...mockRideRecord, status: ScheduledRideStatus.PAUSED };
       const mockDb = createMockDb(pausedRecord);
 
-      await expect(pauseScheduledRide('sch-ride-1', customerId, mockDb as any)).rejects.toThrow(
+      await expect(pauseScheduledRide('sch-ride-1', customerId, mockDb as unknown as Db)).rejects.toThrow(
         ScheduledRideNotActiveError
       );
     });
@@ -142,8 +143,8 @@ describe('ScheduledRideService Unit Tests', () => {
       const pausedRecord = { ...mockRideRecord, status: ScheduledRideStatus.PAUSED };
       const mockDb = createMockDb(pausedRecord);
 
-      await resumeScheduledRide('sch-ride-1', customerId, mockDb as any);
-      expect((mockDb as any).scheduledRide.update).toHaveBeenCalledWith(
+      await resumeScheduledRide('sch-ride-1', customerId, mockDb as unknown as Db);
+      expect(mockDb.scheduledRide.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             status: ScheduledRideStatus.ACTIVE,
@@ -157,8 +158,8 @@ describe('ScheduledRideService Unit Tests', () => {
     it('cancels an active scheduled ride', async () => {
       const mockDb = createMockDb();
 
-      await cancelScheduledRide('sch-ride-1', customerId, 'No longer needed', mockDb as any);
-      expect((mockDb as any).scheduledRide.update).toHaveBeenCalledWith(
+      await cancelScheduledRide('sch-ride-1', customerId, 'No longer needed', mockDb as unknown as Db);
+      expect(mockDb.scheduledRide.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             status: ScheduledRideStatus.CANCELLED,

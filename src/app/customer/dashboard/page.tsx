@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
+import { CustomerRecommendationsWidget } from '@/components/customer/customer-recommendations-widget';
 import { useTranslation } from '@/i18n/context';
 
 interface CustomerProfile {
@@ -279,6 +280,9 @@ export default function CustomerDashboardPage() {
                 </Link>
               </section>
             )}
+
+            {/* Smart Recommendation Engine Widget */}
+            <CustomerRecommendationsWidget />
 
             {/* Scheduled Rides Summary Widget */}
             {scheduledRides.filter((r) => r.status === 'SCHEDULED').length > 0 && (

@@ -175,9 +175,28 @@ function BookDriverPageInner() {
   useEffect(() => {
     const bookAgainId = searchParams.get('bookAgain');
     const savedLocationId = searchParams.get('savedLocationId');
-    if (!bookAgainId && !savedLocationId) return;
+    const prefillPickup = searchParams.get('prefillPickup');
+    const prefillDropoff = searchParams.get('prefillDropoff');
+    const preferredDriver = searchParams.get('preferredDriverProfileId');
+    const vClass = searchParams.get('vehicleClass')?.toLowerCase();
 
     (async () => {
+      if (preferredDriver) {
+        setPreferredDriverProfileId(preferredDriver);
+      }
+      if (vClass === 'luxury' || vClass === 'sedan' || vClass === 'hatchback') {
+        setVehicleClass(vClass);
+      }
+
+      if (prefillPickup) {
+        setPickup((prev) => ({ ...prev, address: prefillPickup }));
+      }
+      if (prefillDropoff) {
+        setDropoff((prev) => ({ ...prev, address: prefillDropoff }));
+      }
+
+      if (!bookAgainId && !savedLocationId) return;
+
       try {
         if (bookAgainId) {
           const res = await fetch(`/api/bookings/${bookAgainId}`);
