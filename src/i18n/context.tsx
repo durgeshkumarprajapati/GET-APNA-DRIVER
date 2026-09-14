@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { DEFAULT_LOCALE, isValidLocale, LOCALE_COOKIE_NAME, SupportedLocale } from './config';
 import {
   formatLocalizedCurrency,
@@ -45,7 +45,11 @@ export function I18nProvider({ children, initialLocale = DEFAULT_LOCALE }: I18nP
     return fromCookie || initialLocale;
   });
 
-
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = locale;
+    }
+  }, [locale]);
 
   const setLocale = useCallback((newLocale: SupportedLocale) => {
     if (!isValidLocale(newLocale)) return;

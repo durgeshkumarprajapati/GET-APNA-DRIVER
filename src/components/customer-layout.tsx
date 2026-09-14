@@ -3,6 +3,7 @@
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
@@ -24,47 +25,48 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: 'Main Section',
-    items: [
-      { href: '/customer/dashboard', label: 'Dashboard', icon: 'grid_view' },
-      { href: '/customer/find-driver', label: 'Find a Driver', icon: 'explore' },
-      { href: '/customer/active-tracking', label: 'Active Ride & Tracking', icon: 'near_me' },
-      { href: '/bookings', label: 'My Bookings', icon: 'calendar_month' },
-      { href: '/customer/reviews', label: 'My Reviews', icon: 'reviews' },
-      { href: '/customer/favorites', label: 'Favorite Drivers', icon: 'star' },
-    ],
-  },
-  {
-    label: 'Rewards & Finance',
-    items: [
-      { href: '/customer/wallet', label: 'Wallet', icon: 'account_balance_wallet' },
-      { href: '/customer/offers', label: 'Offers & Coupons', icon: 'confirmation_number' },
-      {
-        href: '/customer/referral',
-        label: 'Refer & Earn',
-        icon: 'featured_seasonal_and_gifts',
-      },
-    ],
-  },
-  {
-    label: 'Account & Safety',
-    items: [
-      { href: '/customer/safety-sos', label: 'SOS Emergency Hub', icon: 'emergency_home' },
-      { href: '/customer/support', label: 'Customer Support', icon: 'support_agent' },
-      { href: '/profile', label: 'Profile & Settings', icon: 'settings' },
-    ],
-  },
-];
-
 export function CustomerLayout({ children, userEmail = null }: CustomerLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   useAutoLocation('CUSTOMER');
+
+  const navGroups: NavGroup[] = [
+    {
+      label: t('customer.nav.mainSection'),
+      items: [
+        { href: '/customer/dashboard', label: t('customer.nav.dashboard'), icon: 'grid_view' },
+        { href: '/customer/find-driver', label: t('customer.nav.findDriver'), icon: 'explore' },
+        { href: '/customer/active-tracking', label: t('customer.nav.activeTracking'), icon: 'near_me' },
+        { href: '/bookings', label: t('customer.nav.bookings'), icon: 'calendar_month' },
+        { href: '/customer/reviews', label: t('customer.nav.reviews'), icon: 'reviews' },
+        { href: '/customer/favorites', label: t('customer.nav.favorites'), icon: 'star' },
+      ],
+    },
+    {
+      label: t('customer.nav.rewardsFinance'),
+      items: [
+        { href: '/customer/wallet', label: t('customer.nav.wallet'), icon: 'account_balance_wallet' },
+        { href: '/customer/offers', label: t('customer.nav.offers'), icon: 'confirmation_number' },
+        {
+          href: '/customer/referral',
+          label: t('customer.nav.referral'),
+          icon: 'featured_seasonal_and_gifts',
+        },
+      ],
+    },
+    {
+      label: t('customer.nav.accountSafety'),
+      items: [
+        { href: '/customer/safety-sos', label: t('customer.nav.safety'), icon: 'emergency_home' },
+        { href: '/customer/support', label: t('customer.nav.support'), icon: 'support_agent' },
+        { href: '/profile', label: t('customer.nav.settings'), icon: 'settings' },
+      ],
+    },
+  ];
 
   const isActive = (href: string) =>
     pathname === href || (href !== '/customer/dashboard' && pathname?.startsWith(`${href}/`));
@@ -74,7 +76,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       <MobileNavDrawer
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
-        navGroups={NAV_GROUPS}
+        navGroups={navGroups}
         isActive={isActive}
         brandLabel="Get Apna Driver"
         brandHref="/customer/dashboard"
@@ -103,7 +105,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
             className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c2028] border border-[#262a33] text-xs text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
           >
             <span className="material-symbols-outlined text-sm">search</span>
-            <span>Search</span>
+            <span>{t('common.actions.search')}</span>
           </button>
 
           <NotificationCenter />
@@ -137,7 +139,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
             title="Log Out"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
-            <span className="hidden sm:inline">Logout</span>
+            <span className="hidden sm:inline">{t('common.actions.logout', { defaultValue: 'Logout' })}</span>
           </button>
         </div>
       </header>
@@ -145,7 +147,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       {/* FIXED SIDEBAR — desktop only, md and up */}
       <aside className="hidden md:flex fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex-col justify-between border-r border-[#262a33]">
         <div className="space-y-5">
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
               <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
                 {group.label}
@@ -210,7 +212,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
             <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
               <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#68dba9]">search</span>
-                Search
+                {t('common.actions.search')}
               </h3>
               <button
                 type="button"
@@ -245,7 +247,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                   <span className="material-symbols-outlined text-[#68dba9] text-base">
                     explore
                   </span>
-                  Find Chauffeur
+                  {t('customer.nav.findDriver')}
                 </Link>
                 <Link
                   href="/bookings"
@@ -255,7 +257,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                   <span className="material-symbols-outlined text-[#68dba9] text-base">
                     calendar_month
                   </span>
-                  My Bookings
+                  {t('customer.nav.bookings')}
                 </Link>
                 <Link
                   href="/bookings/new"
@@ -263,7 +265,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                   className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
                 >
                   <span className="material-symbols-outlined text-[#68dba9] text-base">add</span>
-                  New Booking
+                  {t('customer.nav.newBooking')}
                 </Link>
                 <Link
                   href="/customer/safety-sos"
@@ -273,7 +275,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                   <span className="material-symbols-outlined text-[#ffb4ab] text-base">
                     emergency
                   </span>
-                  SOS Emergency Hub
+                  {t('customer.nav.safety')}
                 </Link>
               </div>
             </div>
