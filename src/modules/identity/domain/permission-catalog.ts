@@ -14,6 +14,7 @@ export const PERMISSIONS = {
   // Users (self-service profile, shared by every role)
   USERS_PROFILE_READ: 'users.profile.read',
   USERS_PROFILE_UPDATE: 'users.profile.update',
+  RECOMMENDATIONS_READ: 'recommendations.read',
 
   // Customers (admin)
   ADMIN_CUSTOMER_READ: 'admin.customer.read',
