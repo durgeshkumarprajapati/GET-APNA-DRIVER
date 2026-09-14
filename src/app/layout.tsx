@@ -9,11 +9,17 @@ export const metadata: Metadata = {
     'Book background-verified executive chauffeurs for your personal car on demand, hourly, or outstation. Rated 4.9/5 across 185,000+ completed journeys.',
 };
 
+import { cookies } from 'next/headers';
 import { I18nProvider } from '@/i18n/context';
+import { LOCALE_COOKIE_NAME, isValidLocale, DEFAULT_LOCALE, SupportedLocale } from '@/i18n/config';
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const cookieStore = await cookies();
+  const rawLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
+  const initialLocale: SupportedLocale = isValidLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
+
   return (
-    <html lang="en" className="dark">
+    <html lang={initialLocale} className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -27,7 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         />
       </head>
       <body className="bg-surface text-on-surface font-body-md antialiased min-h-screen">
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider initialLocale={initialLocale}>{children}</I18nProvider>
       </body>
     </html>
   );

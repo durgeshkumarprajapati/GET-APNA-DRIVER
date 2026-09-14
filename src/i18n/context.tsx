@@ -22,13 +22,6 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-function getCookieLocale(): SupportedLocale | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE_NAME}=([^;]*)`));
-  const val = match ? decodeURIComponent(match[1]) : null;
-  return isValidLocale(val) ? val : null;
-}
-
 function setCookieLocale(locale: SupportedLocale) {
   if (typeof document === 'undefined') return;
   document.cookie = `${LOCALE_COOKIE_NAME}=${encodeURIComponent(locale)}; path=/; max-age=31536000; SameSite=Lax`;
@@ -40,10 +33,13 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children, initialLocale = DEFAULT_LOCALE }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<SupportedLocale>(() => {
-    const fromCookie = getCookieLocale();
-    return fromCookie || initialLocale;
-  });
+  const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
+  const [prevInitialLocale, setPrevInitialLocale] = useState<SupportedLocale>(initialLocale);
+
+  if (prevInitialLocale !== initialLocale) {
+    setPrevInitialLocale(initialLocale);
+    setLocaleState(initialLocale);
+  }
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
