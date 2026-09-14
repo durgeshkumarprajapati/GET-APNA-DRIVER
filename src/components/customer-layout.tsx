@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
+import { LanguageSelector } from './ui/language-selector';
 
 interface CustomerLayoutProps {
   children: ReactNode;
@@ -94,6 +95,8 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
         </div>
 
         <div className="flex items-center gap-3">
+          <LanguageSelector variant="dark" />
+
           <button
             type="button"
             onClick={() => setSearchModalOpen(true)}

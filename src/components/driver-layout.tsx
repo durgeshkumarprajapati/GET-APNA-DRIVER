@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
+import { LanguageSelector } from './ui/language-selector';
 
 type AvailabilityStatus = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE';
 
@@ -244,6 +245,8 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              <LanguageSelector variant="dark" />
+
               <Link
                 href="/customer/dashboard"
                 className="hidden lg:inline-block px-2.5 py-1 rounded-lg bg-[#1c2028] hover:bg-[#262a33] text-[#68dba9] font-mono text-xs border border-[#3d4a42]"

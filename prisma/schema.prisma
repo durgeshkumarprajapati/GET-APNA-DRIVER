@@ -54,6 +54,9 @@ model User {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   accountStatus AccountStatus @default(PENDING) @map("account_status")
 
+  /// Locale preference for the user interface ('en', 'hi', 'gu'). Default: 'en'
+  preferredLocale String @default("en") @map("preferred_locale")
+
   // Soft delete: the row is never physically removed. Financial, booking,
   // and audit references must survive account deletion.
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)

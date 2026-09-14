@@ -1,0 +1,17 @@
+export const errorsGu = {
+  UNAUTHORIZED: 'પ્રમાણીકરણ જરૂરી છે. કૃપા કરીને સાઇન ઇન કરો.',
+  FORBIDDEN: 'તમને આ ક્રિયા કરવાની પરવાનગી નથી.',
+  VALIDATION_ERROR: 'ચકાસણી નિષ્ફળ ગઈ. કૃપા કરીને વિગતો ફરી તપાસો.',
+  INTERNAL_SERVER_ERROR: 'અણધારી સર્વર ભૂલ થઈ.',
+  CUSTOMER_NOT_FOUND: 'ગ્રાહક પ્રોફાઇલ મળી નથી.',
+  DRIVER_NOT_FOUND: 'ડ્રાઇવર પ્રોફાઇલ મળી નથી.',
+  BOOKING_NOT_FOUND: 'બુકિંગ રેકોર્ડ મળ્યો નથી.',
+  BOOKING_NOT_CANCELLABLE: 'આ બુકિંગ હાલની સ્થિતિમાં રદ કરી શકાશે નહીં.',
+  DRIVER_NOT_AVAILABLE: 'ડ્રાઇવર બુકિંગ માટે ઉપલબ્ધ નથી.',
+  INVALID_RIDE_PIN: 'અમાન્ય રાઇડ પિન દાખલ કરવામાં આવ્યો.',
+  SUPPORT_TICKET_NOT_FOUND: 'સહાય ટિકિટ મળી નથી.',
+  CALL_NOT_ALLOWED: 'આ બુકિંગ માટે કોલ કરવાની મંજૂરી નથી.',
+  SCHEDULE_CONFLICT: 'ડ્રાઇવર શિડ્યુલ વચ્ચે સંઘર્ષ જણાયો.',
+  INVALID_SCHEDULE_TIME: 'અમાન્ય સમય ફોર્મેટ આપવામાં આવ્યું.',
+  SCHEDULE_EXCEPTION_NOT_FOUND: 'શિડ્યુલ અપવાદ રેકોર્ડ મળ્યો નથી.',
+};
