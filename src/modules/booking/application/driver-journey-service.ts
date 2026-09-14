@@ -10,6 +10,7 @@ import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
 import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
+import { evaluateDriverIncentivesForCompletedTrip } from '@/modules/incentive/application/services/incentive-evaluator-service';
 import { verifyPassword } from '@/modules/identity/security/password';
 import { CustomerPinNotSetError } from '@/modules/customer/application/services/ride-pin-service';
 import {
@@ -414,6 +415,21 @@ export async function completeTrip(
     );
   } catch {
     // Non-blocking milestone evaluation
+  }
+
+  // Evaluate active driver incentive campaigns for completed trip
+  try {
+    await evaluateDriverIncentivesForCompletedTrip(
+      {
+        driverProfileId: profile.id,
+        bookingId: booking.id,
+        fareAmount: finalFareResult.breakdown.totalFareAmount,
+        completedAt: now,
+      },
+      db,
+    );
+  } catch {
+    // Non-blocking incentive evaluation
   }
 
   // Re-index driver in Redis GEO set if driver is eligible & available
