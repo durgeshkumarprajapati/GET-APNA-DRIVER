@@ -45,6 +45,8 @@ export const commonHi = {
     unverified: 'असत्यापित',
     open: 'खुला',
     closed: 'बंद',
+    issued: 'जारी किया गया',
+    creditNoteIssued: 'क्रेडिट नोट जारी किया गया',
   },
   labels: {
     language: 'भाषा',
@@ -64,6 +66,10 @@ export const commonHi = {
     actions: 'कार्रवाई',
     details: 'विवरण',
     all: 'सभी',
+    dismiss: 'खारिज करें',
+    navigationMenu: 'नेविगेशन मेनू',
+    openNavigationMenu: 'नेविगेशन मेनू खोलें',
+    closeNavigationMenu: 'नेविगेशन मेनू बंद करें',
   },
   dialogs: {
     confirmTitle: 'कार्रवाई की पुष्टि करें',

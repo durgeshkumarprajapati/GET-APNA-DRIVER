@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslation } from '@/i18n/context';
 
 export interface MobileNavItem {
   href: string;
@@ -42,6 +43,8 @@ export function MobileNavDrawer({
   brandHref,
   brandSubLabel,
 }: MobileNavDrawerProps) {
+  const { t } = useTranslation();
+
   if (!open) return null;
 
   return (
@@ -49,11 +52,11 @@ export function MobileNavDrawer({
       className="fixed inset-0 z-[60] md:hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Navigation menu"
+      aria-label={t('common.labels.navigationMenu')}
     >
       <button
         type="button"
-        aria-label="Close navigation menu"
+        aria-label={t('common.labels.closeNavigationMenu')}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -77,7 +80,7 @@ export function MobileNavDrawer({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={t('common.labels.closeNavigationMenu')}
             className="p-2 rounded-lg text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] shrink-0"
           >
             <span className="material-symbols-outlined text-xl">close</span>
@@ -122,11 +125,12 @@ export function MobileNavDrawer({
 
 /** Shared hamburger trigger button — only rendered below `md` in each layout's header. */
 export function MobileNavTrigger({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label="Open navigation menu"
+      aria-label={t('common.labels.openNavigationMenu')}
       className="md:hidden p-2 -ml-2 rounded-lg text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
     >
       <span className="material-symbols-outlined text-2xl">menu</span>

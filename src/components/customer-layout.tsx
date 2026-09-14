@@ -40,7 +40,11 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       items: [
         { href: '/customer/dashboard', label: t('customer.nav.dashboard'), icon: 'grid_view' },
         { href: '/customer/find-driver', label: t('customer.nav.findDriver'), icon: 'explore' },
-        { href: '/customer/active-tracking', label: t('customer.nav.activeTracking'), icon: 'near_me' },
+        {
+          href: '/customer/active-tracking',
+          label: t('customer.nav.activeTracking'),
+          icon: 'near_me',
+        },
         { href: '/bookings', label: t('customer.nav.bookings'), icon: 'calendar_month' },
         { href: '/customer/reviews', label: t('customer.nav.reviews'), icon: 'reviews' },
         { href: '/customer/favorites', label: t('customer.nav.favorites'), icon: 'star' },
@@ -49,7 +53,12 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
     {
       label: t('customer.nav.rewardsFinance'),
       items: [
-        { href: '/customer/wallet', label: t('customer.nav.wallet'), icon: 'account_balance_wallet' },
+        {
+          href: '/customer/wallet',
+          label: t('customer.nav.wallet'),
+          icon: 'account_balance_wallet',
+        },
+        { href: '/customer/invoices', label: t('customer.nav.invoices'), icon: 'receipt_long' },
         { href: '/customer/offers', label: t('customer.nav.offers'), icon: 'confirmation_number' },
         {
           href: '/customer/referral',
@@ -139,7 +148,9 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
             title="Log Out"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
-            <span className="hidden sm:inline">{t('common.actions.logout', { defaultValue: 'Logout' })}</span>
+            <span className="hidden sm:inline">
+              {t('common.actions.logout', { defaultValue: 'Logout' })}
+            </span>
           </button>
         </div>
       </header>

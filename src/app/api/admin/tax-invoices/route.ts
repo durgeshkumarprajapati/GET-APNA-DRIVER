@@ -5,7 +5,11 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getAdminInvoices } from '@/modules/tax-invoices/invoice-service';
 import { TaxInvoiceStatus } from '@prisma/client';
 
-export const GET = withPermission(PERMISSIONS.ADMIN_DASHBOARD_READ, async (req: NextRequest) => {
+// Was gated by ADMIN_DASHBOARD_READ — an overly broad, mismatched
+// permission for financial documents. FINANCE_READ (already used by
+// /api/admin/finance/transactions for the same "view financial records"
+// capability) is the correct fit; no new permission needed.
+export const GET = withPermission(PERMISSIONS.FINANCE_READ, async (req: NextRequest) => {
   try {
     const { searchParams } = req.nextUrl;
     const page = parseInt(searchParams.get('page') || '1', 10);

@@ -45,6 +45,8 @@ export const commonEn = {
     unverified: 'Unverified',
     open: 'Open',
     closed: 'Closed',
+    issued: 'Issued',
+    creditNoteIssued: 'Credit Note Issued',
   },
   labels: {
     language: 'Language',
@@ -64,6 +66,10 @@ export const commonEn = {
     actions: 'Actions',
     details: 'Details',
     all: 'All',
+    dismiss: 'Dismiss',
+    navigationMenu: 'Navigation menu',
+    openNavigationMenu: 'Open navigation menu',
+    closeNavigationMenu: 'Close navigation menu',
   },
   dialogs: {
     confirmTitle: 'Confirm Action',

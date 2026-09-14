@@ -9,6 +9,8 @@ import { paymentProvider } from '../../infrastructure/payment-provider';
 import { calculateBookingAmount, calculateCommission } from './pricing-service';
 import { postFinancialTransaction } from './ledger-service';
 import { applyWalletChange } from './wallet-service';
+import { createTaxInvoiceForBooking } from '@/modules/tax-invoices/invoice-service';
+import { logger } from '@/shared/logging/logger';
 import { validatePaymentStatusTransition } from '../../domain/payment-state-machine';
 import { LEDGER_ACCOUNT_CODES } from '../../domain/ledger-accounts';
 import type { LedgerPosting } from '../../domain/types';
@@ -360,7 +362,7 @@ export async function capturePayment(
   input: CapturePaymentInput,
   db: Db = prisma,
 ): Promise<PaymentSummary> {
-  return db.$transaction(async (tx: Db) => {
+  const result = await db.$transaction(async (tx: Db) => {
     const payment = await tx.payment.findUnique({ where: { id: input.paymentId } });
     if (!payment) {
       throw new PaymentNotFoundError(input.paymentId);
@@ -532,6 +534,25 @@ export async function capturePayment(
 
     return mapPaymentToSummary(updated);
   });
+
+  // Tax-invoice generation is a best-effort side effect of a successful
+  // capture, not a condition of it — createTaxInvoiceForBooking has its own
+  // idempotency guard (a unique constraint on TaxInvoice.bookingId), so a
+  // retry here (or a race between the webhook and client-verify capture
+  // paths) never creates a duplicate invoice. Failures are logged, not
+  // thrown, so a tax-invoice bug can never block a real payment capture.
+  if (result.status === 'CAPTURED') {
+    try {
+      await createTaxInvoiceForBooking(result.bookingId);
+    } catch (err: unknown) {
+      logger.warn(
+        { err, bookingId: result.bookingId },
+        'Failed to generate tax invoice for booking',
+      );
+    }
+  }
+
+  return result;
 }
 
 export async function markPaymentFailed(

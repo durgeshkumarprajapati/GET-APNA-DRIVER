@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+  useCallback,
+} from 'react';
 import { DEFAULT_LOCALE, isValidLocale, LOCALE_COOKIE_NAME, SupportedLocale } from './config';
 import {
   formatLocalizedCurrency,
@@ -47,18 +55,33 @@ export function I18nProvider({ children, initialLocale = DEFAULT_LOCALE }: I18nP
     }
   }, [locale]);
 
+  // Rapidly switching en -> hi -> gu -> en fires one DB-sync POST per click;
+  // without cancellation, out-of-order network responses could let an
+  // earlier click's write land in the DB after a later click's, leaving
+  // User.preferredLocale out of sync with what the user actually last
+  // selected (client state/cookie are unaffected either way — they're set
+  // synchronously below, in click order). Aborting the previous in-flight
+  // request whenever a new one fires guarantees only the latest selection
+  // is ever the one that completes.
+  const pendingLocaleSyncRef = useRef<AbortController | null>(null);
+
   const setLocale = useCallback((newLocale: SupportedLocale) => {
     if (!isValidLocale(newLocale)) return;
     setLocaleState(newLocale);
     setCookieLocale(newLocale);
+
+    pendingLocaleSyncRef.current?.abort();
+    const controller = new AbortController();
+    pendingLocaleSyncRef.current = controller;
 
     // Sync with DB if user is logged in
     void fetch('/api/auth/locale', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ locale: newLocale }),
+      signal: controller.signal,
     }).catch(() => {
-      // Ignore background sync errors
+      // Ignore background sync errors (including intentional aborts)
     });
   }, []);
 
@@ -121,7 +144,8 @@ export function useTranslation() {
     return {
       locale: DEFAULT_LOCALE,
       setLocale: () => {},
-      t: (key: string, params?: Record<string, string | number>) => translate(DEFAULT_LOCALE, key, params),
+      t: (key: string, params?: Record<string, string | number>) =>
+        translate(DEFAULT_LOCALE, key, params),
       formatDate: (date: Date | string | number, options?: Intl.DateTimeFormatOptions) =>
         formatLocalizedDate(date, DEFAULT_LOCALE, options),
       formatNumber: (num: number, options?: Intl.NumberFormatOptions) =>
