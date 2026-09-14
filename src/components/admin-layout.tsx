@@ -101,6 +101,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       label: t('admin.nav.operations'),
       items: [
         { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
+        { href: '/admin/scheduled-rides', label: t('scheduledRides.adminTitle'), icon: 'schedule' },
         { href: '/admin/sos-and-disputes', label: t('admin.nav.sosAndDisputes'), icon: 'crisis_alert' },
         { href: '/admin/reviews', label: t('admin.nav.reviews'), icon: 'reviews' },
       ],

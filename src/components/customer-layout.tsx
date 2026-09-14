@@ -46,6 +46,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
           icon: 'near_me',
         },
         { href: '/bookings', label: t('customer.nav.bookings'), icon: 'calendar_month' },
+        { href: '/customer/scheduled-rides', label: t('scheduledRides.title'), icon: 'schedule' },
         { href: '/customer/reviews', label: t('customer.nav.reviews'), icon: 'reviews' },
         { href: '/customer/favorites', label: t('customer.nav.favorites'), icon: 'star' },
       ],

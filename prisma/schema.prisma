@@ -106,6 +106,7 @@ model User {
   favoriteDrivers         CustomerFavoriteDriver[] @relation("CustomerFavoriteDrivers")
   customerLoyaltyAccount  CustomerLoyaltyAccount?  @relation("CustomerLoyaltyAccount")
   adminLoyaltyAdjustments LoyaltyPointTransaction[] @relation("AdminLoyaltyAdjustments")
+  scheduledRides          ScheduledRide[]          @relation("CustomerScheduledRides")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -460,6 +461,8 @@ model SavedLocation {
   longitude    Float
   isDefault    Boolean @default(false) @map("is_default")
 
+  scheduledRides ScheduledRide[] @relation("SavedLocationScheduledRides")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -592,6 +595,7 @@ model DriverProfile {
   favoritedByCustomers CustomerFavoriteDriver[]   @relation("DriverFavoriteCustomers")
   incentiveProgresses  DriverIncentiveProgress[]
   goalPreference       DriverGoalPreference?
+  preferredScheduledRides ScheduledRide[]          @relation("PreferredDriverScheduledRides")
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -840,13 +844,17 @@ model Booking {
   disputes           Dispute[]                  @relation("BookingDisputes")
   review             Review?
   promotionUsage     PromotionUsage?
-  supportTickets     SupportTicket[]
-  callSessions       CallSession[]
-  taxInvoice         TaxInvoice?
-  loyaltyTransactions LoyaltyPointTransaction[] @relation("BookingLoyaltyTransactions")
+  supportTickets           SupportTicket[]
+  callSessions             CallSession[]
+  taxInvoice               TaxInvoice?
+  loyaltyTransactions      LoyaltyPointTransaction[]  @relation("BookingLoyaltyTransactions")
+  scheduledRideId          String?                    @map("scheduled_ride_id") @db.Uuid
+  scheduledRide            ScheduledRide?             @relation("GeneratedBookings", fields: [scheduledRideId], references: [id], onDelete: SetNull)
+  scheduledRideOccurrences ScheduledRideOccurrenceLog[]
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
+  @@index([scheduledRideId])
   @@index([status, createdAt])
   @@map("bookings")
 }
@@ -2514,4 +2522,98 @@ model LoyaltyRewardRedemption {
   @@index([customerId, redeemedAt])
   @@index([rewardId, customerId])
   @@map("loyalty_reward_redemptions")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 36 — Production Scheduled, Recurring & Favorite Driver Booking
+// ---------------------------------------------------------------------------
+
+enum ScheduledRideStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
+enum ScheduleType {
+  ONE_TIME
+  RECURRING
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  CUSTOM_DAYS
+}
+
+enum OccurrenceStatus {
+  GENERATED
+  SKIPPED
+  FAILED
+}
+
+/// Customer's one-time or recurring scheduled ride definition.
+model ScheduledRide {
+  id                       String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  idempotencyKey           String?              @unique @map("idempotency_key")
+  customerId               String               @map("customer_id") @db.Uuid
+  customer                 User                 @relation("CustomerScheduledRides", fields: [customerId], references: [id], onDelete: Cascade)
+  status                   ScheduledRideStatus  @default(ACTIVE)
+  scheduleType             ScheduleType         @default(ONE_TIME) @map("schedule_type")
+  bookingType              BookingType          @default(ONE_WAY) @map("booking_type")
+  pickupLatitude           Float                @map("pickup_latitude")
+  pickupLongitude          Float                @map("pickup_longitude")
+  pickupAddress            String               @map("pickup_address")
+  pickupLabel              String?              @map("pickup_label")
+  dropoffLatitude          Float?               @map("dropoff_latitude")
+  dropoffLongitude         Float?               @map("dropoff_longitude")
+  dropoffAddress           String?              @map("dropoff_address")
+  dropoffLabel             String?              @map("dropoff_label")
+  savedLocationId          String?              @map("saved_location_id") @db.Uuid
+  savedLocation            SavedLocation?       @relation("SavedLocationScheduledRides", fields: [savedLocationId], references: [id], onDelete: SetNull)
+  vehicleCategory          String?              @default("SEDAN") @map("vehicle_category")
+  preferredDriverProfileId String?              @map("preferred_driver_profile_id") @db.Uuid
+  preferredDriver          DriverProfile?       @relation("PreferredDriverScheduledRides", fields: [preferredDriverProfileId], references: [id], onDelete: SetNull)
+  promotionCode            String?              @map("promotion_code")
+  scheduledTime            String               @map("scheduled_time")
+  scheduledDate            DateTime?            @map("scheduled_date") @db.Timestamptz(6)
+  recurrenceFrequency      RecurrenceFrequency? @map("recurrence_frequency")
+  daysOfWeek               Int[]                @map("days_of_week")
+  timezone                 String               @default("Asia/Kolkata")
+  startAt                  DateTime             @default(now()) @map("start_at") @db.Timestamptz(6)
+  endAt                    DateTime?            @map("end_at") @db.Timestamptz(6)
+  nextOccurrenceAt         DateTime?            @map("next_occurrence_at") @db.Timestamptz(6)
+  lastGeneratedAt          DateTime?            @map("last_generated_at") @db.Timestamptz(6)
+  failureReason            String?              @map("failure_reason")
+  notes                    String?
+  createdAt                DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  cancelledAt              DateTime?            @map("cancelled_at") @db.Timestamptz(6)
+
+  generatedBookings Booking[]                    @relation("GeneratedBookings")
+  occurrences       ScheduledRideOccurrenceLog[]
+
+  @@index([customerId, status])
+  @@index([status, nextOccurrenceAt])
+  @@index([preferredDriverProfileId])
+  @@map("scheduled_rides")
+}
+
+/// Idempotency log for scheduled ride occurrence booking generation.
+model ScheduledRideOccurrenceLog {
+  id                       String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scheduledRideId          String           @map("scheduled_ride_id") @db.Uuid
+  scheduledRide            ScheduledRide    @relation(fields: [scheduledRideId], references: [id], onDelete: Cascade)
+  occurrenceStart          DateTime         @map("occurrence_start") @db.Timestamptz(6)
+  occurrenceIdempotencyKey String           @unique @map("occurrence_idempotency_key")
+  bookingId                String?          @map("booking_id") @db.Uuid
+  booking                  Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  status                   OccurrenceStatus @default(GENERATED)
+  failureReason            String?          @map("failure_reason")
+  createdAt                DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([scheduledRideId, occurrenceStart])
+  @@map("scheduled_ride_occurrence_logs")
 }

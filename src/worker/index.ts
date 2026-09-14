@@ -11,6 +11,7 @@ import { registerNotificationEventHandlers } from './jobs/notification-event-han
 import { registerSafetyAndDisputeEventHandlers } from './jobs/safety-dispute-event-handlers';
 import { registerSupportEventHandlers } from './jobs/support-event-handlers';
 import { registerCallingEventHandlers } from './jobs/calling-event-handlers';
+import { processDueScheduledRides } from '@/modules/scheduled-rides/application/scheduled-ride-generator';
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 
 /** Hard ceiling on how long shutdown waits for the current batch to drain before forcing exit. */
@@ -58,8 +59,12 @@ async function bootstrapWorker(): Promise<void> {
     try {
       const processedCount = await outboxDispatcherService.runBatch();
 
-      // Periodically run cleanup (e.g. every 100 iterations)
+      // Periodically process due scheduled rides
       iteration++;
+      if (iteration % 3 === 0) {
+        await processDueScheduledRides();
+      }
+
       if (iteration % 100 === 0) {
         await runRetentionCleanupJob();
       }
