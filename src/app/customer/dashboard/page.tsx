@@ -100,6 +100,13 @@ export default function CustomerDashboardPage() {
     tierCode: string;
     currentTier: { name: string } | null;
   } | null>(null);
+  const [scheduledRides, setScheduledRides] = useState<Array<{
+    id: string;
+    status: string;
+    scheduledTime: string;
+    nextRunAt?: string | null;
+    pickupLocation: { address: string; label?: string | null };
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,13 +114,14 @@ export default function CustomerDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [profileRes, bookingsRes, recentRes, locationsRes, favoritesRes, loyaltyRes] = await Promise.all([
+        const [profileRes, bookingsRes, recentRes, locationsRes, favoritesRes, loyaltyRes, scheduledRes] = await Promise.all([
           fetch('/api/customer/profile'),
           fetch('/api/bookings'),
           fetch('/api/customer/bookings/recent'),
           fetch('/api/customer/locations'),
           fetch('/api/customer/favorites'),
           fetch('/api/customer/loyalty'),
+          fetch('/api/customer/scheduled-rides'),
         ]);
         if (!isMounted) return;
         if (profileRes.ok) {
@@ -139,6 +147,10 @@ export default function CustomerDashboardPage() {
         if (loyaltyRes.ok) {
           const data = await loyaltyRes.json();
           setLoyaltyAccount(data.account ?? null);
+        }
+        if (scheduledRes.ok) {
+          const data = await scheduledRes.json();
+          setScheduledRides(data.scheduledRides ?? []);
         }
       } catch (err) {
         if (isMounted) {
@@ -263,6 +275,32 @@ export default function CustomerDashboardPage() {
                   className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold font-mono transition-colors shrink-0 flex items-center gap-1"
                 >
                   <span>{t('customer.nav.rewards')}</span>
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+              </section>
+            )}
+
+            {/* Scheduled Rides Summary Widget */}
+            {scheduledRides.filter((r) => r.status === 'SCHEDULED').length > 0 && (
+              <section className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#25a475]/10 border border-[#25a475]/30 flex items-center justify-center text-[#68dba9]">
+                    <span className="material-symbols-outlined text-xl">schedule</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
+                      {t('scheduledRides.title')}
+                    </span>
+                    <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                      {scheduledRides.filter((r) => r.status === 'SCHEDULED').length} Active Scheduled Ride(s)
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/customer/scheduled-rides"
+                  className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold font-mono transition-colors shrink-0 flex items-center gap-1"
+                >
+                  <span>{t('customer.dashboard.viewAll')}</span>
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </Link>
               </section>

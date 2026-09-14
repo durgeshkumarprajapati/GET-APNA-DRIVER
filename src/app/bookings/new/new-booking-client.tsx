@@ -102,6 +102,17 @@ function BookDriverPageInner() {
   const [radiusKm, setRadiusKm] = useState(5);
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
 
+  const [bookingMode, setBookingMode] = useState<'NOW' | 'SCHEDULE'>(
+    searchParams.get('mode') === 'schedule' ? 'SCHEDULE' : 'NOW'
+  );
+  const [scheduleType, setScheduleType] = useState<'ONE_TIME' | 'RECURRING'>('ONE_TIME');
+  const [scheduledDate, setScheduledDate] = useState<string>(
+    () => new Date(Date.now() + 86400000).toISOString().split('T')[0]
+  );
+  const [scheduledTime, setScheduledTime] = useState<string>('09:00');
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS'>('DAILY');
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
+
   const [savedLocations, setSavedLocations] = useState<SavedLocationRecord[]>([]);
   const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverRecord[]>([]);
 
@@ -261,45 +272,87 @@ function BookDriverPageInner() {
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-idempotency-key': idempotencyKey,
-        },
-        body: JSON.stringify({
-          pickupLocation: {
-            latitude: pickup.latitude,
-            longitude: pickup.longitude,
-            address: pickup.address,
-            label: pickup.label,
+      if (bookingMode === 'SCHEDULE') {
+        const res = await fetch('/api/customer/scheduled-rides', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-idempotency-key': idempotencyKey,
           },
-          dropoffLocation: {
-            latitude: dropoff.latitude,
-            longitude: dropoff.longitude,
-            address: dropoff.address,
-            label: dropoff.label,
-          },
-          bookingType:
-            selectedTab === 'hourly'
-              ? 'HOURLY'
-              : selectedTab === 'outstation'
-                ? 'MULTI_DAY'
-                : 'ONE_WAY',
-          estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
-          preferredDriverProfileId,
-          // Vehicle class/transmission are not real, honored preferences —
-          // the backend has no vehicle-category concept (matching is purely
-          // nearest-eligible-driver), so we deliberately do not send them as
-          // if they were.
-        }),
-      });
+          body: JSON.stringify({
+            scheduleType,
+            recurrenceFrequency: scheduleType === 'RECURRING' ? recurrenceFrequency : undefined,
+            daysOfWeek:
+              scheduleType === 'RECURRING' && (recurrenceFrequency === 'WEEKLY' || recurrenceFrequency === 'CUSTOM_DAYS')
+                ? selectedDays
+                : undefined,
+            scheduledDate: scheduleType === 'ONE_TIME' ? scheduledDate : undefined,
+            scheduledTime,
+            pickupLocation: {
+              latitude: pickup.latitude,
+              longitude: pickup.longitude,
+              address: pickup.address,
+              label: pickup.label,
+            },
+            dropoffLocation: {
+              latitude: dropoff.latitude,
+              longitude: dropoff.longitude,
+              address: dropoff.address,
+              label: dropoff.label,
+            },
+            bookingType:
+              selectedTab === 'hourly'
+                ? 'HOURLY'
+                : selectedTab === 'outstation'
+                  ? 'MULTI_DAY'
+                  : 'ONE_WAY',
+            preferredDriverProfileId,
+          }),
+        });
 
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || t('customer.booking.dispatchFailedError'));
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.message || t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }));
+        } else {
+          router.push('/customer/scheduled-rides');
+        }
       } else {
-        router.push(`/bookings/${data.booking.id}`);
+        const res = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-idempotency-key': idempotencyKey,
+          },
+          body: JSON.stringify({
+            pickupLocation: {
+              latitude: pickup.latitude,
+              longitude: pickup.longitude,
+              address: pickup.address,
+              label: pickup.label,
+            },
+            dropoffLocation: {
+              latitude: dropoff.latitude,
+              longitude: dropoff.longitude,
+              address: dropoff.address,
+              label: dropoff.label,
+            },
+            bookingType:
+              selectedTab === 'hourly'
+                ? 'HOURLY'
+                : selectedTab === 'outstation'
+                  ? 'MULTI_DAY'
+                  : 'ONE_WAY',
+            estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
+            preferredDriverProfileId,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.message || t('customer.booking.dispatchFailedError'));
+        } else {
+          router.push(`/bookings/${data.booking.id}`);
+        }
       }
     } catch {
       setError(t('customer.booking.dispatchUnexpectedError'));
@@ -352,6 +405,135 @@ function BookDriverPageInner() {
                 {error}
               </div>
             )}
+
+            {/* Booking Mode Selector (Ride Now vs Schedule Ride) */}
+            <div className="bg-[#181c24] rounded-xl p-3 shadow-sm border border-[#262a33] flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-2 bg-[#0a0e16] p-1 rounded-lg border border-[#262a33]">
+                <button
+                  type="button"
+                  onClick={() => setBookingMode('NOW')}
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all ${
+                    bookingMode === 'NOW'
+                      ? 'bg-[#25a475] text-[#00311f] shadow'
+                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">directions_car</span>
+                  <span>Ride Now</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBookingMode('SCHEDULE')}
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all ${
+                    bookingMode === 'SCHEDULE'
+                      ? 'bg-[#25a475] text-[#00311f] shadow'
+                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">calendar_month</span>
+                  <span>{t('scheduledRides.createTitle')}</span>
+                </button>
+              </div>
+
+              {bookingMode === 'SCHEDULE' && (
+                <div className="flex flex-col gap-3 pt-2 border-t border-[#262a33] text-xs">
+                  {/* Schedule Type */}
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33] flex-1">
+                      <input
+                        type="radio"
+                        name="scheduleType"
+                        checked={scheduleType === 'ONE_TIME'}
+                        onChange={() => setScheduleType('ONE_TIME')}
+                        className="accent-[#68dba9]"
+                      />
+                      <span>{t('scheduledRides.oneTime')}</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33] flex-1">
+                      <input
+                        type="radio"
+                        name="scheduleType"
+                        checked={scheduleType === 'RECURRING'}
+                        onChange={() => setScheduleType('RECURRING')}
+                        className="accent-[#68dba9]"
+                      />
+                      <span>{t('scheduledRides.recurring')}</span>
+                    </label>
+                  </div>
+
+                  {/* Frequency if Recurring */}
+                  {scheduleType === 'RECURRING' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#87948b] text-[10px] uppercase font-bold">Frequency:</span>
+                      <select
+                        value={recurrenceFrequency}
+                        onChange={(e) =>
+                          setRecurrenceFrequency(
+                            e.target.value as 'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS'
+                          )
+                        }
+                        className="bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] flex-1"
+                      >
+                        <option value="DAILY">{t('scheduledRides.frequency.daily')}</option>
+                        <option value="WEEKLY">{t('scheduledRides.frequency.weekly')}</option>
+                        <option value="CUSTOM_DAYS">{t('scheduledRides.frequency.custom_days')}</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Day Picker if Weekly or Custom */}
+                  {scheduleType === 'RECURRING' && (recurrenceFrequency === 'WEEKLY' || recurrenceFrequency === 'CUSTOM_DAYS') && (
+                    <div className="flex items-center justify-between gap-1 pt-1">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
+                        const active = selectedDays.includes(idx);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => {
+                              setSelectedDays((prev) =>
+                                active ? prev.filter((d) => d !== idx) : [...prev, idx]
+                              );
+                            }}
+                            className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                              active
+                                ? 'bg-[#25a475] text-[#00311f]'
+                                : 'bg-[#0a0e16] text-[#87948b] border border-[#262a33]'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Time & Date Pickers */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {scheduleType === 'ONE_TIME' && (
+                      <div>
+                        <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">Date:</span>
+                        <input
+                          type="date"
+                          value={scheduledDate}
+                          onChange={(e) => setScheduledDate(e.target.value)}
+                          className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                        />
+                      </div>
+                    )}
+                    <div className={scheduleType === 'RECURRING' ? 'col-span-2' : ''}>
+                      <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">Dispatch Time (IST):</span>
+                      <input
+                        type="time"
+                        value={scheduledTime}
+                        onChange={(e) => setScheduledTime(e.target.value)}
+                        className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Location & Pickup Anchor Card */}
             <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
@@ -685,7 +867,11 @@ function BookDriverPageInner() {
                 ) : (
                   <span className="material-symbols-outlined text-base">rocket_launch</span>
                 )}
-                <span>{t('customer.booking.confirmBookingCta')}</span>
+                <span>
+                  {bookingMode === 'SCHEDULE'
+                    ? t('scheduledRides.confirmSchedule', { defaultValue: 'Confirm & Schedule Ride' })
+                    : t('customer.booking.confirmBookingCta')}
+                </span>
               </button>
             </div>
           </section>

@@ -113,6 +113,13 @@ export const PERMISSIONS = {
   DRIVER_GOALS_MANAGE: 'driver.goals.manage',
   ADMIN_INCENTIVES_MANAGE: 'admin.incentives.manage',
 
+  // Scheduled & Recurring Rides (Phase 36 domain & admin)
+  SCHEDULED_RIDES_READ: 'scheduled_rides.read',
+  SCHEDULED_RIDES_CREATE: 'scheduled_rides.create',
+  SCHEDULED_RIDES_MANAGE: 'scheduled_rides.manage',
+  ADMIN_SCHEDULED_RIDES_READ: 'admin.scheduled_rides.read',
+  ADMIN_SCHEDULED_RIDES_MANAGE: 'admin.scheduled_rides.manage',
+
   // Customer Loyalty & Rewards (Phase 35 domain & admin)
   CUSTOMER_LOYALTY_READ: 'customer.loyalty.read',
   CUSTOMER_REWARDS_REDEEM: 'customer.rewards.redeem',
@@ -320,6 +327,12 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   { code: PERMISSIONS.DRIVER_SCHEDULE_MANAGE, description: 'Manage own weekly schedule and shift exceptions.' },
   { code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_READ, description: 'View any driver weekly schedule and shift roster (admin).' },
   { code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_MANAGE, description: 'Manage driver weekly schedules and shift rosters (admin).' },
+
+  { code: PERMISSIONS.SCHEDULED_RIDES_READ, description: 'View own scheduled and recurring rides.' },
+  { code: PERMISSIONS.SCHEDULED_RIDES_CREATE, description: 'Create one-time or recurring scheduled rides.' },
+  { code: PERMISSIONS.SCHEDULED_RIDES_MANAGE, description: 'Pause, resume, or cancel own scheduled rides.' },
+  { code: PERMISSIONS.ADMIN_SCHEDULED_RIDES_READ, description: 'View fleet-wide scheduled rides (admin).' },
+  { code: PERMISSIONS.ADMIN_SCHEDULED_RIDES_MANAGE, description: 'Manage and cancel customer scheduled rides (admin).' },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
   {
