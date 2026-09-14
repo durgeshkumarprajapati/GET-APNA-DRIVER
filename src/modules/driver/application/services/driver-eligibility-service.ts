@@ -1,6 +1,8 @@
 import 'server-only';
 import {
+  BookingStatus,
   DriverApprovalStatus,
+  DriverAvailabilityStatus,
   DriverDocument,
   DriverDocumentStatus,
   DriverOnboardingStatus,
@@ -9,6 +11,7 @@ import {
 } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getJson } from '@/shared/config/configuration-service';
+import { driverScheduleService } from './driver-schedule-service';
 
 export interface DriverEligibilityEvaluation {
   isEligible: boolean;
@@ -48,11 +51,7 @@ export async function evaluateDriverEligibility(
 }
 
 /**
- * Same evaluation, given an already-fetched profile (with `user` and
- * current `documents` included) — lets a caller that already needs the
- * full profile for another purpose (e.g. nearby-driver-service.ts, which
- * also assembles a public portfolio from the same row) avoid fetching it
- * twice.
+ * Evaluates compliance eligibility from pre-fetched driver profile.
  */
 export async function evaluateDriverEligibilityFromProfile(
   profile: DriverProfileForEligibility,
@@ -111,6 +110,75 @@ export async function evaluateDriverEligibilityFromProfile(
   // 5. Check Driver Administrative Approval Status
   if (profile.approvalStatus !== DriverApprovalStatus.APPROVED) {
     reasons.push(`Driver application is not approved (status: ${profile.approvalStatus}).`);
+  }
+
+  return {
+    isEligible: reasons.length === 0,
+    reasons,
+  };
+}
+
+/**
+ * Authoritative single service determining if a driver is currently eligible for dispatch.
+ * Checks account, compliance, availability status, active shift schedule, and current busy/trip state.
+ */
+export async function isDriverDispatchEligible(
+  driverProfileId: string,
+  targetTime: Date = new Date(),
+  db: Db = prisma,
+): Promise<DriverEligibilityEvaluation> {
+  const profile = await db.driverProfile.findUnique({
+    where: { id: driverProfileId },
+    include: {
+      user: true,
+      documents: { where: { isCurrent: true } },
+    },
+  });
+
+  if (!profile) {
+    return { isEligible: false, reasons: ['Driver profile not found.'] };
+  }
+
+  // 1. Compliance Eligibility Check
+  const compliance = await evaluateDriverEligibilityFromProfile(profile, db);
+  if (!compliance.isEligible) {
+    return compliance;
+  }
+
+  const reasons: string[] = [];
+
+  // 2. Availability Status Check
+  if (profile.availabilityStatus === DriverAvailabilityStatus.OFFLINE) {
+    reasons.push('Driver is currently OFFLINE.');
+  } else if (profile.availabilityStatus === DriverAvailabilityStatus.BUSY) {
+    reasons.push('Driver is currently BUSY handling another assignment or trip.');
+  } else if (profile.availabilityStatus === DriverAvailabilityStatus.UNAVAILABLE) {
+    reasons.push('Driver is marked UNAVAILABLE.');
+  }
+
+  // 3. Schedule Window Check
+  const isScheduled = await driverScheduleService.isDriverWithinSchedule(profile.id, targetTime, db);
+  if (!isScheduled) {
+    reasons.push('Current time is outside driver shift schedule or on a scheduled off day.');
+  }
+
+  // 4. Conflicting Active Assignment Check
+  const activeBooking = await db.booking.findFirst({
+    where: {
+      driverProfileId: profile.id,
+      status: {
+        in: [
+          BookingStatus.DRIVER_ASSIGNED,
+          BookingStatus.DRIVER_EN_ROUTE,
+          BookingStatus.DRIVER_ARRIVED,
+          BookingStatus.TRIP_IN_PROGRESS,
+        ],
+      },
+    },
+  });
+
+  if (activeBooking) {
+    reasons.push(`Driver has an active booking in progress (${activeBooking.id.substring(0, 8)}).`);
   }
 
   return {

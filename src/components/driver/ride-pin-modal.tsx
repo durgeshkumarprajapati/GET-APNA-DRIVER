@@ -21,19 +21,19 @@ export function RidePinModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const inputRefs = [
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-  ];
+  const ref0 = useRef<HTMLInputElement>(null);
+  const ref1 = useRef<HTMLInputElement>(null);
+  const ref2 = useRef<HTMLInputElement>(null);
+  const ref3 = useRef<HTMLInputElement>(null);
+  const ref4 = useRef<HTMLInputElement>(null);
+  const ref5 = useRef<HTMLInputElement>(null);
+
+  const inputRefs = [ref0, ref1, ref2, ref3, ref4, ref5];
 
   useEffect(() => {
     if (!isOpen) return;
     const timer = setTimeout(() => {
-      inputRefs[0].current?.focus();
+      ref0.current?.focus();
     }, 100);
     return () => clearTimeout(timer);
   }, [isOpen]);

@@ -102,6 +102,12 @@ export const PERMISSIONS = {
   CALL_SUPPORT_INITIATE: 'calling.support.initiate',
   ADMIN_CALLS_READ: 'admin.calls.read',
 
+  // Driver Schedule & Availability (Phase 29 domain & admin)
+  DRIVER_SCHEDULE_READ: 'driver.schedule.read',
+  DRIVER_SCHEDULE_MANAGE: 'driver.schedule.manage',
+  ADMIN_DRIVER_SCHEDULE_READ: 'admin.driver.schedule.read',
+  ADMIN_DRIVER_SCHEDULE_MANAGE: 'admin.driver.schedule.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -297,6 +303,11 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   { code: PERMISSIONS.CALL_CUSTOMER_INITIATE, description: 'Initiate masked phone call to assigned customer.' },
   { code: PERMISSIONS.CALL_SUPPORT_INITIATE, description: 'Initiate voice call to Customer Care.' },
   { code: PERMISSIONS.ADMIN_CALLS_READ, description: 'View platform call sessions and telephony logs (admin).' },
+
+  { code: PERMISSIONS.DRIVER_SCHEDULE_READ, description: 'View driver weekly schedule and shift roster.' },
+  { code: PERMISSIONS.DRIVER_SCHEDULE_MANAGE, description: 'Manage own weekly schedule and shift exceptions.' },
+  { code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_READ, description: 'View any driver weekly schedule and shift roster (admin).' },
+  { code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_MANAGE, description: 'Manage driver weekly schedules and shift rosters (admin).' },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
   {

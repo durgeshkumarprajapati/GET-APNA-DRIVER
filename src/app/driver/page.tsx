@@ -59,6 +59,7 @@ export default function DriverDashboardPage() {
   const [offers, setOffers] = useState<AssignmentOffer[]>([]);
   const [bookings, setBookings] = useState<DriverBooking[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
+  const [todayShift, setTodayShift] = useState<{ isScheduled: boolean; startTime: string | null; endTime: string | null; status: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,11 +67,12 @@ export default function DriverDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [profileRes, offersRes, bookingsRes, walletRes] = await Promise.all([
+        const [profileRes, offersRes, bookingsRes, walletRes, todayShiftRes] = await Promise.all([
           fetch('/api/driver/profile'),
           fetch('/api/driver/assignment-offers'),
           fetch('/api/driver/bookings'),
           fetch('/api/driver/wallet'),
+          fetch('/api/driver/schedule/today'),
         ]);
         if (isMounted) {
           if (profileRes.ok) {
@@ -88,6 +90,10 @@ export default function DriverDashboardPage() {
           if (walletRes.ok) {
             const data = await walletRes.json();
             setWallet(data.wallet ?? null);
+          }
+          if (todayShiftRes.ok) {
+            const data = await todayShiftRes.json();
+            setTodayShift(data.data?.todayShift ?? null);
           }
         }
       } catch (err) {
@@ -150,7 +156,20 @@ export default function DriverDashboardPage() {
           <div className="py-16 text-center text-[#87948b] text-sm">Loading dashboard…</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                href="/driver/schedule"
+                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+              >
+                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+                  Today Shift
+                </span>
+                <span className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  {todayShift?.isScheduled
+                    ? `${todayShift.startTime} - ${todayShift.endTime}`
+                    : todayShift?.status || 'No Shift'}
+                </span>
+              </Link>
               <Link
                 href="/driver/assignment-offers"
                 className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"

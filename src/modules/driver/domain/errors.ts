@@ -61,3 +61,21 @@ export class InvalidContentTypeError extends AppError {
     );
   }
 }
+
+export class InvalidScheduleTimeError extends AppError {
+  constructor(message: string) {
+    super(message, 400, 'INVALID_SCHEDULE_TIME');
+  }
+}
+
+export class DriverScheduleConflictError extends AppError {
+  constructor(message: string) {
+    super(message, 409, 'DRIVER_SCHEDULE_CONFLICT');
+  }
+}
+
+export class ScheduleExceptionNotFoundError extends AppError {
+  constructor(identifier: string) {
+    super(`Schedule exception not found: ${identifier}`, 404, 'SCHEDULE_EXCEPTION_NOT_FOUND');
+  }
+}
