@@ -579,6 +579,8 @@ model DriverProfile {
   reviews            Review[]                @relation("DriverReviews")
   ratingSummary      DriverRatingSummary?
   driverCalls        CallSession[]           @relation("DriverCalls")
+  schedules          DriverSchedule[]
+  scheduleExceptions DriverScheduleException[]
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -2125,4 +2127,64 @@ model CallSession {
   @@index([providerCallId])
   @@index([status, createdAt])
   @@map("call_sessions")
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+
+  @@map("day_of_week")
+}
+
+enum ScheduleExceptionType {
+  OFF
+  CUSTOM_HOURS
+  HOLIDAY
+  LEAVE
+
+  @@map("schedule_exception_type")
+}
+
+/// Driver recurring weekly shift schedule entries.
+model DriverSchedule {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  dayOfWeek       DayOfWeek     @map("day_of_week")
+  startTime       String        @map("start_time")
+  endTime         String        @map("end_time")
+  timezone        String        @default("Asia/Kolkata") @map("timezone")
+  isActive        Boolean       @default(true) @map("is_active")
+  isOvernight     Boolean       @default(false) @map("is_overnight")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([driverProfileId, dayOfWeek])
+  @@index([driverProfileId, isActive])
+  @@map("driver_schedules")
+}
+
+/// Driver schedule exceptions (leave, holiday, custom hours override).
+model DriverScheduleException {
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String                @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile         @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  date            DateTime              @map("date") @db.Date
+  exceptionType   ScheduleExceptionType @map("exception_type")
+  startTime       String?               @map("start_time")
+  endTime         String?               @map("end_time")
+  reason          String?               @map("reason")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([driverProfileId, date])
+  @@index([driverProfileId, date])
+  @@map("driver_schedule_exceptions")
 }
