@@ -482,4 +482,17 @@ export const customerMl = {
       activePromoCode: 'ലഭ്യമായ പ്രൊമോ: {{promoName}} (കോഡ്: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'മാപ്പിൽ കാണുക',
+    openMap: 'ലൈവ് മാപ്പ് തുറക്കുക',
+    closeMap: 'മാപ്പ് അടയ്ക്കുക',
+    currentLocation: 'നിലവിലെ സ്ഥലം',
+    driverLocation: 'ഡ്രൈവറുടെ സ്ഥലം',
+    pickupLocation: 'പിക്കപ്പ് സ്ഥലം',
+    dropoffLocation: 'ഡ്രോപ്പ്ഓഫ് സ്ഥലം',
+    liveTracking: 'ലൈവ് ട്രാക്കിംഗ്',
+    mapUnavailable: 'മാപ്പ് ലഭ്യമല്ല',
+    locationPermissionDenied: 'ലൊക്കേഷൻ അനുമതി നിരസിച്ചു',
+    recenterMap: 'മാപ്പ് വീണ്ടും കേന്ദ്രീകരിക്കുക',
+  },
 };

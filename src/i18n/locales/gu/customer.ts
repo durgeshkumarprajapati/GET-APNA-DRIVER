@@ -494,4 +494,17 @@ export const customerGu = {
       activePromoCode: 'ઉપલબ્ધ પ્રોમો: {{promoName}} (કોડ: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'નકશા પર જુઓ',
+    openMap: 'લાઇવ નકશો ખોલો',
+    closeMap: 'નકશો બંધ કરો',
+    currentLocation: 'વર્તમાન સ્થાન',
+    driverLocation: 'ડ્રાઇવરનું સ્થાન',
+    pickupLocation: 'પિકઅપ સ્થાન',
+    dropoffLocation: 'ડ્રોપઓફ સ્થાન',
+    liveTracking: 'લાઇવ ટ્રેકિંગ',
+    mapUnavailable: 'નકશો અનુપલબ્ધ છે',
+    locationPermissionDenied: 'સ્થાન પરવાનગી અસ્વીકૃત',
+    recenterMap: 'નકશો ફરી કેન્દ્રિત કરો',
+  },
 };

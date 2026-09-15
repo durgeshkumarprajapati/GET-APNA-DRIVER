@@ -482,4 +482,17 @@ export const customerTe = {
       activePromoCode: 'అందుబాటులో ఉన్న ప్రోమో: {{promoName}} (కోడ్: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'మ్యాప్‌లో చూడండి',
+    openMap: 'లైవ్ మ్యాప్ తెరువు',
+    closeMap: 'మ్యాప్ మూసివేయి',
+    currentLocation: 'ప్రస్తుత ప్రాంతం',
+    driverLocation: 'డ్రైవర్ ప్రాంతం',
+    pickupLocation: 'పికప్ ప్రాంతం',
+    dropoffLocation: 'డ్రాపాఫ్ ప్రాంతం',
+    liveTracking: 'లైవ్ ట్రాకింగ్',
+    mapUnavailable: 'మ్యాప్ అందుబాటులో లేదు',
+    locationPermissionDenied: 'లొకేషన్ అనుమతి తిరస్కరించబడింది',
+    recenterMap: 'మ్యాప్‌ను మళ్లీ కేంద్రీకరించు',
+  },
 };

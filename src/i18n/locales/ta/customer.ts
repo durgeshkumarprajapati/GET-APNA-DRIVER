@@ -482,4 +482,17 @@ export const customerTa = {
       activePromoCode: 'கிடைக்கும் சலுகை: {{promoName}} (குறியீடு: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'வரைபடத்தில் பார்க்கவும்',
+    openMap: 'நேரலை வரைபடத்தைத் திறக்கவும்',
+    closeMap: 'வரைபடத்தை மூடவும்',
+    currentLocation: 'தற்போதைய இருப்பிடம்',
+    driverLocation: 'ஓட்டுநர் இருப்பிடம்',
+    pickupLocation: 'பிக்கப் இருப்பிடம்',
+    dropoffLocation: 'ட்ராப்ஆஃப் இருப்பிடம்',
+    liveTracking: 'நேரலை கண்காணிப்பு',
+    mapUnavailable: 'வரைபடம் கிடைக்கவில்லை',
+    locationPermissionDenied: 'இருப்பிட அனுமதி மறுக்கப்பட்டது',
+    recenterMap: 'வரைபடத்தை மீண்டும் மையப்படுத்தவும்',
+  },
 };

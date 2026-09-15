@@ -1,33 +1,60 @@
-interface LocationMapLinkProps {
+'use client';
+
+import { useState } from 'react';
+import { LocationMapModal } from '@/components/maps/location-map-modal';
+import type { MapMarkerType } from '@/modules/maps/domain/map-types';
+
+export interface LocationMapLinkProps {
   latitude: number;
   longitude: number;
   label?: string;
+  markerType?: MapMarkerType;
+  title?: string;
 }
 
 /**
- * Minimal map-provider abstraction. No map SDK is integrated in this
- * application yet, and none of the existing pages configure map
- * credentials — rather than couple this feature to a specific paid SDK
- * (Mapbox/Google Maps JS) that would silently break wherever an API key is
- * missing, this renders the coordinates plainly and links out to a
- * credential-free map view. If a real embedded map provider is added later,
- * this is the one place that needs to change.
+ * Reusable map presentation link component.
+ * Opens an embedded same-page GoogleMapModal inside the application.
+ * Does NOT redirect to external Google Maps website or open separate browser tabs.
  */
 export function LocationMapLink({
   latitude,
   longitude,
   label = 'View on map',
+  markerType = 'PICKUP',
+  title = 'Location Map View',
 }: LocationMapLinkProps) {
-  const href = `https://www.google.com/maps?q=${latitude},${longitude}`;
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const marker = {
+    id: `map-link-${latitude}-${longitude}`,
+    position: { latitude, longitude },
+    type: markerType,
+    title: label,
+  };
+
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 text-xs text-[#68dba9] hover:underline font-mono"
-    >
-      <span className="material-symbols-outlined text-sm">location_on</span>
-      {label} ({latitude.toFixed(5)}, {longitude.toFixed(5)})
-    </a>
+    <>
+      <button
+        type="button"
+        onClick={() => setModalOpen(true)}
+        className="inline-flex items-center gap-1.5 text-xs text-[#68dba9] hover:underline font-mono focus:outline-none min-h-[48px] px-2 rounded-lg hover:bg-[#262a33]/40 transition-colors"
+      >
+        <span className="material-symbols-outlined text-sm">location_on</span>
+        <span>{label}</span>
+        <span className="text-[10px] text-[#87948b]">
+          ({latitude.toFixed(4)}, {longitude.toFixed(4)})
+        </span>
+      </button>
+
+      <LocationMapModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={title}
+        subtitle={`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`}
+        markers={[marker]}
+        center={{ latitude, longitude }}
+      />
+    </>
   );
 }

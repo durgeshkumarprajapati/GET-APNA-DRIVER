@@ -6,7 +6,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
-import { LocationMapLink } from '@/components/ui/location-map-link';
+import { GoogleMapCard } from '@/components/maps/google-map-card';
+import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { useActiveBooking } from '@/components/use-active-booking';
 import { useBookingTracking, type TrackedBooking } from '@/components/use-booking-tracking';
 import { formatDateTime } from '@/shared/formatting/date';
@@ -125,33 +126,72 @@ export default function CustomerActiveTrackingPage() {
               </div>
             </section>
 
-            {driverLocation ? (
-              <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2">
-                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Live Driver Location
-                </h2>
-                <LocationMapLink
-                  latitude={driverLocation.latitude}
-                  longitude={driverLocation.longitude}
-                  label="Open driver's location"
-                />
-                <p className="text-[10px] text-[#87948b]">
-                  Last updated {formatDateTime(driverLocation.capturedAt)}
-                  {driverLocation.speed !== null
-                    ? ` • ${driverLocation.speed.toFixed(0)} km/h`
-                    : ''}
-                </p>
+            <section className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>
+                    <span>Live Ride Map</span>
+                  </h2>
+                  {driverLocation && (
+                    <span className="text-[10px] text-[#87948b]">
+                      Updated {formatDateTime(driverLocation.capturedAt)}
+                      {driverLocation.speed !== null ? ` • ${driverLocation.speed.toFixed(0)} km/h` : ''}
+                    </span>
+                  )}
+                </div>
+
+                {(() => {
+                  const markers: MapMarkerDefinition[] = [
+                    {
+                      id: 'pickup',
+                      position: {
+                        latitude: displayBooking.pickupLocation.latitude,
+                        longitude: displayBooking.pickupLocation.longitude,
+                      },
+                      type: 'PICKUP',
+                      title: 'Pickup Location',
+                      snippet: displayBooking.pickupLocation.address,
+                    },
+                  ];
+
+                  if (displayBooking.dropoffLocation) {
+                    markers.push({
+                      id: 'dropoff',
+                      position: {
+                        latitude: displayBooking.dropoffLocation.latitude,
+                        longitude: displayBooking.dropoffLocation.longitude,
+                      },
+                      type: 'DROPOFF',
+                      title: 'Dropoff Location',
+                      snippet: displayBooking.dropoffLocation.address,
+                    });
+                  }
+
+                  if (driverLocation) {
+                    markers.push({
+                      id: 'driver',
+                      position: {
+                        latitude: driverLocation.latitude,
+                        longitude: driverLocation.longitude,
+                      },
+                      type: 'DRIVER',
+                      title: displayBooking.assignedDriver?.displayName
+                        ? `${displayBooking.assignedDriver.displayName}'s Location`
+                        : 'Driver Location',
+                      heading: driverLocation.heading,
+                    });
+                  }
+
+                  return (
+                    <GoogleMapCard
+                      markers={markers}
+                      height="380px"
+                      fitBounds={true}
+                      ariaLabel="Active ride tracking map"
+                    />
+                  );
+                })()}
               </section>
-            ) : (
-              ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'].includes(
-                displayBooking.status,
-              ) && (
-                <EmptyState
-                  icon="location_searching"
-                  message="Waiting for your driver's live location…"
-                />
-              )
-            )}
           </>
         )}
       </div>

@@ -482,4 +482,17 @@ export const customerKn = {
       activePromoCode: 'ಲಭ್ಯವಿರುವ ಪ್ರೋಮೋ: {{promoName}} (ಕೋಡ್: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'ನಕ್ಷೆಯಲ್ಲಿ ನೋಡಿ',
+    openMap: 'ಲೈವ್ ನಕ್ಷೆ ತೆರೆಯಿರಿ',
+    closeMap: 'ನಕ್ಷೆ ಮುಚ್ಚಿ',
+    currentLocation: 'ಪ್ರಸ್ತುತ ಸ್ಥಳ',
+    driverLocation: 'ಚಾಲಕನ ಸ್ಥಳ',
+    pickupLocation: 'ಪಿಕಪ್ ಸ್ಥಳ',
+    dropoffLocation: 'ಡ್ರಾಪ್‌ಆಫ್ ಸ್ಥಳ',
+    liveTracking: 'ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್',
+    mapUnavailable: 'ನಕ್ಷೆ ಲಭ್ಯವಿಲ್ಲ',
+    locationPermissionDenied: 'ಸ್ಥಳದ ಅನುಮತಿ ನಿರಾಕರಿಸಲಾಗಿದೆ',
+    recenterMap: 'ನಕ್ಷೆಯನ್ನು ಮರುಕೇಂದ್ರೀಕರಿಸಿ',
+  },
 };

@@ -4,6 +4,8 @@ import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
+import { GoogleMapCard } from '@/components/maps/google-map-card';
+import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
 import { useTranslation } from '@/i18n/context';
 
@@ -682,6 +684,46 @@ function BookDriverPageInner() {
                   ))}
                 </div>
               )}
+
+              {/* Embedded Google Map Preview */}
+              <div className="mt-2 pt-3 border-t border-[#262a33]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold uppercase text-[#87948b] font-mono flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs text-[#68dba9]">map</span>
+                    <span>Route Location Preview</span>
+                  </span>
+                  <span className="text-[9px] text-[#68dba9] font-mono">LIVE MAP</span>
+                </div>
+                {(() => {
+                  const markers: MapMarkerDefinition[] = [
+                    {
+                      id: 'pickup',
+                      position: { latitude: pickup.latitude, longitude: pickup.longitude },
+                      type: 'PICKUP',
+                      title: 'Pickup Location',
+                      snippet: pickup.address,
+                    },
+                  ];
+                  if (dropoff) {
+                    markers.push({
+                      id: 'dropoff',
+                      position: { latitude: dropoff.latitude, longitude: dropoff.longitude },
+                      type: 'DROPOFF',
+                      title: 'Dropoff Location',
+                      snippet: dropoff.address,
+                    });
+                  }
+                  return (
+                    <GoogleMapCard
+                      markers={markers}
+                      height="200px"
+                      fitBounds={true}
+                      showControls={false}
+                      ariaLabel="Interactive pickup and dropoff map preview"
+                    />
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Trip Configuration Tabs */}
