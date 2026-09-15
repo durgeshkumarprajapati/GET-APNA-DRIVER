@@ -24,10 +24,11 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
     scheduledDate,
     recurrenceFrequency,
     daysOfWeek = [],
-    startAt = new Date(),
+    startAt,
     endAt = null,
     fromTime = new Date(),
   } = input;
+  const effectiveStartAt = startAt ?? fromTime;
 
   const timeMatch = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/.exec(scheduledTime.trim());
   if (!timeMatch) {
@@ -40,7 +41,7 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
   const minutes = parseInt(timeMatch[2], 10);
 
   if (scheduleType === ScheduleType.ONE_TIME) {
-    const baseDate = scheduledDate ? new Date(scheduledDate) : new Date(startAt);
+    const baseDate = scheduledDate ? new Date(scheduledDate) : new Date(effectiveStartAt);
     if (isNaN(baseDate.getTime())) {
       throw new InvalidRecurrenceConfigurationError(
         'Invalid scheduledDate provided for ONE_TIME schedule.',
@@ -73,7 +74,7 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
     targetDays = [1, 2, 3, 4, 5, 6, 7];
   } else if (recurrenceFrequency === RecurrenceFrequency.WEEKLY) {
     if (targetDays.length === 0) {
-      const startDay = getIsoDayOfWeek(startAt);
+      const startDay = getIsoDayOfWeek(effectiveStartAt);
       targetDays = [startDay];
     }
   } else if (recurrenceFrequency === RecurrenceFrequency.CUSTOM_DAYS) {
@@ -88,7 +89,7 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
   targetDays = targetDays.map((d) => (d === 0 ? 7 : d)).filter((d) => d >= 1 && d <= 7);
 
   // Search forward up to 366 days
-  const cursor = new Date(fromTime > startAt ? fromTime : startAt);
+  const cursor = new Date(fromTime > effectiveStartAt ? fromTime : effectiveStartAt);
   cursor.setSeconds(0, 0);
 
   for (let dayOffset = 0; dayOffset <= 366; dayOffset++) {

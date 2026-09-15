@@ -59,12 +59,10 @@ describe('ScheduledRideGenerator Unit Tests', () => {
         create: jest.fn().mockResolvedValue({ id: 'log-1' }),
       },
       booking: {
-        create: jest
-          .fn()
-          .mockResolvedValue({
-            id: 'booking-generated-101',
-            status: BookingStatus.SEARCHING_DRIVER,
-          }),
+        create: jest.fn().mockResolvedValue({
+          id: 'booking-generated-101',
+          status: BookingStatus.SEARCHING_DRIVER,
+        }),
       },
       scheduledRide: {
         update: jest

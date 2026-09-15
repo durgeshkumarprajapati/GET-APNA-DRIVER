@@ -1941,18 +1941,86 @@ model Referral {
   referredUserId  String         @unique @map("referred_user_id") @db.Uuid
   referredUser    User           @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
   codeUsed        String         @map("code_used")
-  status          ReferralStatus @default(PENDING)
-  rewardAmount    Decimal?       @map("reward_amount") @db.Decimal(19, 4)
-  rejectionReason String?        @map("rejection_reason")
-  qualifiedAt     DateTime?      @map("qualified_at") @db.Timestamptz(6)
-  rewardedAt      DateTime?      @map("rewarded_at") @db.Timestamptz(6)
+  campaignId          String?           @map("campaign_id") @db.Uuid
+  campaign            ReferralCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  channel             String?           @default("CODE")
+  status              ReferralStatus    @default(PENDING)
+  rewardAmount        Decimal?          @map("reward_amount") @db.Decimal(19, 4)
+  refereeRewardAmount Decimal?          @map("referee_reward_amount") @db.Decimal(19, 4)
+  rejectionReason     String?           @map("rejection_reason")
+  qualifiedAt         DateTime?         @map("qualified_at") @db.Timestamptz(6)
+  rewardedAt          DateTime?         @map("rewarded_at") @db.Timestamptz(6)
+  refereeRewardedAt   DateTime?         @map("referee_rewarded_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([referrerUserId])
+  @@index([campaignId])
   @@index([status])
   @@map("referrals")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 39: Referral 2.0 Growth, Acquisition & Referral Campaign Engine
+// ---------------------------------------------------------------------------
+
+enum ReferralCampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+
+  @@map("referral_campaign_status")
+}
+
+enum ReferralAudience {
+  ALL
+  CUSTOMER
+  DRIVER
+
+  @@map("referral_audience")
+}
+
+enum ReferralRewardType {
+  MONETARY
+  LOYALTY_POINTS
+  PROMOTION_DISCOUNT
+
+  @@map("referral_reward_type")
+}
+
+/// Growth campaign definition for referral rewards and acquisition rules.
+model ReferralCampaign {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                   String                 @unique
+  name                   String
+  description            String?
+  status                 ReferralCampaignStatus @default(DRAFT)
+  audience               ReferralAudience       @default(ALL)
+  rewardType             ReferralRewardType     @default(MONETARY) @map("reward_type")
+  referrerRewardValue    Decimal                @map("referrer_reward_value") @db.Decimal(19, 4)
+  refereeRewardValue     Decimal?               @map("referee_reward_value") @db.Decimal(19, 4)
+  maxRewardsTotal        Int?                   @map("max_rewards_total")
+  maxRewardsPerUser      Int?                   @map("max_rewards_per_user")
+  currentRewardCount     Int                    @default(0) @map("current_reward_count")
+  currentRewardSpent     Decimal                @default(0) @map("current_reward_spent") @db.Decimal(19, 4)
+  qualificationTrigger   String                 @default("CUSTOMER_FIRST_TRIP") @map("qualification_trigger")
+  qualificationMinTrips  Int                    @default(1) @map("qualification_min_trips")
+  qualificationMinAmount Decimal?               @map("qualification_min_amount") @db.Decimal(19, 4)
+  startsAt               DateTime?              @map("starts_at") @db.Timestamptz(6)
+  endsAt                 DateTime?              @map("ends_at") @db.Timestamptz(6)
+
+  referrals Referral[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([audience])
+  @@index([startsAt, endsAt])
+  @@map("referral_campaigns")
 }
 
 // ---------------------------------------------------------------------------
