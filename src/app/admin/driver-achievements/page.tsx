@@ -44,9 +44,8 @@ export default function AdminDriverAchievementsPage() {
     active: true,
   });
 
-  const loadData = async () => {
+  const fetchAdminData = async () => {
     try {
-      setLoading(true);
       const res = await fetch('/api/admin/driver-achievements');
       if (res.ok) {
         const data = await res.json();
@@ -66,7 +65,33 @@ export default function AdminDriverAchievementsPage() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const res = await fetch('/api/admin/driver-achievements');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setDefinitions(data.data.definitions ?? []);
+            setSummary({
+              totalUnlocks: data.data.totalUnlocks ?? 0,
+              activeStreaks: data.data.activeStreaks ?? 0,
+            });
+          }
+        } else {
+          if (isMounted) setError('Failed to fetch admin achievement data');
+        }
+      } catch (err) {
+        if (isMounted) setError(err instanceof Error ? err.message : 'Error loading admin data');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
     void loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleOpenCreateModal = () => {
@@ -110,7 +135,7 @@ export default function AdminDriverAchievementsPage() {
 
       if (res.ok) {
         setIsModalOpen(false);
-        await loadData();
+        await fetchAdminData();
       } else {
         const errData = await res.json();
         alert(errData.error || 'Failed to save achievement definition');

@@ -13,7 +13,7 @@ interface AchievementItem {
   targetValue: number;
   icon: string;
   rewardType: string | null;
-  rewardMetadata: any;
+  rewardMetadata: Record<string, unknown> | null;
   currentValue: number;
   isUnlocked: boolean;
   unlockedAt: string | null;
