@@ -490,4 +490,17 @@ export const customerEn = {
       activePromoCode: 'Available promo: {{promoName}} (Code: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'View on Map',
+    openMap: 'Open Live Map',
+    closeMap: 'Close Map',
+    currentLocation: 'Current Location',
+    driverLocation: 'Driver Location',
+    pickupLocation: 'Pickup Location',
+    dropoffLocation: 'Dropoff Location',
+    liveTracking: 'Live Tracking',
+    mapUnavailable: 'Map Unavailable',
+    locationPermissionDenied: 'Location Permission Denied',
+    recenterMap: 'Recenter Map',
+  },
 };

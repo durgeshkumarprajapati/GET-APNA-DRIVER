@@ -6,6 +6,8 @@ import { DriverLayout } from '@/components/driver-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { RidePinModal } from '@/components/driver/ride-pin-modal';
+import { GoogleMapCard } from '@/components/maps/google-map-card';
+import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { DirectCallResponse } from '@/modules/calling/domain/types';
 
 interface DriverBookingDetail {
@@ -366,6 +368,31 @@ export default function DriverJourneyControlPage({
                 Lat: {booking.pickupLocation.latitude.toFixed(6)}, Lng:{' '}
                 {booking.pickupLocation.longitude.toFixed(6)}
               </p>
+              <div className="mt-3">
+                {(() => {
+                  const markers: MapMarkerDefinition[] = [
+                    {
+                      id: 'pickup',
+                      position: {
+                        latitude: booking.pickupLocation.latitude,
+                        longitude: booking.pickupLocation.longitude,
+                      },
+                      type: 'PICKUP',
+                      title: 'Customer Pickup Location',
+                      snippet: booking.pickupLocation.address,
+                    },
+                  ];
+                  return (
+                    <GoogleMapCard
+                      markers={markers}
+                      height="260px"
+                      fitBounds={true}
+                      showControls={true}
+                      ariaLabel="Customer pickup map for driver"
+                    />
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Fare & Driver Earnings Financial Breakdown */}

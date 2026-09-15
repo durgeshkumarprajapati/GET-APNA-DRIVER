@@ -485,4 +485,17 @@ export const customerMr = {
       activePromoCode: 'उपलब्ध प्रोमो: {{promoName}} (कोड: {{code}}).',
     },
   },
+  maps: {
+    viewMap: 'नकाशावर पहा',
+    openMap: 'थेट नकाशा उघडा',
+    closeMap: 'नकाशा बंद करा',
+    currentLocation: 'सध्याचे स्थान',
+    driverLocation: 'चालकाचे स्थान',
+    pickupLocation: 'पिकअप स्थान',
+    dropoffLocation: 'ड्रॉपऑफ स्थान',
+    liveTracking: 'थेट ट्रॅकिंग',
+    mapUnavailable: 'नकाशा उपलब्ध नाही',
+    locationPermissionDenied: 'स्थान परवानगी नाकारली',
+    recenterMap: 'नकाशा पुन्हा केंद्रित करा',
+  },
 };

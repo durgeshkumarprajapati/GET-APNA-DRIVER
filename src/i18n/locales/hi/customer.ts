@@ -493,4 +493,17 @@ export const customerHi = {
       activePromoCode: 'उपलब्ध प्रोमो: {{promoName}} (कोड: {{code}})।',
     },
   },
+  maps: {
+    viewMap: 'मानचित्र पर देखें',
+    openMap: 'लाइव मानचित्र खोलें',
+    closeMap: 'मानचित्र बंद करें',
+    currentLocation: 'वर्तमान स्थान',
+    driverLocation: 'ड्राइवर का स्थान',
+    pickupLocation: 'पिकअप स्थान',
+    dropoffLocation: 'ड्रॉपऑफ स्थान',
+    liveTracking: 'लाइव ट्रैकिंग',
+    mapUnavailable: 'मानचित्र अनुपलब्ध है',
+    locationPermissionDenied: 'स्थान अनुमति अस्वीकृत',
+    recenterMap: 'मानचित्र पुनः केंद्रित करें',
+  },
 };

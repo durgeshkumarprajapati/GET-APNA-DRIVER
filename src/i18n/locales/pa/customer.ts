@@ -482,4 +482,17 @@ export const customerPa = {
       activePromoCode: 'ਉਪਲਬਧ ਪ੍ਰੋਮੋ: {{promoName}} (ਕੋਡ: {{code}})।',
     },
   },
+  maps: {
+    viewMap: 'ਨਕਸ਼ੇ ਤੇ ਵੇਖੋ',
+    openMap: 'ਲਾਈਵ ਨਕਸ਼ਾ ਖੋਲ੍ਹੋ',
+    closeMap: 'ਨਕਸ਼ਾ ਬੰਦ ਕਰੋ',
+    currentLocation: 'ਮੌਜੂਦਾ ਸਥਾਨ',
+    driverLocation: 'ਡਰਾਈਵਰ ਦਾ ਸਥਾਨ',
+    pickupLocation: 'ਪਿਕਅੱਪ ਸਥਾਨ',
+    dropoffLocation: 'ਡ੍ਰੌਪਆਫ ਸਥਾਨ',
+    liveTracking: 'ਲਾਈਵ ਟ੍ਰੈਕਿੰਗ',
+    mapUnavailable: 'ਨਕਸ਼ਾ ਉਪਲਬਧ ਨਹੀਂ ਹੈ',
+    locationPermissionDenied: 'ਸਥਾਨ ਦੀ ਇਜਾਜ਼ਤ ਰੱਦ ਕੀਤੀ ਗਈ',
+    recenterMap: 'ਨਕਸ਼ੇ ਨੂੰ ਮੁੜ ਕੇਂਦਰਿਤ ਕਰੋ',
+  },
 };

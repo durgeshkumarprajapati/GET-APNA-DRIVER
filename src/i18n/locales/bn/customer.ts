@@ -482,4 +482,17 @@ export const customerBn = {
       activePromoCode: 'উপলব্ধ প্রোমো: {{promoName}} (কোড: {{code}})।',
     },
   },
+  maps: {
+    viewMap: 'মানচিত্রে দেখুন',
+    openMap: 'লাইভ মানচিত্র খুলুন',
+    closeMap: 'মানচিত্র বন্ধ করুন',
+    currentLocation: 'বর্তমান স্থান',
+    driverLocation: 'ড্রাইভারের স্থান',
+    pickupLocation: 'পিকআপ স্থান',
+    dropoffLocation: 'ড্রপঅফ স্থান',
+    liveTracking: 'লাইভ ট্র্যাকিং',
+    mapUnavailable: 'মানচিত্র উপলব্ধ নেই',
+    locationPermissionDenied: 'অবস্থানের অনুমতি প্রত্যাখ্যান করা হয়েছে',
+    recenterMap: 'মানচিত্র পুনরায় কেন্দ্র করুন',
+  },
 };
