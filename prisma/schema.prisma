@@ -107,6 +107,11 @@ model User {
   customerLoyaltyAccount  CustomerLoyaltyAccount?  @relation("CustomerLoyaltyAccount")
   adminLoyaltyAdjustments LoyaltyPointTransaction[] @relation("AdminLoyaltyAdjustments")
   scheduledRides          ScheduledRide[]          @relation("CustomerScheduledRides")
+  organizationMemberships    OrganizationMember[]
+  organizationInvitationsSent OrganizationInvitation[]     @relation("InvitedByUsers")
+  bookedForBookings          Booking[]                    @relation("BookedForUserBookings")
+  approvalRequestsSubmitted  CorporateApprovalRequest[]  @relation("RequesterUsers")
+  approvalRequestsReviewed   CorporateApprovalRequest[]  @relation("ApproverUsers")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -855,8 +860,22 @@ model Booking {
   scheduledRide            ScheduledRide?             @relation("GeneratedBookings", fields: [scheduledRideId], references: [id], onDelete: SetNull)
   scheduledRideOccurrences ScheduledRideOccurrenceLog[]
 
+  // Corporate / Business Travel extension fields
+  organizationId    String?                   @map("organization_id") @db.Uuid
+  organization      Organization?             @relation("OrganizationBookings", fields: [organizationId], references: [id], onDelete: SetNull)
+  bookedForUserId   String?                   @map("booked_for_user_id") @db.Uuid
+  bookedForUser     User?                     @relation("BookedForUserBookings", fields: [bookedForUserId], references: [id], onDelete: SetNull)
+  costCenterId      String?                   @map("cost_center_id") @db.Uuid
+  costCenter        OrganizationCostCenter?   @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
+  departmentId      String?                   @map("department_id") @db.Uuid
+  department        OrganizationDepartment?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  businessPurpose   String?                   @map("business_purpose")
+  approvalRequestId String?                   @map("approval_request_id") @db.Uuid
+  approvalRequest   CorporateApprovalRequest? @relation(fields: [approvalRequestId], references: [id], onDelete: SetNull)
+
   @@index([customerId, status])
   @@index([driverProfileId, status])
+  @@index([organizationId, status])
   @@index([scheduledRideId])
   @@index([status, createdAt])
   @@map("bookings")
@@ -2824,5 +2843,235 @@ model DriverStreak {
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("driver_streaks")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 41: Production Corporate / Business Accounts & Fleet Management
+// ---------------------------------------------------------------------------
+
+enum OrganizationStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum OrganizationMemberRole {
+  OWNER
+  ADMIN
+  TRAVEL_MANAGER
+  APPROVER
+  FINANCE
+  MEMBER
+}
+
+enum OrganizationMemberStatus {
+  INVITED
+  ACTIVE
+  DEACTIVATED
+}
+
+enum PolicyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+/// Corporate / Business organization entity.
+model Organization {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  slug           String             @unique
+  legalName      String?            @map("legal_name")
+  gstin          String?
+  pan            String?
+  billingEmail   String             @map("billing_email")
+  billingPhone   String?            @map("billing_phone")
+  domain         String?
+  status         OrganizationStatus @default(ACTIVE)
+  creditLimit    Decimal            @default(0.0000) @map("credit_limit") @db.Decimal(12, 4)
+  currentBalance Decimal            @default(0.0000) @map("current_balance") @db.Decimal(12, 4)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  members          OrganizationMember[]
+  departments      OrganizationDepartment[]
+  costCenters      OrganizationCostCenter[]
+  travelPolicies   OrganizationTravelPolicy[]
+  approvalRequests CorporateApprovalRequest[]
+  bookings         Booking[]                  @relation("OrganizationBookings")
+  billingProfile   CorporateBillingProfile?
+  invitations      OrganizationInvitation[]
+
+  @@map("organizations")
+}
+
+/// Membership binding a User identity to an Organization with role and department/cost-center.
+model OrganizationMember {
+  id             String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                   @map("organization_id") @db.Uuid
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String                   @map("user_id") @db.Uuid
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           OrganizationMemberRole   @default(MEMBER)
+  status         OrganizationMemberStatus @default(ACTIVE)
+  employeeCode   String?                  @map("employee_code")
+  designation    String?
+
+  departmentId   String?                  @map("department_id") @db.Uuid
+  department     OrganizationDepartment?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  costCenterId   String?                  @map("cost_center_id") @db.Uuid
+  costCenter     OrganizationCostCenter?  @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
+
+  joinedAt  DateTime? @map("joined_at") @db.Timestamptz(6)
+  removedAt DateTime? @map("removed_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([organizationId, userId])
+  @@index([userId, status])
+  @@index([organizationId, role])
+  @@map("organization_members")
+}
+
+/// Department structure within an Organization.
+model OrganizationDepartment {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  code           String
+  name           String
+  description    String?
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  members  OrganizationMember[]
+  bookings Booking[]
+
+  @@unique([organizationId, code])
+  @@map("organization_departments")
+}
+
+/// Cost Center allocation within an Organization.
+model OrganizationCostCenter {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  code           String
+  name           String
+  description    String?
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  members  OrganizationMember[]
+  bookings Booking[]
+
+  @@unique([organizationId, code])
+  @@map("organization_cost_centers")
+}
+
+/// Travel policy defining fare, distance, vehicle categories, and approval constraints.
+model OrganizationTravelPolicy {
+  id                         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId             String       @map("organization_id") @db.Uuid
+  organization               Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                       String
+  description                String?
+  isDefault                  Boolean      @default(false) @map("is_default")
+  maxFareAmount              Decimal?     @map("max_fare_amount") @db.Decimal(12, 4)
+  maxDistanceKm              Float?       @map("max_distance_km")
+  allowedVehicleCategories   Json?        @map("allowed_vehicle_categories") @db.JsonB
+  requireApprovalAboveAmount Decimal?     @map("require_approval_above_amount") @db.Decimal(12, 4)
+  requireApprovalAllRides    Boolean      @default(false) @map("require_approval_all_rides")
+  allowAdvanceBookingHours   Int?         @map("allow_advance_booking_hours")
+  allowedBookingDays         Json?        @map("allowed_booking_days") @db.JsonB
+  monthlyEmployeeSpendLimit  Decimal?     @map("monthly_employee_spend_limit") @db.Decimal(12, 4)
+  status                     PolicyStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([organizationId, status])
+  @@map("organization_travel_policies")
+}
+
+/// Concurrency-safe corporate travel approval request.
+model CorporateApprovalRequest {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId    String         @map("organization_id") @db.Uuid
+  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requesterUserId   String         @map("requester_user_id") @db.Uuid
+  requesterUser     User           @relation("RequesterUsers", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  approverUserId    String?        @map("approver_user_id") @db.Uuid
+  approverUser      User?          @relation("ApproverUsers", fields: [approverUserId], references: [id], onDelete: SetNull)
+  status            ApprovalStatus @default(PENDING)
+  bookingParameters Json           @map("booking_parameters") @db.JsonB
+  policyViolations  Json?          @map("policy_violations") @db.JsonB
+  reason            String?
+  reviewComment     String?        @map("review_comment")
+  requestedAt       DateTime       @default(now()) @map("requested_at") @db.Timestamptz(6)
+  reviewedAt        DateTime?      @map("reviewed_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bookings Booking[]
+
+  @@index([organizationId, status, requestedAt])
+  @@index([requesterUserId, status])
+  @@map("corporate_approval_requests")
+}
+
+/// Corporate billing configuration and tax profile.
+model CorporateBillingProfile {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String       @unique @map("organization_id") @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  legalName      String       @map("legal_name")
+  billingAddress String       @map("billing_address")
+  gstin          String?
+  billingEmail   String       @map("billing_email")
+  paymentTermDays Int         @default(30) @map("payment_term_days")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("corporate_billing_profiles")
+}
+
+/// Invitation record storing hashed token for secure employee onboarding.
+model OrganizationInvitation {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String                 @map("organization_id") @db.Uuid
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  invitedByUserId String                @map("invited_by_user_id") @db.Uuid
+  invitedByUser   User                  @relation("InvitedByUsers", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  role           OrganizationMemberRole @default(MEMBER)
+  tokenHash      String                 @unique @map("token_hash")
+  status         InvitationStatus       @default(PENDING)
+  expiresAt      DateTime               @map("expires_at") @db.Timestamptz(6)
+  acceptedAt     DateTime?              @map("accepted_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([organizationId, status])
+  @@map("organization_invitations")
 }
 

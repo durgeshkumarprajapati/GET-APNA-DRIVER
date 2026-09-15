@@ -67,6 +67,11 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
           label: t('customer.nav.referral'),
           icon: 'featured_seasonal_and_gifts',
         },
+        {
+          href: '/corporate/dashboard',
+          label: t('corporate.nav.portal', { defaultValue: 'Corporate Travel' }),
+          icon: 'domain',
+        },
       ],
     },
     {

@@ -936,6 +936,113 @@ async function seedDriverAchievements(): Promise<void> {
   }
 
   console.log('Phase 39 Referral Seed Completed.');
+  await seedPhase41CorporateData();
+}
+
+async function seedPhase41CorporateData(): Promise<void> {
+  console.log('Seeding Phase 41 Corporate & Business Accounts Data...');
+
+  const customerIdentity = await findIdentityByEmail(prisma, 'customer@getapnadriver.local');
+
+  if (!customerIdentity) {
+    console.log('Skipping corporate seeding: customer user identity not found.');
+    return;
+  }
+
+  const customerUserId = customerIdentity.userId;
+
+  // 1. Create or find Organization
+  let org = await prisma.organization.findFirst({
+    where: { billingEmail: 'billing@acme.com' },
+  });
+
+  if (!org) {
+    org = await prisma.organization.create({
+      data: {
+        name: 'Acme Mobility Pvt Ltd',
+        slug: 'acme-mobility-101',
+        legalName: 'Acme Mobility Private Limited',
+        gstin: '27AAACA12341Z5',
+        billingEmail: 'billing@acme.com',
+        billingPhone: '+91 98765 43210',
+        status: 'ACTIVE',
+        creditLimit: 100000,
+        currentBalance: 0,
+      },
+    });
+  }
+
+  // 2. Member binding
+  await prisma.organizationMember.upsert({
+    where: {
+      organizationId_userId: {
+        organizationId: org.id,
+        userId: customerUserId,
+      },
+    },
+    create: {
+      organizationId: org.id,
+      userId: customerUserId,
+      role: 'OWNER',
+      status: 'ACTIVE',
+      joinedAt: new Date(),
+    },
+    update: {},
+  });
+
+  // 3. Departments
+  await prisma.organizationDepartment.upsert({
+    where: { organizationId_code: { organizationId: org.id, code: 'ENG' } },
+    create: { organizationId: org.id, code: 'ENG', name: 'Engineering & Tech', description: 'R&D and Software Team' },
+    update: {},
+  });
+
+  await prisma.organizationDepartment.upsert({
+    where: { organizationId_code: { organizationId: org.id, code: 'SLS' } },
+    create: { organizationId: org.id, code: 'SLS', name: 'Sales & BD', description: 'Enterprise Sales Team' },
+    update: {},
+  });
+
+  // 4. Cost Centers
+  await prisma.organizationCostCenter.upsert({
+    where: { organizationId_code: { organizationId: org.id, code: 'CC-ENG-01' } },
+    create: { organizationId: org.id, code: 'CC-ENG-01', name: 'Engineering Operations', description: 'Tech Travel Budget' },
+    update: {},
+  });
+
+  // 5. Default Travel Policy
+  await prisma.organizationTravelPolicy.upsert({
+    where: { id: org.id },
+    create: {
+      organizationId: org.id,
+      name: 'Standard Acme Travel Policy',
+      description: 'Default fare caps and approval rules for Acme employees',
+      isDefault: true,
+      maxFareAmount: 5000,
+      maxDistanceKm: 150,
+      allowedVehicleCategories: ['SEDAN', 'HATCHBACK', 'SUV'],
+      requireApprovalAboveAmount: 3000,
+      requireApprovalAllRides: false,
+      status: 'ACTIVE',
+    },
+    update: {},
+  });
+
+  // 6. Corporate Billing Profile
+  await prisma.corporateBillingProfile.upsert({
+    where: { organizationId: org.id },
+    create: {
+      organizationId: org.id,
+      legalName: 'Acme Mobility Private Limited',
+      billingAddress: 'Plot 42, Bandra Kurla Complex, Mumbai, Maharashtra 400051',
+      gstin: '27AAACA12341Z5',
+      billingEmail: 'billing@acme.com',
+      paymentTermDays: 30,
+    },
+    update: {},
+  });
+
+  console.log('Phase 41 Corporate Seeding Completed.');
 }
 
 main()
@@ -946,3 +1053,4 @@ main()
   .finally(() => {
     void prisma.$disconnect();
   });
+

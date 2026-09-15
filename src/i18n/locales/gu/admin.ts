@@ -18,6 +18,7 @@ export const adminGu = {
     driverDirectory: 'ડ્રાઇવર ડિરેક્ટરી',
     verificationQueue: 'ચકાસણી કતાર',
     adminAccessAndRbac: 'એડમિન એક્સેસ અને આરબીએસી',
+    corporateAccounts: 'કોર્પોરેટ ખાતાઓ',
     operations: 'કામગીરી',
     liveBookings: 'લાઈવ બુકિંગ્સ',
     sosAndDisputes: 'એસઓએસ અને વિવાદો',

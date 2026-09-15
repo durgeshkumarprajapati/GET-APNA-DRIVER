@@ -138,6 +138,20 @@ export const PERMISSIONS = {
   ADMIN_REFERRAL_READ: 'admin.referral.read',
   ADMIN_REFERRAL_MANAGE: 'admin.referral.manage',
 
+  // Corporate / Business Accounts (Phase 41 domain & admin)
+  CORPORATE_ORGANIZATION_READ: 'corporate.organization.read',
+  CORPORATE_ORGANIZATION_MANAGE: 'corporate.organization.manage',
+  CORPORATE_MEMBERS_READ: 'corporate.members.read',
+  CORPORATE_MEMBERS_MANAGE: 'corporate.members.manage',
+  CORPORATE_POLICIES_READ: 'corporate.policies.read',
+  CORPORATE_POLICIES_MANAGE: 'corporate.policies.manage',
+  CORPORATE_APPROVALS_READ: 'corporate.approvals.read',
+  CORPORATE_APPROVALS_MANAGE: 'corporate.approvals.manage',
+  CORPORATE_BOOKINGS_READ: 'corporate.bookings.read',
+  CORPORATE_BOOKINGS_CREATE: 'corporate.bookings.create',
+  CORPORATE_REPORTS_READ: 'corporate.reports.read',
+  ADMIN_CORPORATE_MANAGE: 'admin.corporate.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -450,5 +464,53 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_REFERRAL_MANAGE,
     description: 'Create and configure referral growth campaigns and rules (admin).',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_ORGANIZATION_READ,
+    description: 'View corporate organization details and profile.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_ORGANIZATION_MANAGE,
+    description: 'Manage corporate organization profile and settings.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_MEMBERS_READ,
+    description: 'View corporate members, departments, and cost centers.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_MEMBERS_MANAGE,
+    description: 'Invite, update, or remove corporate organization members.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_POLICIES_READ,
+    description: 'View corporate travel policies.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_POLICIES_MANAGE,
+    description: 'Create and update corporate travel rules and spend limits.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_APPROVALS_READ,
+    description: 'View corporate ride approval requests.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_APPROVALS_MANAGE,
+    description: 'Approve or reject employee corporate ride requests.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_BOOKINGS_READ,
+    description: 'View corporate rides and travel history.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_BOOKINGS_CREATE,
+    description: 'Book rides under a corporate business account profile.',
+  },
+  {
+    code: PERMISSIONS.CORPORATE_REPORTS_READ,
+    description: 'View corporate travel spend, department analytics, and export reports.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_CORPORATE_MANAGE,
+    description: 'Platform-wide corporate account administration and verification (admin).',
   },
 ];

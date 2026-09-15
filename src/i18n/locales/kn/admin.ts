@@ -18,6 +18,7 @@ export const adminKn = {
     driverDirectory: 'ಚಾಲಕರ ಪಟ್ಟಿ',
     verificationQueue: 'ಪರಿಶೀಲನೆ ಸರದಿ',
     adminAccessAndRbac: 'ಅಡ್ಮಿನ್ ಪ್ರವೇಶ & RBAC',
+    corporateAccounts: 'ಕಾರ್ಪೊರೇಟ್ ಖಾತೆಗಳು',
     operations: 'ಕಾರ್ಯಾಚರಣೆಗಳು',
     liveBookings: 'ಲೈವ್ ಬುಕಿಂಗ್‌ಗಳು',
     sosAndDisputes: 'SOS & ದೂರುಗಳು',

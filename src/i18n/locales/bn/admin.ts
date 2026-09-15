@@ -18,6 +18,7 @@ export const adminBn = {
     driverDirectory: 'ড্রাইভার তালিকা',
     verificationQueue: 'যাচাইকরণ সারি',
     adminAccessAndRbac: 'এডমিন অ্যাক্সেস ও RBAC',
+    corporateAccounts: 'করপোরেট অ্যাকাউন্ট',
     operations: 'অপারেশনস',
     liveBookings: 'লাইভ বুকিং সমূহ',
     sosAndDisputes: 'SOS ও বিরোধসমূহ',

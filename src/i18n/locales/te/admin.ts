@@ -18,6 +18,7 @@ export const adminTe = {
     driverDirectory: 'డ్రైవర్ డైరెక్టరీ',
     verificationQueue: 'వెరిఫికేషన్ క్యూ',
     adminAccessAndRbac: 'అడ్మిన్ యాక్సెస్ & RBAC',
+    corporateAccounts: 'కార్పొరేట్ ఖాతాలు',
     operations: 'ఆపరేషన్స్',
     liveBookings: 'లైవ్ బుకింగ్‌లు',
     sosAndDisputes: 'SOS & ఫిర్యాదులు',
