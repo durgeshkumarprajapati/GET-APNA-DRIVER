@@ -163,4 +163,19 @@ export const driverTa = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'ஸ்மார்ட் பிக்கப் உதவி',
+    viewPickupMap: 'பிக்கப் இருப்பிட வரைபடத்தைக் காண்க',
+    customerPickupTitle: 'வாடிக்கையாளர் பிக்கப் இருப்பிடம்',
+    incentiveProgress: 'ஊக்கத்தொகை இலக்கு முன்னேற்றம்',
+    completedRides: 'முடிந்த பயணங்கள்: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} போனஸ்',
+    freshnessLive: 'நேரலை இருப்பிடம்',
+    freshnessRecent: 'சமீபத்திய',
+    freshnessStale: 'பழைய புதுப்பிப்பு',
+    freshnessUnavailable: 'கிடைக்கவில்லை',
+    support: 'ஆதரவு',
+    copilotAssistant: 'கோபைலட் உதவி',
+  },
 };
+

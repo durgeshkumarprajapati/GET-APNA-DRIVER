@@ -164,4 +164,19 @@ export const driverKn = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'ಸ್ಮಾರ್ಟ್ ಪಿಕಪ್ ಸಹಾಯಕ',
+    viewPickupMap: 'ಪಿಕಪ್ ಸ್ಥಳದ ನಕ್ಷೆ ವೀಕ್ಷಿಸಿ',
+    customerPickupTitle: 'ಗ್ರಾಹಕರ ಪಿಕಪ್ ಸ್ಥಳ',
+    incentiveProgress: 'ಪ್ರೋತ್ಸಾಹಕ ಗುರಿ ಪ್ರಗತಿ',
+    completedRides: 'ಪೂರ್ಣಗೊಂಡ ಸವಾರಿಗಳು: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} ಬೋನಸ್',
+    freshnessLive: 'ಲೈವ್ ಸ್ಥಳ',
+    freshnessRecent: 'ಇತ್ತೀಚಿನ',
+    freshnessStale: 'ಹಳೆಯ ನವೀಕರಣ',
+    freshnessUnavailable: 'ಲಭ್ಯವಿಲ್ಲ',
+    support: 'ಬೆಂಬಲ',
+    copilotAssistant: 'ಕೋಪೈಲಟ್ ಸಹಾಯಕ',
+  },
 };
+

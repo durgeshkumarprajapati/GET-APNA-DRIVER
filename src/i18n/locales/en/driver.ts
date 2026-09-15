@@ -164,4 +164,19 @@ export const driverEn = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'Smart Pickup Assistant',
+    viewPickupMap: 'View Pickup Location Map',
+    customerPickupTitle: 'Customer Pickup Location',
+    incentiveProgress: 'Incentive Target Progress',
+    completedRides: 'Completed Rides: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} Bonus',
+    freshnessLive: 'LIVE LOCATION',
+    freshnessRecent: 'RECENT',
+    freshnessStale: 'STALE UPDATE',
+    freshnessUnavailable: 'UNAVAILABLE',
+    support: 'Support',
+    copilotAssistant: 'Copilot Assistant',
+  },
 };
+

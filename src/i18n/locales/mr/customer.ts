@@ -504,4 +504,22 @@ export const customerMr = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'स्मार्ट ट्रिप इंटेलिजन्स',
+    driverApproaching: 'चालक पिकअपच्या जवळ येत आहे',
+    driverArrived: 'चालक पोहोचला आहे',
+    tripInProgress: 'ट्रिप सुरू आहे',
+    destinationNear: 'गंतव्यस्थानाच्या जवळ',
+    tripCompleted: 'ट्रिप पूर्ण झाली',
+    delayNotice: 'आम्हाला अलीकडील स्थान अपडेट प्राप्त झालेले नाही.',
+    freshnessLive: 'थेट स्थान',
+    freshnessRecent: 'अलीकडील',
+    freshnessStale: 'जुने अपडेट',
+    freshnessUnavailable: 'अनुपलब्ध',
+    viewLiveLocation: 'थेट नकाशा आणि चालकाचे स्थान पहा',
+    callDriver: 'चालकाला कॉल करा',
+    contactSupport: 'सपोर्टशी संपर्क साधा',
+    bookAgain: 'पुन्हा बुक करा',
+  },
 };
+

@@ -163,4 +163,19 @@ export const driverMl = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'സ്മാർട്ട് പിക്കപ്പ് അസിസ്റ്റന്റ്',
+    viewPickupMap: 'പിക്കപ്പ് ലൊക്കേഷൻ മാപ്പ് കാണുക',
+    customerPickupTitle: 'കസ്റ്റമർ പിക്കപ്പ് സ്ഥലം',
+    incentiveProgress: 'ഇൻസെന്റീവ് ലക്ഷ്യ പുരോഗതി',
+    completedRides: 'പൂർത്തിയായ റൈഡുകൾ: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} ബോണസ്',
+    freshnessLive: 'ലൈവ് ലൊക്കേഷൻ',
+    freshnessRecent: 'സമീപകാലം',
+    freshnessStale: 'പഴയ അപ്ഡേറ്റ്',
+    freshnessUnavailable: 'ലഭ്യമല്ല',
+    support: 'സപ്പോർട്ട്',
+    copilotAssistant: 'കോപൈലറ്റ് അസിസ്റ്റന്റ്',
+  },
 };
+

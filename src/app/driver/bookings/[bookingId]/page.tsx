@@ -38,6 +38,9 @@ interface BookingReview {
   createdAt: string;
 }
 
+import { SmartPickupAssistant } from '@/components/trip-intelligence/SmartPickupAssistant';
+import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-intelligence-types';
+
 export default function DriverJourneyControlPage({
   params,
 }: {
@@ -52,6 +55,17 @@ export default function DriverJourneyControlPage({
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [review, setReview] = useState<BookingReview | null>(null);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
+
+  useEffect(() => {
+    if (!bookingId) return;
+    fetch(`/api/driver/bookings/${bookingId}/trip-intelligence`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.intelligence) setIntelligence(data.intelligence);
+      })
+      .catch(() => {});
+  }, [bookingId]);
 
   const [callingCustomer, setCallingCustomer] = useState(false);
   const [customerCallData, setCustomerCallData] = useState<DirectCallResponse | null>(null);
@@ -197,6 +211,9 @@ export default function DriverJourneyControlPage({
   return (
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
+        {intelligence && (
+          <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />
+        )}
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
