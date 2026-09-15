@@ -529,4 +529,19 @@ export const customerHi = {
     contactSupport: 'Contact Support',
     bookAgain: 'Book Again',
   },
+  tripReliability: {
+    title: 'ट्रिप विश्वसनीयता मॉनिटर',
+    findingDriver: 'आपके लिए ड्राइवर ढूंढा जा रहा है',
+    researchingDriver: 'आपका असाइन किया गया ड्राइवर अनुपलब्ध है। हम दूसरा सत्यापित ड्राइवर ढूंढ रहे हैं।',
+    locationStale: 'लोकेशन सिग्नल पुराना है',
+    locationStaleNotice: 'हमें आपके ड्राइवर से हाल ही में लोकेशन अपडेट नहीं मिला है। आपकी ट्रिप सक्रिय है।',
+    pickupDelay: 'पिकअप मार्ग में देरी',
+    pickupDelayNotice: 'आपके ड्राइवर को पिकअप स्थान के रास्ते में ट्रैफ़िक देरी का सामना करना पड़ रहा है।',
+    safetyPriority: 'सुरक्षा प्राथमिकता सक्रिय',
+    safetyNotice: 'आपातकालीन सुरक्षा दल आपकी ट्रिप स्थिति की समीक्षा कर रहा है।',
+    viewLastLocation: 'अंतिम ज्ञात स्थान देखें',
+    callDriver: 'ड्राइवर को कॉल करें',
+    contactSupport: 'सपोर्ट से संपर्क करें',
+  },
 };
+

@@ -530,4 +530,19 @@ export const customerGu = {
     contactSupport: 'Contact Support',
     bookAgain: 'Book Again',
   },
+  tripReliability: {
+    title: 'ટ્રિપ વિશ્વસનીયતા મોનિટર',
+    findingDriver: 'તમારા માટે ડ્રાઇવર શોધી રહ્યા છીએ',
+    researchingDriver: 'તમારા ફાળવવામાં આવેલા ડ્રાઇવર અનઉપલબ્ધ છે. અમે બીજા ચકાસાયેલ ડ્રાઇવર શોધી રહ્યા છીએ.',
+    locationStale: 'લોકેશન સિગ્નલ જૂનું છે',
+    locationStaleNotice: 'અમને તમારા ડ્રાઇવર તરફથી તાજેતરનું સ્થાન અપડેટ મળ્યું નથી. તમારી ટ્રિપ સક્રિય છે.',
+    pickupDelay: 'પિકઅપ માર્ગમાં વિલંબ',
+    pickupDelayNotice: 'તમારા ડ્રાઇવરને પિકઅપ પોઇન્ટના રસ્તામાં ટ્રાફિક વિલંબનો સામનો કરવો પડી રહ્યો છે.',
+    safetyPriority: 'સુરક્ષા પ્રાથમિકતા સક્રિય',
+    safetyNotice: 'ઇમરજન્સી સેફ્ટી ટીમ તમારી ટ્રિપ સ્થિતિની સમીક્ષા કરી રહી છે.',
+    viewLastLocation: 'છેલ્લું જાણણીતું સ્થાન જુઓ',
+    callDriver: 'ડ્રાઇવરને કૉલ કરો',
+    contactSupport: 'સપોર્ટનો સંપર્ક કરો',
+  },
 };
+

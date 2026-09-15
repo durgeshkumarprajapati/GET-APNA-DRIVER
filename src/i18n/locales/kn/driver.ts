@@ -178,5 +178,13 @@ export const driverKn = {
     support: 'ಬೆಂಬಲ',
     copilotAssistant: 'ಕೋಪೈಲಟ್ ಸಹಾಯಕ',
   },
+  tripReliability: {
+    title: 'ಪಿಕಪ್ ವಿಶ್ವಾಸಾರ್ಹತೆ ಸೂಚನೆ',
+    customerWaitingNotice: 'ನೀವು ಪಿಕಪ್ ಸ್ಥಳವನ್ನು ತಲುಪಿದ್ದೀರಿ. ಅಗತ್ಯವಿದ್ದರೆ ಪ್ರಾಕ್ಸಿ ಮೂಲಕ ಗ್ರಾಹಕರಿಗೆ ಕರೆ ಮಾಡಿ.',
+    gpsCheckNotice: 'ನಿಖರವಾದ ಸಂಚರಣೆಗಾಗಿ ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸ್ಥಳ ಸೇವೆಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ.',
+    viewPickupMap: 'ಪಿಕಪ್ ನಕ್ಷೆ ವೀಕ್ಷಿಸಿ',
+    support: 'ಬೆಂಬಲ',
+  },
 };
+
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { ControlStationLayout } from '@/components/control-station-layout';
 import { useTranslation } from '@/i18n/context';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
@@ -241,6 +242,13 @@ export default function AdminLiveOpsConsolePage() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href="/admin/incidents"
+              className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-mono font-semibold flex items-center gap-2 transition-colors border border-amber-500/40"
+            >
+              <span className="material-symbols-outlined text-sm">warning</span>
+              Incident Control
+            </Link>
             <button
               type="button"
               onClick={() => void fetchLiveOpsData(true)}

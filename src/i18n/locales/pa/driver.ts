@@ -177,5 +177,13 @@ export const driverPa = {
     support: 'ਸਹਾਇਤਾ',
     copilotAssistant: 'ਕੋਪਾਇਲਟ ਸਹਾਇਕ',
   },
+  tripReliability: {
+    title: 'ਪਿਕਅੱਪ ਭਰੋਸੇਯੋਗਤਾ ਨੋਟਿਸ',
+    customerWaitingNotice: 'ਤੁਸੀਂ ਪਿਕਅੱਪ ਸਥਾਨ ਤੇ ਪਹੁੰਚ ਗਏ ਹੋ। ਜੇ ਲੋੜ ਹੋਵੇ ਤਾਂ ਪ੍ਰੌਕਸੀ ਰਾਹੀਂ ਗਾਹਕ ਨੂੰ ਕਾਲ ਕਰੋ।',
+    gpsCheckNotice: 'ਕਿਰਪਾ ਕਰਕੇ ਸਹੀ ਨੇਵੀਗੇਸ਼ਨ ਲਈ ਆਪਣੀਆਂ ਲੋਕੇਸ਼ਨ ਸੇਵਾਵਾਂ ਚਾਲੂ ਰੱਖੋ।',
+    viewPickupMap: 'ਪਿਕਅੱਪ ਨਕਸ਼ਾ ਦੇਖੋ',
+    support: 'ਸਹਾਇਤਾ',
+  },
 };
+
 

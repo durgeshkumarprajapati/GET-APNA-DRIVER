@@ -88,6 +88,7 @@ model User {
   reporterSafetyIncidents SafetyIncident[]         @relation("ReporterSafetyIncidents")
   customerSafetyIncidents SafetyIncident[]         @relation("CustomerSafetyIncidents")
   assignedSafetyIncidents SafetyIncident[]         @relation("AssignedSafetyIncidents")
+  customerReliabilityIncidents TripReliabilityIncident[] @relation("CustomerReliabilityIncidents")
   safetyTimelineEntries   SafetyIncidentTimeline[]
   userRaisedDisputes      Dispute[]                @relation("UserRaisedDisputes")
   assignedDisputes        Dispute[]                @relation("AssignedDisputes")
@@ -596,6 +597,7 @@ model DriverProfile {
   wallet               DriverWallet?
   settlements          DriverSettlement[]
   safetyIncidents      SafetyIncident[]           @relation("DriverSafetyIncidents")
+  reliabilityIncidents TripReliabilityIncident[]  @relation("DriverReliabilityIncidents")
   reviews              Review[]                   @relation("DriverReviews")
   ratingSummary        DriverRatingSummary?
   driverCalls          CallSession[]              @relation("DriverCalls")
@@ -864,6 +866,7 @@ model Booking {
   scheduledRide            ScheduledRide?             @relation("GeneratedBookings", fields: [scheduledRideId], references: [id], onDelete: SetNull)
   scheduledRideOccurrences ScheduledRideOccurrenceLog[]
   tripIntelligenceEvents   TripIntelligenceEvent[]
+  reliabilityIncidents     TripReliabilityIncident[]  @relation("BookingReliabilityIncidents")
 
   // Corporate / Business Travel extension fields
   organizationId    String?                   @map("organization_id") @db.Uuid
@@ -3238,6 +3241,115 @@ model TripIntelligenceEvent {
   @@index([signalType])
   @@map("trip_intelligence_events")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 46: Production Smart Trip Reliability & Incident Recovery Engine
+// ---------------------------------------------------------------------------
+
+enum TripReliabilityIncidentType {
+  ASSIGNMENT_TIMEOUT
+  DISPATCH_FAILURE
+  NO_DRIVER_AVAILABLE
+  DRIVER_LOCATION_STALE
+  DRIVER_NOT_MOVING
+  PICKUP_DELAY
+  CUSTOMER_UNREACHABLE
+  DRIVER_CANCELLED
+  TRIP_STUCK
+  SCHEDULED_RIDE_FAILURE
+  PAYMENT_RECONCILIATION
+  INVOICE_FAILURE
+  NOTIFICATION_FAILURE
+  SAFETY_ESCALATION
+  SUPPORT_ESCALATION
+
+  @@map("trip_reliability_incident_type")
+}
+
+enum TripReliabilityIncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("trip_reliability_incident_severity")
+}
+
+enum TripReliabilityIncidentStatus {
+  DETECTED
+  INVESTIGATING
+  CONFIRMED
+  RECOVERY_PENDING
+  RECOVERING
+  RESOLVED
+  ESCALATED
+  CLOSED
+  DISMISSED
+
+  @@map("trip_reliability_incident_status")
+}
+
+enum TripReliabilityConfidence {
+  HIGH
+  MEDIUM
+  LOW
+
+  @@map("trip_reliability_confidence")
+}
+
+/// Operational trip reliability incident record for tracking lifecycle anomalies and automated recovery.
+model TripReliabilityIncident {
+  id              String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentNumber  String                          @unique @map("incident_number")
+  bookingId       String                          @map("booking_id") @db.Uuid
+  booking         Booking                         @relation("BookingReliabilityIncidents", fields: [bookingId], references: [id], onDelete: Cascade)
+  customerId      String?                         @map("customer_id") @db.Uuid
+  customer        User?                           @relation("CustomerReliabilityIncidents", fields: [customerId], references: [id], onDelete: SetNull)
+  driverProfileId String?                         @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile?                  @relation("DriverReliabilityIncidents", fields: [driverProfileId], references: [id], onDelete: SetNull)
+  type            TripReliabilityIncidentType
+  severity        TripReliabilityIncidentSeverity @default(MEDIUM)
+  status          TripReliabilityIncidentStatus   @default(DETECTED)
+  confidence      TripReliabilityConfidence       @default(HIGH)
+  fingerprint     String                          @unique
+  metadata        Json?
+  resolutionCode  String?                         @map("resolution_code")
+  
+  detectedAt  DateTime  @default(now()) @map("detected_at") @db.Timestamptz(6)
+  confirmedAt DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz(6)
+  escalatedAt DateTime? @map("escalated_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  timelineEntries TripReliabilityTimeline[]
+
+  @@index([bookingId, status])
+  @@index([customerId])
+  @@index([driverProfileId])
+  @@index([type, status])
+  @@index([severity, status])
+  @@index([createdAt])
+  @@map("trip_reliability_incidents")
+}
+
+/// Immutable timeline entry recording every status transition, action, and recovery attempt for a trip reliability incident.
+model TripReliabilityTimeline {
+  id          String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentId  String                         @map("incident_id") @db.Uuid
+  incident    TripReliabilityIncident        @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  fromStatus  TripReliabilityIncidentStatus? @map("from_status")
+  toStatus    TripReliabilityIncidentStatus? @map("to_status")
+  action      String
+  actorUserId String?                        @map("actor_user_id") @db.Uuid
+  actorRole   String                         @map("actor_role")
+  notes       String?
+  createdAt   DateTime                       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([incidentId, createdAt])
+  @@map("trip_reliability_timelines")
+}
+
 
 
 

@@ -156,6 +156,12 @@ export const PERMISSIONS = {
   ADMIN_MARKETPLACE_INTELLIGENCE_READ: 'admin.marketplace.intelligence.read',
   ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE: 'admin.marketplace.intelligence.manage',
 
+  // Smart Trip Reliability & Incident Management (Phase 46)
+  ADMIN_INCIDENT_READ: 'admin.incident.read',
+  ADMIN_INCIDENT_MANAGE: 'admin.incident.manage',
+  ADMIN_INCIDENT_RECOVER: 'admin.incident.recover',
+  ADMIN_INCIDENT_ESCALATE: 'admin.incident.escalate',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -524,5 +530,21 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE,
     description: 'Acknowledge or dismiss operational recommendations and manage marketplace zones.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_INCIDENT_READ,
+    description: 'View trip reliability incidents, evidence, and resolution timeline.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_INCIDENT_MANAGE,
+    description: 'Manage trip reliability incidents and transition incident status.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_INCIDENT_RECOVER,
+    description: 'Trigger automated or manual recovery actions for operational trip incidents.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_INCIDENT_ESCALATE,
+    description: 'Escalate trip incidents to emergency or operational support teams.',
   },
 ];

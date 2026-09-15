@@ -178,5 +178,13 @@ export const driverGu = {
     support: 'સપોર્ટ',
     copilotAssistant: 'કોપાયલટ અસિસ્ટન્ટ',
   },
+  tripReliability: {
+    title: 'પિકઅપ વિશ્વસનીયતા નોટિસ',
+    customerWaitingNotice: 'તમે પિકઅપ સ્થાન પર પહોંચી ગયા છો. જો જરૂર હોય તો પ્રોક્સી દ્વારા ગ્રાહકને કૉલ કરો.',
+    gpsCheckNotice: 'કૃપા કરીને ચોક્કસ નેવિગેશન માટે તમારી લોકેશન સેવાઓ સક્ષમ રાખો.',
+    viewPickupMap: 'પિકઅપ મેપ જુઓ',
+    support: 'સપોર્ટ',
+  },
 };
+
 
