@@ -163,4 +163,19 @@ export const driverPa = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'ਸਮਾਰਟ ਪਿਕਅੱਪ ਸਹਾਇਕ',
+    viewPickupMap: 'ਪਿਕਅੱਪ ਲੋਕੇਸ਼ਨ ਨਕਸ਼ਾ ਦੇਖੋ',
+    customerPickupTitle: 'ਗਾਹਕ ਦਾ ਪਿਕਅੱਪ ਸਥਾਨ',
+    incentiveProgress: 'ਇਨਸੈਂਟਿਵ ਟੀਚਾ ਪ੍ਰਗਤੀ',
+    completedRides: 'ਪੂਰੀਆਂ ਕੀਤੀਆਂ ਰਾਈਡਾਂ: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} ਬੋਨਸ',
+    freshnessLive: 'ਲਾਈਵ ਲੋਕੇਸ਼ਨ',
+    freshnessRecent: 'ਹਾਲ ਹੀ ਦੀ',
+    freshnessStale: 'ਪੁਰਾਣੀ ਅੱਪਡੇਟ',
+    freshnessUnavailable: 'ਉਪਲਬਧ ਨਹੀਂ',
+    support: 'ਸਹਾਇਤਾ',
+    copilotAssistant: 'ਕੋਪਾਇਲਟ ਸਹਾਇਕ',
+  },
 };
+

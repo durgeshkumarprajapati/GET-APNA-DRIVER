@@ -501,4 +501,22 @@ export const customerMl = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'സ്മാർട്ട് ട്രിപ്പ് ഇന്റലിജൻസ്',
+    driverApproaching: 'ഡ്രൈവർ പിക്കപ്പിലേക്ക് അടുക്കുന്നു',
+    driverArrived: 'ഡ്രൈവർ എത്തിച്ചേർന്നു',
+    tripInProgress: 'യാത്ര പുരോഗമിക്കുന്നു',
+    destinationNear: 'ലക്ഷ്യസ്ഥാനത്ത് അടുക്കുന്നു',
+    tripCompleted: 'യാത്ര പൂർത്തിയായി',
+    delayNotice: 'സമീപകാല ലൊക്കേഷൻ അപ്‌ഡേറ്റ് ലഭിച്ചിട്ടില്ല.',
+    freshnessLive: 'ലൈവ് ലൊക്കേഷൻ',
+    freshnessRecent: 'സമീപകാലം',
+    freshnessStale: 'പഴയ അപ്ഡേറ്റ്',
+    freshnessUnavailable: 'ലഭ്യമല്ല',
+    viewLiveLocation: 'ലൈവ് മാപ്പും ഡ്രൈവറുടെ സ്ഥലവും കാണുക',
+    callDriver: 'ഡ്രൈവറെ വിളിക്കുക',
+    contactSupport: 'സപ്പോർട്ടുമായി ബന്ധപ്പെടുക',
+    bookAgain: 'വീണ്ടും ബുക്ക് ചെയ്യുക',
+  },
 };
+

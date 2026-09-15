@@ -501,4 +501,22 @@ export const customerTe = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'స్మార్ట్ ట్రిప్ ఇంటెలిజెన్స్',
+    driverApproaching: 'డ్రైవర్ పికప్‌కు సమీపిస్తున్నారు',
+    driverArrived: 'డ్రైవర్ చేరుకున్నారు',
+    tripInProgress: 'ట్రిప్ కొనసాగుతోంది',
+    destinationNear: 'గమ్యస్థానానికి చేరువలో ఉంది',
+    tripCompleted: 'ట్రిప్ పూర్తయింది',
+    delayNotice: 'మాకు ఇటీవలి లొకేషన్ అప్‌డేట్ అందలేదు.',
+    freshnessLive: 'లైవ్ లొకేషన్',
+    freshnessRecent: 'ఇటీవలి',
+    freshnessStale: 'పాత అప్‌డేట్',
+    freshnessUnavailable: 'అందుబాటులో లేదు',
+    viewLiveLocation: 'లైవ్ మ్యాప్ మరియు డ్రైవర్ లొకేషన్ చూడండి',
+    callDriver: 'డ్రైవర్‌కి కాల్ చేయండి',
+    contactSupport: 'సపోర్ట్‌ను సంప్రదించండి',
+    bookAgain: 'మళ్లీ బుక్ చేయండి',
+  },
 };
+

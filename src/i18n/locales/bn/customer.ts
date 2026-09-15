@@ -501,4 +501,22 @@ export const customerBn = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'স্মার্ট ট্রিপ ইন্টেলিজেন্স',
+    driverApproaching: 'ড্রাইভার পিকআপের কাছে আসছে',
+    driverArrived: 'ড্রাইভার পৌঁছে গেছে',
+    tripInProgress: 'ট্রিপ চলছে',
+    destinationNear: 'গন্তব্যের কাছাকাছি',
+    tripCompleted: 'ট্রিপ সম্পন্ন হয়েছে',
+    delayNotice: 'আমরা সাম্প্রতিক অবস্থানের আপডেট পাইনি।',
+    freshnessLive: 'লাইভ অবস্থান',
+    freshnessRecent: 'সাম্প্রতিক',
+    freshnessStale: 'পুরানো আপডেট',
+    freshnessUnavailable: 'অনুপলব্ধ',
+    viewLiveLocation: 'লাইভ ম্যাপ এবং ড্রাইভারের অবস্থান দেখুন',
+    callDriver: 'ড্রাইভারকে কল করুন',
+    contactSupport: 'সাপোর্টে যোগাযোগ করুন',
+    bookAgain: 'আবার বুক করুন',
+  },
 };
+

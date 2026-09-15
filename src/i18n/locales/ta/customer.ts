@@ -501,4 +501,22 @@ export const customerTa = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'ஸ்மார்ட் பயண நுண்ணறிவு',
+    driverApproaching: 'ஓட்டுநர் பிக்கப்பை நெருங்குகிறார்',
+    driverArrived: 'ஓட்டுநர் வந்துவிட்டார்',
+    tripInProgress: 'பயணம் நடைபெறுகிறது',
+    destinationNear: 'இலக்கை நெருங்குகிறது',
+    tripCompleted: 'பயணம் முடிந்தது',
+    delayNotice: 'சமீபத்திய இருப்பிட புதுப்பிப்பு பெறப்படவில்லை.',
+    freshnessLive: 'நேரலை இருப்பிடம்',
+    freshnessRecent: 'சமீபத்திய',
+    freshnessStale: 'பழைய புதுப்பிப்பு',
+    freshnessUnavailable: 'கிடைக்கவில்லை',
+    viewLiveLocation: 'நேரலை வரைபடம் மற்றும் ஓட்டுநர் இருப்பிடத்தைக் காண்க',
+    callDriver: 'ஓட்டுநரை அழைக்கவும்',
+    contactSupport: 'ஆதரவை தொடர்பு கொள்ளவும்',
+    bookAgain: 'மீண்டும் முன்பதிவு செய்யவா',
+  },
 };
+

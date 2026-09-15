@@ -115,6 +115,7 @@ model User {
   recommendationActions      MarketplaceRecommendationAction[] @relation("AdminRecommendationActions")
   aiConversations            AIConversation[]
   aiAuditLogs                AIAuditLog[]
+  tripIntelligenceEvents     TripIntelligenceEvent[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -862,6 +863,7 @@ model Booking {
   scheduledRideId          String?                    @map("scheduled_ride_id") @db.Uuid
   scheduledRide            ScheduledRide?             @relation("GeneratedBookings", fields: [scheduledRideId], references: [id], onDelete: SetNull)
   scheduledRideOccurrences ScheduledRideOccurrenceLog[]
+  tripIntelligenceEvents   TripIntelligenceEvent[]
 
   // Corporate / Business Travel extension fields
   organizationId    String?                   @map("organization_id") @db.Uuid
@@ -3211,6 +3213,32 @@ model AIAuditLog {
   @@index([success])
   @@map("ai_audit_logs")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 45: Production Smart Trip Intelligence, Real-Time Trip Assistant
+// ---------------------------------------------------------------------------
+
+/// Persistent operational intelligence event record for trip signal tracking and deduplication.
+model TripIntelligenceEvent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId  String   @map("booking_id") @db.Uuid
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId     String   @map("user_id") @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actorRole  String   @map("actor_role")
+  signalType String   @map("signal_type")
+  confidence String   @default("HIGH")
+  fingerprint String  @unique
+  metadata   Json?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([bookingId, createdAt])
+  @@index([userId, actorRole])
+  @@index([signalType])
+  @@map("trip_intelligence_events")
+}
+
 
 
 

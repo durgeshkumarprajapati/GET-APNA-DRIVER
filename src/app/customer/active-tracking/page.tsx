@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { PageHeader } from '@/components/ui/page-header';
@@ -11,6 +12,8 @@ import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { useActiveBooking } from '@/components/use-active-booking';
 import { useBookingTracking, type TrackedBooking } from '@/components/use-booking-tracking';
 import { formatDateTime } from '@/shared/formatting/date';
+import { SmartTripStatusCard } from '@/components/trip-intelligence/SmartTripStatusCard';
+import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-intelligence-types';
 
 const STATUS_TONE: Record<string, StatusBadgeTone> = {
   SEARCHING_DRIVER: 'warning',
@@ -41,8 +44,22 @@ export default function CustomerActiveTrackingPage() {
     loading: trackingLoading,
   } = useBookingTracking(activeBooking?.id ?? null);
 
+  const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
+
   const loading = resolvingActiveBooking || (Boolean(activeBooking) && trackingLoading);
   const displayBooking = booking ?? activeBooking;
+
+  useEffect(() => {
+    if (!displayBooking?.id) return;
+    fetch(`/api/customer/bookings/${displayBooking.id}/trip-intelligence`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.intelligence) {
+          setIntelligence(data.intelligence);
+        }
+      })
+      .catch(() => {});
+  }, [displayBooking?.id]);
 
   return (
     <CustomerLayout>
@@ -70,6 +87,10 @@ export default function CustomerActiveTrackingPage() {
           </EmptyState>
         ) : (
           <>
+            {intelligence && (
+              <SmartTripStatusCard intelligence={intelligence} bookingId={displayBooking.id} />
+            )}
+
             <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <StatusBadge

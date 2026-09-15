@@ -501,4 +501,22 @@ export const customerPa = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'ਸਮਾਰਟ ਟ੍ਰਿਪ ਇੰਟੈਲੀਜੈਂਸ',
+    driverApproaching: 'ਡਰਾਈਵਰ ਪਿਕਅੱਪ ਦੇ ਨੇੜੇ ਆ ਰਿਹਾ ਹੈ',
+    driverArrived: 'ਡਰਾਈਵਰ ਪਹੁੰਚ ਗਿਆ ਹੈ',
+    tripInProgress: 'ਟ੍ਰਿਪ ਚੱਲ ਰਹੀ ਹੈ',
+    destinationNear: 'ਮੰਜ਼ਿਲ ਦੇ ਨੇੜੇ',
+    tripCompleted: 'ਟ੍ਰਿਪ ਪੂਰੀ ਹੋ ਗਈ',
+    delayNotice: 'ਸਾਨੂੰ ਹਾਲ ਹੀ ਦੀ ਲੋਕੇਸ਼ਨ ਅੱਪਡੇਟ ਨਹੀਂ ਮਿਲੀ।',
+    freshnessLive: 'ਲਾਈਵ ਲੋਕੇਸ਼ਨ',
+    freshnessRecent: 'ਹਾਲ ਹੀ ਦੀ',
+    freshnessStale: 'ਪੁਰਾਣੀ ਅੱਪਡੇਟ',
+    freshnessUnavailable: 'ਉਪਲਬਧ ਨਹੀਂ',
+    viewLiveLocation: 'ਲਾਈਵ ਨਕਸ਼ਾ ਅਤੇ ਡਰਾਈਵਰ ਲੋਕੇਸ਼ਨ ਦੇਖੋ',
+    callDriver: 'ਡਰਾਈਵਰ ਨੂੰ ਕਾਲ ਕਰੋ',
+    contactSupport: 'ਸਹਾਇਤਾ ਨਾਲ ਸੰਪਰਕ ਕਰੋ',
+    bookAgain: 'ਦੁਬਾਰਾ ਬੁੱਕ ਕਰੋ',
+  },
 };
+

@@ -501,4 +501,22 @@ export const customerKn = {
     thinking: 'AI Concierge is analyzing context...',
     disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'ಸ್ಮಾರ್ಟ್ ಟ್ರಿಪ್ ಇಂಟೆಲಿಜೆನ್ಸ್',
+    driverApproaching: 'ಚಾಲಕರು ಪಿಕಪ್ ಬಳಿಗೆ ಬರುತ್ತಿದ್ದಾರೆ',
+    driverArrived: 'ಚಾಲಕರು ತಲುಪಿದ್ದಾರೆ',
+    tripInProgress: 'ಪ್ರಯಾಣ ಪ್ರಗತಿಯಲ್ಲಿದೆ',
+    destinationNear: 'ಗಮ್ಯಸ್ಥಾನ ಸಮೀಪಿಸುತ್ತಿದೆ',
+    tripCompleted: 'ಪ್ರಯಾಣ ಪೂರ್ಣಗೊಂಡಿದೆ',
+    delayNotice: 'ನಾವು ಇತ್ತೀಚಿನ ಸ್ಥಳ ನವೀಕರಣವನ್ನು ಸ್ವೀಕರಿಸಿಲ್ಲ.',
+    freshnessLive: 'ಲೈವ್ ಸ್ಥಳ',
+    freshnessRecent: 'ಇತ್ತೀಚಿನ',
+    freshnessStale: 'ಹಳೆಯ ನವೀಕರಣ',
+    freshnessUnavailable: 'ಲಭ್ಯವಿಲ್ಲ',
+    viewLiveLocation: 'ಲೈವ್ ನಕ್ಷೆ ಮತ್ತು ಚಾಲಕನ ಸ್ಥಳ ವೀಕ್ಷಿಸಿ',
+    callDriver: 'ಚಾಲಕರಿಗೆ ಕರೆ ಮಾಡಿ',
+    contactSupport: 'ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ',
+    bookAgain: 'ಮತ್ತೆ ಕಾಯ್ದಿರಿಸಿ',
+  },
 };
+

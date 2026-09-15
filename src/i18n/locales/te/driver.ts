@@ -164,4 +164,19 @@ export const driverTe = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'స్మార్ట్ పికప్ అసిస్టెంట్',
+    viewPickupMap: 'పికప్ లొకేషన్ మ్యాప్ చూడండి',
+    customerPickupTitle: 'కస్టమర్ పికప్ ప్రాంతం',
+    incentiveProgress: 'ఇన్సెంటివ్ లక్ష్య పురోగతి',
+    completedRides: 'పూర్తయిన రైడ్‌లు: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} బోనస్',
+    freshnessLive: 'లైవ్ లొకేషన్',
+    freshnessRecent: 'ఇటీవలి',
+    freshnessStale: 'పాత అప్‌డేట్',
+    freshnessUnavailable: 'అందుబాటులో లేదు',
+    support: 'సపోర్ట్',
+    copilotAssistant: 'కోపైలట్ అసిస్టెంట్',
+  },
 };
+

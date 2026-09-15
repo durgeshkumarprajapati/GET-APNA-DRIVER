@@ -164,4 +164,19 @@ export const driverMr = {
     thinking: 'AI Copilot is analyzing context...',
     disclaimer: 'Operational insights use authoritative domain calculations.',
   },
+  tripIntelligence: {
+    title: 'स्मार्ट पिकअप सहाय्यक',
+    viewPickupMap: 'पिकअप स्थान नकाशा पहा',
+    customerPickupTitle: 'ग्राहकाचे पिकअप स्थान',
+    incentiveProgress: 'इन्सेन्टिव्ह लक्ष्य प्रगती',
+    completedRides: 'पूर्ण केलेल्या राइड्स: {{completed}} / {{target}}',
+    bonusIncentive: '+₹{{bonus}} बोनस',
+    freshnessLive: 'थेट स्थान',
+    freshnessRecent: 'अलीकडील',
+    freshnessStale: 'जुने अपडेट',
+    freshnessUnavailable: 'अनुपलब्ध',
+    support: 'सपोर्ट',
+    copilotAssistant: 'कोपायलट असिस्टंट',
+  },
 };
+
