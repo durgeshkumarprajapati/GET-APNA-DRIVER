@@ -79,6 +79,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           icon: 'star',
         },
         { href: '/driver/public-portfolio', label: t('driver.nav.publicPortfolio'), icon: 'badge' },
+        { href: '/driver/referrals', label: t('driver.nav.referrals'), icon: 'group_add' },
       ],
     },
     {

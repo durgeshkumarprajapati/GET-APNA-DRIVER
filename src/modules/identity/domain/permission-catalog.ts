@@ -133,6 +133,11 @@ export const PERMISSIONS = {
   ADMIN_LOYALTY_MANAGE: 'admin.loyalty.manage',
   ADMIN_LOYALTY_ADJUST: 'admin.loyalty.adjust',
 
+  // Referral 2.0 & Growth Engine (Phase 39 domain & admin)
+  REFERRAL_READ: 'referral.read',
+  ADMIN_REFERRAL_READ: 'admin.referral.read',
+  ADMIN_REFERRAL_MANAGE: 'admin.referral.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -434,4 +439,16 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   },
 
   { code: PERMISSIONS.AUDIT_LOG_READ, description: 'View the platform audit log (read-only).' },
+  {
+    code: PERMISSIONS.REFERRAL_READ,
+    description: 'View own referral codes, links, and referral history.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_REFERRAL_READ,
+    description: 'View referral growth analytics and campaign performance (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_REFERRAL_MANAGE,
+    description: 'Create and configure referral growth campaigns and rules (admin).',
+  },
 ];

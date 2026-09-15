@@ -124,7 +124,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           icon: 'card_giftcard',
         },
         {
-          href: '/admin/referral-engines',
+          href: '/admin/referral-growth',
           label: t('admin.nav.referralEngines'),
           icon: 'featured_seasonal_and_gifts',
         },

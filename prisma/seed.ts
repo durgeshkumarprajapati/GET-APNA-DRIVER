@@ -857,6 +857,85 @@ async function seedDriverAchievements(): Promise<void> {
       }
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Phase 39: Referral 2.0 Growth & Campaign Engine Seed Data
+  // ---------------------------------------------------------------------------
+  console.log('Seeding Phase 39 Referral Campaigns...');
+
+  const c1 = await prisma.referralCampaign.upsert({
+    where: { code: 'FRIEND200' },
+    create: {
+      code: 'FRIEND200',
+      name: 'Customer Friend Referral Campaign',
+      description: 'Invite a friend and get ₹200 credited on their first completed trip',
+      audience: 'CUSTOMER',
+      rewardType: 'MONETARY',
+      referrerRewardValue: 200,
+      refereeRewardValue: 50,
+      status: 'ACTIVE',
+      qualificationTrigger: 'CUSTOMER_FIRST_TRIP',
+    },
+    update: {},
+  });
+
+  await prisma.referralCampaign.upsert({
+    where: { code: 'DRIVER500' },
+    create: {
+      code: 'DRIVER500',
+      name: 'Driver Partner Referral Campaign',
+      description: 'Refer a qualified driver partner and get ₹500 on onboarding approval',
+      audience: 'DRIVER',
+      rewardType: 'MONETARY',
+      referrerRewardValue: 500,
+      status: 'ACTIVE',
+      qualificationTrigger: 'DRIVER_APPROVED_ONBOARDING',
+    },
+    update: {},
+  });
+
+  await prisma.referralCampaign.upsert({
+    where: { code: 'WELCOME2026' },
+    create: {
+      code: 'WELCOME2026',
+      name: 'New User Acquisition Campaign',
+      description: 'Welcome referral bonus for 2026 growth phase',
+      audience: 'ALL',
+      rewardType: 'MONETARY',
+      referrerRewardValue: 150,
+      refereeRewardValue: 50,
+      status: 'ACTIVE',
+    },
+    update: {},
+  });
+
+  // Seed sample referral relationship if demo users exist
+  const users = await prisma.user.findMany({ take: 2 });
+  const sampleReferrer = users[0];
+  const sampleReferee = users[1];
+
+  if (sampleReferrer && sampleReferee && sampleReferrer.id !== sampleReferee.id) {
+    const existingRef = await prisma.referral.findUnique({
+      where: { referredUserId: sampleReferee.id },
+    });
+    if (!existingRef) {
+      await prisma.referral.create({
+        data: {
+          referrerUserId: sampleReferrer.id,
+          referredUserId: sampleReferee.id,
+          codeUsed: 'REF-DEMO1',
+          campaignId: c1.id,
+          status: 'REWARDED',
+          rewardAmount: 200,
+          qualifiedAt: new Date(),
+          rewardedAt: new Date(),
+          channel: 'CODE',
+        },
+      });
+    }
+  }
+
+  console.log('Phase 39 Referral Seed Completed.');
 }
 
 main()
