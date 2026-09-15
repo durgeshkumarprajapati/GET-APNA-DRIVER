@@ -505,6 +505,12 @@ export const customerGu = {
     liveTracking: 'લાઇવ ટ્રેકિંગ',
     mapUnavailable: 'નકશો અનુપલબ્ધ છે',
     locationPermissionDenied: 'સ્થાન પરવાનગી અસ્વીકૃત',
-    recenterMap: 'નકશો ફરી કેન્દ્રિત કરો',
+    recenterMap: 'નકશો ફરીથી કેન્દ્રિત કરો',
+  },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
 };

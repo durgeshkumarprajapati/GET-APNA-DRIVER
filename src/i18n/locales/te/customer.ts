@@ -495,4 +495,10 @@ export const customerTe = {
     locationPermissionDenied: 'లొకేషన్ అనుమతి తిరస్కరించబడింది',
     recenterMap: 'మ్యాప్‌ను మళ్లీ కేంద్రీకరించు',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };

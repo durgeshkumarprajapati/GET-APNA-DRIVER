@@ -158,4 +158,10 @@ export const driverTe = {
     statusPending: 'ఆమోదం పెండింగ్',
     statusRejected: 'తిరస్కరించబడింది',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

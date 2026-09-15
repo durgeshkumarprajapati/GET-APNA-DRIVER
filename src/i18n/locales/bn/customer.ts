@@ -495,4 +495,10 @@ export const customerBn = {
     locationPermissionDenied: 'অবস্থানের অনুমতি প্রত্যাখ্যান করা হয়েছে',
     recenterMap: 'মানচিত্র পুনরায় কেন্দ্র করুন',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };

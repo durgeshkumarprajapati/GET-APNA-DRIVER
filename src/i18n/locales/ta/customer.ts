@@ -495,4 +495,10 @@ export const customerTa = {
     locationPermissionDenied: 'இருப்பிட அனுமதி மறுக்கப்பட்டது',
     recenterMap: 'வரைபடத்தை மீண்டும் மையப்படுத்தவும்',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };

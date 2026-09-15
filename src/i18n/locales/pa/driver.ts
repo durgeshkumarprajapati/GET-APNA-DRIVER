@@ -157,4 +157,10 @@ export const driverPa = {
     statusPending: 'ਮੰਨਜ਼ੂਰੀ ਬਕਾਇਆ',
     statusRejected: 'ਰੱਦ ਕੀਤਾ ਗਿਆ',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

@@ -158,4 +158,10 @@ export const driverEn = {
     statusPending: 'Pending Approval',
     statusRejected: 'Rejected',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

@@ -495,4 +495,10 @@ export const customerKn = {
     locationPermissionDenied: 'ಸ್ಥಳದ ಅನುಮತಿ ನಿರಾಕರಿಸಲಾಗಿದೆ',
     recenterMap: 'ನಕ್ಷೆಯನ್ನು ಮರುಕೇಂದ್ರೀಕರಿಸಿ',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };
