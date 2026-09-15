@@ -2,7 +2,10 @@ import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
-import { addFavoriteDriver, getCustomerFavoriteDrivers } from '@/modules/favorites/favorites-service';
+import {
+  addFavoriteDriver,
+  getCustomerFavoriteDrivers,
+} from '@/modules/favorites/favorites-service';
 
 const addFavoriteSchema = z.object({
   driverProfileId: z.string().uuid({ message: 'Invalid driverProfileId UUID' }),
@@ -33,14 +36,23 @@ export const POST = withAuth(async (req: NextRequest, { principal }) => {
     });
   } catch (err: unknown) {
     if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: 'INVALID_INPUT', message: 'Invalid driver profile ID' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'INVALID_INPUT', message: 'Invalid driver profile ID' },
+        { status: 400 },
+      );
     }
     const message = err instanceof Error ? err.message : 'Failed to add favorite driver.';
     if (message === 'DRIVER_NOT_FOUND') {
-      return NextResponse.json({ error: 'DRIVER_NOT_FOUND', message: 'Driver partner not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'DRIVER_NOT_FOUND', message: 'Driver partner not found' },
+        { status: 404 },
+      );
     }
     if (message === 'DRIVER_NOT_APPROVED') {
-      return NextResponse.json({ error: 'DRIVER_NOT_APPROVED', message: 'Driver partner is not approved' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'DRIVER_NOT_APPROVED', message: 'Driver partner is not approved' },
+        { status: 400 },
+      );
     }
     return NextResponse.json({ error: 'ADD_FAVORITE_FAILED', message }, { status: 500 });
   }

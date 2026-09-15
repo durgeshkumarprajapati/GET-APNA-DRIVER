@@ -63,18 +63,24 @@ function OfferCard({ offer }: { offer: CustomerOffer }) {
           </span>
           {offer.minBookingValue && (
             <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">
-              {t('customer.offers.minFare', { amount: formatCurrency(Number(offer.minBookingValue)) })}
+              {t('customer.offers.minFare', {
+                amount: formatCurrency(Number(offer.minBookingValue)),
+              })}
             </span>
           )}
           {offer.firstRideOnly && (
-            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">{t('customer.offers.firstRideOnly')}</span>
+            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#87948b]">
+              {t('customer.offers.firstRideOnly')}
+            </span>
           )}
         </div>
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-[#262a33]">
         <span className="font-mono text-[10px] text-[#87948b]">
-          {offer.endsAt ? t('customer.offers.validTill', { date: formatDate(offer.endsAt) }) : t('customer.offers.noExpiry')}
+          {offer.endsAt
+            ? t('customer.offers.validTill', { date: formatDate(offer.endsAt) })
+            : t('customer.offers.noExpiry')}
         </span>
         {offer.code ? (
           <button
@@ -89,7 +95,9 @@ function OfferCard({ offer }: { offer: CustomerOffer }) {
             {copied ? t('customer.offers.copied') : t('customer.offers.copyCode')}
           </button>
         ) : (
-          <span className="text-[10px] text-[#87948b]">{t('customer.offers.autoAppliedAtCheckout')}</span>
+          <span className="text-[10px] text-[#87948b]">
+            {t('customer.offers.autoAppliedAtCheckout')}
+          </span>
         )}
       </div>
     </div>
@@ -115,7 +123,8 @@ export default function CustomerOffersPage() {
           setError(t('customer.offers.loadFailed'));
         }
       } catch (err) {
-        if (isMounted) setError(err instanceof Error ? err.message : t('customer.offers.loadFailed'));
+        if (isMounted)
+          setError(err instanceof Error ? err.message : t('customer.offers.loadFailed'));
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -151,10 +160,7 @@ export default function CustomerOffersPage() {
                   {t('customer.offers.availableOffers')}
                 </h2>
                 {offers.available.length === 0 ? (
-                  <EmptyState
-                    icon="confirmation_number"
-                    message={t('customer.offers.noOffers')}
-                  />
+                  <EmptyState icon="confirmation_number" message={t('customer.offers.noOffers')} />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {offers.available.map((o) => (

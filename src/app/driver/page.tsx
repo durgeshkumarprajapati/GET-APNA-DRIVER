@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
+import { DriverEngagementWidget } from '@/components/driver/driver-engagement-widget';
 
 interface AssignmentOffer {
   id: string;
@@ -59,10 +60,30 @@ export default function DriverDashboardPage() {
   const [offers, setOffers] = useState<AssignmentOffer[]>([]);
   const [bookings, setBookings] = useState<DriverBooking[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
-  const [todayShift, setTodayShift] = useState<{ isScheduled: boolean; startTime: string | null; endTime: string | null; status: string } | null>(null);
-  const [earningsSummary, setEarningsSummary] = useState<{ todayEarnings: string; completedTripsToday: number } | null>(null);
-  const [goals, setGoals] = useState<{ dailyTripGoal: number; completedTripsToday: number; dailyTripProgressPercentage: number } | null>(null);
-  const [incentives, setIncentives] = useState<{ campaignName: string; rewardAmount: number; currentValue: number; targetValue: number; status: string }[]>([]);
+  const [todayShift, setTodayShift] = useState<{
+    isScheduled: boolean;
+    startTime: string | null;
+    endTime: string | null;
+    status: string;
+  } | null>(null);
+  const [earningsSummary, setEarningsSummary] = useState<{
+    todayEarnings: string;
+    completedTripsToday: number;
+  } | null>(null);
+  const [goals, setGoals] = useState<{
+    dailyTripGoal: number;
+    completedTripsToday: number;
+    dailyTripProgressPercentage: number;
+  } | null>(null);
+  const [incentives, setIncentives] = useState<
+    {
+      campaignName: string;
+      rewardAmount: number;
+      currentValue: number;
+      targetValue: number;
+      status: string;
+    }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,7 +91,16 @@ export default function DriverDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [profileRes, offersRes, bookingsRes, walletRes, todayShiftRes, earningsRes, goalsRes, incRes] = await Promise.all([
+        const [
+          profileRes,
+          offersRes,
+          bookingsRes,
+          walletRes,
+          todayShiftRes,
+          earningsRes,
+          goalsRes,
+          incRes,
+        ] = await Promise.all([
           fetch('/api/driver/profile'),
           fetch('/api/driver/assignment-offers'),
           fetch('/api/driver/bookings'),
@@ -197,9 +227,14 @@ export default function DriverDashboardPage() {
                 </div>
                 {goals && (
                   <div className="flex items-center gap-2 text-xs text-slate-300 pt-1">
-                    <span>Daily Goal: {goals.completedTripsToday} / {goals.dailyTripGoal} trips</span>
+                    <span>
+                      Daily Goal: {goals.completedTripsToday} / {goals.dailyTripGoal} trips
+                    </span>
                     <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${goals.dailyTripProgressPercentage}%` }} />
+                      <div
+                        className="bg-emerald-400 h-full rounded-full"
+                        style={{ width: `${goals.dailyTripProgressPercentage}%` }}
+                      />
                     </div>
                   </div>
                 )}
@@ -211,6 +246,9 @@ export default function DriverDashboardPage() {
                 View Earnings Hub →
               </Link>
             </div>
+
+            {/* Driver Engagement Progress & Streaks Widget */}
+            <DriverEngagementWidget />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link

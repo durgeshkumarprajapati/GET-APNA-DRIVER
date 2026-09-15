@@ -119,7 +119,8 @@ export const customerTe = {
     callDriverBtn: 'డ్రైవర్‌కు కాల్ చేయండి',
     maskedCallSession: 'మాస్క్డ్ కాల్ సెషన్: {{id}}',
     maskedCallerDriver: 'కాలర్: {{caller}} → డ్రైవర్: {{driver}}',
-    preferredDriverUnavailableNote: 'మీరు కోరిన డ్రైవర్ అందుబాటులో లేరు. వేరొక ఉత్తమ డ్రైవర్ కేటాయించబడతారు.',
+    preferredDriverUnavailableNote:
+      'మీరు కోరిన డ్రైవర్ అందుబాటులో లేరు. వేరొక ఉత్తమ డ్రైవర్ కేటాయించబడతారు.',
     yourReviewTitle: 'మీ సమీక్ష',
     rateYourDriverTitle: 'డ్రైవర్‌కు రేటింగ్ ఇవ్వండి',
     submittedOn: '{{date}} న సమర్పించబడింది',
@@ -449,11 +450,11 @@ export const customerTe = {
       scheduledRideUpcomingSoon: 'తదుపరి రైడ్ {{time}} కి షెడ్యూల్ చేయబడింది.',
       scheduledRideActive: '{{time}} కి క్రియాశీల షెడ్యూల్డ్ రైడ్.',
       frequentVehicleChoice: 'ఇటీవల {{count}} సార్లు {{category}} బుక్ చేశారు.',
-      sufficientPointsForReward: '{{rewardTitle}} ({{points}} పాయింట్లు) కోసం మీ వద్ద సరిపడా పాయింట్లు ఉన్నాయి.',
+      sufficientPointsForReward:
+        '{{rewardTitle}} ({{points}} పాయింట్లు) కోసం మీ వద్ద సరిపడా పాయింట్లు ఉన్నాయి.',
       activeTierMember: '{{points}} రాయల్టీ పాయింట్లతో సక్రియ {{tierName}} సభ్యులు.',
       firstRidePromo: 'మొదటి రైడ్ ప్రోమో: {{promoName}} (కోడ్: {{code}}).',
       activePromoCode: 'అందుబాటులో ఉన్న ప్రోమో: {{promoName}} (కోడ్: {{code}}).',
     },
   },
 };
-

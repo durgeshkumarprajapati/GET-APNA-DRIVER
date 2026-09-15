@@ -1,4 +1,7 @@
-import { parseAnalyticsDateRange, getAdminAnalyticsMetrics } from '@/modules/analytics/analytics-service';
+import {
+  parseAnalyticsDateRange,
+  getAdminAnalyticsMetrics,
+} from '@/modules/analytics/analytics-service';
 
 describe('Phase 31 Objective B — Admin Analytics & BI Service', () => {
   describe('parseAnalyticsDateRange', () => {
@@ -11,14 +14,16 @@ describe('Phase 31 Objective B — Admin Analytics & BI Service', () => {
     it('parses range "7d" correctly', () => {
       const parsed = parseAnalyticsDateRange('7d');
       expect(parsed.rangeKey).toBe('7d');
-      const diffDays = (parsed.endDate.getTime() - parsed.startDate.getTime()) / (24 * 60 * 60 * 1000);
+      const diffDays =
+        (parsed.endDate.getTime() - parsed.startDate.getTime()) / (24 * 60 * 60 * 1000);
       expect(Math.round(diffDays)).toBe(7);
     });
 
     it('parses range "90d" correctly', () => {
       const parsed = parseAnalyticsDateRange('90d');
       expect(parsed.rangeKey).toBe('90d');
-      const diffDays = (parsed.endDate.getTime() - parsed.startDate.getTime()) / (24 * 60 * 60 * 1000);
+      const diffDays =
+        (parsed.endDate.getTime() - parsed.startDate.getTime()) / (24 * 60 * 60 * 1000);
       expect(Math.round(diffDays)).toBe(90);
     });
 
@@ -27,7 +32,8 @@ describe('Phase 31 Objective B — Admin Analytics & BI Service', () => {
       const now = new Date().toISOString();
       const parsed = parseAnalyticsDateRange('custom', oldDate, now);
       expect(parsed.rangeKey).toBe('custom');
-      const diffDays = (parsed.endDate.getTime() - parsed.startDate.getTime()) / (24 * 60 * 60 * 1000);
+      const diffDays =
+        (parsed.endDate.getTime() - parsed.startDate.getTime()) / (24 * 60 * 60 * 1000);
       expect(diffDays).toBeLessThanOrEqual(181);
     });
 

@@ -106,10 +106,7 @@ export function formatLocalizedNumber(
 /**
  * Formats currency in INR format (₹) preserving monetary values.
  */
-export function formatLocalizedCurrency(
-  amount: number,
-  locale: SupportedLocale = 'en',
-): string {
+export function formatLocalizedCurrency(amount: number, locale: SupportedLocale = 'en'): string {
   const formatted = formatLocalizedNumber(amount, locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
@@ -120,10 +117,7 @@ export function formatLocalizedCurrency(
 /**
  * Safe helper mapping domain enum status strings to translation labels.
  */
-export function getLocalizedStatusLabel(
-  status: string,
-  locale: SupportedLocale = 'en',
-): string {
+export function getLocalizedStatusLabel(status: string, locale: SupportedLocale = 'en'): string {
   // Check booking status first
   const bookingKey = `booking.status.${status}`;
   const bookingTranslation = translate(locale, bookingKey);

@@ -155,12 +155,8 @@ export default function AdminDriverIncentivesPage() {
             <span className="text-xs font-bold text-amber-400 tracking-widest uppercase">
               {t('admin.incentives.eyebrow')}
             </span>
-            <h1 className="text-2xl font-bold text-white mt-1">
-              {t('admin.incentives.title')}
-            </h1>
-            <p className="text-slate-400 text-sm mt-0.5">
-              {t('admin.incentives.subtitle')}
-            </p>
+            <h1 className="text-2xl font-bold text-white mt-1">{t('admin.incentives.title')}</h1>
+            <p className="text-slate-400 text-sm mt-0.5">{t('admin.incentives.subtitle')}</p>
           </div>
 
           <button
@@ -204,7 +200,9 @@ export default function AdminDriverIncentivesPage() {
               >
                 <div>
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getStatusBadgeClass(c.status)}`}>
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getStatusBadgeClass(c.status)}`}
+                    >
                       {c.status}
                     </span>
                     <span className="text-xs font-bold text-amber-400 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/40">
@@ -226,12 +224,15 @@ export default function AdminDriverIncentivesPage() {
                     </div>
                     <div className="flex justify-between text-slate-300">
                       <span className="text-slate-500">Participants:</span>
-                      <span className="font-semibold text-emerald-400">{c._count?.progresses ?? 0} drivers</span>
+                      <span className="font-semibold text-emerald-400">
+                        {c._count?.progresses ?? 0} drivers
+                      </span>
                     </div>
                     <div className="flex justify-between text-slate-300 pt-1 border-t border-slate-900">
                       <span className="text-slate-500">Validity:</span>
                       <span className="font-mono text-[11px] text-slate-400">
-                        {new Date(c.startAt).toLocaleDateString()} - {new Date(c.endAt).toLocaleDateString()}
+                        {new Date(c.startAt).toLocaleDateString()} -{' '}
+                        {new Date(c.endAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -311,7 +312,9 @@ export default function AdminDriverIncentivesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Description (Optional)</label>
+                  <label className="block text-slate-300 font-medium mb-1">
+                    Description (Optional)
+                  </label>
                   <textarea
                     rows={2}
                     placeholder="Complete 10 trips over the weekend for ₹500 bonus"
@@ -350,7 +353,9 @@ export default function AdminDriverIncentivesPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-300 font-medium mb-1">Reward Amount (₹)</label>
+                    <label className="block text-slate-300 font-medium mb-1">
+                      Reward Amount (₹)
+                    </label>
                     <input
                       type="number"
                       required
@@ -362,7 +367,9 @@ export default function AdminDriverIncentivesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 font-medium mb-1">Start Date & Time</label>
+                    <label className="block text-slate-300 font-medium mb-1">
+                      Start Date & Time
+                    </label>
                     <input
                       type="datetime-local"
                       required

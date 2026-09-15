@@ -19,7 +19,8 @@ export const bookingEn = {
   },
   cancelModal: {
     title: 'Cancel Booking',
-    description: 'Are you sure you want to cancel this booking? Cancellation fees may apply if driver is en route.',
+    description:
+      'Are you sure you want to cancel this booking? Cancellation fees may apply if driver is en route.',
     reasonLabel: 'Cancellation Reason',
     confirmBtn: 'Confirm Cancellation',
   },

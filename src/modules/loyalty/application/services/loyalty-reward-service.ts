@@ -93,10 +93,7 @@ export async function listCustomerLoyaltyRewards(
   });
 }
 
-export async function createLoyaltyReward(
-  input: CreateLoyaltyRewardInput,
-  db: Db = prisma,
-) {
+export async function createLoyaltyReward(input: CreateLoyaltyRewardInput, db: Db = prisma) {
   let minimumTierId = null;
   if (input.minimumTierCode) {
     const tier = await getTierByCode(input.minimumTierCode, db);
@@ -168,7 +165,10 @@ export async function redeemReward(
   const currentTierPriority = account.currentTier?.priority ?? 1;
   const minTierPriority = reward.minimumTier?.priority ?? 1;
   if (currentTierPriority < minTierPriority) {
-    throw new RewardTierNotMetError(reward.minimumTier?.name ?? 'Required Tier', account.currentTier?.name ?? 'Current Tier');
+    throw new RewardTierNotMetError(
+      reward.minimumTier?.name ?? 'Required Tier',
+      account.currentTier?.name ?? 'Current Tier',
+    );
   }
 
   // Points check
@@ -177,7 +177,10 @@ export async function redeemReward(
   }
 
   // Redemption limits check
-  if (reward.totalRedemptionLimit !== null && reward.totalRedeemedCount >= reward.totalRedemptionLimit) {
+  if (
+    reward.totalRedemptionLimit !== null &&
+    reward.totalRedeemedCount >= reward.totalRedemptionLimit
+  ) {
     throw new RewardLimitExceededError('Total redemption limit reached');
   }
 

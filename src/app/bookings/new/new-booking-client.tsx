@@ -103,14 +103,16 @@ function BookDriverPageInner() {
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
 
   const [bookingMode, setBookingMode] = useState<'NOW' | 'SCHEDULE'>(
-    searchParams.get('mode') === 'schedule' ? 'SCHEDULE' : 'NOW'
+    searchParams.get('mode') === 'schedule' ? 'SCHEDULE' : 'NOW',
   );
   const [scheduleType, setScheduleType] = useState<'ONE_TIME' | 'RECURRING'>('ONE_TIME');
   const [scheduledDate, setScheduledDate] = useState<string>(
-    () => new Date(Date.now() + 86400000).toISOString().split('T')[0]
+    () => new Date(Date.now() + 86400000).toISOString().split('T')[0],
   );
   const [scheduledTime, setScheduledTime] = useState<string>('09:00');
-  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS'>('DAILY');
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<
+    'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS'
+  >('DAILY');
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   const [savedLocations, setSavedLocations] = useState<SavedLocationRecord[]>([]);
@@ -302,7 +304,8 @@ function BookDriverPageInner() {
             scheduleType,
             recurrenceFrequency: scheduleType === 'RECURRING' ? recurrenceFrequency : undefined,
             daysOfWeek:
-              scheduleType === 'RECURRING' && (recurrenceFrequency === 'WEEKLY' || recurrenceFrequency === 'CUSTOM_DAYS')
+              scheduleType === 'RECURRING' &&
+              (recurrenceFrequency === 'WEEKLY' || recurrenceFrequency === 'CUSTOM_DAYS')
                 ? selectedDays
                 : undefined,
             scheduledDate: scheduleType === 'ONE_TIME' ? scheduledDate : undefined,
@@ -331,7 +334,10 @@ function BookDriverPageInner() {
 
         const data = await res.json();
         if (!res.ok) {
-          setError(data.message || t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }));
+          setError(
+            data.message ||
+              t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
+          );
         } else {
           router.push('/customer/scheduled-rides');
         }
@@ -483,55 +489,62 @@ function BookDriverPageInner() {
                   {/* Frequency if Recurring */}
                   {scheduleType === 'RECURRING' && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[#87948b] text-[10px] uppercase font-bold">Frequency:</span>
+                      <span className="text-[#87948b] text-[10px] uppercase font-bold">
+                        Frequency:
+                      </span>
                       <select
                         value={recurrenceFrequency}
                         onChange={(e) =>
                           setRecurrenceFrequency(
-                            e.target.value as 'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS'
+                            e.target.value as 'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS',
                           )
                         }
                         className="bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] flex-1"
                       >
                         <option value="DAILY">{t('scheduledRides.frequency.daily')}</option>
                         <option value="WEEKLY">{t('scheduledRides.frequency.weekly')}</option>
-                        <option value="CUSTOM_DAYS">{t('scheduledRides.frequency.custom_days')}</option>
+                        <option value="CUSTOM_DAYS">
+                          {t('scheduledRides.frequency.custom_days')}
+                        </option>
                       </select>
                     </div>
                   )}
 
                   {/* Day Picker if Weekly or Custom */}
-                  {scheduleType === 'RECURRING' && (recurrenceFrequency === 'WEEKLY' || recurrenceFrequency === 'CUSTOM_DAYS') && (
-                    <div className="flex items-center justify-between gap-1 pt-1">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
-                        const active = selectedDays.includes(idx);
-                        return (
-                          <button
-                            key={day}
-                            type="button"
-                            onClick={() => {
-                              setSelectedDays((prev) =>
-                                active ? prev.filter((d) => d !== idx) : [...prev, idx]
-                              );
-                            }}
-                            className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all ${
-                              active
-                                ? 'bg-[#25a475] text-[#00311f]'
-                                : 'bg-[#0a0e16] text-[#87948b] border border-[#262a33]'
-                            }`}
-                          >
-                            {day}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {scheduleType === 'RECURRING' &&
+                    (recurrenceFrequency === 'WEEKLY' || recurrenceFrequency === 'CUSTOM_DAYS') && (
+                      <div className="flex items-center justify-between gap-1 pt-1">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
+                          const active = selectedDays.includes(idx);
+                          return (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => {
+                                setSelectedDays((prev) =>
+                                  active ? prev.filter((d) => d !== idx) : [...prev, idx],
+                                );
+                              }}
+                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                                active
+                                  ? 'bg-[#25a475] text-[#00311f]'
+                                  : 'bg-[#0a0e16] text-[#87948b] border border-[#262a33]'
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
 
                   {/* Time & Date Pickers */}
                   <div className="grid grid-cols-2 gap-2">
                     {scheduleType === 'ONE_TIME' && (
                       <div>
-                        <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">Date:</span>
+                        <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">
+                          Date:
+                        </span>
                         <input
                           type="date"
                           value={scheduledDate}
@@ -541,7 +554,9 @@ function BookDriverPageInner() {
                       </div>
                     )}
                     <div className={scheduleType === 'RECURRING' ? 'col-span-2' : ''}>
-                      <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">Dispatch Time (IST):</span>
+                      <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">
+                        Dispatch Time (IST):
+                      </span>
                       <input
                         type="time"
                         value={scheduledTime}
@@ -888,7 +903,9 @@ function BookDriverPageInner() {
                 )}
                 <span>
                   {bookingMode === 'SCHEDULE'
-                    ? t('scheduledRides.confirmSchedule', { defaultValue: 'Confirm & Schedule Ride' })
+                    ? t('scheduledRides.confirmSchedule', {
+                        defaultValue: 'Confirm & Schedule Ride',
+                      })
                     : t('customer.booking.confirmBookingCta')}
                 </span>
               </button>

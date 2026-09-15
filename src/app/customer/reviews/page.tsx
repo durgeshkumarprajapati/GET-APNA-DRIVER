@@ -79,10 +79,7 @@ export default function CustomerReviewHistoryPage() {
         {loading ? (
           <LoadingState message="Loading your reviews…" />
         ) : !data || data.reviews.length === 0 ? (
-          <EmptyState
-            icon="reviews"
-            message={t('customer.reviews.emptyBody')}
-          />
+          <EmptyState icon="reviews" message={t('customer.reviews.emptyBody')} />
         ) : (
           <>
             <div className="flex flex-col gap-4">

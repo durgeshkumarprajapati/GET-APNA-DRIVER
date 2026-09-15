@@ -23,7 +23,9 @@ interface ScheduledRideSummary {
 export default function CustomerScheduledRidesPage() {
   const { t, formatDate } = useTranslation();
   const [scheduledRides, setScheduledRides] = useState<ScheduledRideSummary[]>([]);
-  const [activeTab, setActiveTab] = useState<'ALL' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED'>('ALL');
+  const [activeTab, setActiveTab] = useState<
+    'ALL' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED'
+  >('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -103,7 +105,11 @@ export default function CustomerScheduledRidesPage() {
   };
 
   const handleCancel = async (id: string) => {
-    if (!confirm(t('scheduledRides.confirmCancel') || 'Are you sure you want to cancel this scheduled ride?')) {
+    if (
+      !confirm(
+        t('scheduledRides.confirmCancel') || 'Are you sure you want to cancel this scheduled ride?',
+      )
+    ) {
       return;
     }
     setActionLoadingId(id);
@@ -201,7 +207,9 @@ export default function CustomerScheduledRidesPage() {
           </div>
         ) : filteredRides.length === 0 ? (
           <div className="p-8 rounded-2xl border border-[#262a33] bg-[#181c24] text-center space-y-3">
-            <span className="material-symbols-outlined text-4xl text-[#87948b]">calendar_today</span>
+            <span className="material-symbols-outlined text-4xl text-[#87948b]">
+              calendar_today
+            </span>
             <p className="text-sm text-[#87948b]">{t('scheduledRides.noRides')}</p>
             <Link
               href="/bookings/new?mode=schedule"
@@ -221,33 +229,41 @@ export default function CustomerScheduledRidesPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`px-2.5 py-0.5 rounded text-[10px] font-bold font-['Space_Grotesk'] uppercase ${getStatusBadge(
-                        ride.status
+                        ride.status,
                       )}`}
                     >
                       {t(`scheduledRides.status.${ride.status.toLowerCase()}`)}
                     </span>
                     <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#262a33] text-[#68dba9] font-['Space_Grotesk'] uppercase">
                       {ride.scheduleType === 'RECURRING'
-                        ? t(`scheduledRides.frequency.${ride.recurrenceFrequency?.toLowerCase() ?? 'daily'}`)
+                        ? t(
+                            `scheduledRides.frequency.${ride.recurrenceFrequency?.toLowerCase() ?? 'daily'}`,
+                          )
                         : t('scheduledRides.oneTime')}
                     </span>
-                    {ride.scheduleType === 'RECURRING' && ride.daysOfWeek && ride.daysOfWeek.length > 0 && (
-                      <span className="text-xs text-[#87948b] font-mono">
-                        ({ride.daysOfWeek.map((d) => dayNames[d]).join(', ')})
-                      </span>
-                    )}
+                    {ride.scheduleType === 'RECURRING' &&
+                      ride.daysOfWeek &&
+                      ride.daysOfWeek.length > 0 && (
+                        <span className="text-xs text-[#87948b] font-mono">
+                          ({ride.daysOfWeek.map((d) => dayNames[d]).join(', ')})
+                        </span>
+                      )}
                   </div>
 
                   {/* Route */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm font-semibold text-[#dfe2ee]">
                       <span className="w-2 h-2 rounded-full bg-[#68dba9] shrink-0" />
-                      <span className="truncate">{ride.pickupLocation.label || ride.pickupLocation.address}</span>
+                      <span className="truncate">
+                        {ride.pickupLocation.label || ride.pickupLocation.address}
+                      </span>
                     </div>
                     {ride.dropoffLocation && (
                       <div className="flex items-center gap-2 text-sm text-[#87948b]">
                         <span className="w-2 h-2 rounded-full bg-[#ffb4ab] shrink-0" />
-                        <span className="truncate">{ride.dropoffLocation.label || ride.dropoffLocation.address}</span>
+                        <span className="truncate">
+                          {ride.dropoffLocation.label || ride.dropoffLocation.address}
+                        </span>
                       </div>
                     )}
                   </div>

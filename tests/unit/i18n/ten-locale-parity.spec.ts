@@ -23,7 +23,7 @@ describe('10-Locale i18n Dictionary Structure Parity Tests', () => {
   targetLocales.forEach((loc) => {
     it(`locale '${loc}' should have 100% dictionary key parity with base locale 'en'`, () => {
       const locKeys = getObjectKeysRecursive(dictionaries[loc]);
-      
+
       const missingKeys = baseKeys.filter((k) => !locKeys.includes(k));
       const extraKeys = locKeys.filter((k) => !baseKeys.includes(k));
 

@@ -141,8 +141,10 @@ export async function getAdminAnalyticsMetrics(
     }),
   ]);
 
-  const completionRate = totalBookings > 0 ? Number(((completedBookings / totalBookings) * 100).toFixed(1)) : 0;
-  const cancellationRate = totalBookings > 0 ? Number(((cancelledBookings / totalBookings) * 100).toFixed(1)) : 0;
+  const completionRate =
+    totalBookings > 0 ? Number(((completedBookings / totalBookings) * 100).toFixed(1)) : 0;
+  const cancellationRate =
+    totalBookings > 0 ? Number(((cancelledBookings / totalBookings) * 100).toFixed(1)) : 0;
 
   // 2. Financial metrics aggregation (from captured payments)
   const paymentAggregations = await prisma.payment.aggregate({
@@ -162,16 +164,25 @@ export async function getAdminAnalyticsMetrics(
   const netPlatformRevenue = Number(paymentAggregations._sum.commissionAmount ?? 0);
   const driverPayouts = Number(paymentAggregations._sum.driverEarningsAmount ?? 0);
   const totalDiscounts = Number(paymentAggregations._sum.discountAmount ?? 0);
-  const takeRate = grossMerchandiseValue > 0 ? Number(((netPlatformRevenue / grossMerchandiseValue) * 100).toFixed(1)) : 0;
+  const takeRate =
+    grossMerchandiseValue > 0
+      ? Number(((netPlatformRevenue / grossMerchandiseValue) * 100).toFixed(1))
+      : 0;
 
   // 3. Driver fleet status
   const [totalDrivers, approvedDrivers, onlineDrivers, availableDrivers] = await Promise.all([
     prisma.driverProfile.count(),
     prisma.driverProfile.count({ where: { approvalStatus: DriverApprovalStatus.APPROVED } }),
     prisma.driverProfile.count({
-      where: { availabilityStatus: { in: [DriverAvailabilityStatus.AVAILABLE, DriverAvailabilityStatus.BUSY] } },
+      where: {
+        availabilityStatus: {
+          in: [DriverAvailabilityStatus.AVAILABLE, DriverAvailabilityStatus.BUSY],
+        },
+      },
     }),
-    prisma.driverProfile.count({ where: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE } }),
+    prisma.driverProfile.count({
+      where: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
+    }),
   ]);
 
   // 4. Customer metrics
@@ -187,7 +198,8 @@ export async function getAdminAnalyticsMetrics(
       where: { ...dateFilter, status: 'ACCEPTED' },
     }),
   ]);
-  const assignmentSuccessRate = totalAttempts > 0 ? Number(((acceptedAttempts / totalAttempts) * 100).toFixed(1)) : 0;
+  const assignmentSuccessRate =
+    totalAttempts > 0 ? Number(((acceptedAttempts / totalAttempts) * 100).toFixed(1)) : 0;
 
   // 6. Safety SOS incidents
   const [totalIncidents, openIncidents, resolvedIncidents] = await Promise.all([
@@ -204,7 +216,9 @@ export async function getAdminAnalyticsMetrics(
         },
       },
     }),
-    prisma.safetyIncident.count({ where: { ...dateFilter, status: SafetyIncidentStatus.RESOLVED } }),
+    prisma.safetyIncident.count({
+      where: { ...dateFilter, status: SafetyIncidentStatus.RESOLVED },
+    }),
   ]);
 
   // 7. Support tickets
@@ -223,7 +237,10 @@ export async function getAdminAnalyticsMetrics(
       },
     }),
     prisma.supportTicket.count({
-      where: { ...dateFilter, status: { in: [SupportTicketStatus.RESOLVED, SupportTicketStatus.CLOSED] } },
+      where: {
+        ...dateFilter,
+        status: { in: [SupportTicketStatus.RESOLVED, SupportTicketStatus.CLOSED] },
+      },
     }),
   ]);
 

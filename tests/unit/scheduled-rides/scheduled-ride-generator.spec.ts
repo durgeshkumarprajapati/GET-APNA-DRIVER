@@ -59,10 +59,17 @@ describe('ScheduledRideGenerator Unit Tests', () => {
         create: jest.fn().mockResolvedValue({ id: 'log-1' }),
       },
       booking: {
-        create: jest.fn().mockResolvedValue({ id: 'booking-generated-101', status: BookingStatus.SEARCHING_DRIVER }),
+        create: jest
+          .fn()
+          .mockResolvedValue({
+            id: 'booking-generated-101',
+            status: BookingStatus.SEARCHING_DRIVER,
+          }),
       },
       scheduledRide: {
-        update: jest.fn().mockResolvedValue({ ...mockDueRide, status: ScheduledRideStatus.COMPLETED }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ ...mockDueRide, status: ScheduledRideStatus.COMPLETED }),
       },
     };
 
@@ -92,7 +99,9 @@ describe('ScheduledRideGenerator Unit Tests', () => {
       occurrenceIdempotencyKey: `${mockDueRide.id}_${dueOccurrenceTime.toISOString()}`,
       status: OccurrenceStatus.GENERATED,
     };
-    const mockDb = createMockDb(existingLogRecord) as unknown as Parameters<typeof processDueScheduledRides>[3];
+    const mockDb = createMockDb(existingLogRecord) as unknown as Parameters<
+      typeof processDueScheduledRides
+    >[3];
 
     const result = await processDueScheduledRides(now, 30, 10, mockDb);
 

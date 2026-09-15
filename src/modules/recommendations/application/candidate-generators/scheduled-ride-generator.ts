@@ -62,9 +62,7 @@ export async function generateScheduledRideCandidates(
         ? 'customer.recommendations.explanations.scheduledRideUpcomingSoon'
         : 'customer.recommendations.explanations.scheduledRideActive',
       explanationArgs: {
-        time: ride.nextOccurrenceAt
-          ? ride.nextOccurrenceAt.toLocaleString()
-          : ride.scheduledTime,
+        time: ride.nextOccurrenceAt ? ride.nextOccurrenceAt.toLocaleString() : ride.scheduledTime,
       },
       action: {
         type: RecommendationActionType.VIEW_SCHEDULED_RIDE,

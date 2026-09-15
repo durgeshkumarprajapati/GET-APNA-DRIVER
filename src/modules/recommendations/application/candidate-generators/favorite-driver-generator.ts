@@ -46,12 +46,19 @@ export async function generateFavoriteDriverCandidates(
     }
 
     // Evaluate live compliance & schedule dispatch eligibility
-    const eligibility = await isDriverDispatchEligible(driver.id, context.currentTimestamp || new Date(), db);
+    const eligibility = await isDriverDispatchEligible(
+      driver.id,
+      context.currentTimestamp || new Date(),
+      db,
+    );
     if (!eligibility.isEligible) {
       continue;
     }
 
-    const driverName = driver.displayName || [driver.firstName, driver.lastName].filter(Boolean).join(' ') || 'Chauffeur';
+    const driverName =
+      driver.displayName ||
+      [driver.firstName, driver.lastName].filter(Boolean).join(' ') ||
+      'Chauffeur';
 
     candidates.push({
       id: `fav_driver_${driver.id}`,

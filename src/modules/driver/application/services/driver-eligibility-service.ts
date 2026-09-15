@@ -157,7 +157,11 @@ export async function isDriverDispatchEligible(
   }
 
   // 3. Schedule Window Check
-  const isScheduled = await driverScheduleService.isDriverWithinSchedule(profile.id, targetTime, db);
+  const isScheduled = await driverScheduleService.isDriverWithinSchedule(
+    profile.id,
+    targetTime,
+    db,
+  );
   if (!isScheduled) {
     reasons.push('Current time is outside driver shift schedule or on a scheduled off day.');
   }

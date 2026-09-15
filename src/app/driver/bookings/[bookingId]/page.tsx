@@ -240,7 +240,13 @@ export default function DriverJourneyControlPage({
               <span className="text-xs font-medium text-slate-400 uppercase block">
                 Next Journey Step & Communication
               </span>
-              {['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS', 'TRIP_COMPLETED'].includes(booking.status) && (
+              {[
+                'DRIVER_ASSIGNED',
+                'DRIVER_EN_ROUTE',
+                'DRIVER_ARRIVED',
+                'TRIP_IN_PROGRESS',
+                'TRIP_COMPLETED',
+              ].includes(booking.status) && (
                 <button
                   type="button"
                   disabled={callingCustomer}
@@ -256,7 +262,10 @@ export default function DriverJourneyControlPage({
             {customerCallData && (
               <div className="p-3 rounded-lg bg-emerald-900/40 border border-emerald-500/50 text-xs text-emerald-300 space-y-1 font-mono">
                 <div>Proxy Session ID: {customerCallData.callSessionId.substring(0, 8)}</div>
-                <div>Masked Driver: {customerCallData.callerPhoneMasked} → Masked Customer: {customerCallData.recipientPhoneMasked}</div>
+                <div>
+                  Masked Driver: {customerCallData.callerPhoneMasked} → Masked Customer:{' '}
+                  {customerCallData.recipientPhoneMasked}
+                </div>
                 <div className="text-[11px] text-emerald-200">{customerCallData.instructions}</div>
               </div>
             )}

@@ -4,7 +4,7 @@ export interface WeeklyScheduleEntryDTO {
   id?: string;
   dayOfWeek: DayOfWeek;
   startTime: string; // HH:mm
-  endTime: string;   // HH:mm
+  endTime: string; // HH:mm
   timezone: string;
   isActive: boolean;
   isOvernight: boolean;

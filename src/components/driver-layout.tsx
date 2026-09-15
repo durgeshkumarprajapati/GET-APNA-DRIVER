@@ -73,7 +73,11 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           label: t('driver.nav.performanceAndBadges'),
           icon: 'military_tech',
         },
-        { href: '/driver/ratings-and-reviews', label: t('driver.nav.ratingsAndReviews'), icon: 'star' },
+        {
+          href: '/driver/ratings-and-reviews',
+          label: t('driver.nav.ratingsAndReviews'),
+          icon: 'star',
+        },
         { href: '/driver/public-portfolio', label: t('driver.nav.publicPortfolio'), icon: 'badge' },
       ],
     },

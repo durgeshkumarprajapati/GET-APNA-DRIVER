@@ -114,7 +114,9 @@ describe('Driver Dispatch Eligibility Unit Tests', () => {
 
     const result = await isDriverDispatchEligible('prof-1');
     expect(result.isEligible).toBe(false);
-    expect(result.reasons).toContain('Driver is currently BUSY handling another assignment or trip.');
+    expect(result.reasons).toContain(
+      'Driver is currently BUSY handling another assignment or trip.',
+    );
   });
 
   it('returns ineligible if driver is outside shift schedule', async () => {
@@ -124,7 +126,9 @@ describe('Driver Dispatch Eligibility Unit Tests', () => {
 
     const result = await isDriverDispatchEligible('prof-1');
     expect(result.isEligible).toBe(false);
-    expect(result.reasons).toContain('Current time is outside driver shift schedule or on a scheduled off day.');
+    expect(result.reasons).toContain(
+      'Current time is outside driver shift schedule or on a scheduled off day.',
+    );
   });
 
   it('returns ineligible if driver has an active booking assignment', async () => {

@@ -64,7 +64,8 @@ export default function CustomerSafetySosPage() {
                 {t('customer.safety.sosTriggeredTitle')}
               </h2>
               <p className="text-sm text-[#bccac0]">
-                {t('customer.safety.sosTriggeredDesc')} (<strong className="text-[#dfe2ee]">{sos.incident.incidentNumber}</strong>)
+                {t('customer.safety.sosTriggeredDesc')} (
+                <strong className="text-[#dfe2ee]">{sos.incident.incidentNumber}</strong>)
               </p>
               <button
                 type="button"

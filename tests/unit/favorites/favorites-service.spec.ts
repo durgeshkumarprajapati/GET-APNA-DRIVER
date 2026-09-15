@@ -1,4 +1,8 @@
-import { addFavoriteDriver, removeFavoriteDriver, getCustomerFavoriteDrivers } from '@/modules/favorites/favorites-service';
+import {
+  addFavoriteDriver,
+  removeFavoriteDriver,
+  getCustomerFavoriteDrivers,
+} from '@/modules/favorites/favorites-service';
 import { prisma } from '@/shared/database/prisma';
 
 describe('Phase 31 Objective D — Customer Favorites Service', () => {

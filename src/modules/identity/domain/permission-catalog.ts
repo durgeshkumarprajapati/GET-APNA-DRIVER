@@ -114,6 +114,11 @@ export const PERMISSIONS = {
   DRIVER_GOALS_MANAGE: 'driver.goals.manage',
   ADMIN_INCENTIVES_MANAGE: 'admin.incentives.manage',
 
+  // Driver Engagement & Gamification (Phase 38 domain & admin)
+  DRIVER_ENGAGEMENT_READ: 'driver.engagement.read',
+  ADMIN_DRIVER_ACHIEVEMENTS_READ: 'admin.driver_achievements.read',
+  ADMIN_DRIVER_ACHIEVEMENTS_MANAGE: 'admin.driver_achievements.manage',
+
   // Scheduled & Recurring Rides (Phase 36 domain & admin)
   SCHEDULED_RIDES_READ: 'scheduled_rides.read',
   SCHEDULED_RIDES_CREATE: 'scheduled_rides.create',
@@ -160,6 +165,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
 
   { code: PERMISSIONS.USERS_PROFILE_READ, description: 'View own user profile.' },
   { code: PERMISSIONS.USERS_PROFILE_UPDATE, description: 'Update own user profile.' },
+  {
+    code: PERMISSIONS.RECOMMENDATIONS_READ,
+    description: 'Read personalized customer recommendations.',
+  },
 
   { code: PERMISSIONS.ADMIN_CUSTOMER_READ, description: 'View customer accounts and history.' },
   { code: PERMISSIONS.ADMIN_CUSTOMER_APPROVE, description: 'Approve pending customer accounts.' },
@@ -319,26 +328,109 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     description: 'Respond to customer support tickets and add internal notes (admin).',
   },
 
-  { code: PERMISSIONS.CALL_DRIVER_INITIATE, description: 'Initiate masked phone call to assigned driver.' },
-  { code: PERMISSIONS.CALL_CUSTOMER_INITIATE, description: 'Initiate masked phone call to assigned customer.' },
+  {
+    code: PERMISSIONS.CALL_DRIVER_INITIATE,
+    description: 'Initiate masked phone call to assigned driver.',
+  },
+  {
+    code: PERMISSIONS.CALL_CUSTOMER_INITIATE,
+    description: 'Initiate masked phone call to assigned customer.',
+  },
   { code: PERMISSIONS.CALL_SUPPORT_INITIATE, description: 'Initiate voice call to Customer Care.' },
-  { code: PERMISSIONS.ADMIN_CALLS_READ, description: 'View platform call sessions and telephony logs (admin).' },
+  {
+    code: PERMISSIONS.ADMIN_CALLS_READ,
+    description: 'View platform call sessions and telephony logs (admin).',
+  },
 
-  { code: PERMISSIONS.DRIVER_SCHEDULE_READ, description: 'View driver weekly schedule and shift roster.' },
-  { code: PERMISSIONS.DRIVER_SCHEDULE_MANAGE, description: 'Manage own weekly schedule and shift exceptions.' },
-  { code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_READ, description: 'View any driver weekly schedule and shift roster (admin).' },
-  { code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_MANAGE, description: 'Manage driver weekly schedules and shift rosters (admin).' },
+  {
+    code: PERMISSIONS.DRIVER_SCHEDULE_READ,
+    description: 'View driver weekly schedule and shift roster.',
+  },
+  {
+    code: PERMISSIONS.DRIVER_SCHEDULE_MANAGE,
+    description: 'Manage own weekly schedule and shift exceptions.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_READ,
+    description: 'View any driver weekly schedule and shift roster (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_DRIVER_SCHEDULE_MANAGE,
+    description: 'Manage driver weekly schedules and shift rosters (admin).',
+  },
 
-  { code: PERMISSIONS.SCHEDULED_RIDES_READ, description: 'View own scheduled and recurring rides.' },
-  { code: PERMISSIONS.SCHEDULED_RIDES_CREATE, description: 'Create one-time or recurring scheduled rides.' },
-  { code: PERMISSIONS.SCHEDULED_RIDES_MANAGE, description: 'Pause, resume, or cancel own scheduled rides.' },
-  { code: PERMISSIONS.ADMIN_SCHEDULED_RIDES_READ, description: 'View fleet-wide scheduled rides (admin).' },
-  { code: PERMISSIONS.ADMIN_SCHEDULED_RIDES_MANAGE, description: 'Manage and cancel customer scheduled rides (admin).' },
+  {
+    code: PERMISSIONS.DRIVER_ENGAGEMENT_READ,
+    description: 'View own gamification achievements, streaks, and engagement metrics.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_DRIVER_ACHIEVEMENTS_READ,
+    description: 'View driver achievement catalog and participation metrics (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_DRIVER_ACHIEVEMENTS_MANAGE,
+    description: 'Create and configure achievement definitions (admin).',
+  },
+
+  {
+    code: PERMISSIONS.SCHEDULED_RIDES_READ,
+    description: 'View own scheduled and recurring rides.',
+  },
+  {
+    code: PERMISSIONS.SCHEDULED_RIDES_CREATE,
+    description: 'Create one-time or recurring scheduled rides.',
+  },
+  {
+    code: PERMISSIONS.SCHEDULED_RIDES_MANAGE,
+    description: 'Pause, resume, or cancel own scheduled rides.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_SCHEDULED_RIDES_READ,
+    description: 'View fleet-wide scheduled rides (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_SCHEDULED_RIDES_MANAGE,
+    description: 'Manage and cancel customer scheduled rides (admin).',
+  },
 
   { code: PERMISSIONS.SYSTEM_CONFIGURATION_MANAGE, description: 'Manage system configuration.' },
   {
     code: PERMISSIONS.SYSTEM_OUTBOX_MANAGE,
     description: 'View outbox health metrics and requeue dead-lettered events.',
+  },
+
+  {
+    code: PERMISSIONS.DRIVER_INCENTIVES_READ,
+    description: 'View driver active incentive challenges and campaign progress.',
+  },
+  {
+    code: PERMISSIONS.DRIVER_GOALS_MANAGE,
+    description: 'Manage own daily and weekly goal targets.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_INCENTIVES_MANAGE,
+    description: 'Create and manage driver incentive campaigns (admin).',
+  },
+
+  {
+    code: PERMISSIONS.CUSTOMER_LOYALTY_READ,
+    description: 'View customer loyalty tier, points, and rewards.',
+  },
+  {
+    code: PERMISSIONS.CUSTOMER_REWARDS_REDEEM,
+    description: 'Redeem loyalty points for coupons or wallet rewards.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_LOYALTY_READ,
+    description: 'View fleet-wide customer loyalty stats (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_LOYALTY_MANAGE,
+    description: 'Configure customer loyalty tiers and reward catalog (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_LOYALTY_ADJUST,
+    description: 'Manually adjust customer loyalty points balance (admin).',
   },
 
   { code: PERMISSIONS.AUDIT_LOG_READ, description: 'View the platform audit log (read-only).' },

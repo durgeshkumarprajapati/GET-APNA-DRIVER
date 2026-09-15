@@ -1,7 +1,11 @@
 import crypto from 'crypto';
 import { CallStatus } from '@prisma/client';
 import { TelephonyProvider } from './telephony-provider';
-import { TelephonyInitiateCallParams, TelephonyCallResult, TelephonyWebhookPayload } from '../domain/types';
+import {
+  TelephonyInitiateCallParams,
+  TelephonyCallResult,
+  TelephonyWebhookPayload,
+} from '../domain/types';
 
 export class ExotelTelephonyProvider implements TelephonyProvider {
   readonly name = 'EXOTEL';
@@ -73,15 +77,16 @@ export class ExotelTelephonyProvider implements TelephonyProvider {
     }
   }
 
-  verifyWebhookSignature(headers: Record<string, string | string[] | undefined>, rawBody: string): boolean {
+  verifyWebhookSignature(
+    headers: Record<string, string | string[] | undefined>,
+    rawBody: string,
+  ): boolean {
     if (!this.webhookSecret) {
       return true;
     }
 
     const signatureHeader =
-      headers['x-exotel-signature'] ||
-      headers['x-telephony-signature'] ||
-      headers['x-signature'];
+      headers['x-exotel-signature'] || headers['x-telephony-signature'] || headers['x-signature'];
 
     if (!signatureHeader) {
       return false;
@@ -115,7 +120,9 @@ export class ExotelTelephonyProvider implements TelephonyProvider {
     const rawStatus = String(payload.Status || payload.status || 'completed').toLowerCase();
 
     let status: CallStatus;
-    let failureReason: string | undefined = payload.DetailedStatus ? String(payload.DetailedStatus) : undefined;
+    let failureReason: string | undefined = payload.DetailedStatus
+      ? String(payload.DetailedStatus)
+      : undefined;
 
     switch (rawStatus) {
       case 'initiated':
@@ -155,7 +162,9 @@ export class ExotelTelephonyProvider implements TelephonyProvider {
       providerCallId,
       event: String(payload.EventType || payload.event || `call.${rawStatus}`),
       status,
-      durationSeconds: payload.CallDuration ? parseInt(String(payload.CallDuration), 10) : undefined,
+      durationSeconds: payload.CallDuration
+        ? parseInt(String(payload.CallDuration), 10)
+        : undefined,
       failureReason,
       timestamp: payload.StartTime ? new Date(String(payload.StartTime)) : new Date(),
       rawPayload: payload,

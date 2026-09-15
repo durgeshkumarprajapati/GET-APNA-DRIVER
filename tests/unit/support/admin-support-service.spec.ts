@@ -71,7 +71,9 @@ describe('Admin Support Service', () => {
         ],
       };
       mockDb.supportTicket.findFirst.mockResolvedValue(mockDetail);
-      mockDb.auditLog.findMany.mockResolvedValue([{ id: 'aud-1', action: 'support.ticket.created' }]);
+      mockDb.auditLog.findMany.mockResolvedValue([
+        { id: 'aud-1', action: 'support.ticket.created' },
+      ]);
 
       const res = await getAdminTicketDetail('tkt-1', mockDb as unknown as Db);
       expect(res.ticket).toEqual(mockDetail);
@@ -80,7 +82,9 @@ describe('Admin Support Service', () => {
 
     it('throws SupportTicketNotFoundError when ticket missing', async () => {
       mockDb.supportTicket.findFirst.mockResolvedValue(null);
-      await expect(getAdminTicketDetail('missing-id', mockDb as unknown as Db)).rejects.toThrow(SupportTicketNotFoundError);
+      await expect(getAdminTicketDetail('missing-id', mockDb as unknown as Db)).rejects.toThrow(
+        SupportTicketNotFoundError,
+      );
     });
   });
 

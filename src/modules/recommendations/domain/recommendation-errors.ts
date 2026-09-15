@@ -8,6 +8,10 @@ export class RecommendationGenerationError extends AppError {
 
 export class InvalidRecommendationLimitError extends AppError {
   constructor(limit: number) {
-    super(`Recommendation limit '${limit}' must be between 1 and 10.`, 400, 'INVALID_RECOMMENDATION_LIMIT');
+    super(
+      `Recommendation limit '${limit}' must be between 1 and 10.`,
+      400,
+      'INVALID_RECOMMENDATION_LIMIT',
+    );
   }
 }

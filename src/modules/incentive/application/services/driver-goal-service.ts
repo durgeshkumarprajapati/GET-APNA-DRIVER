@@ -64,7 +64,9 @@ export async function getDriverGoal(
     dailyTripGoal > 0 ? Math.min(100, Math.round((completedTripsToday / dailyTripGoal) * 100)) : 0;
 
   const weeklyEarningsProgressPercentage =
-    weeklyEarningsGoal > 0 ? Math.min(100, Math.round((earningsThisWeek / weeklyEarningsGoal) * 100)) : 0;
+    weeklyEarningsGoal > 0
+      ? Math.min(100, Math.round((earningsThisWeek / weeklyEarningsGoal) * 100))
+      : 0;
 
   return {
     driverProfileId,

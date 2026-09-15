@@ -239,7 +239,8 @@ export const customerEn = {
   offers: {
     title: 'Offers & Promo Coupons',
     eyebrow: 'Rewards & Finance',
-    subtitle: 'Apply a valid promo code at checkout for instant savings, or let an eligible automatic offer apply itself.',
+    subtitle:
+      'Apply a valid promo code at checkout for instant savings, or let an eligible automatic offer apply itself.',
     autoApplied: 'Auto-applied',
     minFare: 'Min. fare {{amount}}',
     firstRideOnly: 'First ride only',
@@ -261,7 +262,8 @@ export const customerEn = {
     subtitle: 'Invite your friends to GET APNA DRIVER and earn discount credits on your next ride.',
     yourCode: 'Your Referral Code',
     copyCode: 'Copy Code',
-    shareSubtitle: 'Share with friends & family to give them instant discount credits on their first ride.',
+    shareSubtitle:
+      'Share with friends & family to give them instant discount credits on their first ride.',
     statTotalReferred: 'Friends Referred',
     statEarnedCredits: 'Total Credits Earned',
     howItWorks: 'How Referral Works',
@@ -284,9 +286,11 @@ export const customerEn = {
   safety: {
     title: 'SOS Emergency & Safety Desk',
     eyebrow: 'Account & Safety',
-    subtitle: '24x7 Emergency assistance, live trip telemetry monitoring, and police dispatch connection.',
+    subtitle:
+      '24x7 Emergency assistance, live trip telemetry monitoring, and police dispatch connection.',
     emergencyTitle: 'Need Immediate Emergency Assistance?',
-    emergencyDesc: 'Pressing SOS triggers high-priority alerts to our Operations Security Hub and sends live GPS coordinates to your registered emergency contacts.',
+    emergencyDesc:
+      'Pressing SOS triggers high-priority alerts to our Operations Security Hub and sends live GPS coordinates to your registered emergency contacts.',
     triggerSosBtn: 'Trigger Emergency SOS Alert',
     sosTriggeredTitle: 'SOS Emergency Alert Active',
     sosTriggeredDesc: 'Emergency team notified. Live telemetry stream active.',
@@ -316,7 +320,8 @@ export const customerEn = {
   rewards: {
     title: 'Customer Loyalty & Rewards Hub',
     eyebrow: 'REWARDS & MEMBERSHIP TIERS',
-    subtitle: 'Earn loyalty points on every completed ride and unlock exclusive rewards & tier perks',
+    subtitle:
+      'Earn loyalty points on every completed ride and unlock exclusive rewards & tier perks',
     tierCard: {
       currentTier: 'Current Tier',
       pointsBalance: 'Loyalty Points Balance',
@@ -461,4 +466,3 @@ export const customerEn = {
     },
   },
 };
-

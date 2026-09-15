@@ -46,6 +46,10 @@ export class RewardLimitExceededError extends AppError {
 
 export class DuplicateRedemptionError extends AppError {
   constructor(idempotencyKey: string) {
-    super(`Duplicate redemption request for idempotency key ${idempotencyKey}`, 409, 'LOYALTY_DUPLICATE_REDEMPTION');
+    super(
+      `Duplicate redemption request for idempotency key ${idempotencyKey}`,
+      409,
+      'LOYALTY_DUPLICATE_REDEMPTION',
+    );
   }
 }

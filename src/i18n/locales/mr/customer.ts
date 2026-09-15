@@ -78,7 +78,8 @@ export const customerMr = {
     transmissionAuto: 'ऑटोमॅटिक (DSG/AT/CVT)',
     transmissionManual: 'मॅन्युअल',
     preferredDriverSectionTitle: 'आवडत्या ड्रायव्हरला प्राधान्य द्या',
-    preferredDriverSubtitle: 'पर्यायी — जवळ उपलब्ध असल्यास आम्ही तुम्हाला त्यांच्याशी मॅच करण्याचा प्रयत्न करू.',
+    preferredDriverSubtitle:
+      'पर्यायी — जवळ उपलब्ध असल्यास आम्ही तुम्हाला त्यांच्याशी मॅच करण्याचा प्रयत्न करू.',
     preferredDriverNone: 'कोणतेही प्राधान्य नाही — जवळच्या उपलब्ध ड्रायव्हरशी मॅच करा',
     fareBreakdownLabel: 'भाडे गणना तपशील',
     guaranteedRateTag: 'गॅरंटीड दर',
@@ -119,7 +120,8 @@ export const customerMr = {
     callDriverBtn: 'ड्रायव्हरला कॉल करा',
     maskedCallSession: 'मास्क्ड कॉल सत्र: {{id}}',
     maskedCallerDriver: 'मास्क्ड कॉलर: {{caller}} → मास्क्ड ड्रायव्हर: {{driver}}',
-    preferredDriverUnavailableNote: 'आम्ही तुमचा आवडता ड्रायव्हर नियुक्त करू शकलो नाही. सर्वोत्तम उपलब्ध ड्रायव्हर शोधला जाईल.',
+    preferredDriverUnavailableNote:
+      'आम्ही तुमचा आवडता ड्रायव्हर नियुक्त करू शकलो नाही. सर्वोत्तम उपलब्ध ड्रायव्हर शोधला जाईल.',
     yourReviewTitle: 'तुमचे पुनरावलोकन',
     rateYourDriverTitle: 'ड्रायव्हरला रेटिंग द्या',
     submittedOn: '{{date}} रोजी सादर केले',
@@ -157,7 +159,8 @@ export const customerMr = {
     cancelFailedError: 'बुकिंग रद्द करण्यात अयशस्वी.',
     cancelSendError: 'रद्दीकरण विनंती पाठवताना त्रुटी.',
     confirmCancelModalTitle: 'रद्दीकरणाची खात्री करा',
-    confirmCancelModalDesc: 'तुम्हाला खात्री आहे की तुम्ही ही ड्रायव्हर बुकिंग विनंती रद्द करू इच्छिता?',
+    confirmCancelModalDesc:
+      'तुम्हाला खात्री आहे की तुम्ही ही ड्रायव्हर बुकिंग विनंती रद्द करू इच्छिता?',
     cancelReasonLabel: 'रद्दीकरणाचे कारण (पर्यायी)',
     cancelReasonPlaceholder: 'उदा. बेत बदलला',
     keepBookingBtn: 'बुकिंग चालू ठेवा',
@@ -197,7 +200,8 @@ export const customerMr = {
     addFavorite: 'आवडत्यांमध्ये जोडा',
     removeFavorite: 'आवडत्यांमधून हटवा',
     confirmRemoveTitle: 'आवडता ड्रायव्हर हटवायचा?',
-    confirmRemoveMessage: 'तुम्हाला खात्री आहे की तुम्ही {{name}} यांना आवडत्या ड्रायव्हर्समधून हटवू इच्छिता?',
+    confirmRemoveMessage:
+      'तुम्हाला खात्री आहे की तुम्ही {{name}} यांना आवडत्या ड्रायव्हर्समधून हटवू इच्छिता?',
     emptyMessage: 'तुम्ही अद्याप कोणतेही आवडते ड्रायव्हर्स जतन केलेले नाहीत.',
     bookDriver: 'ड्रायव्हर बुक करा',
     experienceYears: '{{years}} वर्षे अनुभव',
@@ -449,11 +453,11 @@ export const customerMr = {
       scheduledRideUpcomingSoon: 'पुढील राइड {{time}} साठी शेड्यूल आहे.',
       scheduledRideActive: '{{time}} साठी सक्रिय शेड्यूल राइड.',
       frequentVehicleChoice: 'नुकतेच {{count}} वेळा {{category}} बुक केले.',
-      sufficientPointsForReward: 'तुमच्याकडे {{rewardTitle}} ({{points}} पॉइंट्स) साठी पुरेसे पॉइंट्स आहेत.',
+      sufficientPointsForReward:
+        'तुमच्याकडे {{rewardTitle}} ({{points}} पॉइंट्स) साठी पुरेसे पॉइंट्स आहेत.',
       activeTierMember: '{{points}} रॉयल्टी पॉइंट्ससह सक्रिय {{tierName}} सदस्य.',
       firstRidePromo: 'पहिल्या राइडचा प्रोमो: {{promoName}} (कोड: {{code}}).',
       activePromoCode: 'उपलब्ध प्रोमो: {{promoName}} (कोड: {{code}}).',
     },
   },
 };
-

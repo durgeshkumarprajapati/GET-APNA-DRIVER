@@ -20,7 +20,9 @@ async function generateTicketNumber(tx: Db): Promise<string> {
   const candidate = `GAD-${seq}`;
   const existing = await tx.supportTicket.findUnique({ where: { ticketNumber: candidate } });
   if (existing) {
-    const timeSeq = Number(process.hrtime.bigint() % BigInt(10000)).toString().padStart(4, '0');
+    const timeSeq = Number(process.hrtime.bigint() % BigInt(10000))
+      .toString()
+      .padStart(4, '0');
     return `GAD-${count + 1}${timeSeq}`;
   }
   return candidate;

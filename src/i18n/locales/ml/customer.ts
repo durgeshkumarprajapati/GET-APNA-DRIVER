@@ -119,7 +119,8 @@ export const customerMl = {
     callDriverBtn: 'ഡ്രൈവറെ വിളിക്കുക',
     maskedCallSession: 'മറച്ചുവെച്ച കോൾ: {{id}}',
     maskedCallerDriver: 'വിളിക്കുന്നയാൾ: {{caller}} → ഡ്രൈവർ: {{driver}}',
-    preferredDriverUnavailableNote: 'നിങ്ങൾ ആവശ്യപ്പെട്ട ഡ്രൈവർ ലഭ്യമായിരുന്നില്ല. ലഭ്യമായ ഏറ്റവും മികച്ച ഡ്രൈവറെ നൽകിയിട്ടുണ്ട്.',
+    preferredDriverUnavailableNote:
+      'നിങ്ങൾ ആവശ്യപ്പെട്ട ഡ്രൈവർ ലഭ്യമായിരുന്നില്ല. ലഭ്യമായ ഏറ്റവും മികച്ച ഡ്രൈവറെ നൽകിയിട്ടുണ്ട്.',
     yourReviewTitle: 'നിങ്ങളുടെ അഭിപ്രായം',
     rateYourDriverTitle: 'ഡ്രൈവർക്ക് റേറ്റിംഗ് നൽകുക',
     submittedOn: '{{date}}-ൽ സമർപ്പിച്ചു',
@@ -449,11 +450,11 @@ export const customerMl = {
       scheduledRideUpcomingSoon: 'അടുത്ത യാത്ര {{time}} ന് ഷെഡ്യൂൾ ചെയ്തിരിക്കുന്നു.',
       scheduledRideActive: '{{time}} നുള്ള സജീവ ഷെഡ്യൂൾ ചെയ്ത യാത്ര.',
       frequentVehicleChoice: 'അടുത്തിടെ {{count}} തവണ {{category}} ബുക്ക് ചെയ്തു.',
-      sufficientPointsForReward: '{{rewardTitle}} ({{points}} പോയിന്റുകൾ) നേടാൻ ആവശ്യത്തിന് പോയിന്റുകൾ ഉണ്ട്.',
+      sufficientPointsForReward:
+        '{{rewardTitle}} ({{points}} പോയിന്റുകൾ) നേടാൻ ആവശ്യത്തിന് പോയിന്റുകൾ ഉണ്ട്.',
       activeTierMember: '{{points}} റോയൽറ്റി പോയിന്റുകളുള്ള സജീവ {{tierName}} അംഗം.',
       firstRidePromo: 'ആദ്യ യാത്ര പ്രൊമോ: {{promoName}} (കോഡ്: {{code}}).',
       activePromoCode: 'ലഭ്യമായ പ്രൊമോ: {{promoName}} (കോഡ്: {{code}}).',
     },
   },
 };
-

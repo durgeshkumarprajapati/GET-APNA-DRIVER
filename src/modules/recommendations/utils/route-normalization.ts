@@ -19,12 +19,17 @@ export function buildRouteKey(
   savedLocationId?: string | null,
 ): string {
   const normPickup = `${normalizeCoordinate(pickupLat)},${normalizeCoordinate(pickupLng)}`;
-  
+
   if (savedLocationId) {
     return `saved:${savedLocationId}`;
   }
 
-  if (dropoffLat !== undefined && dropoffLat !== null && dropoffLng !== undefined && dropoffLng !== null) {
+  if (
+    dropoffLat !== undefined &&
+    dropoffLat !== null &&
+    dropoffLng !== undefined &&
+    dropoffLng !== null
+  ) {
     const normDropoff = `${normalizeCoordinate(dropoffLat)},${normalizeCoordinate(dropoffLng)}`;
     return `route:${normPickup}->${normDropoff}`;
   }

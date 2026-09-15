@@ -1,4 +1,7 @@
-import { calculateNextOccurrence, getIsoDayOfWeek } from '@/modules/scheduled-rides/domain/recurrence-calculator';
+import {
+  calculateNextOccurrence,
+  getIsoDayOfWeek,
+} from '@/modules/scheduled-rides/domain/recurrence-calculator';
 import { ScheduleType, RecurrenceFrequency } from '@prisma/client';
 import { InvalidRecurrenceConfigurationError } from '@/modules/scheduled-rides/domain/errors';
 
@@ -21,7 +24,7 @@ describe('RecurrenceCalculator Domain Unit Tests', () => {
         calculateNextOccurrence({
           scheduleType: ScheduleType.ONE_TIME,
           scheduledTime: '25:99',
-        })
+        }),
       ).toThrow(InvalidRecurrenceConfigurationError);
     });
 

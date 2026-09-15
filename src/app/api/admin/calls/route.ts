@@ -22,11 +22,10 @@ export const GET = withPermission(
         return NextResponse.json({ success: true, data: detail });
       }
 
-      const result = await callingService.listUserCallHistory(
-        principal.userId,
-        'ADMINISTRATOR',
-        { page, limit },
-      );
+      const result = await callingService.listUserCallHistory(principal.userId, 'ADMINISTRATOR', {
+        page,
+        limit,
+      });
 
       return NextResponse.json({ success: true, data: result });
     } catch (err: unknown) {

@@ -104,7 +104,9 @@ export default function TaxInvoicesPage() {
           <div className="flex items-center justify-center p-12 bg-[#0a0e16] rounded-xl border border-[#262a33]">
             <div className="flex flex-col items-center gap-3">
               <span className="w-8 h-8 rounded-full border-2 border-[#68dba9] border-t-transparent animate-spin" />
-              <span className="text-xs font-mono text-[#bccac0]">Loading tax invoice repository...</span>
+              <span className="text-xs font-mono text-[#bccac0]">
+                Loading tax invoice repository...
+              </span>
             </div>
           </div>
         )}
@@ -143,7 +145,9 @@ export default function TaxInvoicesPage() {
                         <td className="p-3.5 font-bold text-[#68dba9]">{inv.invoiceNumber}</td>
                         <td className="p-3.5">
                           <div>{inv.customerSnapshot.name || 'Customer'}</div>
-                          <div className="text-[10px] text-[#87948b]">{inv.customerSnapshot.email || '—'}</div>
+                          <div className="text-[10px] text-[#87948b]">
+                            {inv.customerSnapshot.email || '—'}
+                          </div>
                         </td>
                         <td className="p-3.5">{formatCurrency(inv.subtotalAmount)}</td>
                         <td className="p-3.5 text-[#bccac0]">{formatCurrency(inv.taxAmount)}</td>
@@ -173,7 +177,9 @@ export default function TaxInvoicesPage() {
             {/* PAGINATION */}
             {total > 15 && (
               <div className="p-3 bg-[#181c24] border-t border-[#262a33] flex items-center justify-between text-xs font-mono text-[#bccac0]">
-                <span>Showing page {page} of {Math.ceil(total / 15)} ({total} invoices)</span>
+                <span>
+                  Showing page {page} of {Math.ceil(total / 15)} ({total} invoices)
+                </span>
                 <div className="flex gap-2">
                   <button
                     disabled={page === 1}
@@ -208,7 +214,9 @@ export default function TaxInvoicesPage() {
               <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                 <div>
                   <span className="text-[10px] text-[#68dba9] font-bold">OFFICIAL TAX INVOICE</span>
-                  <h3 className="text-base font-bold text-[#dfe2ee]">{selectedInvoice.invoiceNumber}</h3>
+                  <h3 className="text-base font-bold text-[#dfe2ee]">
+                    {selectedInvoice.invoiceNumber}
+                  </h3>
                 </div>
                 <button
                   type="button"
@@ -222,17 +230,33 @@ export default function TaxInvoicesPage() {
               {/* SUPPLIER & CUSTOMER SNAPSHOT */}
               <div className="grid grid-cols-2 gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
                 <div>
-                  <span className="text-[10px] text-[#87948b] font-bold uppercase block mb-1">Supplier / Issuer</span>
-                  <div className="font-bold text-[#68dba9]">{selectedInvoice.supplierSnapshot.name}</div>
-                  <div className="text-[10px] text-[#bccac0]">GSTIN: {selectedInvoice.supplierSnapshot.gstin}</div>
-                  <div className="text-[10px] text-[#bccac0]">SAC: {selectedInvoice.supplierSnapshot.sacCode}</div>
+                  <span className="text-[10px] text-[#87948b] font-bold uppercase block mb-1">
+                    Supplier / Issuer
+                  </span>
+                  <div className="font-bold text-[#68dba9]">
+                    {selectedInvoice.supplierSnapshot.name}
+                  </div>
+                  <div className="text-[10px] text-[#bccac0]">
+                    GSTIN: {selectedInvoice.supplierSnapshot.gstin}
+                  </div>
+                  <div className="text-[10px] text-[#bccac0]">
+                    SAC: {selectedInvoice.supplierSnapshot.sacCode}
+                  </div>
                 </div>
 
                 <div>
-                  <span className="text-[10px] text-[#87948b] font-bold uppercase block mb-1">Customer / Billed To</span>
-                  <div className="font-bold">{selectedInvoice.customerSnapshot.name || 'Valued Customer'}</div>
-                  <div className="text-[10px] text-[#bccac0]">{selectedInvoice.customerSnapshot.email || '—'}</div>
-                  <div className="text-[10px] text-[#bccac0]">{selectedInvoice.customerSnapshot.phone || '—'}</div>
+                  <span className="text-[10px] text-[#87948b] font-bold uppercase block mb-1">
+                    Customer / Billed To
+                  </span>
+                  <div className="font-bold">
+                    {selectedInvoice.customerSnapshot.name || 'Valued Customer'}
+                  </div>
+                  <div className="text-[10px] text-[#bccac0]">
+                    {selectedInvoice.customerSnapshot.email || '—'}
+                  </div>
+                  <div className="text-[10px] text-[#bccac0]">
+                    {selectedInvoice.customerSnapshot.phone || '—'}
+                  </div>
                 </div>
               </div>
 
@@ -248,15 +272,27 @@ export default function TaxInvoicesPage() {
                 </div>
                 <div className="flex justify-between text-[#68dba9]">
                   <span>CGST (9%):</span>
-                  <span>+ {formatCurrency(selectedInvoice.taxDetails?.cgstAmount || selectedInvoice.taxAmount / 2)}</span>
+                  <span>
+                    +{' '}
+                    {formatCurrency(
+                      selectedInvoice.taxDetails?.cgstAmount || selectedInvoice.taxAmount / 2,
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[#68dba9]">
                   <span>SGST (9%):</span>
-                  <span>+ {formatCurrency(selectedInvoice.taxDetails?.sgstAmount || selectedInvoice.taxAmount / 2)}</span>
+                  <span>
+                    +{' '}
+                    {formatCurrency(
+                      selectedInvoice.taxDetails?.sgstAmount || selectedInvoice.taxAmount / 2,
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-[#262a33] text-sm font-bold text-[#dfe2ee]">
                   <span>Total Payable:</span>
-                  <span className="text-[#68dba9]">{formatCurrency(selectedInvoice.totalAmount)}</span>
+                  <span className="text-[#68dba9]">
+                    {formatCurrency(selectedInvoice.totalAmount)}
+                  </span>
                 </div>
               </div>
 

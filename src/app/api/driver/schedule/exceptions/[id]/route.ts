@@ -15,11 +15,17 @@ export const DELETE = withPermission<RouteParams>(
     try {
       const { id } = await routeContext!.params;
       if (!id) {
-        return NextResponse.json({ error: 'MISSING_ID', message: 'Exception ID is required.' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'MISSING_ID', message: 'Exception ID is required.' },
+          { status: 400 },
+        );
       }
 
       await driverScheduleService.deleteScheduleException(principal.userId, id);
-      return NextResponse.json({ success: true, message: 'Schedule exception deleted successfully.' });
+      return NextResponse.json({
+        success: true,
+        message: 'Schedule exception deleted successfully.',
+      });
     } catch (err: unknown) {
       if (err instanceof ScheduleExceptionNotFoundError) {
         return NextResponse.json({ error: 'NOT_FOUND', message: err.message }, { status: 404 });

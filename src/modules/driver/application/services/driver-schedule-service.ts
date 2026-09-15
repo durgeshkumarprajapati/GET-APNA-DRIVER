@@ -1,13 +1,15 @@
 import 'server-only';
-import { DayOfWeek, DriverSchedule, DriverScheduleException, ScheduleExceptionType } from '@prisma/client';
+import {
+  DayOfWeek,
+  DriverSchedule,
+  DriverScheduleException,
+  ScheduleExceptionType,
+} from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { getOrCreateDriverProfile } from './driver-profile-service';
-import {
-  InvalidScheduleTimeError,
-  ScheduleExceptionNotFoundError,
-} from '../../domain/errors';
+import { InvalidScheduleTimeError, ScheduleExceptionNotFoundError } from '../../domain/errors';
 import {
   CreateScheduleExceptionInput,
   DriverScheduleOverviewDTO,
@@ -28,7 +30,9 @@ const DAY_ORDER: DayOfWeek[] = [
 export function validateTimeFormat(time: string): void {
   const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
   if (!timeRegex.test(time)) {
-    throw new InvalidScheduleTimeError(`Invalid time format '${time}'. Time must be in 24-hour HH:mm format (00:00 - 23:59).`);
+    throw new InvalidScheduleTimeError(
+      `Invalid time format '${time}'. Time must be in 24-hour HH:mm format (00:00 - 23:59).`,
+    );
   }
 }
 
@@ -169,7 +173,8 @@ export class DriverScheduleService {
       };
     });
 
-    const exceptionsDTO: ScheduleExceptionDTO[] = profile.scheduleExceptions.map(toScheduleExceptionDTO);
+    const exceptionsDTO: ScheduleExceptionDTO[] =
+      profile.scheduleExceptions.map(toScheduleExceptionDTO);
     const todayException = exceptionsDTO.find((e) => e.date === todayDateStr);
     const todayWeekly = scheduleMap.get(todayDayOfWeek);
 
@@ -311,12 +316,16 @@ export class DriverScheduleService {
 
       const dateObj = new Date(input.date);
       if (isNaN(dateObj.getTime())) {
-        throw new InvalidScheduleTimeError(`Invalid exception date '${input.date}'. Must be YYYY-MM-DD.`);
+        throw new InvalidScheduleTimeError(
+          `Invalid exception date '${input.date}'. Must be YYYY-MM-DD.`,
+        );
       }
 
       if (input.exceptionType === ScheduleExceptionType.CUSTOM_HOURS) {
         if (!input.startTime || !input.endTime) {
-          throw new InvalidScheduleTimeError('Custom hours exception requires both startTime and endTime.');
+          throw new InvalidScheduleTimeError(
+            'Custom hours exception requires both startTime and endTime.',
+          );
         }
         validateTimeFormat(input.startTime);
         validateTimeFormat(input.endTime);

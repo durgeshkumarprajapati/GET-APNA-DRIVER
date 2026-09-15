@@ -29,7 +29,10 @@ export const POST = withAuth(async (req: NextRequest, { principal }) => {
     return response;
   } catch (err: unknown) {
     if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: 'INVALID_LOCALE', message: 'Invalid locale parameter' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'INVALID_LOCALE', message: 'Invalid locale parameter' },
+        { status: 400 },
+      );
     }
     const message = err instanceof Error ? err.message : 'Failed to save locale preference.';
     return NextResponse.json({ error: 'LOCALE_UPDATE_FAILED', message }, { status: 500 });

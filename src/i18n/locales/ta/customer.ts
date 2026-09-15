@@ -119,7 +119,8 @@ export const customerTa = {
     callDriverBtn: 'ஓட்டுநரை அழை',
     maskedCallSession: 'மறைக்கப்பட்ட அழைப்பு: {{id}}',
     maskedCallerDriver: 'அழைப்பாளர்: {{caller}} → ஓட்டுநர்: {{driver}}',
-    preferredDriverUnavailableNote: 'விருப்பமான ஓட்டுநரை ஒதுக்க முடியவில்லை. சிறந்த ஓட்டுநர் ஒதுக்கப்படுவார்.',
+    preferredDriverUnavailableNote:
+      'விருப்பமான ஓட்டுநரை ஒதுக்க முடியவில்லை. சிறந்த ஓட்டுநர் ஒதுக்கப்படுவார்.',
     yourReviewTitle: 'உங்கள் மதிப்பாய்வு',
     rateYourDriverTitle: 'ஓட்டுநரை மதிப்பிடுங்கள்',
     submittedOn: '{{date}} அன்று சமர்ப்பிக்கப்பட்டது',
@@ -449,11 +450,11 @@ export const customerTa = {
       scheduledRideUpcomingSoon: 'அடுத்த பயணம் {{time}} மணிக்கு திட்டமிடப்பட்டுள்ளது.',
       scheduledRideActive: '{{time}} மணிக்கு திட்டமிடப்பட்ட பயணம் செயல்படுகிறது.',
       frequentVehicleChoice: 'சமீபத்தில் {{category}} பிரிவை {{count}} முறை பதிவுசெய்துள்ளீர்கள்.',
-      sufficientPointsForReward: '{{rewardTitle}} ({{points}} புள்ளிகள்) பெற உங்களிடம் போதுமான புள்ளிகள் உள்ளன.',
+      sufficientPointsForReward:
+        '{{rewardTitle}} ({{points}} புள்ளிகள்) பெற உங்களிடம் போதுமான புள்ளிகள் உள்ளன.',
       activeTierMember: '{{points}} ராயல்டி புள்ளிகளுடன் செயலில் உள்ள {{tierName}} உறுப்பினர்.',
       firstRidePromo: 'முதல் பயணச் சலுகை: {{promoName}} (குறியீடு: {{code}}).',
       activePromoCode: 'கிடைக்கும் சலுகை: {{promoName}} (குறியீடு: {{code}}).',
     },
   },
 };
-

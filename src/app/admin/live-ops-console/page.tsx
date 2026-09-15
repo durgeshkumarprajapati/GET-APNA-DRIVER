@@ -72,7 +72,9 @@ export default function AdminLiveOpsConsolePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCityTab, setActiveCityTab] = useState<'delhi' | 'mumbai' | 'bengaluru' | 'hyderabad'>('delhi');
+  const [activeCityTab, setActiveCityTab] = useState<
+    'delhi' | 'mumbai' | 'bengaluru' | 'hyderabad'
+  >('delhi');
   const [actionToast, setActionToast] = useState<string | null>(null);
 
   // Dialog state for dispatch actions
@@ -80,7 +82,8 @@ export default function AdminLiveOpsConsolePage() {
     isOpen: boolean;
     title: string;
     description: string;
-    actionType: 'reassign' | 'forceAssign' | 'restartSearch' | 'cancelBooking' | 'approveDriver' | null;
+    actionType:
+      'reassign' | 'forceAssign' | 'restartSearch' | 'cancelBooking' | 'approveDriver' | null;
     targetId: string | null;
   }>({
     isOpen: false,
@@ -185,19 +188,26 @@ export default function AdminLiveOpsConsolePage() {
     } catch (err: unknown) {
       showToast(err instanceof Error ? err.message : t('common.toasts.error'));
     } finally {
-      setConfirmModal({ isOpen: false, title: '', description: '', actionType: null, targetId: null });
+      setConfirmModal({
+        isOpen: false,
+        title: '',
+        description: '',
+        actionType: null,
+        targetId: null,
+      });
     }
   };
 
-  const filteredBookings = data?.activeBookings.filter((b) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      b.bookingNumber.toLowerCase().includes(q) ||
-      b.customerName.toLowerCase().includes(q) ||
-      (b.driverName && b.driverName.toLowerCase().includes(q))
-    );
-  }) ?? [];
+  const filteredBookings =
+    data?.activeBookings.filter((b) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        b.bookingNumber.toLowerCase().includes(q) ||
+        b.customerName.toLowerCase().includes(q) ||
+        (b.driverName && b.driverName.toLowerCase().includes(q))
+      );
+    }) ?? [];
 
   return (
     <ControlStationLayout activePersona="admin" activePath="admin-live-ops-map">
@@ -219,7 +229,9 @@ export default function AdminLiveOpsConsolePage() {
                 OPS CONTROL CENTER v5.0
               </span>
               <span className="text-xs font-mono text-[#bccac0]">
-                {data ? `LAST SYNC: ${new Date(data.timestamp).toLocaleTimeString()}` : 'INITIALIZING...'}
+                {data
+                  ? `LAST SYNC: ${new Date(data.timestamp).toLocaleTimeString()}`
+                  : 'INITIALIZING...'}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold font-display text-[#dfe2ee] tracking-tight mt-1">
@@ -272,7 +284,9 @@ export default function AdminLiveOpsConsolePage() {
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.netTakeRate')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">pie_chart</span>
+                  <span className="material-symbols-outlined text-sm text-[#68dba9]">
+                    pie_chart
+                  </span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-bold font-display text-[#68dba9]">
@@ -290,7 +304,9 @@ export default function AdminLiveOpsConsolePage() {
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.activeDispatchGrid')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">alt_route</span>
+                  <span className="material-symbols-outlined text-sm text-[#68dba9]">
+                    alt_route
+                  </span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-2xl font-bold font-display text-[#dfe2ee]">
@@ -334,9 +350,13 @@ export default function AdminLiveOpsConsolePage() {
                   <span className="text-2xl font-bold font-display text-[#dfe2ee]">
                     {data?.metrics.customerNps}
                   </span>
-                  <span className="text-xs font-mono text-[#68dba9] font-semibold">World-Class</span>
+                  <span className="text-xs font-mono text-[#68dba9] font-semibold">
+                    World-Class
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono text-[#bccac0]">Verified customer feedback</span>
+                <span className="text-[10px] font-mono text-[#bccac0]">
+                  Verified customer feedback
+                </span>
               </div>
             </div>
 
@@ -365,7 +385,9 @@ export default function AdminLiveOpsConsolePage() {
                             : 'text-[#bccac0] hover:text-[#dfe2ee]'
                         }`}
                       >
-                        {city === 'delhi' ? 'Delhi-NCR' : city.charAt(0).toUpperCase() + city.slice(1)}
+                        {city === 'delhi'
+                          ? 'Delhi-NCR'
+                          : city.charAt(0).toUpperCase() + city.slice(1)}
                       </button>
                     ))}
                   </div>
@@ -415,7 +437,9 @@ export default function AdminLiveOpsConsolePage() {
                         Telemetry Stream : Active
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono text-[#68dba9]">Real Fleet Data Connected</span>
+                    <span className="text-[11px] font-mono text-[#68dba9]">
+                      Real Fleet Data Connected
+                    </span>
                   </div>
 
                   <div className="relative z-20 flex flex-col gap-2">
@@ -427,13 +451,18 @@ export default function AdminLiveOpsConsolePage() {
                         <div className="flex items-center gap-2">
                           <span
                             className={`w-2 h-2 rounded-full ${
-                              dr.availabilityStatus === 'AVAILABLE' ? 'bg-[#68dba9]' : 'bg-[#b4c5ff]'
+                              dr.availabilityStatus === 'AVAILABLE'
+                                ? 'bg-[#68dba9]'
+                                : 'bg-[#b4c5ff]'
                             }`}
                           ></span>
                           <span className="text-[#dfe2ee] font-bold">{dr.name}</span>
                           <span className="text-[10px] text-[#bccac0]">({dr.serviceArea})</span>
                         </div>
-                        <StatusBadge label={statusLabel(dr.availabilityStatus)} tone={dr.availabilityStatus === 'AVAILABLE' ? 'success' : 'info'} />
+                        <StatusBadge
+                          label={statusLabel(dr.availabilityStatus)}
+                          tone={dr.availabilityStatus === 'AVAILABLE' ? 'success' : 'info'}
+                        />
                       </div>
                     ))}
                   </div>
@@ -464,7 +493,9 @@ export default function AdminLiveOpsConsolePage() {
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="font-bold text-sm text-[#dfe2ee] block">{drv.name}</span>
+                            <span className="font-bold text-sm text-[#dfe2ee] block">
+                              {drv.name}
+                            </span>
                             <span className="text-xs font-mono text-[#bccac0]">{drv.email}</span>
                           </div>
                           <StatusBadge label={statusLabel(drv.onboardingStatus)} tone="warning" />
@@ -497,7 +528,9 @@ export default function AdminLiveOpsConsolePage() {
             <div className="bg-[#181c24] rounded-2xl border border-[#262a33] p-5 flex flex-col gap-4 shadow-xl">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#68dba9] text-2xl">local_taxi</span>
+                  <span className="material-symbols-outlined text-[#68dba9] text-2xl">
+                    local_taxi
+                  </span>
                   <div>
                     <h3 className="font-bold font-display text-lg text-[#dfe2ee]">
                       {t('admin.liveOps.dispatchLogTitle')}
@@ -529,12 +562,18 @@ export default function AdminLiveOpsConsolePage() {
                       <tr>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.bookingId')}</th>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.customer')}</th>
-                        <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.assignedChauffeur')}</th>
+                        <th className="px-4 py-3">
+                          {t('admin.liveOps.tableHeaders.assignedChauffeur')}
+                        </th>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.activeRoute')}</th>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.liveStatus')}</th>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.fareEst')}</th>
-                        <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.safetyStatus')}</th>
-                        <th className="px-4 py-3 text-right">{t('admin.liveOps.tableHeaders.actions')}</th>
+                        <th className="px-4 py-3">
+                          {t('admin.liveOps.tableHeaders.safetyStatus')}
+                        </th>
+                        <th className="px-4 py-3 text-right">
+                          {t('admin.liveOps.tableHeaders.actions')}
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#262a33]">
@@ -558,7 +597,9 @@ export default function AdminLiveOpsConsolePage() {
                             )}
                           </td>
                           <td className="px-4 py-3 max-w-[200px] truncate">
-                            <span>{b.pickupAddress} &rarr; {b.dropoffAddress}</span>
+                            <span>
+                              {b.pickupAddress} &rarr; {b.dropoffAddress}
+                            </span>
                           </td>
                           <td className="px-4 py-3">
                             <StatusBadge
@@ -650,7 +691,15 @@ export default function AdminLiveOpsConsolePage() {
         confirmText={t('common.actions.confirm')}
         cancelText={t('common.actions.cancel')}
         onConfirm={() => void handleActionConfirm()}
-        onCancel={() => setConfirmModal({ isOpen: false, title: '', description: '', actionType: null, targetId: null })}
+        onCancel={() =>
+          setConfirmModal({
+            isOpen: false,
+            title: '',
+            description: '',
+            actionType: null,
+            targetId: null,
+          })
+        }
       />
     </ControlStationLayout>
   );

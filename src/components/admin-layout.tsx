@@ -74,7 +74,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
     {
       label: t('admin.nav.overview'),
       items: [
-        { href: '/admin/mission-dashboard', label: t('admin.nav.missionDashboard'), icon: 'grid_view' },
+        {
+          href: '/admin/mission-dashboard',
+          label: t('admin.nav.missionDashboard'),
+          icon: 'grid_view',
+        },
         { href: '/admin/live-fleet-radar', label: t('admin.nav.liveFleetRadar'), icon: 'radar' },
         { href: '/admin/analytics-and-bi', label: t('admin.nav.analyticsAndBi'), icon: 'insights' },
       ],
@@ -102,7 +106,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       items: [
         { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
         { href: '/admin/scheduled-rides', label: t('scheduledRides.adminTitle'), icon: 'schedule' },
-        { href: '/admin/sos-and-disputes', label: t('admin.nav.sosAndDisputes'), icon: 'crisis_alert' },
+        {
+          href: '/admin/sos-and-disputes',
+          label: t('admin.nav.sosAndDisputes'),
+          icon: 'crisis_alert',
+        },
         { href: '/admin/reviews', label: t('admin.nav.reviews'), icon: 'reviews' },
       ],
     },
@@ -144,7 +152,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           icon: 'account_balance_wallet',
         },
         { href: '/admin/payout-rails', label: t('admin.nav.payoutRails'), icon: 'currency_rupee' },
-        { href: '/admin/commission-matrix', label: t('admin.nav.commissionMatrix'), icon: 'percent' },
+        {
+          href: '/admin/commission-matrix',
+          label: t('admin.nav.commissionMatrix'),
+          icon: 'percent',
+        },
         { href: '/admin/tax-invoices', label: t('admin.nav.taxInvoices'), icon: 'receipt_long' },
       ],
     },

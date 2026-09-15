@@ -49,9 +49,11 @@ describe('Phase 34 — Driver Earnings, Incentive & Goal Engine', () => {
       await prisma.driverIncentiveProgress.deleteMany({
         where: { campaignId: createdCampaignId },
       });
-      await prisma.driverIncentiveCampaign.delete({
-        where: { id: createdCampaignId },
-      }).catch(() => {});
+      await prisma.driverIncentiveCampaign
+        .delete({
+          where: { id: createdCampaignId },
+        })
+        .catch(() => {});
     }
     if (testDriverProfileId) {
       await prisma.driverGoalPreference.deleteMany({

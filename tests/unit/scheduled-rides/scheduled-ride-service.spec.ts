@@ -62,15 +62,19 @@ describe('ScheduledRideService Unit Tests', () => {
 
   const createMockDb = (customRideRecord: Record<string, unknown> | null = mockRideRecord) => {
     const mockDb = {
-      $transaction: jest.fn().mockImplementation(async (cb: (db: unknown) => Promise<unknown>) => cb(mockDb)),
+      $transaction: jest
+        .fn()
+        .mockImplementation(async (cb: (db: unknown) => Promise<unknown>) => cb(mockDb)),
       scheduledRide: {
         create: jest.fn().mockResolvedValue(customRideRecord),
         findMany: jest.fn().mockResolvedValue([customRideRecord]),
         findUnique: jest.fn().mockResolvedValue(customRideRecord),
-        update: jest.fn().mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
-          ...(customRideRecord || {}),
-          ...data,
-        })),
+        update: jest
+          .fn()
+          .mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+            ...(customRideRecord || {}),
+            ...data,
+          })),
       },
     };
     return mockDb;
@@ -91,7 +95,7 @@ describe('ScheduledRideService Unit Tests', () => {
           pickupAddress: 'Vasant Vihar, New Delhi',
         },
         customerId,
-        mockDb as unknown as Db
+        mockDb as unknown as Db,
       );
 
       expect(result.id).toBe('sch-ride-1');
@@ -104,17 +108,17 @@ describe('ScheduledRideService Unit Tests', () => {
     it('throws ScheduledRideNotFoundError when schedule does not exist', async () => {
       const mockDb = createMockDb(null);
 
-      await expect(getScheduledRideById('non-existent', customerId, mockDb as unknown as Db)).rejects.toThrow(
-        ScheduledRideNotFoundError
-      );
+      await expect(
+        getScheduledRideById('non-existent', customerId, mockDb as unknown as Db),
+      ).rejects.toThrow(ScheduledRideNotFoundError);
     });
 
     it('throws ScheduledRideForbiddenError when requested by a different customer', async () => {
       const mockDb = createMockDb();
 
-      await expect(getScheduledRideById('sch-ride-1', 'other-customer-id', mockDb as unknown as Db)).rejects.toThrow(
-        ScheduledRideForbiddenError
-      );
+      await expect(
+        getScheduledRideById('sch-ride-1', 'other-customer-id', mockDb as unknown as Db),
+      ).rejects.toThrow(ScheduledRideForbiddenError);
     });
   });
 
@@ -126,7 +130,7 @@ describe('ScheduledRideService Unit Tests', () => {
       expect(mockDb.scheduledRide.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { status: ScheduledRideStatus.PAUSED },
-        })
+        }),
       );
     });
 
@@ -134,9 +138,9 @@ describe('ScheduledRideService Unit Tests', () => {
       const pausedRecord = { ...mockRideRecord, status: ScheduledRideStatus.PAUSED };
       const mockDb = createMockDb(pausedRecord);
 
-      await expect(pauseScheduledRide('sch-ride-1', customerId, mockDb as unknown as Db)).rejects.toThrow(
-        ScheduledRideNotActiveError
-      );
+      await expect(
+        pauseScheduledRide('sch-ride-1', customerId, mockDb as unknown as Db),
+      ).rejects.toThrow(ScheduledRideNotActiveError);
     });
 
     it('resumes a paused scheduled ride and recalculates next occurrence', async () => {
@@ -149,7 +153,7 @@ describe('ScheduledRideService Unit Tests', () => {
           data: expect.objectContaining({
             status: ScheduledRideStatus.ACTIVE,
           }),
-        })
+        }),
       );
     });
   });
@@ -158,14 +162,19 @@ describe('ScheduledRideService Unit Tests', () => {
     it('cancels an active scheduled ride', async () => {
       const mockDb = createMockDb();
 
-      await cancelScheduledRide('sch-ride-1', customerId, 'No longer needed', mockDb as unknown as Db);
+      await cancelScheduledRide(
+        'sch-ride-1',
+        customerId,
+        'No longer needed',
+        mockDb as unknown as Db,
+      );
       expect(mockDb.scheduledRide.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             status: ScheduledRideStatus.CANCELLED,
             failureReason: 'No longer needed',
           }),
-        })
+        }),
       );
     });
   });

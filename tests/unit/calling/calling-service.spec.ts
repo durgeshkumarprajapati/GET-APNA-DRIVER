@@ -1,5 +1,8 @@
 import { CallStatus, CallType } from '@prisma/client';
-import { callingService, maskPhoneNumber } from '@/modules/calling/application/services/calling-service';
+import {
+  callingService,
+  maskPhoneNumber,
+} from '@/modules/calling/application/services/calling-service';
 import { prisma } from '@/shared/database/prisma';
 import { CallAuthorizationError } from '@/modules/calling/domain/errors';
 

@@ -16,13 +16,16 @@ export const GET = withPermission(PERMISSIONS.SCHEDULED_RIDES_READ, async (req, 
   return NextResponse.json({ success: true, data: rides }, { status: 200 });
 });
 
-export const POST = withPermission(PERMISSIONS.SCHEDULED_RIDES_CREATE, async (req, { principal }) => {
-  try {
-    const body = await req.json();
-    const ride = await createScheduledRide(body, principal.userId);
-    return NextResponse.json({ success: true, data: ride }, { status: 201 });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to create scheduled ride';
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
-  }
-});
+export const POST = withPermission(
+  PERMISSIONS.SCHEDULED_RIDES_CREATE,
+  async (req, { principal }) => {
+    try {
+      const body = await req.json();
+      const ride = await createScheduledRide(body, principal.userId);
+      return NextResponse.json({ success: true, data: ride }, { status: 201 });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create scheduled ride';
+      return NextResponse.json({ success: false, error: message }, { status: 400 });
+    }
+  },
+);

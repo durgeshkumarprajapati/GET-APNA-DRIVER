@@ -8,7 +8,11 @@ import {
   RecommendationActionType,
 } from '../../domain/recommendation-types';
 
-function savedLocationFullAddress(loc: { addressLine1: string; addressLine2?: string | null; city: string }): string {
+function savedLocationFullAddress(loc: {
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+}): string {
   return [loc.addressLine1, loc.addressLine2, loc.city].filter(Boolean).join(', ');
 }
 

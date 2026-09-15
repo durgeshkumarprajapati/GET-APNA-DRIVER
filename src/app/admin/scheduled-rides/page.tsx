@@ -148,24 +148,44 @@ export default function AdminScheduledRidesPage() {
         {/* Metric Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4">
-            <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">Total Schedules</span>
-            <p className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">{counts.total}</p>
+            <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+              Total Schedules
+            </span>
+            <p className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+              {counts.total}
+            </p>
           </div>
           <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4">
-            <span className="text-[10px] font-bold text-[#68dba9] uppercase font-['Space_Grotesk']">Active</span>
-            <p className="text-xl font-bold text-[#68dba9] font-['Space_Grotesk'] mt-1">{counts.active}</p>
+            <span className="text-[10px] font-bold text-[#68dba9] uppercase font-['Space_Grotesk']">
+              Active
+            </span>
+            <p className="text-xl font-bold text-[#68dba9] font-['Space_Grotesk'] mt-1">
+              {counts.active}
+            </p>
           </div>
           <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4">
-            <span className="text-[10px] font-bold text-[#f5c04a] uppercase font-['Space_Grotesk']">Paused</span>
-            <p className="text-xl font-bold text-[#f5c04a] font-['Space_Grotesk'] mt-1">{counts.paused}</p>
+            <span className="text-[10px] font-bold text-[#f5c04a] uppercase font-['Space_Grotesk']">
+              Paused
+            </span>
+            <p className="text-xl font-bold text-[#f5c04a] font-['Space_Grotesk'] mt-1">
+              {counts.paused}
+            </p>
           </div>
           <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4">
-            <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">Completed</span>
-            <p className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">{counts.completed}</p>
+            <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+              Completed
+            </span>
+            <p className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+              {counts.completed}
+            </p>
           </div>
           <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4">
-            <span className="text-[10px] font-bold text-[#ffb4ab] uppercase font-['Space_Grotesk']">Cancelled</span>
-            <p className="text-xl font-bold text-[#ffb4ab] font-['Space_Grotesk'] mt-1">{counts.cancelled}</p>
+            <span className="text-[10px] font-bold text-[#ffb4ab] uppercase font-['Space_Grotesk']">
+              Cancelled
+            </span>
+            <p className="text-xl font-bold text-[#ffb4ab] font-['Space_Grotesk'] mt-1">
+              {counts.cancelled}
+            </p>
           </div>
         </div>
 
@@ -230,14 +250,18 @@ export default function AdminScheduledRidesPage() {
                 <tbody className="divide-y divide-[#262a33]">
                   {filteredRides.map((ride) => (
                     <tr key={ride.id} className="hover:bg-[#1f242e] transition-colors">
-                      <td className="p-3.5 font-mono text-[#dfe2ee]">{ride.id.substring(0, 8)}...</td>
+                      <td className="p-3.5 font-mono text-[#dfe2ee]">
+                        {ride.id.substring(0, 8)}...
+                      </td>
                       <td className="p-3.5">
                         <div className="font-semibold text-[#dfe2ee]">
                           {ride.customer?.firstName
                             ? `${ride.customer.firstName} ${ride.customer.lastName || ''}`
                             : 'Customer'}
                         </div>
-                        <div className="text-[#87948b] font-mono text-[11px]">{ride.customer?.email}</div>
+                        <div className="text-[#87948b] font-mono text-[11px]">
+                          {ride.customer?.email}
+                        </div>
                       </td>
                       <td className="p-3.5">
                         <span className="font-bold text-[#68dba9]">
@@ -261,10 +285,10 @@ export default function AdminScheduledRidesPage() {
                             ride.status === 'SCHEDULED'
                               ? 'bg-[#00311f] text-[#68dba9]'
                               : ride.status === 'PAUSED'
-                              ? 'bg-[#3a2f00] text-[#f5c04a]'
-                              : ride.status === 'CANCELLED'
-                              ? 'bg-[#93000a]/20 text-[#ffb4ab]'
-                              : 'bg-[#262a33] text-[#87948b]'
+                                ? 'bg-[#3a2f00] text-[#f5c04a]'
+                                : ride.status === 'CANCELLED'
+                                  ? 'bg-[#93000a]/20 text-[#ffb4ab]'
+                                  : 'bg-[#262a33] text-[#87948b]'
                           }`}
                         >
                           {ride.status}

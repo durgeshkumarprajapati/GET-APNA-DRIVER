@@ -10,11 +10,7 @@ import { InvalidCallStateTransitionError } from './errors';
  * COMPLETED / FAILED / CANCELLED -> Terminal states
  */
 const ALLOWED_TRANSITIONS: Record<CallStatus, readonly CallStatus[]> = {
-  [CallStatus.REQUESTED]: [
-    CallStatus.INITIATED,
-    CallStatus.CANCELLED,
-    CallStatus.FAILED,
-  ],
+  [CallStatus.REQUESTED]: [CallStatus.INITIATED, CallStatus.CANCELLED, CallStatus.FAILED],
   [CallStatus.INITIATED]: [
     CallStatus.RINGING,
     CallStatus.ANSWERED,
@@ -28,10 +24,7 @@ const ALLOWED_TRANSITIONS: Record<CallStatus, readonly CallStatus[]> = {
     CallStatus.FAILED,
     CallStatus.CANCELLED,
   ],
-  [CallStatus.ANSWERED]: [
-    CallStatus.COMPLETED,
-    CallStatus.FAILED,
-  ],
+  [CallStatus.ANSWERED]: [CallStatus.COMPLETED, CallStatus.FAILED],
   [CallStatus.COMPLETED]: [],
   [CallStatus.FAILED]: [],
   [CallStatus.CANCELLED]: [],

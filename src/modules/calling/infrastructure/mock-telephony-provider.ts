@@ -1,6 +1,10 @@
 import { CallStatus } from '@prisma/client';
 import { TelephonyProvider } from './telephony-provider';
-import { TelephonyInitiateCallParams, TelephonyCallResult, TelephonyWebhookPayload } from '../domain/types';
+import {
+  TelephonyInitiateCallParams,
+  TelephonyCallResult,
+  TelephonyWebhookPayload,
+} from '../domain/types';
 
 export class MockTelephonyProvider implements TelephonyProvider {
   readonly name = 'MOCK';
@@ -21,12 +25,16 @@ export class MockTelephonyProvider implements TelephonyProvider {
     };
   }
 
-  verifyWebhookSignature(headers: Record<string, string | string[] | undefined>, _rawBody: string): boolean {
+  verifyWebhookSignature(
+    headers: Record<string, string | string[] | undefined>,
+    _rawBody: string,
+  ): boolean {
     const signatureHeader = headers['x-mock-signature'] || headers['x-telephony-signature'];
     const secret = process.env.TELEPHONY_WEBHOOK_SECRET || 'mock-secret';
 
     if (signatureHeader) {
-      if (Array.isArray(signatureHeader)) return signatureHeader[0] === secret || signatureHeader[0] === 'valid_mock_signature';
+      if (Array.isArray(signatureHeader))
+        return signatureHeader[0] === secret || signatureHeader[0] === 'valid_mock_signature';
       return signatureHeader === secret || signatureHeader === 'valid_mock_signature';
     }
     return true;
@@ -34,11 +42,15 @@ export class MockTelephonyProvider implements TelephonyProvider {
 
   parseWebhookPayload(body: Record<string, unknown> | string): TelephonyWebhookPayload {
     const payload = typeof body === 'string' ? JSON.parse(body) : body;
-    const providerCallId = String(payload.providerCallId || payload.CallSid || payload.Sid || 'mock_unknown');
+    const providerCallId = String(
+      payload.providerCallId || payload.CallSid || payload.Sid || 'mock_unknown',
+    );
     const statusStr = String(payload.status || payload.CallStatus || 'COMPLETED').toUpperCase();
 
     let status: CallStatus;
-    let failureReason: string | undefined = payload.failureReason ? String(payload.failureReason) : undefined;
+    let failureReason: string | undefined = payload.failureReason
+      ? String(payload.failureReason)
+      : undefined;
 
     switch (statusStr) {
       case 'RINGING':
@@ -77,7 +89,12 @@ export class MockTelephonyProvider implements TelephonyProvider {
       providerCallId,
       event: String(payload.event || `call.${status.toLowerCase()}`),
       status,
-      durationSeconds: typeof payload.durationSeconds === 'number' ? payload.durationSeconds : (payload.CallDuration ? parseInt(String(payload.CallDuration), 10) : undefined),
+      durationSeconds:
+        typeof payload.durationSeconds === 'number'
+          ? payload.durationSeconds
+          : payload.CallDuration
+            ? parseInt(String(payload.CallDuration), 10)
+            : undefined,
       failureReason,
       timestamp: payload.timestamp ? new Date(String(payload.timestamp)) : new Date(),
       rawPayload: payload,

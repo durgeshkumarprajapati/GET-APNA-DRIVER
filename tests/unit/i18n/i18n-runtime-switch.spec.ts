@@ -1,4 +1,9 @@
-import { translate, formatLocalizedCurrency, formatLocalizedDate, formatLocalizedNumber } from '@/i18n/helpers';
+import {
+  translate,
+  formatLocalizedCurrency,
+  formatLocalizedDate,
+  formatLocalizedNumber,
+} from '@/i18n/helpers';
 import { isValidLocale, SUPPORTED_LOCALES } from '@/i18n/config';
 import { dictionaries } from '@/i18n/locales';
 
@@ -56,9 +61,15 @@ describe('Phase 31 Objective A — i18n Runtime Reliability & Translation Parity
     });
 
     it('handles parameter interpolation correctly in all locales', () => {
-      expect(translate('en', 'customer.dashboard.welcome', { name: 'John' })).toBe('Welcome back, John');
-      expect(translate('hi', 'customer.dashboard.welcome', { name: 'जॉन' })).toBe('वापसी पर स्वागत है, जॉन');
-      expect(translate('gu', 'customer.dashboard.welcome', { name: 'જાન' })).toBe('પાછા ફરવા બદલ સ્વાગત છે, જાન');
+      expect(translate('en', 'customer.dashboard.welcome', { name: 'John' })).toBe(
+        'Welcome back, John',
+      );
+      expect(translate('hi', 'customer.dashboard.welcome', { name: 'जॉन' })).toBe(
+        'वापसी पर स्वागत है, जॉन',
+      );
+      expect(translate('gu', 'customer.dashboard.welcome', { name: 'જાન' })).toBe(
+        'પાછા ફરવા બદલ સ્વાગત છે, જાન',
+      );
     });
 
     it('falls back to English when a key is missing in target locale', () => {

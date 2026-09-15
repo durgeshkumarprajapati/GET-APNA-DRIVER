@@ -7,11 +7,7 @@ import {
   CallWindowExpiredError,
 } from '../../domain/errors';
 import { validateCallStateTransition } from '../../domain/call-state-machine';
-import {
-  CallSessionDTO,
-  DirectCallResponse,
-  TelephonyWebhookPayload,
-} from '../../domain/types';
+import { CallSessionDTO, DirectCallResponse, TelephonyWebhookPayload } from '../../domain/types';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { env } from '@/shared/config/env';
 
@@ -44,13 +40,30 @@ export function toCallSessionDTO(session: Record<string, unknown>): CallSessionD
     recipientPhoneMasked: session.recipientPhoneMasked
       ? String(session.recipientPhoneMasked)
       : maskPhoneNumber(session.recipientPhone as string | null),
-    startedAt: session.startedAt instanceof Date ? session.startedAt.toISOString() : String(session.startedAt),
-    answeredAt: session.answeredAt ? (session.answeredAt instanceof Date ? session.answeredAt.toISOString() : String(session.answeredAt)) : null,
-    endedAt: session.endedAt ? (session.endedAt instanceof Date ? session.endedAt.toISOString() : String(session.endedAt)) : null,
+    startedAt:
+      session.startedAt instanceof Date
+        ? session.startedAt.toISOString()
+        : String(session.startedAt),
+    answeredAt: session.answeredAt
+      ? session.answeredAt instanceof Date
+        ? session.answeredAt.toISOString()
+        : String(session.answeredAt)
+      : null,
+    endedAt: session.endedAt
+      ? session.endedAt instanceof Date
+        ? session.endedAt.toISOString()
+        : String(session.endedAt)
+      : null,
     durationSeconds: typeof session.durationSeconds === 'number' ? session.durationSeconds : null,
     failureReason: session.failureReason ? String(session.failureReason) : null,
-    createdAt: session.createdAt instanceof Date ? session.createdAt.toISOString() : String(session.createdAt),
-    updatedAt: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : String(session.updatedAt),
+    createdAt:
+      session.createdAt instanceof Date
+        ? session.createdAt.toISOString()
+        : String(session.createdAt),
+    updatedAt:
+      session.updatedAt instanceof Date
+        ? session.updatedAt.toISOString()
+        : String(session.updatedAt),
   };
 }
 
@@ -79,7 +92,9 @@ export class CallingService {
     }
 
     if (booking.customerId !== customerUserId) {
-      throw new CallAuthorizationError('You do not have permission to initiate a call for this booking.');
+      throw new CallAuthorizationError(
+        'You do not have permission to initiate a call for this booking.',
+      );
     }
 
     if (!booking.driverProfile || !booking.driverProfileId) {
@@ -286,15 +301,14 @@ export class CallingService {
     }
 
     const callerPhone =
-      user.phone ||
-      ((user as Record<string, unknown>).phoneNumber as string) ||
-      '+910000000000';
+      user.phone || ((user as Record<string, unknown>).phoneNumber as string) || '+910000000000';
     const supportNumber = env.TELEPHONY_SUPPORT_NUMBER || '+9118002761000';
 
     const callerMasked = maskPhoneNumber(callerPhone);
     const recipientMasked = maskPhoneNumber(supportNumber);
 
-    const callType = user.role === 'DRIVER' ? CallType.DRIVER_TO_SUPPORT : CallType.CUSTOMER_TO_SUPPORT;
+    const callType =
+      user.role === 'DRIVER' ? CallType.DRIVER_TO_SUPPORT : CallType.CUSTOMER_TO_SUPPORT;
 
     const callSession = await prisma.callSession.create({
       data: {
@@ -357,10 +371,7 @@ export class CallingService {
   async handleTelephonyWebhook(payload: TelephonyWebhookPayload): Promise<CallSessionDTO | null> {
     const session = await prisma.callSession.findFirst({
       where: {
-        OR: [
-          { providerCallId: payload.providerCallId },
-          { id: payload.providerCallId },
-        ],
+        OR: [{ providerCallId: payload.providerCallId }, { id: payload.providerCallId }],
       },
     });
 
@@ -389,7 +400,10 @@ export class CallingService {
         updateData.durationSeconds = payload.durationSeconds;
       } else if (session.startedAt) {
         const ended = updateData.endedAt as Date;
-        updateData.durationSeconds = Math.max(0, Math.floor((ended.getTime() - session.startedAt.getTime()) / 1000));
+        updateData.durationSeconds = Math.max(
+          0,
+          Math.floor((ended.getTime() - session.startedAt.getTime()) / 1000),
+        );
       }
     }
 
@@ -476,17 +490,11 @@ export class CallingService {
     } else if (userRole === 'DRIVER') {
       const dp = await prisma.driverProfile.findUnique({ where: { userId } });
       where = {
-        OR: [
-          { initiatedByUserId: userId },
-          ...(dp ? [{ driverProfileId: dp.id }] : []),
-        ],
+        OR: [{ initiatedByUserId: userId }, ...(dp ? [{ driverProfileId: dp.id }] : [])],
       };
     } else {
       where = {
-        OR: [
-          { initiatedByUserId: userId },
-          { customerId: userId },
-        ],
+        OR: [{ initiatedByUserId: userId }, { customerId: userId }],
       };
     }
 
@@ -514,7 +522,9 @@ export class CallingService {
   private assertCallWindowValid(booking: { status: string; updatedAt: Date | string }): void {
     const validStatuses = ['ASSIGNED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'];
     if (!validStatuses.includes(booking.status)) {
-      throw new CallAuthorizationError(`Cannot initiate call for booking in '${booking.status}' status.`);
+      throw new CallAuthorizationError(
+        `Cannot initiate call for booking in '${booking.status}' status.`,
+      );
     }
 
     if (booking.status === 'COMPLETED') {

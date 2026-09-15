@@ -59,7 +59,9 @@ export default function CustomerSupportPage() {
 
   // New Ticket Modal Form state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState<SupportTicketCategory>(SupportTicketCategory.BOOKING_ISSUE);
+  const [newCategory, setNewCategory] = useState<SupportTicketCategory>(
+    SupportTicketCategory.BOOKING_ISSUE,
+  );
   const [newSubject, setNewSubject] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newBookingId, setNewBookingId] = useState<string>('');
@@ -350,10 +352,13 @@ export default function CustomerSupportPage() {
               </span>
               <div>
                 <span className="text-sm font-bold text-[#dfe2ee] block font-['Space_Grotesk']">
-                  Customer Care Call Connected (Session ID: {callData.callSessionId.substring(0, 8)})
+                  Customer Care Call Connected (Session ID: {callData.callSessionId.substring(0, 8)}
+                  )
                 </span>
                 <span className="text-xs text-[#70a1ff]">
-                  Dial Helpline: <strong className="text-white font-mono">{callData.dialNumber}</strong> • {callData.instructions}
+                  Dial Helpline:{' '}
+                  <strong className="text-white font-mono">{callData.dialNumber}</strong> •{' '}
+                  {callData.instructions}
                 </span>
               </div>
             </div>
@@ -378,7 +383,8 @@ export default function CustomerSupportPage() {
                 Immediate Physical Emergency or Safety Danger?
               </span>
               <span className="text-xs text-[#ffb4ab]/80">
-                Do not use general support ticketing. Trigger the live SOS emergency button for immediate response.
+                Do not use general support ticketing. Trigger the live SOS emergency button for
+                immediate response.
               </span>
             </div>
           </div>
@@ -425,7 +431,8 @@ export default function CustomerSupportPage() {
                   No support requests yet
                 </p>
                 <p className="text-xs text-[#bccac0] max-w-xs">
-                  If you need help with a booking, payment, account, or ride discrepancy, open a request.
+                  If you need help with a booking, payment, account, or ride discrepancy, open a
+                  request.
                 </p>
                 <button
                   type="button"
@@ -482,7 +489,8 @@ export default function CustomerSupportPage() {
                   forum
                 </span>
                 <p className="text-sm font-['Space_Grotesk'] text-[#bccac0]">
-                  Select a support ticket from the list to view its full conversation and status history.
+                  Select a support ticket from the list to view its full conversation and status
+                  history.
                 </p>
               </div>
             ) : detailLoading ? (
@@ -540,7 +548,8 @@ export default function CustomerSupportPage() {
                       <span className="font-mono">{selectedTicket.booking.status}</span>
                     </div>
                     <p className="text-[#87948b] truncate">
-                      {selectedTicket.booking.pickupAddress} → {selectedTicket.booking.dropoffAddress}
+                      {selectedTicket.booking.pickupAddress} →{' '}
+                      {selectedTicket.booking.dropoffAddress}
                     </p>
                   </div>
                 )}
@@ -567,9 +576,16 @@ export default function CustomerSupportPage() {
                             <span className="font-bold text-[#68dba9]">
                               {isCustomer ? 'You (Customer)' : 'Customer Support Agent'}
                             </span>
-                            <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span>
+                              {new Date(m.createdAt).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
                           </div>
-                          <p className="text-[#dfe2ee] leading-relaxed whitespace-pre-wrap">{m.body}</p>
+                          <p className="text-[#dfe2ee] leading-relaxed whitespace-pre-wrap">
+                            {m.body}
+                          </p>
                         </div>
                       );
                     })
@@ -582,7 +598,10 @@ export default function CustomerSupportPage() {
 
                 {/* Reply Form */}
                 {selectedTicket.status !== 'CLOSED' ? (
-                  <form onSubmit={handleSendReply} className="flex flex-col gap-2 pt-3 border-t border-[#262a33]">
+                  <form
+                    onSubmit={handleSendReply}
+                    className="flex flex-col gap-2 pt-3 border-t border-[#262a33]"
+                  >
                     <textarea
                       rows={3}
                       value={replyText}
@@ -602,7 +621,8 @@ export default function CustomerSupportPage() {
                   </form>
                 ) : (
                   <div className="p-3 rounded-lg bg-[#1c2028] border border-[#262a33] text-center text-xs text-[#87948b]">
-                    This support request has been closed. Create a new request if you still need assistance.
+                    This support request has been closed. Create a new request if you still need
+                    assistance.
                   </div>
                 )}
               </div>
@@ -657,7 +677,8 @@ export default function CustomerSupportPage() {
                     <option value="">No specific booking</option>
                     {eligibleBookings.map((b) => (
                       <option key={b.id} value={b.id}>
-                        {b.bookingType} - {b.pickupAddress?.substring(0, 20)}... ({new Date(b.createdAt).toLocaleDateString()})
+                        {b.bookingType} - {b.pickupAddress?.substring(0, 20)}... (
+                        {new Date(b.createdAt).toLocaleDateString()})
                       </option>
                     ))}
                   </select>
