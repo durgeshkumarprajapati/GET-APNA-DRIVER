@@ -358,6 +358,8 @@ export const customerPa = {
     title: 'ਸ਼ਡਿਊਲ ਅਤੇ ਦੁਹਰਾਉਣ ਵਾਲੀਆਂ ਰਾਈਡਾਂ',
     subtitle: 'ਐਡਵਾਂਸ ਵਿੱਚ ਬੁੱਕ ਕਰੋ, ਨਿਯਮਤ ਯਾਤਰਾਵਾਂ ਸੈੱਟ ਕਰੋ।',
     newSchedule: 'ਰਾਈਡ ਸ਼ਡਿਊਲ ਕਰੋ',
+    createBtn: '+ ਰਾਈਡ ਸ਼ਡਿਊਲ ਕਰੋ',
+    noRides: 'ਕੋਈ ਸ਼ਡਿਊਲ ਕੀਤੀ ਰਾਈਡ ਨਹੀਂ ਮਿਲੀ।',
     tabs: {
       all: 'ਸਾਰੇ ਸ਼ਡਿਊਲ',
       upcoming: 'ਆਉਣ ਵਾਲੀਆਂ',
@@ -373,6 +375,12 @@ export const customerPa = {
       CANCELLED: 'ਰੱਦ ਕੀਤਾ ਗਿਆ',
       EXPIRED: 'ਮਿਆਦ ਪੁੱਗੀ',
       FAILED: 'ਅਸਫਲ',
+      active: 'ਐਕਟਿਵ',
+      paused: 'ਰੋਕਿਆ ਗਿਆ',
+      completed: 'ਪੂਰਾ ਹੋਇਆ',
+      cancelled: 'ਰੱਦ ਕੀਤਾ ਗਿਆ',
+      scheduled: 'ਸ਼ਡਿਊਲ ਕੀਤਾ ਗਿਆ',
+      all: 'ਸਾਰੇ',
     },
     frequency: {
       DAILY: 'ਰੋਜ਼ਾਨਾ',

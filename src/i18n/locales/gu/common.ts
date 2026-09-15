@@ -21,6 +21,7 @@ export const commonGu = {
     viewDetails: 'વિગતો જુઓ',
     view: 'જુઓ',
     retry: 'ફરી પ્રયાસ કરો',
+    logout: 'લોગ આઉટ',
   },
   status: {
     active: 'સક્રિય',

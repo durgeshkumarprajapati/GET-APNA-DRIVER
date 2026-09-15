@@ -20,7 +20,8 @@ export const commonPa = {
     upload: 'ਅੱਪਲੋਡ ਕਰੋ',
     viewDetails: 'ਵੇਰਵੇ ਵੇਖੋ',
     view: 'ਵੇਖੋ',
-    retry: 'ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
+    retry: 'ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
+    logout: 'ਲੌਗ ਆਊਟ',
   },
   status: {
     active: 'ਸਰਗਰਮ',

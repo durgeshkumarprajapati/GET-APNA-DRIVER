@@ -361,6 +361,8 @@ export const customerMr = {
     title: 'शेड्यूल आणि आवर्ती राइड्स',
     subtitle: 'आगाऊ बुक करा, आवर्ती प्रवास सेट करा, किंवा तुमच्या आवडत्या ड्रायव्हरची विनंती करा.',
     newSchedule: 'राइड शेड्यूल करा',
+    createBtn: '+ राइड शेड्यूल करा',
+    noRides: 'कोणतीही शेड्यूल केलेली राइड सापडली नाही.',
     tabs: {
       all: 'सर्व शेड्यूल',
       upcoming: 'आगामी',
@@ -376,6 +378,12 @@ export const customerMr = {
       CANCELLED: 'रद्द केलेले',
       EXPIRED: 'मुदत संपली',
       FAILED: 'अयशस्वी',
+      active: 'सक्रिय',
+      paused: 'थांबवलेले',
+      completed: 'पूर्ण',
+      cancelled: 'रद्द केलेले',
+      scheduled: 'शेड्यूल केलेले',
+      all: 'सर्व',
     },
     frequency: {
       DAILY: 'दैनिक',

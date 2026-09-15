@@ -21,6 +21,7 @@ export const commonMr = {
     viewDetails: 'तपशील पहा',
     view: 'पहा',
     retry: 'पुन्हा प्रयत्न करा',
+    logout: 'लॉग आउट',
   },
   status: {
     active: 'सक्रिय',

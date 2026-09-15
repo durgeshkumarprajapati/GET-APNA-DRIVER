@@ -20,7 +20,8 @@ export const commonTe = {
     upload: 'అప్‌లోడ్ చేయి',
     viewDetails: 'వివరాలు చూడండి',
     view: 'చూడండి',
-    retry: 'మళ్ళీ ప్రయత్నించండి',
+    retry: 'మళ్లీ ప్రయత్నించండి',
+    logout: 'లాగ్ అవుట్',
   },
   status: {
     active: 'యాక్టివ్',

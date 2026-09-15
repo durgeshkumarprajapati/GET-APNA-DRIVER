@@ -20,7 +20,8 @@ export const commonTa = {
     upload: 'பதிவேற்று',
     viewDetails: 'விவரங்களை பார்',
     view: 'பார்',
-    retry: 'மீண்டும் முயற்சி செய்',
+    retry: 'மீண்டும் முயற்சிக்கவும்',
+    logout: 'வெளியேறு',
   },
   status: {
     active: 'செயலில் உள்ளது',

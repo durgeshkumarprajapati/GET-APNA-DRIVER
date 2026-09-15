@@ -21,6 +21,7 @@ export const commonHi = {
     viewDetails: 'विवरण देखें',
     view: 'देखें',
     retry: 'पुनः प्रयास करें',
+    logout: 'लॉग आउट',
   },
   status: {
     active: 'सक्रिय',

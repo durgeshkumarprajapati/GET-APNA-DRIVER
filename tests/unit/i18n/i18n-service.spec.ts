@@ -38,6 +38,9 @@ describe('i18n Architecture Unit Tests', () => {
     it('translates keys in English correctly', () => {
       expect(translate('en', 'common.actions.save')).toBe('Save');
       expect(translate('en', 'common.actions.cancel')).toBe('Cancel');
+      expect(translate('en', 'common.actions.logout')).toBe('Logout');
+      expect(translate('en', 'scheduledRides.title')).toBe('Scheduled & Recurring Rides');
+      expect(translate('en', 'scheduledRides.createBtn')).toBe('+ Schedule a Ride');
       expect(translate('en', 'booking.status.TRIP_IN_PROGRESS')).toBe('Trip in Progress');
     });
 

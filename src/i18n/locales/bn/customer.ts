@@ -358,6 +358,8 @@ export const customerBn = {
     title: 'তফসিলভুক্ত ও পুনরাবৃত্তিমূলক রাইডসমূহ',
     subtitle: 'অগ্রিম বুক করুন, নিয়মিত যাতায়াত নির্ধারণ করুন।',
     newSchedule: 'রাইড তফসিল করুন',
+    createBtn: '+ রাইড তফসিল করুন',
+    noRides: 'কোনো তফসিলভুক্ত রাইড পাওয়া যায়নি।',
     tabs: {
       all: 'সকল তফসিল',
       upcoming: 'আসন্ন',
@@ -373,6 +375,12 @@ export const customerBn = {
       CANCELLED: 'বাতিল',
       EXPIRED: 'মেয়াদোত্তীর্ণ',
       FAILED: 'ব্যর্থ',
+      active: 'সক্রিয়',
+      paused: 'স্থগিত',
+      completed: 'সম্পন্ন',
+      cancelled: 'বাতিল',
+      scheduled: 'তফসিলভুক্ত',
+      all: 'সকল',
     },
     frequency: {
       DAILY: 'দৈনিক',

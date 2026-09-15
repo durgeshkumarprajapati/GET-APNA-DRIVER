@@ -368,6 +368,8 @@ export const customerHi = {
     title: 'शेड्यूल और आवर्ती सवारी',
     subtitle: 'अग्रिम बुक करें, आवर्ती यात्रा सेट करें, या अपने पसंदीदा ड्राइवर का अनुरोध करें।',
     newSchedule: 'सवारी शेड्यूल करें',
+    createBtn: '+ सवारी शेड्यूल करें',
+    noRides: 'कोई शेड्यूल की गई सवारी नहीं मिली।',
     tabs: {
       all: 'सभी शेड्यूल',
       upcoming: 'आगामी',
@@ -383,6 +385,12 @@ export const customerHi = {
       CANCELLED: 'रद्द किया गया',
       EXPIRED: 'समाप्त',
       FAILED: 'विफल',
+      active: 'सक्रिय',
+      paused: 'रुका हुआ',
+      completed: 'पूरा हुआ',
+      cancelled: 'रद्द किया गया',
+      scheduled: 'शेड्यूल किया गया',
+      all: 'सभी',
     },
     frequency: {
       DAILY: 'दैनिक',

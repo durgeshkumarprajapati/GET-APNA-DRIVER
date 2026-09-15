@@ -367,6 +367,8 @@ export const customerEn = {
     title: 'Scheduled & Recurring Rides',
     subtitle: 'Book in advance, set up recurring commutes, or request your favorite chauffeur.',
     newSchedule: 'Schedule a Ride',
+    createBtn: '+ Schedule a Ride',
+    noRides: 'No scheduled or recurring rides found.',
     tabs: {
       all: 'All Schedules',
       upcoming: 'Upcoming',
@@ -382,6 +384,12 @@ export const customerEn = {
       CANCELLED: 'Cancelled',
       EXPIRED: 'Expired',
       FAILED: 'Failed',
+      active: 'Active',
+      paused: 'Paused',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+      scheduled: 'Scheduled',
+      all: 'All',
     },
     frequency: {
       DAILY: 'Daily',

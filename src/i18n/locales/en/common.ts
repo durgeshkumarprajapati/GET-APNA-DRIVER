@@ -21,6 +21,7 @@ export const commonEn = {
     viewDetails: 'View Details',
     view: 'View',
     retry: 'Retry',
+    logout: 'Logout',
   },
   status: {
     active: 'Active',

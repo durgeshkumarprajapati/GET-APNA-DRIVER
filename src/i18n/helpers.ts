@@ -10,26 +10,51 @@ export function getTranslationByKey(
   key: string,
   params?: Record<string, string | number>,
 ): string {
-  const parts = key.split('.');
-  let current: unknown = dict;
+  function resolvePath(root: unknown, pathKey: string): string | null {
+    const parts = pathKey.split('.');
+    let current: unknown = root;
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = (current as Record<string, unknown>)[part];
+      } else {
+        return null;
+      }
+    }
+    return typeof current === 'string' ? current : null;
+  }
 
-  for (const part of parts) {
-    if (current && typeof current === 'object' && part in current) {
-      current = (current as Record<string, unknown>)[part];
+  // 1. Direct path lookup
+  let foundText = resolvePath(dict, key);
+
+  // 2. Sub-namespace lookup (e.g. 'scheduledRides.title' -> dict.customer.scheduledRides.title)
+  if (!foundText && typeof dict === 'object' && dict !== null) {
+    const namespaces = ['customer', 'driver', 'admin', 'common', 'auth', 'booking', 'errors'];
+    for (const ns of namespaces) {
+      if (ns in dict) {
+        const nsResult = resolvePath((dict as Record<string, unknown>)[ns], key);
+        if (nsResult) {
+          foundText = nsResult;
+          break;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback to defaultValue parameter if provided, otherwise key
+  if (!foundText) {
+    if (params && typeof params.defaultValue === 'string') {
+      foundText = params.defaultValue;
     } else {
-      // Fallback: return key itself if not found
       return key;
     }
   }
 
-  if (typeof current !== 'string') {
-    return key;
-  }
-
-  let text = current;
+  let text = foundText;
   if (params) {
     for (const [pKey, pVal] of Object.entries(params)) {
-      text = text.replace(new RegExp(`{{${pKey}}}`, 'g'), String(pVal));
+      if (pKey !== 'defaultValue') {
+        text = text.replace(new RegExp(`{{${pKey}}}`, 'g'), String(pVal));
+      }
     }
   }
 

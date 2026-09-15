@@ -21,6 +21,7 @@ export const commonMl = {
     viewDetails: 'വിശദാംശങ്ങൾ കാണുക',
     view: 'കാണുക',
     retry: 'വീണ്ടും ശ്രമിക്കുക',
+    logout: 'ലോഗ് ഔട്ട്',
   },
   status: {
     active: 'സജീവം',

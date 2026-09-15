@@ -21,6 +21,7 @@ export const commonKn = {
     viewDetails: 'ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ',
     view: 'ವೀಕ್ಷಿಸಿ',
     retry: 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
+    logout: 'ಲಾಗ್ ಔಟ್',
   },
   status: {
     active: 'ಸಕ್ರಿಯ',

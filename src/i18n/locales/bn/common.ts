@@ -20,7 +20,8 @@ export const commonBn = {
     upload: 'আপলোড করুন',
     viewDetails: 'বিস্তারিত দেখুন',
     view: 'দেখুন',
-    retry: 'আবার চেষ্টা করুন',
+    retry: 'পুনরায় চেষ্টা করুন',
+    logout: 'লগ আউট',
   },
   status: {
     active: 'সক্রিয়',

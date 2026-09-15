@@ -358,6 +358,8 @@ export const customerKn = {
     title: 'ನಿಗದಿತ ಮತ್ತು ಮರುಕಳಿಸುವ ರೈಡ್‌ಗಳು',
     subtitle: 'ಮುಂಚಿತವಾಗಿ ಬುಕ್ ಮಾಡಿ, ನಿಯಮಿತ ಪ್ರಯಾಣವನ್ನು ಸಜ್ಜುಗೊಳಿಸಿ.',
     newSchedule: 'ರೈಡ್ ನಿಗದಿಪಡಿಸಿ',
+    createBtn: '+ ರೈಡ್ ನಿಗದಿಪಡಿಸಿ',
+    noRides: 'ಯಾವುದೇ ನಿಗದಿತ ರೈಡ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ.',
     tabs: {
       all: 'ಎಲ್ಲಾ ನಿಗದಿಗಳು',
       upcoming: 'ಮುಂಬರುವ',
@@ -373,6 +375,12 @@ export const customerKn = {
       CANCELLED: 'ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ',
       EXPIRED: 'ಅವಧಿ ಮುಗಿದಿದೆ',
       FAILED: 'ವಿಫಲವಾಗಿದೆ',
+      active: 'ಸಕ್ರಿಯ',
+      paused: 'ತಾತ್ಕಾಲಿಕ ತಡೆ',
+      completed: 'ಪೂರ್ಣಗೊಂಡಿದೆ',
+      cancelled: 'ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ',
+      scheduled: 'ನಿಗದಿಪಡಿಸಲಾಗಿದೆ',
+      all: 'ಎಲ್ಲಾ',
     },
     frequency: {
       DAILY: 'ದೈನಂದಿನ',

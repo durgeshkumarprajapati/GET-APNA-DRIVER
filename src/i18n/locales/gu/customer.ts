@@ -370,6 +370,8 @@ export const customerGu = {
     subtitle:
       'અગાઉથી બુક કરો, પુનરાવર્તિત મુસાફરી સેટ કરો, અથવા તમારા મનપસંદ ડ્રાઇવરની વિનંતી કરો.',
     newSchedule: 'રાઇડ શેડ્યૂલ કરો',
+    createBtn: '+ રાઇડ શેડ્યૂલ કરો',
+    noRides: 'કોઈ શેડ્યૂલ કરેલ રાઇડ્સ મળી નથી.',
     tabs: {
       all: 'તમામ શેડ્યૂલ',
       upcoming: 'આગામી',
@@ -385,6 +387,12 @@ export const customerGu = {
       CANCELLED: 'રદ કરેલ',
       EXPIRED: 'મુદત પૂરી',
       FAILED: 'નિષ્ફળ',
+      active: 'સક્રિય',
+      paused: 'અટકાવેલ',
+      completed: 'પૂર્ણ',
+      cancelled: 'રદ કરેલ',
+      scheduled: 'શેડ્યૂલ કરેલ',
+      all: 'તમામ',
     },
     frequency: {
       DAILY: 'દૈનિક',
