@@ -52,6 +52,12 @@ export const adminGu = {
     todaysEarnings: 'આજની કમાણી',
     liveOpsMap: 'લાઈવ ઓપ્સ મેપ',
     kycApprovals: 'કેવાયસી મંજૂરીઓ',
+    marketplaceIntelligence: 'માર્કેટપ્લેસ ઈન્ટેલિજન્સ',
+  },
+  marketplaceIntelligence: {
+    title: 'માર્કેટપ્લેસ ઈન્ટેલિજન્સ કન્સોલ',
+    eyebrow: 'માગ અંદાજ અને અભિયાન સંકેત',
+    subtitle: 'રિયલ-ટાઇમ નિર્ણય સપોર્ટ સ્તર અને ઝોન ઈન્ટેલિજન્સ',
   },
   analytics: {
     title: 'એનાલિટિક્સ અને બિઝનેસ ઇન્ટેલિજન્સ',

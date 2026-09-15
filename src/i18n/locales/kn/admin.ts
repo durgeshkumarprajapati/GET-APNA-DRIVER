@@ -51,7 +51,13 @@ export const adminKn = {
     dispatchRadar: 'ಡಿಸ್ಪ್ಯಾಚ್ ರೇಡಾರ್',
     todaysEarnings: 'ಇಂದಿನ ಗಳಿಕೆ',
     liveOpsMap: 'ಲೈವ್ ಆಪ್ಸ್ ಮ್ಯಾಪ್',
-    kycApprovals: 'KYC ಅನುಮೋದನೆಗಳು',
+    kycApprovals: 'ಕೆವೈಸಿ ಅನುಮೋದನೆಗಳು',
+    marketplaceIntelligence: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ',
+  },
+  marketplaceIntelligence: {
+    title: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ ಕನ್ಸೋಲ್',
+    eyebrow: 'ಬೇಡಿಕೆ ಮುನ್ಸೂಚನೆ ಮತ್ತು ಪ್ರಚಾರ ಸಂಕೇತಗಳು',
+    subtitle: 'ನೈಜ-ಸಮಯದ ನಿರ್ಧಾರ ಬೆಂಬಲ ಪದರ ಮತ್ತು ವಲಯ ಬುದ್ಧಿವಂತಿಕೆ',
   },
   analytics: {
     title: 'ವಿಶ್ಲೇಷಣೆ & ಬಿಸಿನೆಸ್ ಇಂಟೆಲಿಜೆನ್ಸ್',

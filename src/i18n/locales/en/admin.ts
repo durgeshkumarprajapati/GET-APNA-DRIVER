@@ -52,6 +52,12 @@ export const adminEn = {
     todaysEarnings: "Today's Earnings",
     liveOpsMap: 'Live Ops Map',
     kycApprovals: 'KYC Approvals',
+    marketplaceIntelligence: 'Marketplace Intelligence',
+  },
+  marketplaceIntelligence: {
+    title: 'Marketplace Intelligence Console',
+    eyebrow: 'DEMAND FORECASTING & CAMPAIGN SIGNALS',
+    subtitle: 'Real-time advisory decision-support layer, zone intelligence, supply-demand forecasting, and campaign signal analysis',
   },
   analytics: {
     title: 'Analytics & Business Intelligence',

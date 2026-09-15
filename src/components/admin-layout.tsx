@@ -81,6 +81,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         },
         { href: '/admin/live-fleet-radar', label: t('admin.nav.liveFleetRadar'), icon: 'radar' },
         { href: '/admin/analytics-and-bi', label: t('admin.nav.analyticsAndBi'), icon: 'insights' },
+        {
+          href: '/admin/marketplace-intelligence',
+          label: t('admin.nav.marketplaceIntelligence', { defaultValue: 'Marketplace Intelligence' }),
+          icon: 'monitoring',
+        },
       ],
     },
     {

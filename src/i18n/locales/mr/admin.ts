@@ -51,7 +51,13 @@ export const adminMr = {
     dispatchRadar: 'डिस्पॅच राडार',
     todaysEarnings: 'आजची कमाई',
     liveOpsMap: 'लाइव्ह ऑप्स मॅप',
-    kycApprovals: 'KYC मंजुरी',
+    kycApprovals: 'केवायसी मंजुरी',
+    marketplaceIntelligence: 'मार्केटप्लेस इंटेलिजन्स',
+  },
+  marketplaceIntelligence: {
+    title: 'मार्केटप्लेस इंटेलिजन्स कन्सोल',
+    eyebrow: 'मागणी अंदाज आणि मोहीम संकेत',
+    subtitle: 'रिअल-टाइम निर्णय समर्थन स्तर आणि झोन इंटेलिजन्स',
   },
   analytics: {
     title: 'ॲनालिटिक्स आणि बिझनेस इंटेलिजन्स',

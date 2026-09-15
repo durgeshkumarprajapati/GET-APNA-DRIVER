@@ -152,6 +152,10 @@ export const PERMISSIONS = {
   CORPORATE_REPORTS_READ: 'corporate.reports.read',
   ADMIN_CORPORATE_MANAGE: 'admin.corporate.manage',
 
+  // Marketplace Intelligence & Demand Forecasting (Phase 42 domain & admin)
+  ADMIN_MARKETPLACE_INTELLIGENCE_READ: 'admin.marketplace.intelligence.read',
+  ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE: 'admin.marketplace.intelligence.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -512,5 +516,13 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_CORPORATE_MANAGE,
     description: 'Platform-wide corporate account administration and verification (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_READ,
+    description: 'View marketplace health, demand forecasting, supply intelligence, and campaign signals.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE,
+    description: 'Acknowledge or dismiss operational recommendations and manage marketplace zones.',
   },
 ];
