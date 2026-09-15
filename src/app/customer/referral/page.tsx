@@ -53,9 +53,7 @@ export default function CustomerReferralPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
               {t('customer.referral.title')}
             </h1>
-            <p className="text-xs text-[#bccac0] mt-1">
-              {t('customer.referral.subtitle')}
-            </p>
+            <p className="text-xs text-[#bccac0] mt-1">{t('customer.referral.subtitle')}</p>
           </div>
         </div>
 

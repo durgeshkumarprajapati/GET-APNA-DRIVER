@@ -153,7 +153,8 @@ export default function AdminSupportPage() {
             Customer Support Queue & Triage
           </h1>
           <p className="text-xs md:text-sm text-gray-400 mt-1">
-            Server-authoritative customer tickets, SLA metrics, operator assignments, and internal audit notes.
+            Server-authoritative customer tickets, SLA metrics, operator assignments, and internal
+            audit notes.
           </p>
         </div>
 
@@ -179,7 +180,9 @@ export default function AdminSupportPage() {
           <span className="text-[10px] font-bold uppercase text-gray-400 font-['Space_Grotesk']">
             In Progress
           </span>
-          <div className="text-2xl font-bold text-amber-400 mt-2 font-mono">{metrics.inProgress}</div>
+          <div className="text-2xl font-bold text-amber-400 mt-2 font-mono">
+            {metrics.inProgress}
+          </div>
         </div>
 
         <div className="p-4 rounded-xl bg-gray-900 border border-gray-800 flex flex-col justify-between">
@@ -200,7 +203,9 @@ export default function AdminSupportPage() {
           <span className="text-[10px] font-bold uppercase text-gray-400 font-['Space_Grotesk']">
             Resolved
           </span>
-          <div className="text-2xl font-bold text-emerald-400 mt-2 font-mono">{metrics.resolved}</div>
+          <div className="text-2xl font-bold text-emerald-400 mt-2 font-mono">
+            {metrics.resolved}
+          </div>
         </div>
       </div>
 
@@ -298,8 +303,13 @@ export default function AdminSupportPage() {
               <tbody className="divide-y divide-gray-800/60 text-gray-300">
                 {tickets.map((t) => {
                   const p = t.customer?.customerProfile;
-                  const customerName = p ? `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Customer' : 'Customer';
-                  const customerEmail = t.customer?.identities?.[0]?.email || t.customer?.identities?.[0]?.phoneNumber || '';
+                  const customerName = p
+                    ? `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Customer'
+                    : 'Customer';
+                  const customerEmail =
+                    t.customer?.identities?.[0]?.email ||
+                    t.customer?.identities?.[0]?.phoneNumber ||
+                    '';
                   return (
                     <tr key={t.id} className="hover:bg-gray-800/40 transition-colors">
                       <td className="p-3.5 font-mono text-emerald-400 font-bold">

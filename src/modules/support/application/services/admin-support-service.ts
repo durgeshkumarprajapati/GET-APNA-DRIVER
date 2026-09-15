@@ -273,7 +273,10 @@ export async function addAdminMessage(input: AddAdminMessageInput, db: Db = pris
   });
 }
 
-export async function updateAdminTicketStatus(input: UpdateAdminTicketStatusInput, db: Db = prisma) {
+export async function updateAdminTicketStatus(
+  input: UpdateAdminTicketStatusInput,
+  db: Db = prisma,
+) {
   const ticket = await db.supportTicket.findUnique({
     where: { id: input.ticketId },
   });
@@ -287,8 +290,7 @@ export async function updateAdminTicketStatus(input: UpdateAdminTicketStatusInpu
   return await db.$transaction(async (tx) => {
     const resolvedAt =
       input.status === SupportTicketStatus.RESOLVED ? new Date() : ticket.resolvedAt;
-    const closedAt =
-      input.status === SupportTicketStatus.CLOSED ? new Date() : ticket.closedAt;
+    const closedAt = input.status === SupportTicketStatus.CLOSED ? new Date() : ticket.closedAt;
 
     const updated = await tx.supportTicket.update({
       where: { id: ticket.id },

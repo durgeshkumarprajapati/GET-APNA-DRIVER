@@ -62,12 +62,12 @@ describe('CallSession State Machine', () => {
     });
 
     it('disallows invalid transitions from terminal states', () => {
-      expect(() =>
-        validateCallStateTransition(CallStatus.COMPLETED, CallStatus.ANSWERED),
-      ).toThrow(InvalidCallStateTransitionError);
-      expect(() =>
-        validateCallStateTransition(CallStatus.FAILED, CallStatus.RINGING),
-      ).toThrow(InvalidCallStateTransitionError);
+      expect(() => validateCallStateTransition(CallStatus.COMPLETED, CallStatus.ANSWERED)).toThrow(
+        InvalidCallStateTransitionError,
+      );
+      expect(() => validateCallStateTransition(CallStatus.FAILED, CallStatus.RINGING)).toThrow(
+        InvalidCallStateTransitionError,
+      );
     });
   });
 

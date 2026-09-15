@@ -23,11 +23,7 @@ export async function setCachedRecommendations(
   ttlSeconds = DEFAULT_TTL_SECONDS,
 ): Promise<void> {
   try {
-    await redis.setex(
-      `${CACHE_PREFIX}${customerId}`,
-      ttlSeconds,
-      JSON.stringify(recommendations),
-    );
+    await redis.setex(`${CACHE_PREFIX}${customerId}`, ttlSeconds, JSON.stringify(recommendations));
   } catch {
     // Non-blocking write failure fallback
   }

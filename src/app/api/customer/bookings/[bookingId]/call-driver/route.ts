@@ -15,7 +15,10 @@ export const POST = withPermission<RouteParams>(
     try {
       const { bookingId } = await routeContext!.params;
       if (!bookingId) {
-        return NextResponse.json({ error: 'MISSING_BOOKING_ID', message: 'Booking ID is required.' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'MISSING_BOOKING_ID', message: 'Booking ID is required.' },
+          { status: 400 },
+        );
       }
 
       const result = await callingService.initiateCustomerToDriverCall(principal.userId, bookingId);
@@ -25,7 +28,10 @@ export const POST = withPermission<RouteParams>(
         return NextResponse.json({ error: 'FORBIDDEN', message: err.message }, { status: 403 });
       }
       if (err instanceof CallWindowExpiredError) {
-        return NextResponse.json({ error: 'CALL_WINDOW_EXPIRED', message: err.message }, { status: 400 });
+        return NextResponse.json(
+          { error: 'CALL_WINDOW_EXPIRED', message: err.message },
+          { status: 400 },
+        );
       }
       const message = err instanceof Error ? err.message : 'Failed to initiate driver call.';
       return NextResponse.json({ error: 'CALL_INITIATION_FAILED', message }, { status: 500 });

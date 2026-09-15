@@ -12,7 +12,10 @@ export const POST = withPermission<RouteParams>(
     try {
       const { id } = await routeContext!.params;
       if (!id) {
-        return NextResponse.json({ success: false, error: 'Missing scheduled ride ID' }, { status: 400 });
+        return NextResponse.json(
+          { success: false, error: 'Missing scheduled ride ID' },
+          { status: 400 },
+        );
       }
 
       const ride = await pauseScheduledRide(id, principal.userId);

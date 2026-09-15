@@ -2,7 +2,10 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
-import { createCampaign, listCampaigns } from '@/modules/incentive/application/services/incentive-campaign-service';
+import {
+  createCampaign,
+  listCampaigns,
+} from '@/modules/incentive/application/services/incentive-campaign-service';
 import type { IncentiveCampaignStatus, IncentiveType } from '@prisma/client';
 
 export const GET = withPermission(PERMISSIONS.ADMIN_INCENTIVES_MANAGE, async (req) => {

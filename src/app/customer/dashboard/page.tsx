@@ -101,13 +101,15 @@ export default function CustomerDashboardPage() {
     tierCode: string;
     currentTier: { name: string } | null;
   } | null>(null);
-  const [scheduledRides, setScheduledRides] = useState<Array<{
-    id: string;
-    status: string;
-    scheduledTime: string;
-    nextRunAt?: string | null;
-    pickupLocation: { address: string; label?: string | null };
-  }>>([]);
+  const [scheduledRides, setScheduledRides] = useState<
+    Array<{
+      id: string;
+      status: string;
+      scheduledTime: string;
+      nextRunAt?: string | null;
+      pickupLocation: { address: string; label?: string | null };
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,7 +117,15 @@ export default function CustomerDashboardPage() {
     let isMounted = true;
     const load = async () => {
       try {
-        const [profileRes, bookingsRes, recentRes, locationsRes, favoritesRes, loyaltyRes, scheduledRes] = await Promise.all([
+        const [
+          profileRes,
+          bookingsRes,
+          recentRes,
+          locationsRes,
+          favoritesRes,
+          loyaltyRes,
+          scheduledRes,
+        ] = await Promise.all([
           fetch('/api/customer/profile'),
           fetch('/api/bookings'),
           fetch('/api/customer/bookings/recent'),
@@ -296,7 +306,8 @@ export default function CustomerDashboardPage() {
                       {t('scheduledRides.title')}
                     </span>
                     <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      {scheduledRides.filter((r) => r.status === 'SCHEDULED').length} Active Scheduled Ride(s)
+                      {scheduledRides.filter((r) => r.status === 'SCHEDULED').length} Active
+                      Scheduled Ride(s)
                     </p>
                   </div>
                 </div>

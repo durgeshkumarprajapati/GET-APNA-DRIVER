@@ -63,7 +63,9 @@ export default function CustomerFavoritesPage() {
         method: 'DELETE',
       });
       if (res.ok) {
-        setFavorites((prev) => prev.filter((f) => f.driverProfileId !== driverToRemove.driverProfileId));
+        setFavorites((prev) =>
+          prev.filter((f) => f.driverProfileId !== driverToRemove.driverProfileId),
+        );
       }
     } catch {
       // Ignore
@@ -86,7 +88,9 @@ export default function CustomerFavoritesPage() {
           <div className="flex items-center justify-center p-12 bg-[#0a0e16] rounded-xl border border-[#262a33]">
             <div className="flex flex-col items-center gap-3">
               <span className="w-8 h-8 rounded-full border-2 border-[#68dba9] border-t-transparent animate-spin" />
-              <span className="text-xs font-mono text-[#bccac0]">Loading favorite chauffeurs...</span>
+              <span className="text-xs font-mono text-[#bccac0]">
+                Loading favorite chauffeurs...
+              </span>
             </div>
           </div>
         )}
@@ -110,10 +114,7 @@ export default function CustomerFavoritesPage() {
 
         {/* EMPTY STATE */}
         {!loading && !error && favorites.length === 0 && (
-          <EmptyState
-            icon="star"
-            message={t('customer.favorites.emptyMessage')}
-          />
+          <EmptyState icon="star" message={t('customer.favorites.emptyMessage')} />
         )}
 
         {/* FAVORITE DRIVERS GRID */}
@@ -122,7 +123,9 @@ export default function CustomerFavoritesPage() {
             {favorites.map((fav) => {
               const driverName =
                 fav.displayName ||
-                (fav.firstName ? `${fav.firstName} ${fav.lastName || ''}`.trim() : 'Chauffeur Partner');
+                (fav.firstName
+                  ? `${fav.firstName} ${fav.lastName || ''}`.trim()
+                  : 'Chauffeur Partner');
 
               return (
                 <div
@@ -150,9 +153,15 @@ export default function CustomerFavoritesPage() {
                       </div>
 
                       <div className="flex items-center gap-2 text-xs font-mono text-[#bccac0] mt-1">
-                        <span className="text-[#68dba9] font-bold">★ {fav.ratingAverage.toFixed(1)}</span>
+                        <span className="text-[#68dba9] font-bold">
+                          ★ {fav.ratingAverage.toFixed(1)}
+                        </span>
                         <span>•</span>
-                        <span>{t('customer.favorites.experienceYears', { years: fav.drivingExperienceYears })}</span>
+                        <span>
+                          {t('customer.favorites.experienceYears', {
+                            years: fav.drivingExperienceYears,
+                          })}
+                        </span>
                       </div>
 
                       <div className="text-[11px] font-mono text-[#87948b] mt-1 truncate">

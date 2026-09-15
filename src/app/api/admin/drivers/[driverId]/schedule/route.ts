@@ -12,15 +12,18 @@ interface RouteParams {
 }
 
 const adminUpdateScheduleSchema = z.object({
-  entries: z.array(
-    z.object({
-      dayOfWeek: z.nativeEnum(DayOfWeek),
-      startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
-      endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
-      timezone: z.string().optional(),
-      isActive: z.boolean().optional(),
-    }),
-  ).min(1).max(7),
+  entries: z
+    .array(
+      z.object({
+        dayOfWeek: z.nativeEnum(DayOfWeek),
+        startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        timezone: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }),
+    )
+    .min(1)
+    .max(7),
 });
 
 export const GET = withPermission<RouteParams>(
@@ -33,7 +36,10 @@ export const GET = withPermission<RouteParams>(
       });
 
       if (!profile) {
-        return NextResponse.json({ error: 'DRIVER_NOT_FOUND', message: 'Driver profile not found.' }, { status: 404 });
+        return NextResponse.json(
+          { error: 'DRIVER_NOT_FOUND', message: 'Driver profile not found.' },
+          { status: 404 },
+        );
       }
 
       const schedule = await driverScheduleService.getDriverSchedule(profile.id);
@@ -55,7 +61,10 @@ export const PATCH = withPermission<RouteParams>(
       });
 
       if (!profile) {
-        return NextResponse.json({ error: 'DRIVER_NOT_FOUND', message: 'Driver profile not found.' }, { status: 404 });
+        return NextResponse.json(
+          { error: 'DRIVER_NOT_FOUND', message: 'Driver profile not found.' },
+          { status: 404 },
+        );
       }
 
       const body = await req.json();
@@ -69,7 +78,10 @@ export const PATCH = withPermission<RouteParams>(
       return NextResponse.json({ success: true, data: updated });
     } catch (err: unknown) {
       if (err instanceof z.ZodError) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', details: err.issues }, { status: 400 });
+        return NextResponse.json(
+          { error: 'VALIDATION_ERROR', details: err.issues },
+          { status: 400 },
+        );
       }
       const message = err instanceof Error ? err.message : 'Failed to update driver schedule.';
       return NextResponse.json({ error: 'ADMIN_SCHEDULE_UPDATE_FAILED', message }, { status: 500 });

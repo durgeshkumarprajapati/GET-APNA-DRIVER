@@ -11,6 +11,7 @@ import { registerNotificationEventHandlers } from './jobs/notification-event-han
 import { registerSafetyAndDisputeEventHandlers } from './jobs/safety-dispute-event-handlers';
 import { registerSupportEventHandlers } from './jobs/support-event-handlers';
 import { registerCallingEventHandlers } from './jobs/calling-event-handlers';
+import { registerDriverEngagementEventHandlers } from './jobs/driver-engagement-event-handlers';
 import { processDueScheduledRides } from '@/modules/scheduled-rides/application/scheduled-ride-generator';
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 
@@ -25,6 +26,7 @@ async function bootstrapWorker(): Promise<void> {
   registerSafetyAndDisputeEventHandlers();
   registerSupportEventHandlers();
   registerCallingEventHandlers();
+  registerDriverEngagementEventHandlers();
 
   let isRunning = true;
   let shutdownRequested = false;

@@ -9,7 +9,10 @@ export const POST = withPermission(PERMISSIONS.ADMIN_LOYALTY_ADJUST, async (req,
 
   if (!body.customerId || !body.points || !body.direction || !body.reason) {
     return NextResponse.json(
-      { success: false, error: 'Missing required adjustment fields (customerId, points, direction, reason)' },
+      {
+        success: false,
+        error: 'Missing required adjustment fields (customerId, points, direction, reason)',
+      },
       { status: 400 },
     );
   }

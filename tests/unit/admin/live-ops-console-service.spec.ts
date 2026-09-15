@@ -80,9 +80,7 @@ describe('Admin Live Ops Console API Unit Tests', () => {
       .mockResolvedValueOnce(20); // total approved
     (prisma.safetyIncident.count as jest.Mock).mockResolvedValueOnce(1);
     (prisma.booking.findMany as jest.Mock)
-      .mockResolvedValueOnce([
-        { totalFareAmount: 1500, platformCommissionAmount: 277.5 },
-      ]) // past 24h
+      .mockResolvedValueOnce([{ totalFareAmount: 1500, platformCommissionAmount: 277.5 }]) // past 24h
       .mockResolvedValueOnce([]); // active bookings
     (prisma.driverProfile.findMany as jest.Mock)
       .mockResolvedValueOnce([]) // online drivers

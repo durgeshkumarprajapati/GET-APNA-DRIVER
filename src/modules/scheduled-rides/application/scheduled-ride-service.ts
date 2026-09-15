@@ -5,10 +5,7 @@ import { validateCoordinates } from '@/modules/location/application/distance-ser
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { calculateNextOccurrence } from '../domain/recurrence-calculator';
-import type {
-  CreateScheduledRideInput,
-  ScheduledRideDTO,
-} from '../domain/types';
+import type { CreateScheduledRideInput, ScheduledRideDTO } from '../domain/types';
 import {
   ScheduledRideNotFoundError,
   ScheduledRideForbiddenError,
@@ -23,7 +20,12 @@ export async function createScheduledRide(
   db: Db = prisma,
 ): Promise<ScheduledRideDTO> {
   validateCoordinates(input.pickupLatitude, input.pickupLongitude);
-  if (input.dropoffLatitude !== undefined && input.dropoffLatitude !== null && input.dropoffLongitude !== undefined && input.dropoffLongitude !== null) {
+  if (
+    input.dropoffLatitude !== undefined &&
+    input.dropoffLatitude !== null &&
+    input.dropoffLongitude !== undefined &&
+    input.dropoffLongitude !== null
+  ) {
     validateCoordinates(input.dropoffLatitude, input.dropoffLongitude);
   }
 
@@ -57,7 +59,9 @@ export async function createScheduledRide(
   });
 
   if (!nextOccurrenceAt) {
-    throw new InvalidRecurrenceConfigurationError('Could not calculate a valid future occurrence date for this schedule.');
+    throw new InvalidRecurrenceConfigurationError(
+      'Could not calculate a valid future occurrence date for this schedule.',
+    );
   }
 
   const scheduledRide = await db.$transaction(async (tx) => {
@@ -228,7 +232,10 @@ export async function cancelScheduledRide(
 ): Promise<ScheduledRideDTO> {
   const ride = await getScheduledRideById(id, customerId, db);
 
-  if (ride.status === ScheduledRideStatus.CANCELLED || ride.status === ScheduledRideStatus.COMPLETED) {
+  if (
+    ride.status === ScheduledRideStatus.CANCELLED ||
+    ride.status === ScheduledRideStatus.COMPLETED
+  ) {
     return ride;
   }
 
@@ -343,7 +350,9 @@ export async function adminCancelScheduledRide(
   return mapToDTO(updated);
 }
 
-function mapToDTO(ride: Prisma.ScheduledRideGetPayload<{ include: { preferredDriver: true } }>): ScheduledRideDTO {
+function mapToDTO(
+  ride: Prisma.ScheduledRideGetPayload<{ include: { preferredDriver: true } }>,
+): ScheduledRideDTO {
   return {
     id: ride.id,
     customerId: ride.customerId,
@@ -357,7 +366,9 @@ function mapToDTO(ride: Prisma.ScheduledRideGetPayload<{ include: { preferredDri
       label: ride.pickupLabel,
     },
     dropoffLocation:
-      ride.dropoffLatitude !== null && ride.dropoffLongitude !== null && ride.dropoffAddress !== null
+      ride.dropoffLatitude !== null &&
+      ride.dropoffLongitude !== null &&
+      ride.dropoffAddress !== null
         ? {
             latitude: ride.dropoffLatitude,
             longitude: ride.dropoffLongitude,

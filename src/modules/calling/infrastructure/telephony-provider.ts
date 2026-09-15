@@ -1,4 +1,8 @@
-import { TelephonyInitiateCallParams, TelephonyCallResult, TelephonyWebhookPayload } from '../domain/types';
+import {
+  TelephonyInitiateCallParams,
+  TelephonyCallResult,
+  TelephonyWebhookPayload,
+} from '../domain/types';
 import { MockTelephonyProvider } from './mock-telephony-provider';
 import { ExotelTelephonyProvider } from './exotel-telephony-provider';
 import { env } from '@/shared/config/env';
@@ -14,7 +18,10 @@ export interface TelephonyProvider {
   /**
    * Verifies the cryptographic signature of incoming webhook requests from the telephony provider.
    */
-  verifyWebhookSignature(headers: Record<string, string | string[] | undefined>, rawBody: string): boolean;
+  verifyWebhookSignature(
+    headers: Record<string, string | string[] | undefined>,
+    rawBody: string,
+  ): boolean;
 
   /**
    * Parses the raw request body / payload from the provider into a normalized TelephonyWebhookPayload.

@@ -144,7 +144,8 @@ export default function DriverSosSupportPage() {
               </p>
               {callData && (
                 <div className="mt-2 text-xs text-[#68dba9] font-mono">
-                  Call Session: {callData.callSessionId.substring(0, 8)} • Dial {callData.dialNumber}
+                  Call Session: {callData.callSessionId.substring(0, 8)} • Dial{' '}
+                  {callData.dialNumber}
                 </div>
               )}
               {callError && <p className="mt-1 text-xs text-[#ffb4ab] font-bold">{callError}</p>}

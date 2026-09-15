@@ -119,7 +119,8 @@ export const customerPa = {
     callDriverBtn: 'ਡਰਾਈਵਰ ਨੂੰ ਕਾਲ ਕਰੋ',
     maskedCallSession: 'ਮਾਸਕਡ ਕਾਲ: {{id}}',
     maskedCallerDriver: 'ਕਾਲਰ: {{caller}} → ਡਰਾਈਵਰ: {{driver}}',
-    preferredDriverUnavailableNote: 'ਤੁਹਾਡਾ ਮਨਪਸੰਦ ਡਰਾਈਵਰ ਉਪਲਬਧ ਨਹੀਂ ਸੀ। ਸਭ ਤੋਂ ਵਧੀਆ ਉਪਲਬਧ ਡਰਾਈਵਰ ਦਿੱਤਾ ਜਾਵੇਗਾ।',
+    preferredDriverUnavailableNote:
+      'ਤੁਹਾਡਾ ਮਨਪਸੰਦ ਡਰਾਈਵਰ ਉਪਲਬਧ ਨਹੀਂ ਸੀ। ਸਭ ਤੋਂ ਵਧੀਆ ਉਪਲਬਧ ਡਰਾਈਵਰ ਦਿੱਤਾ ਜਾਵੇਗਾ।',
     yourReviewTitle: 'ਤੁਹਾਡੀ ਸਮੀਖਿਆ',
     rateYourDriverTitle: 'ਡਰਾਈਵਰ ਨੂੰ ਰੇਟਿੰਗ ਦਿਓ',
     submittedOn: '{{date}} ਨੂੰ ਭੇਜੀ ਗਈ',
@@ -449,11 +450,11 @@ export const customerPa = {
       scheduledRideUpcomingSoon: 'ਅਗਲੀ ਰਾਈਡ {{time}} ਲਈ ਸ਼ਡਿਊਲ ਹੈ।',
       scheduledRideActive: '{{time}} ਲਈ ਸਰਗਰਮ ਸ਼ਡਿਊਲ ਕੀਤੀ ਰਾਈਡ।',
       frequentVehicleChoice: 'ਹਾਲ ਹੀ ਵਿੱਚ {{count}} ਵਾਰ {{category}} ਬੁੱਕ ਕੀਤਾ।',
-      sufficientPointsForReward: 'ਤੁਹਾਡੇ ਕੋਲ {{rewardTitle}} ({{points}} ਪੁਆਇੰਟ) ਲਈ ਕਾਫੀ ਪੁਆਇੰਟ ਹਨ।',
+      sufficientPointsForReward:
+        'ਤੁਹਾਡੇ ਕੋਲ {{rewardTitle}} ({{points}} ਪੁਆਇੰਟ) ਲਈ ਕਾਫੀ ਪੁਆਇੰਟ ਹਨ।',
       activeTierMember: '{{points}} ਰਾਇਲਟੀ ਪੁਆਇੰਟਾਂ ਨਾਲ ਸਰਗਰਮ {{tierName}} ਮੈਂਬਰ।',
       firstRidePromo: 'ਪਹਿਲੀ ਰਾਈਡ ਪ੍ਰੋਮੋ: {{promoName}} (ਕੋਡ: {{code}})।',
       activePromoCode: 'ਉਪਲਬਧ ਪ੍ਰੋਮੋ: {{promoName}} (ਕੋਡ: {{code}})।',
     },
   },
 };
-

@@ -27,7 +27,10 @@ export const POST = withPermission(
       return NextResponse.json({ success: true, data: result }, { status: 201 });
     } catch (err: unknown) {
       if (err instanceof z.ZodError) {
-        return NextResponse.json({ error: 'VALIDATION_ERROR', details: err.issues }, { status: 400 });
+        return NextResponse.json(
+          { error: 'VALIDATION_ERROR', details: err.issues },
+          { status: 400 },
+        );
       }
       if (err instanceof CallAuthorizationError) {
         return NextResponse.json({ error: 'FORBIDDEN', message: err.message }, { status: 403 });

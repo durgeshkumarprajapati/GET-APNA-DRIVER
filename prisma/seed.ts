@@ -608,8 +608,11 @@ async function main(): Promise<void> {
     });
   }
 
+  // Seed Phase 38 Driver Achievement Definitions & Demo Engagement Data
+  await seedDriverAchievements();
+
   console.log(
-    'Seed complete: roles, permissions, role-permission mappings, system configurations, and the ledger chart of accounts are up to date.',
+    'Seed complete: roles, permissions, role-permission mappings, system configurations, ledger chart of accounts, and driver achievement catalog are up to date.',
   );
 
   // Dev login accounts — never seeded against a production database, even
@@ -622,6 +625,237 @@ async function main(): Promise<void> {
     console.log(
       '\nUse these to test the login/logout flow at /login. Override via SEED_ADMIN_PASSWORD / SEED_CUSTOMER_PASSWORD / SEED_DRIVER_PASSWORD in .env if you want different credentials.',
     );
+  }
+}
+
+async function seedDriverAchievements(): Promise<void> {
+  const definitions = [
+    {
+      code: 'FIRST_RIDE',
+      name: 'First Ride',
+      description: 'Complete your first successful ride on GET APNA DRIVER',
+      category: 'TRIPS' as const,
+      targetValue: 1,
+      badgeIcon: '🏆',
+      displayOrder: 1,
+      isActive: true,
+    },
+    {
+      code: 'TRIPS_10',
+      name: '10 Rides Completed',
+      description: 'Successfully complete 10 customer trips',
+      category: 'TRIPS' as const,
+      targetValue: 10,
+      badgeIcon: '⭐',
+      displayOrder: 2,
+      isActive: true,
+    },
+    {
+      code: 'TRIPS_25',
+      name: '25 Rides Completed',
+      description: 'Successfully complete 25 customer trips',
+      category: 'TRIPS' as const,
+      targetValue: 25,
+      badgeIcon: '🚗',
+      displayOrder: 3,
+      isActive: true,
+    },
+    {
+      code: 'TRIPS_50',
+      name: 'Half Century Driver',
+      description: 'Successfully complete 50 customer trips',
+      category: 'TRIPS' as const,
+      targetValue: 50,
+      badgeIcon: '🎖️',
+      displayOrder: 4,
+      isActive: true,
+    },
+    {
+      code: 'TRIPS_100',
+      name: 'Century Master',
+      description: 'Successfully complete 100 customer trips',
+      category: 'TRIPS' as const,
+      targetValue: 100,
+      badgeIcon: '🥇',
+      displayOrder: 5,
+      isActive: true,
+    },
+    {
+      code: 'SEVEN_DAY_STREAK',
+      name: '7-Day Streak',
+      description: 'Complete at least 1 trip every day for 7 consecutive days',
+      category: 'STREAK' as const,
+      targetValue: 7,
+      badgeIcon: '🔥',
+      displayOrder: 6,
+      isActive: true,
+    },
+    {
+      code: 'THIRTY_DAY_STREAK',
+      name: '30-Day Legend Streak',
+      description: 'Complete at least 1 trip every day for 30 consecutive days',
+      category: 'STREAK' as const,
+      targetValue: 30,
+      badgeIcon: '⚡',
+      displayOrder: 7,
+      isActive: true,
+    },
+    {
+      code: 'HIGH_RATING_48',
+      name: '5-Star Excellence',
+      description: 'Maintain an average rating of 4.8 or higher across 25+ ratings',
+      category: 'RATING' as const,
+      targetValue: 48,
+      badgeIcon: '🌟',
+      displayOrder: 8,
+      isActive: true,
+    },
+    {
+      code: 'WEEKLY_EARNINGS_10K',
+      name: '10K Weekly Earned',
+      description: 'Earn ₹10,000 in gross driver revenue in a single calendar week',
+      category: 'EARNINGS' as const,
+      targetValue: 10000,
+      badgeIcon: '💰',
+      displayOrder: 9,
+      isActive: true,
+    },
+    {
+      code: 'COMPLIANCE_CHAMPION',
+      name: 'Compliance Champion',
+      description: 'Maintain 100% verified driver document compliance & active dispatch status',
+      category: 'COMPLIANCE' as const,
+      targetValue: 1,
+      badgeIcon: '🛡️',
+      displayOrder: 10,
+      isActive: true,
+    },
+  ];
+
+  for (const def of definitions) {
+    await prisma.driverAchievementDefinition.upsert({
+      where: { code: def.code },
+      create: def,
+      update: {
+        name: def.name,
+        description: def.description,
+        category: def.category,
+        targetValue: def.targetValue,
+        badgeIcon: def.badgeIcon,
+        displayOrder: def.displayOrder,
+        isActive: def.isActive,
+      },
+    });
+  }
+
+  // Seed demo driver engagement data in non-production environments
+  if (process.env.NODE_ENV !== 'production') {
+    const devDriverIdentity = await findIdentityByEmail(
+      prisma,
+      normalizeEmail('driver@getapnadriver.local'),
+    );
+    if (devDriverIdentity) {
+      const driverProfile = await prisma.driverProfile.findUnique({
+        where: { userId: devDriverIdentity.userId },
+      });
+
+      if (driverProfile) {
+        // Upsert 7-day streak for dev driver
+        const todayDate = new Date();
+        await prisma.driverStreak.upsert({
+          where: { driverProfileId: driverProfile.id },
+          create: {
+            driverProfileId: driverProfile.id,
+            currentStreak: 7,
+            longestStreak: 7,
+            lastQualifyingDate: todayDate,
+            streakStatus: 'ACTIVE',
+          },
+          update: {
+            currentStreak: 7,
+            longestStreak: 7,
+            lastQualifyingDate: todayDate,
+            streakStatus: 'ACTIVE',
+          },
+        });
+
+        // Unlock FIRST_RIDE and TRIPS_10 for dev driver
+        const firstRideDef = await prisma.driverAchievementDefinition.findUnique({
+          where: { code: 'FIRST_RIDE' },
+        });
+        const trips10Def = await prisma.driverAchievementDefinition.findUnique({
+          where: { code: 'TRIPS_10' },
+        });
+
+        if (firstRideDef) {
+          await prisma.driverAchievementProgress.upsert({
+            where: {
+              driverProfileId_achievementDefinitionId: {
+                driverProfileId: driverProfile.id,
+                achievementDefinitionId: firstRideDef.id,
+              },
+            },
+            create: {
+              driverProfileId: driverProfile.id,
+              achievementDefinitionId: firstRideDef.id,
+              currentValue: 1,
+              targetValue: 1,
+              isCompleted: true,
+              completedAt: new Date(),
+            },
+            update: { currentValue: 1, isCompleted: true, completedAt: new Date() },
+          });
+          await prisma.driverAchievementUnlock.upsert({
+            where: {
+              driverProfileId_achievementDefinitionId: {
+                driverProfileId: driverProfile.id,
+                achievementDefinitionId: firstRideDef.id,
+              },
+            },
+            create: {
+              driverProfileId: driverProfile.id,
+              achievementDefinitionId: firstRideDef.id,
+              idempotencyKey: `seed-first-ride-${driverProfile.id}`,
+            },
+            update: {},
+          });
+        }
+
+        if (trips10Def) {
+          await prisma.driverAchievementProgress.upsert({
+            where: {
+              driverProfileId_achievementDefinitionId: {
+                driverProfileId: driverProfile.id,
+                achievementDefinitionId: trips10Def.id,
+              },
+            },
+            create: {
+              driverProfileId: driverProfile.id,
+              achievementDefinitionId: trips10Def.id,
+              currentValue: 10,
+              targetValue: 10,
+              isCompleted: true,
+              completedAt: new Date(),
+            },
+            update: { currentValue: 10, isCompleted: true, completedAt: new Date() },
+          });
+          await prisma.driverAchievementUnlock.upsert({
+            where: {
+              driverProfileId_achievementDefinitionId: {
+                driverProfileId: driverProfile.id,
+                achievementDefinitionId: trips10Def.id,
+              },
+            },
+            create: {
+              driverProfileId: driverProfile.id,
+              achievementDefinitionId: trips10Def.id,
+              idempotencyKey: `seed-trips-10-${driverProfile.id}`,
+            },
+            update: {},
+          });
+        }
+      }
+    }
   }
 }
 

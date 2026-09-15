@@ -19,7 +19,18 @@ describe('i18n Architecture Unit Tests', () => {
     });
 
     it('contains all 10 supported target locales', () => {
-      expect(SUPPORTED_LOCALES).toEqual(['en', 'hi', 'gu', 'mr', 'ta', 'te', 'kn', 'ml', 'pa', 'bn']);
+      expect(SUPPORTED_LOCALES).toEqual([
+        'en',
+        'hi',
+        'gu',
+        'mr',
+        'ta',
+        'te',
+        'kn',
+        'ml',
+        'pa',
+        'bn',
+      ]);
     });
   });
 

@@ -12,10 +12,7 @@ import {
   InvalidIncentiveDatesError,
 } from '../../domain/errors';
 
-export async function createCampaign(
-  input: CreateIncentiveCampaignInput,
-  db: Db = prisma,
-) {
+export async function createCampaign(input: CreateIncentiveCampaignInput, db: Db = prisma) {
   const startAt = new Date(input.startAt);
   const endAt = new Date(input.endAt);
 
@@ -110,16 +107,19 @@ export async function updateCampaign(
   if (input.description !== undefined) updateData.description = input.description;
   if (input.targetValue !== undefined) {
     const targetVal = new Prisma.Decimal(input.targetValue);
-    if (targetVal.lte(0)) throw new InvalidIncentiveDatesError('Target value must be greater than 0');
+    if (targetVal.lte(0))
+      throw new InvalidIncentiveDatesError('Target value must be greater than 0');
     updateData.targetValue = targetVal;
   }
   if (input.rewardAmount !== undefined) {
     const rewardAmt = new Prisma.Decimal(input.rewardAmount);
-    if (rewardAmt.lte(0)) throw new InvalidIncentiveDatesError('Reward amount must be greater than 0');
+    if (rewardAmt.lte(0))
+      throw new InvalidIncentiveDatesError('Reward amount must be greater than 0');
     updateData.rewardAmount = rewardAmt;
   }
   if (input.configuration !== undefined) {
-    updateData.configuration = (input.configuration ?? undefined) as Prisma.InputJsonValue | undefined;
+    updateData.configuration = (input.configuration ?? undefined) as
+      Prisma.InputJsonValue | undefined;
   }
 
   return db.driverIncentiveCampaign.update({
@@ -147,13 +147,19 @@ export async function updateCampaignStatus(
   // EXPIRED -> ARCHIVED
   // ARCHIVED -> none
   const allowedTransitions: Record<IncentiveCampaignStatus, IncentiveCampaignStatus[]> = {
-    [IncentiveCampaignStatus.DRAFT]: [IncentiveCampaignStatus.ACTIVE, IncentiveCampaignStatus.ARCHIVED],
+    [IncentiveCampaignStatus.DRAFT]: [
+      IncentiveCampaignStatus.ACTIVE,
+      IncentiveCampaignStatus.ARCHIVED,
+    ],
     [IncentiveCampaignStatus.ACTIVE]: [
       IncentiveCampaignStatus.PAUSED,
       IncentiveCampaignStatus.EXPIRED,
       IncentiveCampaignStatus.ARCHIVED,
     ],
-    [IncentiveCampaignStatus.PAUSED]: [IncentiveCampaignStatus.ACTIVE, IncentiveCampaignStatus.ARCHIVED],
+    [IncentiveCampaignStatus.PAUSED]: [
+      IncentiveCampaignStatus.ACTIVE,
+      IncentiveCampaignStatus.ARCHIVED,
+    ],
     [IncentiveCampaignStatus.EXPIRED]: [IncentiveCampaignStatus.ARCHIVED],
     [IncentiveCampaignStatus.ARCHIVED]: [],
   };
@@ -202,7 +208,8 @@ export async function getDriverActiveIncentives(
     const currentValue = prog ? Number(prog.currentValue) : 0;
     const targetValue = Number(campaign.targetValue);
     const rewardAmount = Number(campaign.rewardAmount);
-    const progressPercentage = targetValue > 0 ? Math.min(100, Math.round((currentValue / targetValue) * 100)) : 0;
+    const progressPercentage =
+      targetValue > 0 ? Math.min(100, Math.round((currentValue / targetValue) * 100)) : 0;
 
     return {
       id: prog?.id ?? `pending-${campaign.id}`,

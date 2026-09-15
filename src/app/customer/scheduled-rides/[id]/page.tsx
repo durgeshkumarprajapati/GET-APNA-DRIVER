@@ -27,7 +27,12 @@ interface ScheduledRideDetail {
   endDate?: string | null;
   nextRunAt?: string | null;
   pickupLocation: { address: string; label?: string | null; latitude: number; longitude: number };
-  dropoffLocation?: { address: string; label?: string | null; latitude: number; longitude: number } | null;
+  dropoffLocation?: {
+    address: string;
+    label?: string | null;
+    latitude: number;
+    longitude: number;
+  } | null;
   bookingType: string;
   preferredDriverProfileId?: string | null;
   preferredDriver?: {
@@ -106,7 +111,8 @@ export default function ScheduledRideDetailPage() {
       }
     } catch {
       alert('Error pausing schedule.');
-    } fontally: {
+    }
+    fontally: {
       setActionLoading(false);
     }
   };
@@ -131,7 +137,11 @@ export default function ScheduledRideDetailPage() {
 
   const handleCancel = async () => {
     if (!id) return;
-    if (!confirm(t('scheduledRides.confirmCancel') || 'Are you sure you want to cancel this schedule?')) {
+    if (
+      !confirm(
+        t('scheduledRides.confirmCancel') || 'Are you sure you want to cancel this schedule?',
+      )
+    ) {
       return;
     }
     setActionLoading(true);
@@ -180,7 +190,9 @@ export default function ScheduledRideDetailPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
                     {ride.scheduleType === 'RECURRING'
-                      ? t(`scheduledRides.frequency.${ride.recurrenceFrequency?.toLowerCase() ?? 'daily'}`)
+                      ? t(
+                          `scheduledRides.frequency.${ride.recurrenceFrequency?.toLowerCase() ?? 'daily'}`,
+                        )
                       : t('scheduledRides.oneTime')}
                   </span>
                   <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#00311f] text-[#68dba9] border border-[#25a475] font-['Space_Grotesk'] uppercase">
@@ -240,7 +252,9 @@ export default function ScheduledRideDetailPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <span className="text-[10px] font-bold text-[#87948b] uppercase">Pickup Location</span>
+                    <span className="text-[10px] font-bold text-[#87948b] uppercase">
+                      Pickup Location
+                    </span>
                     <p className="text-sm text-[#dfe2ee] font-semibold mt-0.5">
                       {ride.pickupLocation.label || ride.pickupLocation.address}
                     </p>
@@ -248,7 +262,9 @@ export default function ScheduledRideDetailPage() {
 
                   {ride.dropoffLocation && (
                     <div>
-                      <span className="text-[10px] font-bold text-[#87948b] uppercase">Dropoff Location</span>
+                      <span className="text-[10px] font-bold text-[#87948b] uppercase">
+                        Dropoff Location
+                      </span>
                       <p className="text-sm text-[#dfe2ee] font-semibold mt-0.5">
                         {ride.dropoffLocation.label || ride.dropoffLocation.address}
                       </p>
@@ -258,14 +274,18 @@ export default function ScheduledRideDetailPage() {
                   <div className="pt-2 border-t border-[#262a33] grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-[#87948b] block">Service Type</span>
-                      <strong className="text-[#dfe2ee]">{t(`booking.types.${ride.bookingType}`)}</strong>
+                      <strong className="text-[#dfe2ee]">
+                        {t(`booking.types.${ride.bookingType}`)}
+                      </strong>
                     </div>
                     {ride.preferredDriver && (
                       <div>
                         <span className="text-[#87948b] block">Preferred Driver</span>
                         <strong className="text-[#68dba9]">
                           {ride.preferredDriver.displayName ||
-                            [ride.preferredDriver.firstName, ride.preferredDriver.lastName].filter(Boolean).join(' ') ||
+                            [ride.preferredDriver.firstName, ride.preferredDriver.lastName]
+                              .filter(Boolean)
+                              .join(' ') ||
                             'Preferred Driver'}
                         </strong>
                       </div>
@@ -284,7 +304,9 @@ export default function ScheduledRideDetailPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <span className="text-[#87948b] block">Scheduled Time</span>
-                      <strong className="text-base text-[#dfe2ee] font-mono">{ride.scheduledTime} IST</strong>
+                      <strong className="text-base text-[#dfe2ee] font-mono">
+                        {ride.scheduledTime} IST
+                      </strong>
                     </div>
                     <div>
                       <span className="text-[#87948b] block">Next Dispatch Run</span>
@@ -299,7 +321,9 @@ export default function ScheduledRideDetailPage() {
                       <div className="pt-2 border-t border-[#262a33]">
                         <span className="text-[#87948b] block">Frequency</span>
                         <strong className="text-[#dfe2ee]">
-                          {t(`scheduledRides.frequency.${ride.recurrenceFrequency?.toLowerCase() ?? 'daily'}`)}
+                          {t(
+                            `scheduledRides.frequency.${ride.recurrenceFrequency?.toLowerCase() ?? 'daily'}`,
+                          )}
                         </strong>
                       </div>
 

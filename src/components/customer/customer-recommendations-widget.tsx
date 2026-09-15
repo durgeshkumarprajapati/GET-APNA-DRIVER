@@ -130,9 +130,7 @@ export function CustomerRecommendationsWidget() {
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-xl">
-                      {icon}
-                    </span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-xl">{icon}</span>
                     <h3 className="font-semibold text-[#e1e3df] text-base group-hover:text-[#68dba9] transition-colors">
                       {title}
                     </h3>

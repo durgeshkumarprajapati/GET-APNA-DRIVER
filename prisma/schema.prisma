@@ -596,6 +596,9 @@ model DriverProfile {
   incentiveProgresses  DriverIncentiveProgress[]
   goalPreference       DriverGoalPreference?
   preferredScheduledRides ScheduledRide[]          @relation("PreferredDriverScheduledRides")
+  achievementProgresses DriverAchievementProgress[]
+  achievementUnlocks    DriverAchievementUnlock[]
+  streak                DriverStreak?
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -2617,3 +2620,102 @@ model ScheduledRideOccurrenceLog {
   @@index([scheduledRideId, occurrenceStart])
   @@map("scheduled_ride_occurrence_logs")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 38 — Driver Engagement, Gamification, Achievements & Streaks
+// ---------------------------------------------------------------------------
+
+enum AchievementCategory {
+  TRIPS
+  STREAK
+  RATING
+  EARNINGS
+  SCHEDULE
+  COMPLIANCE
+  GOAL
+  CUSTOM
+}
+
+enum StreakStatus {
+  ACTIVE
+  BROKEN
+  PROTECTED
+}
+
+/// Admin-configurable driver achievement catalog definition.
+model DriverAchievementDefinition {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String              @unique
+  name          String
+  description   String?
+  category      AchievementCategory @default(TRIPS)
+  targetValue   Decimal             @default(1.0000) @map("target_value") @db.Decimal(12, 4)
+  badgeIcon     String              @default("emoji_events") @map("badge_icon")
+  displayOrder  Int                 @default(0) @map("display_order")
+  isActive      Boolean             @default(true) @map("is_active")
+  startsAt      DateTime?           @map("starts_at") @db.Timestamptz(6)
+  endsAt        DateTime?           @map("ends_at") @db.Timestamptz(6)
+  criteriaConfig Json?               @map("criteria_config")
+  rewardConfig   Json?               @map("reward_config")
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  progresses DriverAchievementProgress[]
+  unlocks    DriverAchievementUnlock[]
+
+  @@index([isActive, category, displayOrder])
+  @@map("driver_achievement_definitions")
+}
+
+/// Idempotent progress tracking for driver achievement criteria.
+model DriverAchievementProgress {
+  id                      String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId         String                      @map("driver_profile_id") @db.Uuid
+  driverProfile           DriverProfile               @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  achievementDefinitionId String                      @map("achievement_definition_id") @db.Uuid
+  achievementDefinition   DriverAchievementDefinition @relation(fields: [achievementDefinitionId], references: [id], onDelete: Cascade)
+  currentValue            Decimal                     @default(0.0000) @map("current_value") @db.Decimal(12, 4)
+  targetValue             Decimal                     @map("target_value") @db.Decimal(12, 4)
+  isCompleted             Boolean                     @default(false) @map("is_completed")
+  completedAt             DateTime?                   @map("completed_at") @db.Timestamptz(6)
+  lastEvaluatedAt         DateTime                    @default(now()) @map("last_evaluated_at") @db.Timestamptz(6)
+  createdAt               DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([driverProfileId, achievementDefinitionId])
+  @@index([driverProfileId, isCompleted])
+  @@map("driver_achievement_progresses")
+}
+
+/// Immutable record of unlocked driver achievements.
+model DriverAchievementUnlock {
+  id                      String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId         String                      @map("driver_profile_id") @db.Uuid
+  driverProfile           DriverProfile               @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  achievementDefinitionId String                      @map("achievement_definition_id") @db.Uuid
+  achievementDefinition   DriverAchievementDefinition @relation(fields: [achievementDefinitionId], references: [id], onDelete: Cascade)
+  unlockedAt              DateTime                    @default(now()) @map("unlocked_at") @db.Timestamptz(6)
+  idempotencyKey          String?                     @unique @map("idempotency_key")
+  triggerReferenceId      String?                     @map("trigger_reference_id")
+  metadata                Json?
+  createdAt               DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([driverProfileId, achievementDefinitionId])
+  @@index([driverProfileId, unlockedAt])
+  @@map("driver_achievement_unlocks")
+}
+
+/// Driver daily activity streak projection in Asia/Kolkata business timezone.
+model DriverStreak {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId    String       @unique @map("driver_profile_id") @db.Uuid
+  driverProfile      DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  currentStreak      Int          @default(0) @map("current_streak")
+  longestStreak      Int          @default(0) @map("longest_streak")
+  lastQualifyingDate DateTime?    @map("last_qualifying_date") @db.Date
+  streakStatus       StreakStatus @default(ACTIVE) @map("streak_status")
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("driver_streaks")
+}
+

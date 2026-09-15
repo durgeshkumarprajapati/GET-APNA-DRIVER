@@ -198,7 +198,10 @@ export default function AdminTicketDetailPage({
         <div className="p-4 rounded-xl bg-red-950/30 border border-red-800/40 text-red-200 text-sm">
           {error || 'Ticket not found.'}
         </div>
-        <Link href="/admin/support" className="mt-4 inline-block text-xs font-mono text-emerald-400 hover:underline">
+        <Link
+          href="/admin/support"
+          className="mt-4 inline-block text-xs font-mono text-emerald-400 hover:underline"
+        >
           ← Back to Support Queue
         </Link>
       </div>
@@ -206,8 +209,13 @@ export default function AdminTicketDetailPage({
   }
 
   const cp = ticket.customer?.customerProfile;
-  const customerName = cp ? `${cp.firstName || ''} ${cp.lastName || ''}`.trim() || 'Customer' : 'Customer';
-  const customerEmail = ticket.customer?.identities?.[0]?.email || ticket.customer?.identities?.[0]?.phoneNumber || 'N/A';
+  const customerName = cp
+    ? `${cp.firstName || ''} ${cp.lastName || ''}`.trim() || 'Customer'
+    : 'Customer';
+  const customerEmail =
+    ticket.customer?.identities?.[0]?.email ||
+    ticket.customer?.identities?.[0]?.phoneNumber ||
+    'N/A';
   const publicMessages = ticket.messages.filter((m) => !m.isInternalNote);
   const internalNotes = ticket.messages.filter((m) => m.isInternalNote);
 
@@ -234,7 +242,8 @@ export default function AdminTicketDetailPage({
             {ticket.subject}
           </h1>
           <span className="text-xs font-mono text-gray-400">
-            Category: <strong className="text-gray-200">{ticket.category}</strong> • Created {new Date(ticket.createdAt).toLocaleString()}
+            Category: <strong className="text-gray-200">{ticket.category}</strong> • Created{' '}
+            {new Date(ticket.createdAt).toLocaleString()}
           </span>
         </div>
 
@@ -327,7 +336,10 @@ export default function AdminTicketDetailPage({
               </div>
 
               {/* Reply Box */}
-              <form onSubmit={handlePostMessage} className="flex flex-col gap-2 pt-4 border-t border-gray-800">
+              <form
+                onSubmit={handlePostMessage}
+                className="flex flex-col gap-2 pt-4 border-t border-gray-800"
+              >
                 <textarea
                   rows={3}
                   value={replyText}
@@ -352,7 +364,8 @@ export default function AdminTicketDetailPage({
           {activeTab === 'INTERNAL' && (
             <div className="flex flex-col gap-4">
               <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-800/30 text-xs text-purple-300">
-                ⚠️ Internal notes are private to authorized support admins and are <strong>never</strong> exposed to customers or customer API endpoints.
+                ⚠️ Internal notes are private to authorized support admins and are{' '}
+                <strong>never</strong> exposed to customers or customer API endpoints.
               </div>
 
               <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
@@ -378,7 +391,10 @@ export default function AdminTicketDetailPage({
                 )}
               </div>
 
-              <form onSubmit={handlePostMessage} className="flex flex-col gap-2 pt-4 border-t border-gray-800">
+              <form
+                onSubmit={handlePostMessage}
+                className="flex flex-col gap-2 pt-4 border-t border-gray-800"
+              >
                 <textarea
                   rows={3}
                   value={replyText}
@@ -404,10 +420,15 @@ export default function AdminTicketDetailPage({
             <div className="flex flex-col gap-3">
               <div className="space-y-3 font-mono text-xs">
                 {auditLogs.map((log) => (
-                  <div key={log.id} className="p-3.5 rounded-lg bg-gray-900 border border-gray-800 flex flex-col gap-1">
+                  <div
+                    key={log.id}
+                    className="p-3.5 rounded-lg bg-gray-900 border border-gray-800 flex flex-col gap-1"
+                  >
                     <div className="flex items-center justify-between text-[#68dba9]">
                       <span className="font-bold">{log.action}</span>
-                      <span className="text-[10px] text-gray-500">{new Date(log.createdAt).toLocaleString()}</span>
+                      <span className="text-[10px] text-gray-500">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </span>
                     </div>
                     {log.afterState ? (
                       <pre className="text-[10px] text-gray-400 bg-gray-950 p-2 rounded overflow-x-auto mt-1">
@@ -443,8 +464,13 @@ export default function AdminTicketDetailPage({
                 <span className="font-mono text-emerald-400">{ticket.booking.status}</span>
               </div>
               <div className="text-xs text-gray-400 space-y-1 mt-1">
-                <p><strong className="text-gray-300">Pickup:</strong> {ticket.booking.pickupAddress}</p>
-                <p><strong className="text-gray-300">Dropoff:</strong> {ticket.booking.dropoffAddress}</p>
+                <p>
+                  <strong className="text-gray-300">Pickup:</strong> {ticket.booking.pickupAddress}
+                </p>
+                <p>
+                  <strong className="text-gray-300">Dropoff:</strong>{' '}
+                  {ticket.booking.dropoffAddress}
+                </p>
               </div>
             </div>
           )}

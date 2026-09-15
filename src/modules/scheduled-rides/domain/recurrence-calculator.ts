@@ -31,7 +31,9 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
 
   const timeMatch = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/.exec(scheduledTime.trim());
   if (!timeMatch) {
-    throw new InvalidRecurrenceConfigurationError(`Invalid scheduledTime format '${scheduledTime}'. Expected HH:mm (e.g. 08:30).`);
+    throw new InvalidRecurrenceConfigurationError(
+      `Invalid scheduledTime format '${scheduledTime}'. Expected HH:mm (e.g. 08:30).`,
+    );
   }
 
   const hours = parseInt(timeMatch[1], 10);
@@ -40,7 +42,9 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
   if (scheduleType === ScheduleType.ONE_TIME) {
     const baseDate = scheduledDate ? new Date(scheduledDate) : new Date(startAt);
     if (isNaN(baseDate.getTime())) {
-      throw new InvalidRecurrenceConfigurationError('Invalid scheduledDate provided for ONE_TIME schedule.');
+      throw new InvalidRecurrenceConfigurationError(
+        'Invalid scheduledDate provided for ONE_TIME schedule.',
+      );
     }
 
     const occurrence = new Date(baseDate);
@@ -59,7 +63,9 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
 
   // RECURRING schedule validation
   if (!recurrenceFrequency) {
-    throw new InvalidRecurrenceConfigurationError('Recurrence frequency is required for RECURRING schedules.');
+    throw new InvalidRecurrenceConfigurationError(
+      'Recurrence frequency is required for RECURRING schedules.',
+    );
   }
 
   let targetDays = [...daysOfWeek];
@@ -72,7 +78,9 @@ export function calculateNextOccurrence(input: CalculateNextOccurrenceInput): Da
     }
   } else if (recurrenceFrequency === RecurrenceFrequency.CUSTOM_DAYS) {
     if (targetDays.length === 0) {
-      throw new InvalidRecurrenceConfigurationError('CUSTOM_DAYS recurrence requires at least one day of week (1=Mon..7=Sun).');
+      throw new InvalidRecurrenceConfigurationError(
+        'CUSTOM_DAYS recurrence requires at least one day of week (1=Mon..7=Sun).',
+      );
     }
   }
 

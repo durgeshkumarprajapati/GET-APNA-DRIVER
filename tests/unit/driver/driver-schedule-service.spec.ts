@@ -7,7 +7,10 @@ import {
   getDayOfWeekFromDate,
 } from '@/modules/driver/application/services/driver-schedule-service';
 import { prisma } from '@/shared/database/prisma';
-import { InvalidScheduleTimeError, ScheduleExceptionNotFoundError } from '@/modules/driver/domain/errors';
+import {
+  InvalidScheduleTimeError,
+  ScheduleExceptionNotFoundError,
+} from '@/modules/driver/domain/errors';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 
 jest.mock('@/shared/database/prisma', () => ({
@@ -164,9 +167,9 @@ describe('DriverScheduleService Unit Tests', () => {
         },
       ];
 
-      await expect(driverScheduleService.upsertDriverWeeklySchedule('user-1', entries)).rejects.toThrow(
-        InvalidScheduleTimeError,
-      );
+      await expect(
+        driverScheduleService.upsertDriverWeeklySchedule('user-1', entries),
+      ).rejects.toThrow(InvalidScheduleTimeError);
     });
   });
 

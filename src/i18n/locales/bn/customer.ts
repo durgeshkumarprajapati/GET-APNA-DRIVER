@@ -119,7 +119,8 @@ export const customerBn = {
     callDriverBtn: 'ড্রাইভারকে কল করুন',
     maskedCallSession: 'সুরক্ষিত কল: {{id}}',
     maskedCallerDriver: 'কলকারী: {{caller}} → ড্রাইভার: {{driver}}',
-    preferredDriverUnavailableNote: 'আপনার পছন্দের ড্রাইভার উপলব্ধ ছিলেন না। উপলব্ধ সেরা ড্রাইভার নির্ধারণ করা হয়েছে।',
+    preferredDriverUnavailableNote:
+      'আপনার পছন্দের ড্রাইভার উপলব্ধ ছিলেন না। উপলব্ধ সেরা ড্রাইভার নির্ধারণ করা হয়েছে।',
     yourReviewTitle: 'আপনার প্রতিক্রিয়া',
     rateYourDriverTitle: 'ড্রাইভারকে রেটিং দিন',
     submittedOn: '{{date}} এ জমা দেওয়া হয়েছে',
@@ -449,11 +450,11 @@ export const customerBn = {
       scheduledRideUpcomingSoon: 'পরবর্তী রাইডটি {{time}}-এর জন্য সিডিউল করা হয়েছে।',
       scheduledRideActive: '{{time}}-এর জন্য সক্রিয় সিডিউলড রাইড।',
       frequentVehicleChoice: 'সম্প্রতি {{count}} বার {{category}} বুক করা হয়েছে।',
-      sufficientPointsForReward: '{{rewardTitle}} ({{points}} পয়েন্ট)-এর জন্য আপনার পর্যাপ্ত পয়েন্ট রয়েছে।',
+      sufficientPointsForReward:
+        '{{rewardTitle}} ({{points}} পয়েন্ট)-এর জন্য আপনার পর্যাপ্ত পয়েন্ট রয়েছে।',
       activeTierMember: '{{points}} রয়্যালটি পয়েন্ট সহ সক্রিয় {{tierName}} সদস্য।',
       firstRidePromo: 'প্রথম রাইড প্রোমো: {{promoName}} (কোড: {{code}})।',
       activePromoCode: 'উপলব্ধ প্রোমো: {{promoName}} (কোড: {{code}})।',
     },
   },
 };
-

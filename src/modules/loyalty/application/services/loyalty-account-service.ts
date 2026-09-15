@@ -1,10 +1,7 @@
 import 'server-only';
 import { LoyaltyTransactionType } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
-import {
-  evaluateTierForPoints,
-  getTierByCode,
-} from './loyalty-tier-service';
+import { evaluateTierForPoints, getTierByCode } from './loyalty-tier-service';
 import type {
   CustomerLoyaltySummary,
   LoyaltyPointTransactionDTO,
@@ -114,10 +111,7 @@ export async function getCustomerLoyaltyTransactions(
 
 export const listCustomerLoyaltyTransactions = getCustomerLoyaltyTransactions;
 
-export async function adjustCustomerPoints(
-  input: AdjustCustomerPointsInput,
-  db: Db = prisma,
-) {
+export async function adjustCustomerPoints(input: AdjustCustomerPointsInput, db: Db = prisma) {
   const account = await getOrCreateLoyaltyAccount(input.customerId, db);
   const delta = input.direction === 'ADD' ? Math.abs(input.points) : -Math.abs(input.points);
 

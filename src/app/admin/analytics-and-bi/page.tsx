@@ -93,7 +93,10 @@ export default function AnalyticsAndBIPage() {
     const jsonStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', jsonStr);
-    downloadAnchor.setAttribute('download', `analytics_report_${range}_${new Date().toISOString().split('T')[0]}.json`);
+    downloadAnchor.setAttribute(
+      'download',
+      `analytics_report_${range}_${new Date().toISOString().split('T')[0]}.json`,
+    );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -152,7 +155,9 @@ export default function AnalyticsAndBIPage() {
           <div className="flex items-center justify-center p-12 bg-[#0a0e16] rounded-xl border border-[#262a33]">
             <div className="flex flex-col items-center gap-3">
               <span className="w-8 h-8 rounded-full border-2 border-[#68dba9] border-t-transparent animate-spin" />
-              <span className="text-xs font-mono text-[#bccac0]">Loading authoritative telemetry metrics...</span>
+              <span className="text-xs font-mono text-[#bccac0]">
+                Loading authoritative telemetry metrics...
+              </span>
             </div>
           </div>
         )}
@@ -178,10 +183,14 @@ export default function AnalyticsAndBIPage() {
             {/* DATE RANGE BAR */}
             <div className="px-4 py-2 bg-[#181c24] rounded-xl border border-[#262a33] text-xs font-mono text-[#bccac0] flex items-center justify-between">
               <span>
-                Window: <strong className="text-[#dfe2ee]">{formatDate(data.dateRange.start)}</strong> —{' '}
+                Window:{' '}
+                <strong className="text-[#dfe2ee]">{formatDate(data.dateRange.start)}</strong> —{' '}
                 <strong className="text-[#dfe2ee]">{formatDate(data.dateRange.end)}</strong>
               </span>
-              <span>Range: <strong className="text-[#68dba9] uppercase">{data.dateRange.rangeKey}</strong></span>
+              <span>
+                Range:{' '}
+                <strong className="text-[#68dba9] uppercase">{data.dateRange.rangeKey}</strong>
+              </span>
             </div>
 
             {/* KEY FINANCIAL CARDS */}
@@ -230,7 +239,8 @@ export default function AnalyticsAndBIPage() {
                   {formatNumber(data.bookings.total)}
                 </div>
                 <span className="text-[11px] font-mono text-[#68dba9] mt-1">
-                  Completed: {formatNumber(data.bookings.completed)} ({data.bookings.completionRate}%)
+                  Completed: {formatNumber(data.bookings.completed)} ({data.bookings.completionRate}
+                  %)
                 </span>
               </div>
             </div>
@@ -241,35 +251,54 @@ export default function AnalyticsAndBIPage() {
               <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] space-y-4">
                 <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                   <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">radar</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      radar
+                    </span>
                     Dispatch &amp; Mission Performance
                   </h3>
-                  <span className="text-[11px] font-mono text-[#bccac0]">Active: {data.bookings.active}</span>
+                  <span className="text-[11px] font-mono text-[#bccac0]">
+                    Active: {data.bookings.active}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Completion Rate</span>
-                    <span className="text-lg font-bold text-[#68dba9]">{data.bookings.completionRate}%</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">{data.bookings.completed} completed trips</span>
+                    <span className="text-lg font-bold text-[#68dba9]">
+                      {data.bookings.completionRate}%
+                    </span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      {data.bookings.completed} completed trips
+                    </span>
                   </div>
 
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Cancellation Rate</span>
-                    <span className="text-lg font-bold text-[#ffb4ab]">{data.bookings.cancellationRate}%</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">{data.bookings.cancelled} cancelled trips</span>
+                    <span className="text-lg font-bold text-[#ffb4ab]">
+                      {data.bookings.cancellationRate}%
+                    </span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      {data.bookings.cancelled} cancelled trips
+                    </span>
                   </div>
 
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Dispatch Success Rate</span>
-                    <span className="text-lg font-bold text-[#68dba9]">{data.dispatch.assignmentSuccessRate}%</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">{data.dispatch.successfulAssignments} / {data.dispatch.totalAttempts} offers accepted</span>
+                    <span className="text-lg font-bold text-[#68dba9]">
+                      {data.dispatch.assignmentSuccessRate}%
+                    </span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      {data.dispatch.successfulAssignments} / {data.dispatch.totalAttempts} offers
+                      accepted
+                    </span>
                   </div>
 
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Active In-Progress</span>
                     <span className="text-lg font-bold text-[#b4c5ff]">{data.bookings.active}</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">Trips currently active</span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      Trips currently active
+                    </span>
                   </div>
                 </div>
               </div>
@@ -278,35 +307,51 @@ export default function AnalyticsAndBIPage() {
               <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] space-y-4">
                 <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                   <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">groups</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      groups
+                    </span>
                     Chauffeur Fleet &amp; Customer Base
                   </h3>
-                  <span className="text-[11px] font-mono text-[#bccac0]">Registered: {data.customers.total} Users</span>
+                  <span className="text-[11px] font-mono text-[#bccac0]">
+                    Registered: {data.customers.total} Users
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Total Chauffeurs</span>
                     <span className="text-lg font-bold text-[#dfe2ee]">{data.drivers.total}</span>
-                    <span className="text-[10px] text-[#68dba9] block mt-0.5">{data.drivers.approved} KYC approved</span>
+                    <span className="text-[10px] text-[#68dba9] block mt-0.5">
+                      {data.drivers.approved} KYC approved
+                    </span>
                   </div>
 
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Online Fleet</span>
                     <span className="text-lg font-bold text-[#68dba9]">{data.drivers.online}</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">{data.drivers.available} available idle</span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      {data.drivers.available} available idle
+                    </span>
                   </div>
 
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Safety SOS Incidents</span>
-                    <span className="text-lg font-bold text-[#ffb4ab]">{data.safety.totalIncidents}</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">{data.safety.openIncidents} open incidents</span>
+                    <span className="text-lg font-bold text-[#ffb4ab]">
+                      {data.safety.totalIncidents}
+                    </span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      {data.safety.openIncidents} open incidents
+                    </span>
                   </div>
 
                   <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
                     <span className="text-[#87948b] block mb-1">Support Tickets</span>
-                    <span className="text-lg font-bold text-[#b4c5ff]">{data.support.totalTickets}</span>
-                    <span className="text-[10px] text-[#bccac0] block mt-0.5">{data.support.openTickets} pending tickets</span>
+                    <span className="text-lg font-bold text-[#b4c5ff]">
+                      {data.support.totalTickets}
+                    </span>
+                    <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                      {data.support.openTickets} pending tickets
+                    </span>
                   </div>
                 </div>
               </div>

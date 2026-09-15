@@ -5,14 +5,22 @@ import { getCustomerInvoiceById } from '@/modules/tax-invoices/invoice-service';
 
 export const GET = withAuth(async (_req: NextRequest, { principal }, routeContext?: unknown) => {
   try {
-    const { invoiceId } = (routeContext as { params: Promise<{ invoiceId: string }> })?.params ? await (routeContext as { params: Promise<{ invoiceId: string }> }).params : { invoiceId: '' };
+    const { invoiceId } = (routeContext as { params: Promise<{ invoiceId: string }> })?.params
+      ? await (routeContext as { params: Promise<{ invoiceId: string }> }).params
+      : { invoiceId: '' };
     if (!invoiceId) {
-      return NextResponse.json({ error: 'MISSING_INVOICE_ID', message: 'Invoice ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'MISSING_INVOICE_ID', message: 'Invoice ID is required' },
+        { status: 400 },
+      );
     }
 
     const invoice = await getCustomerInvoiceById(principal.userId, invoiceId);
     if (!invoice) {
-      return NextResponse.json({ error: 'INVOICE_NOT_FOUND', message: 'Tax invoice not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'INVOICE_NOT_FOUND', message: 'Tax invoice not found' },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({

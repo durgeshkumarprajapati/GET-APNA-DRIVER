@@ -1,4 +1,8 @@
-import { SupportTicketCategory, SupportTicketStatus, SupportTicketAuthorRole } from '@prisma/client';
+import {
+  SupportTicketCategory,
+  SupportTicketStatus,
+  SupportTicketAuthorRole,
+} from '@prisma/client';
 import { type Db } from '@/shared/database/prisma';
 import {
   createSupportTicket,

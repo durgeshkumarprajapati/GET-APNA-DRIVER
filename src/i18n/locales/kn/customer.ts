@@ -119,7 +119,8 @@ export const customerKn = {
     callDriverBtn: 'ಚಾಲಕರಿಗೆ ಕರೆ ಮಾಡಿ',
     maskedCallSession: 'ಮರೆಮಾಚಿದ ಕರೆ: {{id}}',
     maskedCallerDriver: 'ಕರೆ ಮಾಡುವವರು: {{caller}} → ಚಾಲಕರು: {{driver}}',
-    preferredDriverUnavailableNote: 'ನೀವು ಕೋರಿದ ಚಾಲಕರು ಲಭ್ಯವಿಲ್ಲ. ಲಭ್ಯವಿರುವ ಉತ್ತಮ ಚಾಲಕರನ್ನು ನಿಯೋಜಿಸಲಾಗುತ್ತದೆ.',
+    preferredDriverUnavailableNote:
+      'ನೀವು ಕೋರಿದ ಚಾಲಕರು ಲಭ್ಯವಿಲ್ಲ. ಲಭ್ಯವಿರುವ ಉತ್ತಮ ಚಾಲಕರನ್ನು ನಿಯೋಜಿಸಲಾಗುತ್ತದೆ.',
     yourReviewTitle: 'ನಿಮ್ಮ ವಿಮರ್ಶೆ',
     rateYourDriverTitle: 'ಚಾಲಕರಿಗೆ ರೇಟಿಂಗ್ ನೀಡಿ',
     submittedOn: '{{date}} ರಂದು ಸಲ್ಲಿಸಲಾಗಿದೆ',
@@ -449,11 +450,11 @@ export const customerKn = {
       scheduledRideUpcomingSoon: 'ಮುಂದಿನ ರೈಡ್ {{time}} ಗೆ ನಿಗದಿಯಾಗಿದೆ.',
       scheduledRideActive: '{{time}} ಗೆ ಸಕ್ರಿಯ ನಿಗದಿತ ರೈಡ್.',
       frequentVehicleChoice: 'ಇತ್ತೀಚೆಗೆ {{count}} ಬಾರಿ {{category}} ಬುಕ್ ಮಾಡಲಾಗಿದೆ.',
-      sufficientPointsForReward: '{{rewardTitle}} ({{points}} ಪಾಯಿಂಟ್‌ಗಳು) ಪಡೆಯಲು ನಿಮ್ಮ ಬಳಿ ಸಾಕಷ್ಟಿವೆ.',
+      sufficientPointsForReward:
+        '{{rewardTitle}} ({{points}} ಪಾಯಿಂಟ್‌ಗಳು) ಪಡೆಯಲು ನಿಮ್ಮ ಬಳಿ ಸಾಕಷ್ಟಿವೆ.',
       activeTierMember: '{{points}} ರಾಯಲ್ಟಿ ಪಾಯಿಂಟ್‌ಗಳೊಂದಿಗೆ ಸಕ್ರಿಯ {{tierName}} ಸದಸ್ಯರು.',
       firstRidePromo: 'ಮೊದಲ ರೈಡ್ ಪ್ರೋಮೋ: {{promoName}} (ಕೋಡ್: {{code}}).',
       activePromoCode: 'ಲಭ್ಯವಿರುವ ಪ್ರೋಮೋ: {{promoName}} (ಕೋಡ್: {{code}}).',
     },
   },
 };
-

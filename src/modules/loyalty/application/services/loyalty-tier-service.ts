@@ -64,10 +64,7 @@ export async function getTierByCode(code: LoyaltyTierCode, db: Db = prisma) {
   return db.loyaltyTier.findUniqueOrThrow({ where: { code } });
 }
 
-export async function evaluateTierForPoints(
-  lifetimeEarnedPoints: number,
-  db: Db = prisma,
-) {
+export async function evaluateTierForPoints(lifetimeEarnedPoints: number, db: Db = prisma) {
   const tiers = await listLoyaltyTiers(db);
 
   let currentTier = tiers[0]; // Default Bronze

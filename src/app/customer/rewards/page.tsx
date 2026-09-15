@@ -147,9 +147,7 @@ export default function CustomerRewardsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
             {t('customer.rewards.title')}
           </h1>
-          <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-            {t('customer.rewards.subtitle')}
-          </p>
+          <p className="text-xs sm:text-sm text-[#bccac0] mt-1">{t('customer.rewards.subtitle')}</p>
         </div>
 
         {error && (
@@ -189,7 +187,7 @@ export default function CustomerRewardsPage() {
                     <div className="flex items-center gap-3">
                       <span
                         className={`px-3 py-1 rounded-full border text-xs font-mono font-bold uppercase tracking-wider ${getTierBadgeStyle(
-                          account.tierCode
+                          account.tierCode,
                         )}`}
                       >
                         {account.currentTier?.name || account.tierCode}
@@ -353,9 +351,7 @@ export default function CustomerRewardsPage() {
                               <span>{t('customer.rewards.catalog.insufficientPoints')}</span>
                             ) : (
                               <>
-                                <span className="material-symbols-outlined text-sm">
-                                  redeem
-                                </span>
+                                <span className="material-symbols-outlined text-sm">redeem</span>
                                 <span>{t('customer.rewards.catalog.redeemBtn')}</span>
                               </>
                             )}
@@ -383,28 +379,17 @@ export default function CustomerRewardsPage() {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="border-b border-[#262a33] bg-[#0a0e16]/60 text-[11px] font-mono text-[#bccac0] uppercase tracking-wider">
-                            <th className="p-3.5">
-                              {t('customer.rewards.history.type')}
-                            </th>
-                            <th className="p-3.5">
-                              {t('customer.rewards.history.points')}
-                            </th>
-                            <th className="p-3.5">
-                              {t('customer.rewards.history.description')}
-                            </th>
-                            <th className="p-3.5">
-                              {t('customer.rewards.history.date')}
-                            </th>
+                            <th className="p-3.5">{t('customer.rewards.history.type')}</th>
+                            <th className="p-3.5">{t('customer.rewards.history.points')}</th>
+                            <th className="p-3.5">{t('customer.rewards.history.description')}</th>
+                            <th className="p-3.5">{t('customer.rewards.history.date')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#262a33] text-xs font-mono">
                           {transactions.map((tx) => {
                             const isPositive = tx.points > 0;
                             return (
-                              <tr
-                                key={tx.id}
-                                className="hover:bg-[#1c2028] transition-colors"
-                              >
+                              <tr key={tx.id} className="hover:bg-[#1c2028] transition-colors">
                                 <td className="p-3.5 font-bold text-[#dfe2ee]">
                                   {tx.transactionType}
                                 </td>

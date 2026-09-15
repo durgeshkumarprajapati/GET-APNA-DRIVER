@@ -154,10 +154,7 @@ describe('Phase 35 Customer Loyalty Engine Unit Tests', () => {
   });
 
   it('should reverse points deterministically on refund', async () => {
-    const refundResult = await reverseLoyaltyPointsForTrip(
-      testBookingId,
-      'Trip refund issued'
-    );
+    const refundResult = await reverseLoyaltyPointsForTrip(testBookingId, 'Trip refund issued');
 
     expect(refundResult).toBeDefined();
     expect(refundResult?.points).toBe(-500);

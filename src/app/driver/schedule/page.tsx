@@ -135,8 +135,12 @@ export default function DriverSchedulePage() {
       prev.map((e) => {
         if (e.dayOfWeek === day) {
           const updated = { ...e, [field]: val };
-          const startMin = parseInt(updated.startTime.split(':')[0], 10) * 60 + parseInt(updated.startTime.split(':')[1], 10);
-          const endMin = parseInt(updated.endTime.split(':')[0], 10) * 60 + parseInt(updated.endTime.split(':')[1], 10);
+          const startMin =
+            parseInt(updated.startTime.split(':')[0], 10) * 60 +
+            parseInt(updated.startTime.split(':')[1], 10);
+          const endMin =
+            parseInt(updated.endTime.split(':')[0], 10) * 60 +
+            parseInt(updated.endTime.split(':')[1], 10);
           updated.isOvernight = endMin <= startMin;
           return updated;
         }
@@ -326,7 +330,8 @@ export default function DriverSchedulePage() {
                 Recurring Weekly Roster
               </h3>
               <p className="text-xs text-[#87948b] mt-0.5">
-                Set your standard working hours for each day of the week ({scheduleData?.timezone || 'Asia/Kolkata'}).
+                Set your standard working hours for each day of the week (
+                {scheduleData?.timezone || 'Asia/Kolkata'}).
               </p>
             </div>
             <button
@@ -383,7 +388,9 @@ export default function DriverSchedulePage() {
                       <input
                         type="time"
                         value={entry.startTime}
-                        onChange={(e) => handleTimeChange(entry.dayOfWeek, 'startTime', e.target.value)}
+                        onChange={(e) =>
+                          handleTimeChange(entry.dayOfWeek, 'startTime', e.target.value)
+                        }
                         className="bg-[#14171f] border border-[#31353e] rounded-lg px-3 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
                       />
                     </div>
@@ -393,7 +400,9 @@ export default function DriverSchedulePage() {
                       <input
                         type="time"
                         value={entry.endTime}
-                        onChange={(e) => handleTimeChange(entry.dayOfWeek, 'endTime', e.target.value)}
+                        onChange={(e) =>
+                          handleTimeChange(entry.dayOfWeek, 'endTime', e.target.value)
+                        }
                         className="bg-[#14171f] border border-[#31353e] rounded-lg px-3 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
                       />
                     </div>
@@ -439,7 +448,9 @@ export default function DriverSchedulePage() {
                         Custom Hours: {exc.startTime} — {exc.endTime}
                       </div>
                     )}
-                    {exc.reason && <p className="text-xs text-[#bccac0] italic">&quot;{exc.reason}&quot;</p>}
+                    {exc.reason && (
+                      <p className="text-xs text-[#bccac0] italic">&quot;{exc.reason}&quot;</p>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -502,7 +513,9 @@ export default function DriverSchedulePage() {
                     <option value={ScheduleExceptionType.OFF}>Day Off</option>
                     <option value={ScheduleExceptionType.LEAVE}>Personal Leave</option>
                     <option value={ScheduleExceptionType.HOLIDAY}>Public Holiday</option>
-                    <option value={ScheduleExceptionType.CUSTOM_HOURS}>Custom Hours Override</option>
+                    <option value={ScheduleExceptionType.CUSTOM_HOURS}>
+                      Custom Hours Override
+                    </option>
                   </select>
                 </div>
 

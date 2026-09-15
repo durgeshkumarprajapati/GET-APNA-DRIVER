@@ -170,9 +170,7 @@ export default function AdminCustomerLoyaltyPage() {
             <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
               {t('admin.loyalty.title')}
             </h1>
-            <p className="text-xs text-[#bccac0] mt-1">
-              {t('admin.loyalty.subtitle')}
-            </p>
+            <p className="text-xs text-[#bccac0] mt-1">{t('admin.loyalty.subtitle')}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -181,9 +179,7 @@ export default function AdminCustomerLoyaltyPage() {
               onClick={() => setAdjustModalOpen(true)}
               className="px-3.5 py-2 rounded-xl bg-[#1c2028] hover:bg-[#262a33] border border-[#262a33] text-[#dfe2ee] text-xs font-mono font-bold transition-colors flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-sm text-[#68dba9]">
-                tune
-              </span>
+              <span className="material-symbols-outlined text-sm text-[#68dba9]">tune</span>
               <span>{t('admin.loyalty.adjustPoints')}</span>
             </button>
 
@@ -247,9 +243,7 @@ export default function AdminCustomerLoyaltyPage() {
                 <tbody className="divide-y divide-[#262a33] text-xs font-mono">
                   {rewards.map((r) => (
                     <tr key={r.id} className="hover:bg-[#1c2028] transition-colors">
-                      <td className="p-4 font-bold text-[#68dba9] select-all">
-                        {r.rewardCode}
-                      </td>
+                      <td className="p-4 font-bold text-[#68dba9] select-all">{r.rewardCode}</td>
                       <td className="p-4 text-[#dfe2ee]">
                         <div className="font-bold">{r.title}</div>
                         {r.description && (
@@ -265,9 +259,7 @@ export default function AdminCustomerLoyaltyPage() {
                             : `₹${r.discountValue} OFF`}
                         </span>
                       </td>
-                      <td className="p-4 font-bold text-[#dfe2ee]">
-                        {r.pointsCost} PTS
-                      </td>
+                      <td className="p-4 font-bold text-[#dfe2ee]">{r.pointsCost} PTS</td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded bg-purple-950/40 border border-purple-500/30 text-purple-300 text-[10px] font-bold">
                           {r.minTierCode}
@@ -301,9 +293,7 @@ export default function AdminCustomerLoyaltyPage() {
             <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
               <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                 <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9]">
-                    tune
-                  </span>
+                  <span className="material-symbols-outlined text-[#68dba9]">tune</span>
                   {t('admin.loyalty.adjustPoints')}
                 </h3>
                 <button
@@ -377,9 +367,7 @@ export default function AdminCustomerLoyaltyPage() {
                     disabled={adjusting}
                     className="px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#208e65] text-[#00311f] text-xs font-mono font-bold transition-all disabled:opacity-50"
                   >
-                    {adjusting
-                      ? t('admin.loyalty.adjusting')
-                      : t('admin.loyalty.submitAdjustment')}
+                    {adjusting ? t('admin.loyalty.adjusting') : t('admin.loyalty.submitAdjustment')}
                   </button>
                 </div>
               </form>
@@ -393,9 +381,7 @@ export default function AdminCustomerLoyaltyPage() {
             <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                 <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9]">
-                    add_card
-                  </span>
+                  <span className="material-symbols-outlined text-[#68dba9]">add_card</span>
                   {t('admin.loyalty.createReward')}
                 </h3>
                 <button
@@ -522,9 +508,7 @@ export default function AdminCustomerLoyaltyPage() {
                     type="checkbox"
                     id="singleUse"
                     checked={rewardForm.singleUse}
-                    onChange={(e) =>
-                      setRewardForm({ ...rewardForm, singleUse: e.target.checked })
-                    }
+                    onChange={(e) => setRewardForm({ ...rewardForm, singleUse: e.target.checked })}
                     className="rounded border-[#262a33] text-[#25a475] focus:ring-0"
                   />
                   <label htmlFor="singleUse" className="text-[#dfe2ee]">

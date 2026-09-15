@@ -33,8 +33,14 @@ jest.mock('@/shared/database/prisma', () => ({
 
 import { NextRequest } from 'next/server';
 import { getPrincipalFromSessionToken } from '@/modules/identity/application/services/principal-service';
-import { GET as driverScheduleGet, POST as driverSchedulePost } from '@/app/api/driver/schedule/route';
-import { GET as adminScheduleGet, PATCH as adminSchedulePatch } from '@/app/api/admin/drivers/[driverId]/schedule/route';
+import {
+  GET as driverScheduleGet,
+  POST as driverSchedulePost,
+} from '@/app/api/driver/schedule/route';
+import {
+  GET as adminScheduleGet,
+  PATCH as adminSchedulePatch,
+} from '@/app/api/admin/drivers/[driverId]/schedule/route';
 
 const mockedGetPrincipal = getPrincipalFromSessionToken as jest.Mock;
 
