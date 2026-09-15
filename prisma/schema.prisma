@@ -1549,6 +1549,40 @@ enum NotificationType {
   DISPUTE_RESOLVED
   DRIVER_RATING_RECEIVED
   REVIEW_MODERATED
+  REFERRAL_INVITED
+  REFERRAL_QUALIFIED
+  REFERRAL_REWARDED
+  REFERRAL_CAMPAIGN_ACTIVATED
+  LOYALTY_POINTS_EARNED
+  LOYALTY_TIER_UPGRADED
+  REWARD_UNLOCKED
+  REWARD_REDEEMED
+  SCRATCH_CARD_AVAILABLE
+  SCRATCH_REWARD_REVEALED
+  PROMOTION_AVAILABLE
+  COUPON_AVAILABLE
+  COUPON_EXPIRING_SOON
+  INCENTIVE_PROGRESS
+  INCENTIVE_REWARDED
+  GOAL_PROGRESS
+  GOAL_COMPLETED
+  ACHIEVEMENT_UNLOCKED
+  STREAK_MILESTONE
+  SCHEDULED_RIDE_CREATED
+  SCHEDULED_RIDE_REMINDER
+  SCHEDULED_RIDE_GENERATED
+  SCHEDULED_RIDE_CANCELLED
+  SUPPORT_TICKET_CREATED
+  SUPPORT_TICKET_UPDATED
+  SUPPORT_MESSAGE_RECEIVED
+  INVOICE_READY
+  FAVORITE_DRIVER_AVAILABLE
+  ACCOUNT_SECURITY_UPDATE
+  ADMIN_SOS_ALERT
+  ADMIN_SUPPORT_ESCALATION
+  ADMIN_SETTLEMENT_FAILURE
+  ADMIN_DRIVER_DOCUMENT_PENDING
+  ADMIN_CAMPAIGN_LIMIT_REACHED
 
   @@map("notification_type")
 }
@@ -1616,15 +1650,19 @@ model Notification {
   userId         String                @map("user_id") @db.Uuid
   user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   type           NotificationType
+  category       String?
   title          String
   body           String
   data           Json?                 @db.JsonB
+  actionUrl      String?               @map("action_url")
+  imageAsset     String?               @map("image_asset")
   priority       NotificationPriority  @default(NORMAL)
   status         NotificationStatus    @default(UNREAD)
   idempotencyKey String?               @unique @map("idempotency_key")
   campaignId     String?               @map("campaign_id") @db.Uuid
   campaign       NotificationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   readAt         DateTime?             @map("read_at") @db.Timestamptz(6)
+  expiresAt      DateTime?             @map("expires_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1633,6 +1671,7 @@ model Notification {
 
   @@index([userId, status, createdAt])
   @@index([userId, createdAt])
+  @@index([userId, category, createdAt])
   @@index([type])
   @@map("notifications")
 }

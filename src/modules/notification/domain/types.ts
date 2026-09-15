@@ -10,10 +10,14 @@ export interface CreateNotificationInput {
   type: NotificationType;
   title: string;
   body: string;
+  category?: string;
+  actionUrl?: string;
+  imageAsset?: string;
   data?: Record<string, unknown>;
   priority?: NotificationPriority;
   idempotencyKey?: string;
   campaignId?: string;
+  expiresAt?: Date | string;
 }
 
 export interface WebPushSubscriptionInput {
@@ -37,6 +41,7 @@ export interface CreateCampaignInput {
 export interface NotificationFilterInput {
   userId: string;
   type?: NotificationType;
+  category?: string;
   status?: NotificationStatus;
   limit?: number;
   offset?: number;

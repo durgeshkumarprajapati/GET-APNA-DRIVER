@@ -1,4 +1,4 @@
-import { OutboxEvent, NotificationType } from '@prisma/client';
+import { OutboxEvent, NotificationType, NotificationPriority } from '@prisma/client';
 import { logger } from '@/shared/logging/logger';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { eventHandlerRegistry } from '../outbox/event-handler-registry';
@@ -808,6 +808,361 @@ export function registerNotificationEventHandlers(): void {
           body: statusMessage,
           data: { reviewId: payload.reviewId, newStatus },
           idempotencyKey: `${event.id}-review-moderated`,
+        },
+        client,
+      );
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // Referral 2.0 Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'referral.created',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const referrerUserId = payload.referrerUserId as string;
+      if (!referrerUserId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: referrerUserId,
+          type: NotificationType.REFERRAL_INVITED,
+          title: 'Referral Invite Sent!',
+          body: 'Your referral invitation link has been shared. Earn rewards when your friend completes their first ride.',
+          actionUrl: '/customer/referral',
+          imageAsset: '/GiftBox.png',
+          idempotencyKey: `${event.id}-referral-invited`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'referral.qualified',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const referrerUserId = payload.referrerUserId as string;
+      if (!referrerUserId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: referrerUserId,
+          type: NotificationType.REFERRAL_QUALIFIED,
+          title: 'Referral Qualified!',
+          body: 'Great news! Your referred friend completed their qualifying ride.',
+          actionUrl: '/customer/referral',
+          imageAsset: '/GiftBox1.png',
+          idempotencyKey: `${event.id}-referral-qualified`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'referral.rewarded',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const referrerUserId = payload.referrerUserId as string;
+      const refereeUserId = payload.refereeUserId as string;
+      const rewardAmount = payload.rewardAmount as number | string;
+      const client = db ?? prisma;
+
+      if (referrerUserId) {
+        await createNotification(
+          {
+            userId: referrerUserId,
+            type: NotificationType.REFERRAL_REWARDED,
+            title: 'Referral Bonus Credited!',
+            body: `You received ₹${rewardAmount} referral reward in your wallet.`,
+            actionUrl: '/customer/referral',
+            imageAsset: '/GiftBox.png',
+            idempotencyKey: `${event.id}-referral-rewarded-referrer`,
+          },
+          client,
+        );
+      }
+
+      if (refereeUserId) {
+        await createNotification(
+          {
+            userId: refereeUserId,
+            type: NotificationType.REFERRAL_REWARDED,
+            title: 'Welcome Referral Reward!',
+            body: `Welcome bonus of ₹${rewardAmount} has been credited to your wallet!`,
+            actionUrl: '/customer/wallet',
+            imageAsset: '/GiftBox1.png',
+            idempotencyKey: `${event.id}-referral-rewarded-referee`,
+          },
+          client,
+        );
+      }
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // Loyalty & Rewards Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'loyalty.points.earned',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const userId = payload.userId as string;
+      const points = payload.points as number;
+      if (!userId || !points) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId,
+          type: NotificationType.LOYALTY_POINTS_EARNED,
+          title: 'Loyalty Points Earned!',
+          body: `You earned ${points} loyalty points from your recent ride.`,
+          actionUrl: '/customer/rewards',
+          imageAsset: '/GiftBox1.png',
+          idempotencyKey: `${event.id}-loyalty-points-earned`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'loyalty.tier.upgraded',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const userId = payload.userId as string;
+      const newTier = payload.newTier as string;
+      if (!userId || !newTier) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId,
+          type: NotificationType.LOYALTY_TIER_UPGRADED,
+          title: 'Tier Upgraded!',
+          body: `Congratulations! You have achieved ${newTier} member tier status.`,
+          actionUrl: '/customer/rewards',
+          imageAsset: '/GiftBox.png',
+          priority: NotificationPriority.HIGH,
+          idempotencyKey: `${event.id}-loyalty-tier-upgraded`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'loyalty.scratch.available',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const userId = payload.userId as string;
+      if (!userId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId,
+          type: NotificationType.SCRATCH_CARD_AVAILABLE,
+          title: 'Scratch Card Unlocked!',
+          body: 'You have a new Scratch & Win reward card waiting. Scratch now to reveal your reward!',
+          actionUrl: '/customer/rewards',
+          imageAsset: '/scratchCard.png',
+          priority: NotificationPriority.HIGH,
+          idempotencyKey: `${event.id}-scratch-card-available`,
+        },
+        client,
+      );
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // Promotions & Coupons
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'promotion.available',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const userId = payload.userId as string;
+      const promoTitle = (payload.title as string) || 'Special Offer Available';
+      const promoBody = (payload.body as string) || 'Enjoy discounts on your upcoming rides.';
+      if (!userId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId,
+          type: NotificationType.PROMOTION_AVAILABLE,
+          title: promoTitle,
+          body: promoBody,
+          actionUrl: '/customer/offers',
+          imageAsset: '/DiscountImg.png',
+          priority: NotificationPriority.LOW,
+          idempotencyKey: `${event.id}-promotion-available`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'coupon.assigned',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const userId = payload.userId as string;
+      const couponCode = payload.couponCode as string;
+      if (!userId || !couponCode) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId,
+          type: NotificationType.COUPON_AVAILABLE,
+          title: 'New Coupon Added!',
+          body: `Use code ${couponCode} to save on your next chauffeur booking.`,
+          actionUrl: '/customer/offers',
+          imageAsset: '/DiscountImg1.png',
+          priority: NotificationPriority.LOW,
+          idempotencyKey: `${event.id}-coupon-assigned`,
+        },
+        client,
+      );
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // Driver Engagement Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'driver.incentive.rewarded',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const driverUserId = payload.driverUserId as string;
+      const rewardAmount = payload.rewardAmount as number | string;
+      if (!driverUserId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: driverUserId,
+          type: NotificationType.INCENTIVE_REWARDED,
+          title: 'Incentive Reward Earned!',
+          body: `Great job! You earned an incentive payout of ₹${rewardAmount}.`,
+          actionUrl: '/driver/earnings',
+          priority: NotificationPriority.HIGH,
+          idempotencyKey: `${event.id}-driver-incentive-rewarded`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'driver.achievement.unlocked',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const driverUserId = payload.driverUserId as string;
+      const achievementTitle = payload.achievementTitle as string;
+      if (!driverUserId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: driverUserId,
+          type: NotificationType.ACHIEVEMENT_UNLOCKED,
+          title: 'Achievement Unlocked!',
+          body: `You unlocked the '${achievementTitle || 'Badge'}' achievement badge.`,
+          actionUrl: '/driver/achievements',
+          priority: NotificationPriority.HIGH,
+          idempotencyKey: `${event.id}-driver-achievement-unlocked`,
+        },
+        client,
+      );
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // Scheduled Rides Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'scheduled_ride.created',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const customerId = payload.customerId as string;
+      const time = payload.scheduledTime as string;
+      if (!customerId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: customerId,
+          type: NotificationType.SCHEDULED_RIDE_CREATED,
+          title: 'Scheduled Ride Set',
+          body: `Your ride scheduled for ${time || 'upcoming time'} has been saved.`,
+          actionUrl: '/customer/scheduled-rides',
+          idempotencyKey: `${event.id}-scheduled-ride-created`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'scheduled_ride.reminder',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const customerId = payload.customerId as string;
+      if (!customerId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: customerId,
+          type: NotificationType.SCHEDULED_RIDE_REMINDER,
+          title: 'Upcoming Scheduled Ride',
+          body: 'Your scheduled chauffeur pickup is arriving soon. Please get ready.',
+          actionUrl: '/customer/scheduled-rides',
+          priority: NotificationPriority.HIGH,
+          idempotencyKey: `${event.id}-scheduled-ride-reminder`,
+        },
+        client,
+      );
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // Support & Invoices Events
+  // -------------------------------------------------------------------------
+  eventHandlerRegistry.register(
+    'support.ticket.updated',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const userId = payload.userId as string;
+      const status = payload.status as string;
+      if (!userId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId,
+          type: NotificationType.SUPPORT_TICKET_UPDATED,
+          title: 'Support Ticket Update',
+          body: `Your support ticket status was updated to ${status || 'IN_PROGRESS'}.`,
+          actionUrl: `/customer/support`,
+          idempotencyKey: `${event.id}-support-ticket-updated`,
+        },
+        client,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'invoice.created',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const customerId = payload.customerId as string;
+      const invoiceNumber = payload.invoiceNumber as string;
+      if (!customerId) return;
+      const client = db ?? prisma;
+
+      await createNotification(
+        {
+          userId: customerId,
+          type: NotificationType.INVOICE_READY,
+          title: 'Tax Invoice Ready',
+          body: `Tax invoice ${invoiceNumber || ''} for your recent booking is ready for download.`,
+          actionUrl: '/customer/invoices',
+          idempotencyKey: `${event.id}-invoice-created`,
         },
         client,
       );

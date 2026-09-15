@@ -2,7 +2,6 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import { listUserNotifications } from '@/modules/notification/application/notification-service';
-
 import { NotificationType, NotificationStatus } from '@prisma/client';
 
 export const GET = withAuth(async (req, { principal }) => {

@@ -14,20 +14,8 @@ import {
   isChannelEnabledForCategory,
   NotificationCategory,
 } from './notification-preference-service';
+import { getTemplateForNotificationType } from './notification-template-registry';
 import { CreateNotificationInput, NotificationFilterInput } from '../domain/types';
-
-function mapTypeToCategory(type: string): NotificationCategory {
-  if (type.startsWith('BOOKING')) return 'BOOKING';
-  if (type.startsWith('PAYMENT') || type.startsWith('FINANCE') || type.startsWith('SETTLEMENT'))
-    return 'PAYMENT';
-  // Checked before the generic DRIVER* rule below: a received rating is not
-  // a safety-relevant event, so it must not inherit SAFETY's non-disableable
-  // delivery — it belongs with other general account activity.
-  if (type.startsWith('DRIVER_RATING')) return 'SYSTEM';
-  if (type.startsWith('DRIVER')) return 'SAFETY';
-  if (type.startsWith('SYSTEM_OFFER') || type.startsWith('SYSTEM_COUPON')) return 'PROMOTION';
-  return 'SYSTEM';
-}
 
 export async function createNotification(
   input: CreateNotificationInput,
@@ -47,16 +35,27 @@ export async function createNotification(
     }
   }
 
+  const meta = getTemplateForNotificationType(input.type);
+  const category = input.category ?? meta.category;
+  const actionUrl = input.actionUrl ?? meta.defaultActionUrl;
+  const imageAsset = input.imageAsset ?? meta.imageAsset ?? null;
+  const priority = input.priority ?? meta.priority;
+  const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+
   const notification = await db.notification.create({
     data: {
       userId: input.userId,
       type: input.type,
+      category,
       title: input.title,
       body: input.body,
+      actionUrl,
+      imageAsset,
       data: (input.data ?? {}) as Prisma.InputJsonValue,
-      priority: input.priority ?? 'NORMAL',
+      priority,
       idempotencyKey: input.idempotencyKey ?? null,
       campaignId: input.campaignId ?? null,
+      expiresAt,
     },
   });
 
@@ -71,8 +70,12 @@ export async function createNotification(
   });
 
   // Check category preferences for Push delivery
-  const category = mapTypeToCategory(input.type);
-  const pushEnabled = await isChannelEnabledForCategory(input.userId, category, 'push', db);
+  const pushEnabled = await isChannelEnabledForCategory(
+    input.userId,
+    category as NotificationCategory,
+    'push',
+    db,
+  );
 
   if (pushEnabled) {
     // Attempt Push Delivery
@@ -151,6 +154,7 @@ export async function listUserNotifications(
   const where: Prisma.NotificationWhereInput = {
     userId: filter.userId,
     ...(filter.type ? { type: filter.type } : {}),
+    ...(filter.category ? { category: filter.category } : {}),
     ...(filter.status ? { status: filter.status } : {}),
   };
 
