@@ -495,4 +495,10 @@ export const customerMl = {
     locationPermissionDenied: 'ലൊക്കേഷൻ അനുമതി നിരസിച്ചു',
     recenterMap: 'മാപ്പ് വീണ്ടും കേന്ദ്രീകരിക്കുക',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };

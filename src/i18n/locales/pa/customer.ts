@@ -495,4 +495,10 @@ export const customerPa = {
     locationPermissionDenied: 'ਸਥਾਨ ਦੀ ਇਜਾਜ਼ਤ ਰੱਦ ਕੀਤੀ ਗਈ',
     recenterMap: 'ਨਕਸ਼ੇ ਨੂੰ ਮੁੜ ਕੇਂਦਰਿਤ ਕਰੋ',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };

@@ -157,4 +157,10 @@ export const driverTa = {
     statusPending: 'அனுமதி நிலுவையில்',
     statusRejected: 'நிராகரிக்கப்பட்டது',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

@@ -157,4 +157,10 @@ export const driverBn = {
     statusPending: 'অনুমোদন পেন্ডিং',
     statusRejected: 'বাতিল',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

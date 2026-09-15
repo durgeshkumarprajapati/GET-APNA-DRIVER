@@ -498,4 +498,10 @@ export const customerMr = {
     locationPermissionDenied: 'स्थान परवानगी नाकारली',
     recenterMap: 'नकाशा पुन्हा केंद्रित करा',
   },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
+  },
 };

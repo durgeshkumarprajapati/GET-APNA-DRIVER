@@ -504,6 +504,12 @@ export const customerHi = {
     liveTracking: 'लाइव ट्रैकिंग',
     mapUnavailable: 'मानचित्र अनुपलब्ध है',
     locationPermissionDenied: 'स्थान अनुमति अस्वीकृत',
-    recenterMap: 'मानचित्र पुनः केंद्रित करें',
+    recenterMap: 'मानचित्र को पुनः केंद्रित करें',
+  },
+  ai: {
+    assistantTitle: 'Customer AI Concierge',
+    inputPlaceholder: 'Ask AI concierge...',
+    thinking: 'AI Concierge is analyzing context...',
+    disclaimer: 'AI recommendations use authoritative domain calculations.',
   },
 };

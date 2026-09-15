@@ -159,4 +159,10 @@ export const driverHi = {
     statusPending: 'लंबित स्वीकृति',
     statusRejected: 'अस्वीकृत',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

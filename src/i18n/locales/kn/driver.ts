@@ -158,4 +158,10 @@ export const driverKn = {
     statusPending: 'ಅನುಮೋದನೆ ಬಾಕಿ',
     statusRejected: 'ತಿರಸ್ಕರಿಸಲಾಗಿದೆ',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

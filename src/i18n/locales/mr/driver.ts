@@ -158,4 +158,10 @@ export const driverMr = {
     statusPending: 'मंजुरी पेंडिंग',
     statusRejected: 'नाकारले',
   },
+  ai: {
+    copilotTitle: 'Driver AI Copilot',
+    inputPlaceholder: 'Ask AI copilot...',
+    thinking: 'AI Copilot is analyzing context...',
+    disclaimer: 'Operational insights use authoritative domain calculations.',
+  },
 };

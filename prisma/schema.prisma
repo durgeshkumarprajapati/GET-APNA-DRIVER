@@ -113,6 +113,8 @@ model User {
   approvalRequestsSubmitted  CorporateApprovalRequest[]  @relation("RequesterUsers")
   approvalRequestsReviewed   CorporateApprovalRequest[]  @relation("ApproverUsers")
   recommendationActions      MarketplaceRecommendationAction[] @relation("AdminRecommendationActions")
+  aiConversations            AIConversation[]
+  aiAuditLogs                AIAuditLog[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -3123,5 +3125,92 @@ model MarketplaceRecommendationAction {
   @@index([adminUserId])
   @@map("marketplace_recommendation_actions")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 44: Production AI Concierge, Smart Booking Assistant & Driver Copilot
+// ---------------------------------------------------------------------------
+
+enum AIConversationRole {
+  CUSTOMER
+  DRIVER
+
+  @@map("ai_conversation_role")
+}
+
+enum AIConversationStatus {
+  ACTIVE
+  ARCHIVED
+
+  @@map("ai_conversation_status")
+}
+
+enum AIMessageSender {
+  USER
+  ASSISTANT
+  SYSTEM
+
+  @@map("ai_message_sender")
+}
+
+/// AI conversation session model per user.
+model AIConversation {
+  id        String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      AIConversationRole   @default(CUSTOMER)
+  title     String?
+  status    AIConversationStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  messages AIMessage[]
+
+  @@index([userId, role, status])
+  @@index([createdAt])
+  @@map("ai_conversations")
+}
+
+/// Message history entry within an AI conversation.
+model AIMessage {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String          @map("conversation_id") @db.Uuid
+  conversation   AIConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         AIMessageSender
+  content        String
+  intent         String?
+  actions        Json?
+  citations      Json?
+  metadata       Json?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
+
+/// Telemetry and observability audit record for AI model requests.
+model AIAuditLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         String
+  intent       String
+  provider     String
+  model        String
+  latencyMs    Int      @map("latency_ms")
+  success      Boolean  @default(true)
+  actionType   String?  @map("action_type")
+  tokenUsage   Json?    @map("token_usage")
+  errorMessage String?  @map("error_message")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt])
+  @@index([intent])
+  @@index([success])
+  @@map("ai_audit_logs")
+}
+
 
 
