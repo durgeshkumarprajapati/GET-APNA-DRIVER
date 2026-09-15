@@ -18,6 +18,7 @@ export const adminEn = {
     driverDirectory: 'Driver Directory',
     verificationQueue: 'Verification Queue',
     adminAccessAndRbac: 'Admin Access & RBAC',
+    corporateAccounts: 'Corporate Accounts',
     operations: 'Operations',
     liveBookings: 'Live Bookings',
     sosAndDisputes: 'SOS & Disputes',

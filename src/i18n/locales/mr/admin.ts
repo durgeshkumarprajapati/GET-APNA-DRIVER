@@ -18,6 +18,7 @@ export const adminMr = {
     driverDirectory: 'ड्रायव्हर डिरेक्टरी',
     verificationQueue: 'पडताळणी रांग',
     adminAccessAndRbac: 'ॲडमिन ॲक्सेस आणि RBAC',
+    corporateAccounts: 'कॉर्पोरेट खाती',
     operations: 'ऑपरेशन्स',
     liveBookings: 'लाइव्ह बुकिंग्स',
     sosAndDisputes: 'SOS आणि विवाद',

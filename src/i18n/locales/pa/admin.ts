@@ -18,6 +18,7 @@ export const adminPa = {
     driverDirectory: 'ਡਰਾਈਵਰਾਂ ਦੀ ਸੂਚੀ',
     verificationQueue: 'ਵੈਰੀਫਿਕੇਸ਼ਨ ਕਤਾਰ',
     adminAccessAndRbac: 'ਐਡਮਿਨ ਪਹੁੰਚ ਅਤੇ RBAC',
+    corporateAccounts: 'ਕਾਰਪੋਰੇਟ ਖਾਤੇ',
     operations: 'ਓਪਰੇਸ਼ਨ',
     liveBookings: 'ਲਾਈਵ ਬੁਕਿੰਗਾਂ',
     sosAndDisputes: 'SOS ਅਤੇ ਵਿਵਾਦ',

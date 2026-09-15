@@ -99,6 +99,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           label: t('admin.nav.adminAccessAndRbac'),
           icon: 'admin_panel_settings',
         },
+        {
+          href: '/admin/corporate',
+          label: t('admin.nav.corporateAccounts', { defaultValue: 'Corporate Accounts' }),
+          icon: 'domain',
+        },
       ],
     },
     {
