@@ -40,6 +40,8 @@ interface BookingReview {
 
 import { SmartPickupAssistant } from '@/components/trip-intelligence/SmartPickupAssistant';
 import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-intelligence-types';
+import { DriverPickupReliabilityCard } from '@/components/trip-reliability/DriverPickupReliabilityCard';
+import type { DriverReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
 
 export default function DriverJourneyControlPage({
   params,
@@ -56,6 +58,7 @@ export default function DriverJourneyControlPage({
   const [review, setReview] = useState<BookingReview | null>(null);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
+  const [reliability, setReliability] = useState<DriverReliabilityView | null>(null);
 
   useEffect(() => {
     if (!bookingId) return;
@@ -63,6 +66,13 @@ export default function DriverJourneyControlPage({
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.intelligence) setIntelligence(data.intelligence);
+      })
+      .catch(() => {});
+
+    fetch(`/api/driver/bookings/${bookingId}/reliability`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data) setReliability(data.data);
       })
       .catch(() => {});
   }, [bookingId]);
@@ -213,6 +223,9 @@ export default function DriverJourneyControlPage({
       <div className="flex flex-col w-full gap-6">
         {intelligence && (
           <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />
+        )}
+        {reliability && (
+          <DriverPickupReliabilityCard reliability={reliability} />
         )}
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">

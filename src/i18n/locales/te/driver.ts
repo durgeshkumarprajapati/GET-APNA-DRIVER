@@ -178,5 +178,13 @@ export const driverTe = {
     support: 'సపోర్ట్',
     copilotAssistant: 'కోపైలట్ అసిస్టెంట్',
   },
+  tripReliability: {
+    title: 'పికప్ విశ్వసనీయత నోటీసు',
+    customerWaitingNotice: 'మీరు పికప్ లొకేషన్‌కు చేరుకున్నారు. అవసరమైతే ప్రాక్సీ ద్వారా కస్టమర్‌కు కాల్ చేయండి.',
+    gpsCheckNotice: 'దయచేసి ఖచ్చితమైన నావిగేషన్ కోసం మీ లొకేషన్ సేవలను ప్రారంభంలో ఉంచండి.',
+    viewPickupMap: 'పికప్ మ్యాప్ చూడండి',
+    support: 'సపోర్ట్',
+  },
 };
+
 

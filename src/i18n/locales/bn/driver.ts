@@ -177,5 +177,12 @@ export const driverBn = {
     support: 'সাপোর্ট',
     copilotAssistant: 'কোপাইলট সহকারী',
   },
+  tripReliability: {
+    title: 'পিকআপ বিশ্বস্ততা বিজ্ঞপ্তি',
+    customerWaitingNotice: 'আপনি পিকআপে পৌঁছেছেন। প্রয়োজনে প্রক্সি মাধ্যমে গ্রাহককে কল করার চেষ্টা করুন।',
+    gpsCheckNotice: 'সঠিক নেভিগেশনের জন্য আপনার লোকেশন সার্ভিস সচল আছে কিনা তা নিশ্চিত করুন।',
+    viewPickupMap: 'পিকআপ ম্যাপ দেখুন',
+    support: 'সাপোর্ট',
+  },
 };
 

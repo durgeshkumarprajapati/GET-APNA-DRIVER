@@ -178,5 +178,13 @@ export const driverMr = {
     support: 'सपोर्ट',
     copilotAssistant: 'कोपायलट असिस्टंट',
   },
+  tripReliability: {
+    title: 'पिकअप विश्वासार्हता सूचना',
+    customerWaitingNotice: 'तुम्ही पिकअप ठिकाणी पोहोचला आहात. आवश्यक असल्यास प्रॉक्सीद्वारे ग्राहकाला कॉल करा.',
+    gpsCheckNotice: 'कृपया अचूक नेव्हिगेशनसाठी तुमच्या स्थान सेवा सक्षम ठेवा.',
+    viewPickupMap: 'पिकअप नकाशा पहा',
+    support: 'सपोर्ट',
+  },
 };
+
 

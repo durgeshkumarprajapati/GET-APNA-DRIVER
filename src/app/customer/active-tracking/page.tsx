@@ -14,6 +14,8 @@ import { useBookingTracking, type TrackedBooking } from '@/components/use-bookin
 import { formatDateTime } from '@/shared/formatting/date';
 import { SmartTripStatusCard } from '@/components/trip-intelligence/SmartTripStatusCard';
 import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-intelligence-types';
+import { SmartTripReliabilityCard } from '@/components/trip-reliability/SmartTripReliabilityCard';
+import type { CustomerReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
 
 const STATUS_TONE: Record<string, StatusBadgeTone> = {
   SEARCHING_DRIVER: 'warning',
@@ -45,6 +47,7 @@ export default function CustomerActiveTrackingPage() {
   } = useBookingTracking(activeBooking?.id ?? null);
 
   const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
+  const [reliability, setReliability] = useState<CustomerReliabilityView | null>(null);
 
   const loading = resolvingActiveBooking || (Boolean(activeBooking) && trackingLoading);
   const displayBooking = booking ?? activeBooking;
@@ -56,6 +59,15 @@ export default function CustomerActiveTrackingPage() {
       .then((data) => {
         if (data?.intelligence) {
           setIntelligence(data.intelligence);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`/api/customer/bookings/${displayBooking.id}/reliability`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data) {
+          setReliability(data.data);
         }
       })
       .catch(() => {});
@@ -89,6 +101,10 @@ export default function CustomerActiveTrackingPage() {
           <>
             {intelligence && (
               <SmartTripStatusCard intelligence={intelligence} bookingId={displayBooking.id} />
+            )}
+
+            {reliability && (
+              <SmartTripReliabilityCard reliability={reliability} />
             )}
 
             <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
