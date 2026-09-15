@@ -51,7 +51,13 @@ export const adminTa = {
     dispatchRadar: 'ஒதுக்கீட்டு ரேடார்',
     todaysEarnings: 'இன்றைய வருமானம்',
     liveOpsMap: 'நேரலை வரைபடம்',
-    kycApprovals: 'KYC ஒப்புதல்கள்',
+    kycApprovals: 'கேஒய்சி ஒப்புதல்கள்',
+    marketplaceIntelligence: 'சந்தை நுண்ணறிவு',
+  },
+  marketplaceIntelligence: {
+    title: 'சந்தை நுண்ணறிவு கன்சோல்',
+    eyebrow: 'தேவை கணிப்பு மற்றும் பிரச்சார சமிக்ஞைகள்',
+    subtitle: 'நிகழ்நேர முடிவு ஆதரவு அடுக்கு மற்றும் மண்டல நுண்ணறிவு',
   },
   analytics: {
     title: 'பகுப்பாய்வு & தொழில் நுணுக்கம்',

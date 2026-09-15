@@ -51,7 +51,13 @@ export const adminPa = {
     dispatchRadar: 'ਡਿਸਪੈਚ ਰਡਾਰ',
     todaysEarnings: 'ਅੱਜ ਦੀ ਕਮਾਈ',
     liveOpsMap: 'ਲਾਈਵ ਨਕਸ਼ਾ',
-    kycApprovals: 'KYC ਮਨਜ਼ੂਰੀਆਂ',
+    kycApprovals: 'ਕੇਵਾਈਸੀ ਮਨਜ਼ੂਰੀਆਂ',
+    marketplaceIntelligence: 'ਮਾਰਕੀਟਪਲੇਸ ਇੰਟੈਲੀਜੈਂਸ',
+  },
+  marketplaceIntelligence: {
+    title: 'ਮਾਰਕੀਟਪਲੇਸ ਇੰਟੈਲੀਜੈਂਸ ਕੰਸੋਲ',
+    eyebrow: 'ਮੰਗ ਪੂਰਵ-ਅਨੁਮਾਨ ਅਤੇ ਮੁਹਿੰਮ ਸੰਕੇਤ',
+    subtitle: 'ਰੀਅਲ-ਟਾਈਮ ਫੈਸਲਾ ਸਹਾਇਤਾ ਪਰਤ ਅਤੇ ਜ਼ੋਨ ਇੰਟੈਲੀਜੈਂਸ',
   },
   analytics: {
     title: 'ਵਿਸ਼ਲੇਸ਼ਣ ਅਤੇ ਬਿਜ਼ਨਸ ਇੰਟੈਲੀਜੈਂਸ',

@@ -112,6 +112,7 @@ model User {
   bookedForBookings          Booking[]                    @relation("BookedForUserBookings")
   approvalRequestsSubmitted  CorporateApprovalRequest[]  @relation("RequesterUsers")
   approvalRequestsReviewed   CorporateApprovalRequest[]  @relation("ApproverUsers")
+  recommendationActions      MarketplaceRecommendationAction[] @relation("AdminRecommendationActions")
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -3074,4 +3075,53 @@ model OrganizationInvitation {
   @@index([organizationId, status])
   @@map("organization_invitations")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 42: Production Marketplace Intelligence, Demand Forecasting & Signals
+// ---------------------------------------------------------------------------
+
+enum MarketplaceZoneStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RecommendationActionType {
+  ACKNOWLEDGED
+  DISMISSED
+}
+
+/// Server-authoritative geographic zone definition for demand/supply intelligence.
+model MarketplaceZone {
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String                @unique
+  name            String
+  description     String?
+  centerLatitude  Float                 @map("center_latitude")
+  centerLongitude Float                 @map("center_longitude")
+  radiusMeters    Int                   @default(5000) @map("radius_meters")
+  status          MarketplaceZoneStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@map("marketplace_zones")
+}
+
+/// Action audit log for admin interaction with operational recommendations.
+model MarketplaceRecommendationAction {
+  id                        String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recommendationFingerprint String                   @map("recommendation_fingerprint")
+  action                    RecommendationActionType
+  adminUserId               String                   @map("admin_user_id") @db.Uuid
+  adminUser                 User                     @relation("AdminRecommendationActions", fields: [adminUserId], references: [id], onDelete: Restrict)
+  notes                     String?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([recommendationFingerprint, action])
+  @@index([adminUserId])
+  @@map("marketplace_recommendation_actions")
+}
+
 

@@ -52,6 +52,12 @@ export const adminHi = {
     todaysEarnings: 'आज की कमाई',
     liveOpsMap: 'लाइव ऑप्स मैप',
     kycApprovals: 'केवाईसी मंजूरी',
+    marketplaceIntelligence: 'मार्केटप्लेस इंटेलिजेंस',
+  },
+  marketplaceIntelligence: {
+    title: 'मार्केटप्लेस इंटेलिजेंस कंसोल',
+    eyebrow: 'मांग पूर्वानुमान एवं अभियान संकेत',
+    subtitle: 'वास्तविक समय निर्णय सहायता परत और ज़ोन इंटेलिजेंस',
   },
   analytics: {
     title: 'एनालिटिक्स एवं बिजनेस इंटेलिजेंस',

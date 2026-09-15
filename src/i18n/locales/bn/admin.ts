@@ -51,7 +51,13 @@ export const adminBn = {
     dispatchRadar: 'ডিসপ্যাচ রাডার',
     todaysEarnings: 'আজকের আয়',
     liveOpsMap: 'লাইভ ম্যাপ',
-    kycApprovals: 'KYC অনুমোদনসমূহ',
+    kycApprovals: 'কেওয়াইসি অনুমোদন',
+    marketplaceIntelligence: 'মার্কেটপ্লেস ইন্টেলিজেন্স',
+  },
+  marketplaceIntelligence: {
+    title: 'মার্কেটপ্লেস ইন্টেলিজেন্স কনসোল',
+    eyebrow: 'চাহিদা পূর্বাভাস ও ক্যাম্পেইন সংকেত',
+    subtitle: 'রিয়েল-টাইম সিদ্ধান্ত সহায়তা স্তর এবং জোন ইন্টেলিজেন্স',
   },
   analytics: {
     title: 'অ্যানালিটিক্স ও বিজনেস ইন্টেলিজেন্স',

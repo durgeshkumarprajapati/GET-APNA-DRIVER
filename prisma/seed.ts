@@ -1045,7 +1045,82 @@ async function seedPhase41CorporateData(): Promise<void> {
   console.log('Phase 41 Corporate Seeding Completed.');
 }
 
+async function seedMarketplaceZones(): Promise<void> {
+  console.log('Seeding Phase 42 Marketplace Zones...');
+  const defaultZones = [
+    {
+      code: 'AIRPORT_HUB',
+      name: 'Mumbai International Airport Hub',
+      description: 'Chhatrapati Shivaji Maharaj International Airport (BOM) departure & arrival terminal zone',
+      centerLatitude: 19.0896,
+      centerLongitude: 72.8656,
+      radiusMeters: 5000,
+    },
+    {
+      code: 'CBD_BKC',
+      name: 'Bandra Kurla Complex (CBD)',
+      description: 'Central Business District & corporate financial center',
+      centerLatitude: 19.0657,
+      centerLongitude: 72.8687,
+      radiusMeters: 4000,
+    },
+    {
+      code: 'TECH_PARK_POWAI',
+      name: 'Powai Tech Park & Hiranandani',
+      description: 'Powai IT corridors, start-up hub & residential complex',
+      centerLatitude: 19.1176,
+      centerLongitude: 72.9060,
+      radiusMeters: 4500,
+    },
+    {
+      code: 'RAILWAY_CSMT',
+      name: 'CSMT Railway Terminus Hub',
+      description: 'Chhatrapati Shivaji Maharaj Terminus & South Mumbai heritage corridor',
+      centerLatitude: 18.9398,
+      centerLongitude: 72.8355,
+      radiusMeters: 3000,
+    },
+    {
+      code: 'SUBURBS_NORTH',
+      name: 'Andheri West & Lokhandwala Corridor',
+      description: 'High-density commercial, residential & nightlife zone',
+      centerLatitude: 19.1363,
+      centerLongitude: 72.8277,
+      radiusMeters: 6000,
+    },
+  ];
+
+  for (const z of defaultZones) {
+    await prisma.marketplaceZone.upsert({
+      where: { code: z.code },
+      create: {
+        code: z.code,
+        name: z.name,
+        description: z.description,
+        centerLatitude: z.centerLatitude,
+        centerLongitude: z.centerLongitude,
+        radiusMeters: z.radiusMeters,
+        status: 'ACTIVE',
+      },
+      update: {
+        name: z.name,
+        centerLatitude: z.centerLatitude,
+        centerLongitude: z.centerLongitude,
+        radiusMeters: z.radiusMeters,
+      },
+    });
+  }
+
+  console.log('Phase 42 Marketplace Zones Seeding Completed.');
+}
+
+async function runAllSeeds() {
+  await seedPhase41CorporateData();
+  await seedMarketplaceZones();
+}
+
 main()
+  .then(() => runAllSeeds())
   .catch((error: unknown) => {
     console.error('Seed failed:', error);
     process.exitCode = 1;
@@ -1053,4 +1128,5 @@ main()
   .finally(() => {
     void prisma.$disconnect();
   });
+
 

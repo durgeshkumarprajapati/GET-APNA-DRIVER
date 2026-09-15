@@ -51,7 +51,13 @@ export const adminTe = {
     dispatchRadar: 'డిస్పాచ్ రేడార్',
     todaysEarnings: 'నేటి సంపాదన',
     liveOpsMap: 'లైవ్ ఆప్స్ మ్యాప్',
-    kycApprovals: 'KYC ఆమోదాలు',
+    kycApprovals: 'కెవైసి ఆమోదాలు',
+    marketplaceIntelligence: 'మార్కెట్‌ప్లేస్ ఇంటెలిజెన్స్',
+  },
+  marketplaceIntelligence: {
+    title: 'మార్కెట్‌ప్లేస్ ఇంటెలిజెన్స్ కన్సోల్',
+    eyebrow: 'డిమాండ్ అంచనా మరియు ప్రచార సంకేతాలు',
+    subtitle: 'రియల్-టైమ్ నిర్ణయ మద్దతు మరియు జోన్ ఇంటెలిజెన్స్',
   },
   analytics: {
     title: 'అనలిటిక్స్ & బిజినెస్ ఇంటెలిజెన్స్',

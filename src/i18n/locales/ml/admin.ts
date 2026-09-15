@@ -52,6 +52,12 @@ export const adminMl = {
     todaysEarnings: 'ഇന്നത്തെ വരുമാനം',
     liveOpsMap: 'ലൈവ് മാപ്പ്',
     kycApprovals: 'KYC അംഗീകാരങ്ങൾ',
+    marketplaceIntelligence: 'മാർക്കറ്റ് പ്ലേസ് ഇന്റലിജൻസ്',
+  },
+  marketplaceIntelligence: {
+    title: 'മാർക്കറ്റ് പ്ലേസ് ഇന്റലിജൻസ് കൺസോൾ',
+    eyebrow: 'ഡിമാൻഡ് പ്രവചനവും കാമ്പെയ്ൻ സിഗ്നലുകളും',
+    subtitle: 'തത്സമയ തീരുമാന പിന്തുണാ പാളിയും സോൺ ഇന്റലിജൻസും',
   },
   analytics: {
     title: 'വിശകലനവും ബിസിനസ് വിവരങ്ങളും',
