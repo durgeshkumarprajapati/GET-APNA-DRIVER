@@ -21,7 +21,7 @@ export default function CustomerOffersPage() {
 
   return (
     <CustomerLayout>
-      <div className="flex flex-col w-full gap-6">
+      <div className="flex flex-col w-full gap-3.5">
         <PageHeader
           eyebrow={t('customer.offers.eyebrow', { defaultValue: 'REWARDS & SAVINGS' })}
           title={t('customer.offers.title', {
@@ -34,11 +34,11 @@ export default function CustomerOffersPage() {
         />
 
         {/* Category Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#181c24] border border-[#262a33]">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[#181c24] border border-[#262a33]">
           <button
             type="button"
             onClick={() => setActiveTab('ALL')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'ALL'
                 ? 'bg-[#25a475] text-[#00311f] shadow-md'
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
@@ -49,7 +49,7 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('DISCOUNT')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'DISCOUNT'
                 ? 'bg-[#25a475] text-[#00311f] shadow-md'
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
@@ -60,7 +60,7 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('SCRATCH_CARD')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'SCRATCH_CARD'
                 ? 'bg-[#25a475] text-[#00311f] shadow-md'
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
@@ -71,7 +71,7 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('GIFT_BOX')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'GIFT_BOX'
                 ? 'bg-[#25a475] text-[#00311f] shadow-md'
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
@@ -82,7 +82,7 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('LOCKED')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'LOCKED'
                 ? 'bg-rose-950 text-rose-300 border border-rose-800'
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
@@ -93,7 +93,7 @@ export default function CustomerOffersPage() {
         </div>
 
         {/* Offers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {filteredOffers.map((offer) => (
             <EnhancedOfferCard key={offer.id} offer={offer} />
           ))}

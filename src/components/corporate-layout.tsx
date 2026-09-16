@@ -194,11 +194,11 @@ export function CorporateLayout({ children, userEmail = null }: CorporateLayoutP
       </header>
 
       {/* SIDEBAR */}
-      <aside className="hidden md:flex fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex-col justify-between border-r border-[#262a33]">
-        <div className="space-y-5">
+      <aside className="hidden md:flex fixed left-0 top-16 bottom-10 w-52 bg-[#0a0e16] z-40 overflow-y-auto px-2 py-3 flex-col justify-between border-r border-[#262a33]">
+        <div className="space-y-4">
           {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
+              <p className="px-2.5 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
                 {group.label}
               </p>
               <nav className="space-y-0.5">
@@ -206,14 +206,14 @@ export function CorporateLayout({ children, userEmail = null }: CorporateLayoutP
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
                       isActive(item.href)
                         ? 'bg-gradient-to-r from-[#25a475] to-[#1e855e] text-[#00311f] font-bold shadow-sm'
                         : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-lg">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="material-symbols-outlined text-base">{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 ))}
               </nav>
@@ -221,20 +221,20 @@ export function CorporateLayout({ children, userEmail = null }: CorporateLayoutP
           ))}
         </div>
 
-        <div className="pt-4 border-t border-[#262a33]">
+        <div className="pt-3 border-t border-[#262a33]">
           <Link
             href="/customer/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#bccac0] hover:bg-[#1c2028] hover:text-[#dfe2ee] transition-colors"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-[#bccac0] hover:bg-[#1c2028] hover:text-[#dfe2ee] transition-colors"
           >
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            <span>Return to Consumer App</span>
+            <span className="truncate">Return to Consumer App</span>
           </Link>
         </div>
       </aside>
 
       {/* MAIN CONTENT */}
-      <div className="md:pl-64">
-        <main className="w-full pt-16 pb-12 px-4 sm:px-6 min-h-screen bg-[#0f131c]">
+      <div className="md:pl-52">
+        <main className="w-full pt-14 pb-8 px-3 sm:px-4 min-h-screen bg-[#0f131c]">
           {children}
         </main>
       </div>
