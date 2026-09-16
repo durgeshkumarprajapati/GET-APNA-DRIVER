@@ -53,6 +53,8 @@ export const adminBn = {
     liveOpsMap: 'লাইভ ম্যাপ',
     kycApprovals: 'কেওয়াইসি অনুমোদন',
     marketplaceIntelligence: 'মার্কেটপ্লেস ইন্টেলিজেন্স',
+    operationsCommandCenter: 'অপারেশন কমান্ড সেন্টার',
+    scheduledRides: 'নির্ধারিত রাইড',
   },
   marketplaceIntelligence: {
     title: 'মার্কেটপ্লেস ইন্টেলিজেন্স কনসোল',

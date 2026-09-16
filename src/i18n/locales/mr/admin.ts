@@ -53,6 +53,8 @@ export const adminMr = {
     liveOpsMap: 'लाइव्ह ऑप्स मॅप',
     kycApprovals: 'केवायसी मंजुरी',
     marketplaceIntelligence: 'मार्केटप्लेस इंटेलिजन्स',
+    operationsCommandCenter: 'ऑपरेशन्स कमांड सेंटर',
+    scheduledRides: 'शेड्यूल केलेल्या राइड्स',
   },
   marketplaceIntelligence: {
     title: 'मार्केटप्लेस इंटेलिजन्स कन्सोल',

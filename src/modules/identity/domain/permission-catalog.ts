@@ -167,6 +167,12 @@ export const PERMISSIONS = {
   ADMIN_PLATFORM_DIAGNOSTICS_READ: 'admin.platform_diagnostics.read',
   ADMIN_PLATFORM_METRICS_READ: 'admin.platform_metrics.read',
 
+  // Production Operations Command & Decision Engine (Phase 50)
+  ADMIN_OPERATIONS_READ: 'admin.operations.read',
+  ADMIN_OPERATIONS_MANAGE: 'admin.operations.manage',
+  ADMIN_OPERATIONS_ACTION: 'admin.operations.action',
+  ADMIN_OPERATIONS_OVERRIDE: 'admin.operations.override',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -551,5 +557,21 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_INCIDENT_ESCALATE,
     description: 'Escalate trip incidents to emergency or operational support teams.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_READ,
+    description: 'View Operations Command Center, real-time signals, and operational decisions.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_MANAGE,
+    description: 'Acknowledge, dismiss, or update operational decision status.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_ACTION,
+    description: 'Execute authorized manual operational actions (reassign driver, restart dispatch).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_OVERRIDE,
+    description: 'Execute high-impact administrative overrides in Operations Command Center.',
   },
 ];

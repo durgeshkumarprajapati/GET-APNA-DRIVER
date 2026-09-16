@@ -53,6 +53,8 @@ export const adminGu = {
     liveOpsMap: 'લાઈવ ઓપ્સ મેપ',
     kycApprovals: 'કેવાયસી મંજૂરીઓ',
     marketplaceIntelligence: 'માર્કેટપ્લેસ ઈન્ટેલિજન્સ',
+    operationsCommandCenter: 'ઓપરેશન્સ કમાન્ડ સેન્ટર',
+    scheduledRides: 'શેડ્યૂલ સવારી',
   },
   marketplaceIntelligence: {
     title: 'માર્કેટપ્લેસ ઈન્ટેલિજન્સ કન્સોલ',
