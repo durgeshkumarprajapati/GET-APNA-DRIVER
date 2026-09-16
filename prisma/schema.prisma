@@ -3350,6 +3350,109 @@ model TripReliabilityTimeline {
   @@map("trip_reliability_timelines")
 }
 
+// ---------------------------------------------------------------------------
+// Phase 47 — Production SRE Observability, Platform Health & Operational Control Plane
+// ---------------------------------------------------------------------------
+
+enum PlatformHealthStatus {
+  HEALTHY
+  DEGRADED
+  WARNING
+  CRITICAL
+  UNKNOWN
+
+  @@map("platform_health_status")
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+
+  @@map("alert_severity")
+}
+
+enum AlertStatus {
+  OK
+  FIRING
+  RECOVERED
+
+  @@map("alert_status")
+}
+
+/// Deterministic platform health snapshots for operational monitoring and HUD dashboards.
+model PlatformHealthSnapshot {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  overallScore         Int                  @map("overall_score")
+  overallStatus        PlatformHealthStatus @map("overall_status")
+  applicationStatus    PlatformHealthStatus @map("application_status")
+  databaseStatus       PlatformHealthStatus @map("database_status")
+  redisStatus          PlatformHealthStatus @map("redis_status")
+  workerStatus         PlatformHealthStatus @map("worker_status")
+  bookingStatus        PlatformHealthStatus @map("booking_status")
+  dispatchStatus       PlatformHealthStatus @map("dispatch_status")
+  paymentStatus        PlatformHealthStatus @map("payment_status")
+  notificationStatus   PlatformHealthStatus @map("notification_status")
+  locationStatus       PlatformHealthStatus @map("location_status")
+  scheduledRideStatus  PlatformHealthStatus @map("scheduled_ride_status")
+  reliabilityStatus   PlatformHealthStatus @map("reliability_status")
+  dependencyStatus     PlatformHealthStatus @map("dependency_status")
+  evidence             Json                 @db.JsonB
+  metadata             Json?                @db.JsonB
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([overallStatus, createdAt])
+  @@index([createdAt])
+  @@map("platform_health_snapshots")
+}
+
+/// Aggregated operational metric buckets (1-minute / 5-minute time windows).
+model OperationalMetricBucket {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bucketStart     DateTime @map("bucket_start") @db.Timestamptz(6)
+  metricName      String   @map("metric_name")
+  dimension       String   @default("GLOBAL")
+  count           Int      @default(0)
+  errorCount      Int      @default(0) @map("error_count")
+  totalDurationMs Float    @default(0) @map("total_duration_ms")
+  minDurationMs   Float?   @map("min_duration_ms")
+  maxDurationMs   Float?   @map("max_duration_ms")
+  p50DurationMs   Float?   @map("p50_duration_ms")
+  p95DurationMs   Float?   @map("p95_duration_ms")
+  p99DurationMs   Float?   @map("p99_duration_ms")
+  metadata        Json?    @db.JsonB
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([bucketStart, metricName, dimension])
+  @@index([metricName, bucketStart])
+  @@index([bucketStart])
+  @@map("operational_metric_buckets")
+}
+
+/// Idempotent operational alert rule status tracking.
+model PlatformAlert {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fingerprint     String        @unique
+  ruleName        String        @map("rule_name")
+  metricName      String        @map("metric_name")
+  component       String
+  status          AlertStatus   @default(OK)
+  severity        AlertSeverity @default(WARNING)
+  currentValue    Float         @map("current_value")
+  thresholdValue  Float         @map("threshold_value")
+  summary         String
+  firingAt        DateTime?     @map("firing_at") @db.Timestamptz(6)
+  recoveredAt     DateTime?     @map("recovered_at") @db.Timestamptz(6)
+  lastEvaluatedAt DateTime      @default(now()) @map("last_evaluated_at") @db.Timestamptz(6)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, severity])
+  @@index([component, status])
+  @@map("platform_alerts")
+}
+
+
 
 
 

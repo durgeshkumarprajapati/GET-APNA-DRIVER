@@ -162,6 +162,11 @@ export const PERMISSIONS = {
   ADMIN_INCIDENT_RECOVER: 'admin.incident.recover',
   ADMIN_INCIDENT_ESCALATE: 'admin.incident.escalate',
 
+  // SRE Observability & Platform Health (Phase 47)
+  ADMIN_PLATFORM_HEALTH_READ: 'admin.platform_health.read',
+  ADMIN_PLATFORM_DIAGNOSTICS_READ: 'admin.platform_diagnostics.read',
+  ADMIN_PLATFORM_METRICS_READ: 'admin.platform_metrics.read',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',

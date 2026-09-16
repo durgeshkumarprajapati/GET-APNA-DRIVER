@@ -18,9 +18,9 @@ export const GET = withPermission(
       const skip = (page - 1) * limit;
 
       const where: Prisma.TripReliabilityIncidentWhereInput = {};
-      if (status) where.status = status as Prisma.EnumIncidentStatusFilter;
-      if (severity) where.severity = severity as Prisma.EnumIncidentSeverityFilter;
-      if (type) where.type = type as Prisma.EnumIncidentTypeFilter;
+      if (status) where.status = status as unknown as never;
+      if (severity) where.severity = severity as unknown as never;
+      if (type) where.type = type as unknown as never;
 
       const [total, incidents] = await Promise.all([
         prisma.tripReliabilityIncident.count({ where }),
