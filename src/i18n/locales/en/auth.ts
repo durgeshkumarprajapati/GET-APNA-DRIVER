@@ -37,7 +37,8 @@ export const authEn = {
     newHere: 'New here?',
     createAccount: 'Create an account',
     heroTitle: 'Sovereign Ground Logistics & Chauffeur Terminal',
-    heroSubtitle: 'High-velocity mobility portal for valued customers, professional drivers, and fleet operations.',
+    heroSubtitle:
+      'High-velocity mobility portal for valued customers, professional drivers, and fleet operations.',
   },
   register: {
     title: 'Create an Account',

@@ -2,7 +2,13 @@ import type { RuleEvaluationInput, RuleEvaluationResult } from '../trip-reliabil
 import { getTripReliabilityConfig } from '../trip-reliability-config';
 
 export function evaluateStuckTrip(input: RuleEvaluationInput): RuleEvaluationResult | null {
-  const activeStatuses = ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS', 'IN_PROGRESS'];
+  const activeStatuses = [
+    'DRIVER_ASSIGNED',
+    'DRIVER_EN_ROUTE',
+    'DRIVER_ARRIVED',
+    'TRIP_IN_PROGRESS',
+    'IN_PROGRESS',
+  ];
   if (!activeStatuses.includes(input.status)) return null;
 
   const config = getTripReliabilityConfig();

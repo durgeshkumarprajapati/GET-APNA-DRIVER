@@ -44,7 +44,8 @@ export default function AdminForecastPage() {
             href="/admin/marketplace-intelligence"
             className="inline-flex items-center text-xs font-semibold text-slate-400 hover:text-white transition-colors"
           >
-            <span className="material-symbols-outlined text-sm mr-1">arrow_back</span> Back to Console
+            <span className="material-symbols-outlined text-sm mr-1">arrow_back</span> Back to
+            Console
           </Link>
 
           <div className="flex items-center space-x-2">

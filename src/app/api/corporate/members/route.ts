@@ -34,7 +34,16 @@ export const PATCH = withAuth(async (req, { principal }) => {
       return NextResponse.json({ error: 'Corporate organization not found' }, { status: 404 });
     }
     const body = await req.json();
-    const { memberId, action, role, status, employeeCode, designation, departmentId, costCenterId } = body;
+    const {
+      memberId,
+      action,
+      role,
+      status,
+      employeeCode,
+      designation,
+      departmentId,
+      costCenterId,
+    } = body;
 
     if (action === 'remove') {
       const removed = await removeMember(membership.organizationId, memberId, principal.userId);

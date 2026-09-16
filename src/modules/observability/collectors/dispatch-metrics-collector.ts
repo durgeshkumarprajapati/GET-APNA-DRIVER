@@ -2,7 +2,11 @@ import { OperationalMetricsRepository } from '../repositories/operational-metric
 import type { Db } from '@/shared/database/prisma';
 
 export class DispatchMetricsCollector {
-  static async recordDispatchMatch(matched: boolean, matchDurationMs: number, db?: Db): Promise<void> {
+  static async recordDispatchMatch(
+    matched: boolean,
+    matchDurationMs: number,
+    db?: Db,
+  ): Promise<void> {
     await OperationalMetricsRepository.recordMetric(
       {
         metricName: 'dispatch.match',
@@ -10,7 +14,7 @@ export class DispatchMetricsCollector {
         durationMs: matchDurationMs,
         isError: !matched,
       },
-      db
+      db,
     );
   }
 }

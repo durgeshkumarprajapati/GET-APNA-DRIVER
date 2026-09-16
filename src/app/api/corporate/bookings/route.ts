@@ -19,9 +19,10 @@ export const GET = withAuth(async (req, { principal }) => {
     const departmentId = req.nextUrl.searchParams.get('departmentId') || undefined;
     const costCenterId = req.nextUrl.searchParams.get('costCenterId') || undefined;
     const rawStatus = req.nextUrl.searchParams.get('status');
-    const status = rawStatus && Object.values(BookingStatus).includes(rawStatus as BookingStatus)
-      ? (rawStatus as BookingStatus)
-      : undefined;
+    const status =
+      rawStatus && Object.values(BookingStatus).includes(rawStatus as BookingStatus)
+        ? (rawStatus as BookingStatus)
+        : undefined;
 
     const bookings = await listCorporateBookings(membership.organizationId, {
       departmentId,

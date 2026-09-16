@@ -5,7 +5,7 @@ export function calculateHaversineDistanceMeters(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371000; // Radius of Earth in meters
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -28,7 +28,8 @@ export function evaluateLocationFreshness(capturedAt?: Date | string | null): {
     return { freshness: 'UNAVAILABLE', freshnessSeconds: 999999 };
   }
 
-  const capturedTime = typeof capturedAt === 'string' ? new Date(capturedAt).getTime() : capturedAt.getTime();
+  const capturedTime =
+    typeof capturedAt === 'string' ? new Date(capturedAt).getTime() : capturedAt.getTime();
   const now = Date.now();
   const diffSeconds = Math.max(0, Math.floor((now - capturedTime) / 1000));
   const config = getTripIntelligenceConfig();

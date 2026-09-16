@@ -1,9 +1,16 @@
 import { prisma } from '@/shared/database/prisma';
 import type { AIRole, AIIntent } from './ai-types';
-import { getCustomerBookingLocationTelemetry, getDriverBookingLocationTelemetry } from '@/modules/location/application/booking-location-service';
+import {
+  getCustomerBookingLocationTelemetry,
+  getDriverBookingLocationTelemetry,
+} from '@/modules/location/application/booking-location-service';
 
 export class AIContextService {
-  async buildContext(userId: string, role: AIRole, intent: AIIntent): Promise<Record<string, unknown>> {
+  async buildContext(
+    userId: string,
+    role: AIRole,
+    intent: AIIntent,
+  ): Promise<Record<string, unknown>> {
     const context: Record<string, unknown> = {};
 
     try {
@@ -19,7 +26,11 @@ export class AIContextService {
     return context;
   }
 
-  private async buildCustomerContext(userId: string, intent: AIIntent, context: Record<string, unknown>) {
+  private async buildCustomerContext(
+    userId: string,
+    intent: AIIntent,
+    context: Record<string, unknown>,
+  ) {
     if (intent === 'BOOK_RIDE' || intent === 'REBOOK_RIDE') {
       const recentBooking = await prisma.booking.findFirst({
         where: { customerId: userId },
@@ -71,7 +82,9 @@ export class AIContextService {
       const activeBooking = await prisma.booking.findFirst({
         where: {
           customerId: userId,
-          status: { in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'] },
+          status: {
+            in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'],
+          },
         },
         orderBy: { updatedAt: 'desc' },
         select: { id: true },
@@ -86,7 +99,11 @@ export class AIContextService {
     }
   }
 
-  private async buildDriverContext(userId: string, intent: AIIntent, context: Record<string, unknown>) {
+  private async buildDriverContext(
+    userId: string,
+    intent: AIIntent,
+    context: Record<string, unknown>,
+  ) {
     const driverProfile = await prisma.driverProfile.findUnique({
       where: { userId },
       select: { id: true, verificationStatus: true, availabilityStatus: true },
@@ -118,7 +135,9 @@ export class AIContextService {
       const activeBooking = await prisma.booking.findFirst({
         where: {
           driverProfileId: driverProfile.id,
-          status: { in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'] },
+          status: {
+            in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'],
+          },
         },
         orderBy: { updatedAt: 'desc' },
         select: { id: true, pickupLabel: true },

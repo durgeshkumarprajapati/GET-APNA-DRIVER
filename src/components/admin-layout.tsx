@@ -118,7 +118,9 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         { href: '/admin/analytics-and-bi', label: t('admin.nav.analyticsAndBi'), icon: 'insights' },
         {
           href: '/admin/marketplace-intelligence',
-          label: t('admin.nav.marketplaceIntelligence', { defaultValue: 'Marketplace Intelligence' }),
+          label: t('admin.nav.marketplaceIntelligence', {
+            defaultValue: 'Marketplace Intelligence',
+          }),
           icon: 'monitoring',
         },
       ],
@@ -151,11 +153,22 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       items: [
         {
           href: '/admin/operations-command-center',
-          label: t('admin.nav.operationsCommandCenter', { defaultValue: 'Operations Command Center' }),
+          label: t('admin.nav.operationsCommandCenter', {
+            defaultValue: 'Operations Command Center',
+          }),
           icon: 'terminal',
         },
+        {
+          href: '/admin/risk-and-trust',
+          label: t('admin.nav.riskAndTrust', { defaultValue: 'Risk & Trust Engine' }),
+          icon: 'security',
+        },
         { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
-        { href: '/admin/scheduled-rides', label: t('admin.nav.scheduledRides', { defaultValue: 'Scheduled Rides' }), icon: 'schedule' },
+        {
+          href: '/admin/scheduled-rides',
+          label: t('admin.nav.scheduledRides', { defaultValue: 'Scheduled Rides' }),
+          icon: 'schedule',
+        },
         {
           href: '/admin/sos-and-disputes',
           label: t('admin.nav.sosAndDisputes'),
@@ -294,7 +307,6 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           ))}
         </nav>
 
-
         {/* Footer Security Badge */}
         <div className="p-3 border-t border-[#262a33] bg-[#0a0e16]/90">
           <div className="flex items-center justify-between px-3 py-1.5 bg-[#181c24] rounded-lg border border-[#262a33]">
@@ -352,7 +364,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
                 </div>
               </div>
               <div className="relative">
-                <UserAvatar name={userEmail ?? 'Admin'} size={32} className="border-2 border-[#68dba9]" />
+                <UserAvatar
+                  name={userEmail ?? 'Admin'}
+                  size={32}
+                  className="border-2 border-[#68dba9]"
+                />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] border-2 border-[#0a0e16] z-10" />
               </div>
               <button

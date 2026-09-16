@@ -20,8 +20,9 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ intelligence }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch driver trip intelligence.';
+      const message =
+        err instanceof Error ? err.message : 'Failed to fetch driver trip intelligence.';
       return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

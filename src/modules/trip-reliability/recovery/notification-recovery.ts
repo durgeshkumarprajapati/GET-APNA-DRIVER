@@ -4,7 +4,11 @@ import type { RecoveryResult } from '../trip-reliability-types';
 export class NotificationRecoveryHandler {
   private notificationAdapter = new NotificationAdapter();
 
-  async recoverNotificationFailure(userId: string, title: string, message: string): Promise<RecoveryResult> {
+  async recoverNotificationFailure(
+    userId: string,
+    title: string,
+    message: string,
+  ): Promise<RecoveryResult> {
     const success = await this.notificationAdapter.sendReliabilityNotification({
       userId,
       title,

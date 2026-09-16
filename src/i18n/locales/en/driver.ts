@@ -180,11 +180,10 @@ export const driverEn = {
   },
   tripReliability: {
     title: 'Pickup Reliability Notice',
-    customerWaitingNotice: 'You have arrived at pickup. Try calling the customer via proxy if needed.',
+    customerWaitingNotice:
+      'You have arrived at pickup. Try calling the customer via proxy if needed.',
     gpsCheckNotice: 'Please ensure your location services are enabled for accurate navigation.',
     viewPickupMap: 'View Pickup Map',
     support: 'Support',
   },
 };
-
-

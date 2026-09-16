@@ -21,7 +21,7 @@ export function evaluateDriverProximityToPickup(input: ArrivalRuleInput): {
     input.driverLatitude,
     input.driverLongitude,
     input.pickupLatitude,
-    input.pickupLongitude
+    input.pickupLongitude,
   );
 
   const config = getTripIntelligenceConfig();

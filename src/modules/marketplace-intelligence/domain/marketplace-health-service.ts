@@ -1,6 +1,7 @@
 import 'server-only';
 
-export type MarketplaceHealthState = 'HEALTHY' | 'WATCH' | 'STRAINED' | 'CRITICAL' | 'INSUFFICIENT_DATA';
+export type MarketplaceHealthState =
+  'HEALTHY' | 'WATCH' | 'STRAINED' | 'CRITICAL' | 'INSUFFICIENT_DATA';
 
 export interface MarketplaceHealthEvaluation {
   healthState: MarketplaceHealthState;
@@ -19,11 +20,11 @@ export interface MarketplaceHealthEvaluation {
 export const HEALTH_THRESHOLDS = {
   CRITICAL_CANCELLATION_RATE: 25.0, // > 25% cancellation = CRITICAL
   STRAINED_CANCELLATION_RATE: 15.0, // > 15% cancellation = STRAINED
-  WATCH_CANCELLATION_RATE: 10.0,    // > 10% cancellation = WATCH
+  WATCH_CANCELLATION_RATE: 10.0, // > 10% cancellation = WATCH
 
-  CRITICAL_SUPPLY_RATIO: 0.5,       // < 0.5 ratio = CRITICAL
-  STRAINED_SUPPLY_RATIO: 0.8,       // < 0.8 ratio = STRAINED
-  WATCH_SUPPLY_RATIO: 1.0,          // < 1.0 ratio = WATCH
+  CRITICAL_SUPPLY_RATIO: 0.5, // < 0.5 ratio = CRITICAL
+  STRAINED_SUPPLY_RATIO: 0.8, // < 0.8 ratio = STRAINED
+  WATCH_SUPPLY_RATIO: 1.0, // < 1.0 ratio = WATCH
 
   MIN_REQUESTS_FOR_EVALUATION: 1,
 };
@@ -52,7 +53,8 @@ export function evaluateMarketplaceHealth(params: {
         assignmentSuccessRate: 100,
         dispatchLatencyP50Ms: 0,
       },
-      explanation: 'Insufficient ride request volume in this window to evaluate marketplace health.',
+      explanation:
+        'Insufficient ride request volume in this window to evaluate marketplace health.',
       evaluatedAt: new Date().toISOString(),
     };
   }

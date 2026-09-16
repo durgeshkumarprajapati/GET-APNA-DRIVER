@@ -18,8 +18,8 @@ export function DriverPickupReliabilityCard({ reliability }: DriverPickupReliabi
 
   const hasCoords = Boolean(
     reliability.recommendedAction?.payload &&
-      typeof reliability.recommendedAction.payload === 'object' &&
-      'latitude' in reliability.recommendedAction.payload
+    typeof reliability.recommendedAction.payload === 'object' &&
+    'latitude' in reliability.recommendedAction.payload,
   );
 
   const latitude = hasCoords
@@ -34,13 +34,17 @@ export function DriverPickupReliabilityCard({ reliability }: DriverPickupReliabi
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pickup Reliability Notice</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Pickup Reliability Notice
+          </span>
         </div>
       </div>
 
       <div>
         <h3 className="text-sm font-bold text-slate-100">{reliability.statusTitle}</h3>
-        <p className="text-xs text-slate-300 mt-1 leading-relaxed">{reliability.statusExplanation}</p>
+        <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+          {reliability.statusExplanation}
+        </p>
       </div>
 
       <div className="flex gap-2 pt-1">

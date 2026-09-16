@@ -115,14 +115,18 @@ export async function getCampaignSignals(
   }
 
   // 2. Referral Signal Cards
-  const qualifiedReferrals = referrals.filter((r) => r.status === 'QUALIFIED' || r.status === 'REWARDED');
+  const qualifiedReferrals = referrals.filter(
+    (r) => r.status === 'QUALIFIED' || r.status === 'REWARDED',
+  );
   const rewardedReferrals = referrals.filter((r) => r.status === 'REWARDED');
   const referralAsset = getCampaignAsset('REFERRAL');
 
   for (const refCamp of referralCampaigns.slice(0, 1)) {
     const campReferrals = referrals.filter((r) => r.campaignId === refCamp.id);
     const attributedCount = campReferrals.length;
-    const qualifiedCount = campReferrals.filter((r) => r.status === 'QUALIFIED' || r.status === 'REWARDED').length;
+    const qualifiedCount = campReferrals.filter(
+      (r) => r.status === 'QUALIFIED' || r.status === 'REWARDED',
+    ).length;
     const rewardedCount = campReferrals.filter((r) => r.status === 'REWARDED').length;
 
     cards.push({
@@ -147,7 +151,9 @@ export async function getCampaignSignals(
   }
 
   // 3. Loyalty Reward Signal Cards
-  const rewardRedemptionsCount = loyaltyTransactions.filter((t) => t.type === 'REWARD_REDEMPTION').length;
+  const rewardRedemptionsCount = loyaltyTransactions.filter(
+    (t) => t.type === 'REWARD_REDEMPTION',
+  ).length;
   const rewardAsset = getCampaignAsset('REWARD');
 
   for (const reward of loyaltyRewards.slice(0, 1)) {

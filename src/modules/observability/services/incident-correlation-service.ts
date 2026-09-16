@@ -39,7 +39,10 @@ export class IncidentCorrelationService {
         confidence: 0.9,
       });
       impactedServices.push('Booking Engine', 'Payment Engine', 'API Gateway');
-      recommendedActions.push('Check Database Diagnostics HUD', 'Verify connection pool sizes and active PostgreSQL processes');
+      recommendedActions.push(
+        'Check Database Diagnostics HUD',
+        'Verify connection pool sizes and active PostgreSQL processes',
+      );
     }
 
     if (platformHealth.components.redis.status !== 'HEALTHY') {
@@ -49,7 +52,10 @@ export class IncidentCorrelationService {
         confidence: 0.85,
       });
       impactedServices.push('Rate Limiter', 'Cache Store', 'Background Queues');
-      recommendedActions.push('Check Redis Diagnostics HUD', 'Review Redis memory fragmentation and eviction policies');
+      recommendedActions.push(
+        'Check Redis Diagnostics HUD',
+        'Review Redis memory fragmentation and eviction policies',
+      );
     }
 
     if (platformHealth.components.workerOutbox.status !== 'HEALTHY') {
@@ -59,7 +65,10 @@ export class IncidentCorrelationService {
         confidence: 0.8,
       });
       impactedServices.push('Notifications', 'Async Event Processor');
-      recommendedActions.push('Inspect Worker Diagnostics HUD', 'Restart or scale worker processes');
+      recommendedActions.push(
+        'Inspect Worker Diagnostics HUD',
+        'Restart or scale worker processes',
+      );
     }
 
     if (suspectedRootCauses.length === 0) {

@@ -10,11 +10,15 @@ export class TripIntelligenceService {
   async getTripIntelligence(
     userId: string,
     bookingId: string,
-    role: 'CUSTOMER' | 'DRIVER'
+    role: 'CUSTOMER' | 'DRIVER',
   ): Promise<TripIntelligenceResult | null> {
     const config = getTripIntelligenceConfig();
 
-    if (!config.enabled || (role === 'CUSTOMER' && !config.customerEnabled) || (role === 'DRIVER' && !config.driverEnabled)) {
+    if (
+      !config.enabled ||
+      (role === 'CUSTOMER' && !config.customerEnabled) ||
+      (role === 'DRIVER' && !config.driverEnabled)
+    ) {
       return null;
     }
 

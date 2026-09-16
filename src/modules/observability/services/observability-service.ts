@@ -43,9 +43,15 @@ export class ObservabilityService {
     startTime: Date,
     endTime: Date,
     dimension: string = 'GLOBAL',
-    db: Db = prisma
+    db: Db = prisma,
   ) {
-    return OperationalMetricsRepository.getMetricAggregates(metricName, startTime, endTime, dimension, db);
+    return OperationalMetricsRepository.getMetricAggregates(
+      metricName,
+      startTime,
+      endTime,
+      dimension,
+      db,
+    );
   }
 
   static async runDiagnostics(target: 'database' | 'redis' | 'worker', db: Db = prisma) {

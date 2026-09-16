@@ -17,5 +17,5 @@ export const POST = withPermission<RouteParams>(
       const message = err instanceof Error ? err.message : 'Failed to execute recovery.';
       return NextResponse.json({ error: 'RECOVERY_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

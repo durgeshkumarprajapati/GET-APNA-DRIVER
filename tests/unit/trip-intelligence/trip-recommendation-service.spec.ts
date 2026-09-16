@@ -12,14 +12,14 @@ describe('TripRecommendationService Unit Tests', () => {
         pickupAddress: 'Station Road, Vadodara',
         pickupLatitude: 22.3072,
         pickupLongitude: 73.1812,
-        driverLatitude: 22.3100,
-        driverLongitude: 73.1850,
+        driverLatitude: 22.31,
+        driverLongitude: 73.185,
         freshness: 'LIVE',
       });
 
       expect(actions.some((a) => a.type === 'SHOW_MAP')).toBe(true);
       const mapAction = actions.find((a) => a.type === 'SHOW_MAP');
-      expect(mapAction?.payload.driverLatitude).toBe(22.3100);
+      expect(mapAction?.payload.driverLatitude).toBe(22.31);
     });
 
     it('should build OPEN_INVOICE, OPEN_REVIEW, and PREFILL_BOOKING action cards for TRIP_COMPLETED', () => {
@@ -63,14 +63,14 @@ describe('TripRecommendationService Unit Tests', () => {
         signalType: 'DRIVER_ASSIGNED',
         bookingId: 'b101',
         pickupAddress: 'Gotri, Vadodara',
-        pickupLatitude: 22.3080,
-        pickupLongitude: 73.1820,
+        pickupLatitude: 22.308,
+        pickupLongitude: 73.182,
         freshness: 'UNAVAILABLE',
       });
 
       expect(actions.some((a) => a.type === 'SHOW_MAP')).toBe(true);
       const mapAction = actions.find((a) => a.type === 'SHOW_MAP');
-      expect(mapAction?.payload.pickupLatitude).toBe(22.3080);
+      expect(mapAction?.payload.pickupLatitude).toBe(22.308);
     });
   });
 });

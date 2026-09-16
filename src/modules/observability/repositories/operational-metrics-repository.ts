@@ -20,8 +20,13 @@ export class OperationalMetricsRepository {
     return d;
   }
 
-  static async recordMetric(input: RecordMetricInput, db: Db = prisma): Promise<OperationalMetricBucket> {
-    const bucketStart = input.bucketStart ? this.getBucketStart(input.bucketStart) : this.getBucketStart();
+  static async recordMetric(
+    input: RecordMetricInput,
+    db: Db = prisma,
+  ): Promise<OperationalMetricBucket> {
+    const bucketStart = input.bucketStart
+      ? this.getBucketStart(input.bucketStart)
+      : this.getBucketStart();
     const dimension = input.dimension ?? 'GLOBAL';
     const durationMs = input.durationMs ?? 0;
     const isError = input.isError ? 1 : 0;
@@ -64,7 +69,7 @@ export class OperationalMetricsRepository {
     startTime: Date,
     endTime: Date,
     dimension: string = 'GLOBAL',
-    db: Db = prisma
+    db: Db = prisma,
   ): Promise<{
     count: number;
     errorCount: number;

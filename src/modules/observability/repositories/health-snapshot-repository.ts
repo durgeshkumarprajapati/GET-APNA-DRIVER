@@ -21,7 +21,10 @@ export interface CreateSnapshotInput {
 }
 
 export class HealthSnapshotRepository {
-  static async create(input: CreateSnapshotInput, db: Db = prisma): Promise<PlatformHealthSnapshot> {
+  static async create(
+    input: CreateSnapshotInput,
+    db: Db = prisma,
+  ): Promise<PlatformHealthSnapshot> {
     return db.platformHealthSnapshot.create({
       data: {
         overallScore: input.overallScore,

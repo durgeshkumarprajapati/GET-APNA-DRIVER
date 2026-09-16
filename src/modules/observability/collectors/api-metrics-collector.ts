@@ -6,7 +6,7 @@ export class ApiMetricsCollector {
     route: string,
     durationMs: number,
     statusCode: number,
-    db?: Db
+    db?: Db,
   ): Promise<void> {
     const isError = statusCode >= 500;
     await OperationalMetricsRepository.recordMetric(
@@ -17,7 +17,7 @@ export class ApiMetricsCollector {
         isError,
         metadata: { statusCode },
       },
-      db
+      db,
     );
   }
 }

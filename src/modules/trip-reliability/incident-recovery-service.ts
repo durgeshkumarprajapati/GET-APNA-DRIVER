@@ -20,11 +20,19 @@ export class IncidentRecoveryService {
     });
 
     if (!incident) {
-      return { success: false, actionTaken: 'INCIDENT_NOT_FOUND', notes: 'Incident does not exist.' };
+      return {
+        success: false,
+        actionTaken: 'INCIDENT_NOT_FOUND',
+        notes: 'Incident does not exist.',
+      };
     }
 
     if (incident.status === 'RESOLVED' || incident.status === 'CLOSED') {
-      return { success: true, actionTaken: 'ALREADY_RESOLVED', notes: 'Incident is already resolved or closed.' };
+      return {
+        success: true,
+        actionTaken: 'ALREADY_RESOLVED',
+        notes: 'Incident is already resolved or closed.',
+      };
     }
 
     // Explicit status transition: INVESTIGATING -> RECOVERING
@@ -56,7 +64,9 @@ export class IncidentRecoveryService {
         break;
 
       case 'DRIVER_CANCELLED':
-        recoveryResult = await this.assignmentRecovery.recoverDriverCancellation(incident.bookingId);
+        recoveryResult = await this.assignmentRecovery.recoverDriverCancellation(
+          incident.bookingId,
+        );
         break;
 
       case 'DISPATCH_FAILURE':
@@ -65,18 +75,22 @@ export class IncidentRecoveryService {
         break;
 
       case 'INVOICE_FAILURE':
-        recoveryResult = await this.reconciliationRecovery.recoverInvoiceFailure(incident.bookingId);
+        recoveryResult = await this.reconciliationRecovery.recoverInvoiceFailure(
+          incident.bookingId,
+        );
         break;
 
       case 'PAYMENT_RECONCILIATION':
-        recoveryResult = await this.reconciliationRecovery.recoverPaymentReconciliation(incident.bookingId);
+        recoveryResult = await this.reconciliationRecovery.recoverPaymentReconciliation(
+          incident.bookingId,
+        );
         break;
 
       case 'NOTIFICATION_FAILURE':
         recoveryResult = await this.notificationRecovery.recoverNotificationFailure(
           incident.customerId || '',
           'Trip Notification Retry',
-          'Updated status notification'
+          'Updated status notification',
         );
         break;
 
@@ -116,7 +130,7 @@ export class IncidentRecoveryService {
       await this.escalationService.escalateIncident(
         incidentId,
         actorUserId,
-        recoveryResult.notes || 'Recovery attempt failed.'
+        recoveryResult.notes || 'Recovery attempt failed.',
       );
     }
 

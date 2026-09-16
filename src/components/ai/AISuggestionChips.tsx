@@ -23,7 +23,11 @@ const DRIVER_CHIPS = [
   'Pickup assistance',
 ];
 
-export function AISuggestionChips({ role, onSelectChip, disabled = false }: AISuggestionChipsProps) {
+export function AISuggestionChips({
+  role,
+  onSelectChip,
+  disabled = false,
+}: AISuggestionChipsProps) {
   const chips = role === 'CUSTOMER' ? CUSTOMER_CHIPS : DRIVER_CHIPS;
 
   return (

@@ -24,7 +24,8 @@ class UnifiedAIProvider implements AIProvider {
 
     if (!config.enabled) {
       return {
-        message: 'The AI Assistant is currently disabled. You can continue using the normal booking and driver features.',
+        message:
+          'The AI Assistant is currently disabled. You can continue using the normal booking and driver features.',
         intent: 'GENERAL_ASSISTANCE',
         confidence: 0.0,
         actions: [],

@@ -27,9 +27,16 @@ export function AIActionCard({ action }: AIActionCardProps) {
             )}
           </div>
           <div className="space-y-1 text-xs text-slate-300">
-            <div><strong className="text-slate-400">Pickup:</strong> {pickupAddress || 'Current Location'}</div>
-            <div><strong className="text-slate-400">Dropoff:</strong> {dropoffAddress || 'Destination'}</div>
-            <div><strong className="text-slate-400">Vehicle:</strong> {vehicleCategory || 'Sedan'}</div>
+            <div>
+              <strong className="text-slate-400">Pickup:</strong>{' '}
+              {pickupAddress || 'Current Location'}
+            </div>
+            <div>
+              <strong className="text-slate-400">Dropoff:</strong> {dropoffAddress || 'Destination'}
+            </div>
+            <div>
+              <strong className="text-slate-400">Vehicle:</strong> {vehicleCategory || 'Sedan'}
+            </div>
           </div>
           <Link
             href={`/bookings/new?pickup=${encodeURIComponent(pickupAddress || '')}&dropoff=${encodeURIComponent(dropoffAddress || '')}&vehicle=${encodeURIComponent(vehicleCategory || 'Sedan')}`}
@@ -42,7 +49,8 @@ export function AIActionCard({ action }: AIActionCardProps) {
     }
 
     case 'SHOW_PRICING': {
-      const { vehicleCategory, baseFare, estimatedTotal, distanceKm, durationMinutes } = action.payload;
+      const { vehicleCategory, baseFare, estimatedTotal, distanceKm, durationMinutes } =
+        action.payload;
       return (
         <div className="mt-3 p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
           <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
@@ -69,7 +77,9 @@ export function AIActionCard({ action }: AIActionCardProps) {
             <span className="font-mono font-bold text-sm text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
               {code}
             </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${eligible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded ${eligible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}
+            >
               {eligible ? 'ELIGIBLE' : 'INELIGIBLE'}
             </span>
           </div>
@@ -91,7 +101,8 @@ export function AIActionCard({ action }: AIActionCardProps) {
           </div>
           <div className="text-xl font-extrabold text-amber-400">{currentPoints} Points</div>
           <div className="text-slate-400">
-            Need {nextTierPoints - currentPoints} points to reach next tier. {availableRewardsCount} rewards available.
+            Need {nextTierPoints - currentPoints} points to reach next tier. {availableRewardsCount}{' '}
+            rewards available.
           </div>
         </div>
       );
@@ -101,7 +112,9 @@ export function AIActionCard({ action }: AIActionCardProps) {
       const { todayEarnings, completedTripsCount, periodLabel } = action.payload;
       return (
         <div className="mt-3 p-4 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-2 text-xs">
-          <div className="text-slate-400 uppercase text-[10px] tracking-wider font-semibold">{periodLabel}</div>
+          <div className="text-slate-400 uppercase text-[10px] tracking-wider font-semibold">
+            {periodLabel}
+          </div>
           <div className="text-2xl font-black text-emerald-400">₹{todayEarnings}</div>
           <div className="text-slate-300">{completedTripsCount} Trips Completed</div>
         </div>
@@ -114,7 +127,9 @@ export function AIActionCard({ action }: AIActionCardProps) {
         <div className="mt-3 p-4 rounded-xl bg-slate-900 border border-purple-500/30 space-y-2 text-xs">
           <div className="text-purple-400 font-semibold">{campaignName}</div>
           <div className="flex justify-between items-center text-slate-300">
-            <span>Progress: {currentProgress} / {targetRequirement} rides</span>
+            <span>
+              Progress: {currentProgress} / {targetRequirement} rides
+            </span>
             <span className="font-bold text-amber-400">+₹{potentialBonus}</span>
           </div>
           <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -165,7 +180,9 @@ export function AIActionCard({ action }: AIActionCardProps) {
     case 'TRIGGER_SOS': {
       return (
         <div className="mt-3 p-4 rounded-xl bg-rose-950/40 border border-rose-600/50 space-y-2 text-xs">
-          <div className="text-rose-400 font-bold uppercase tracking-wider">⚠️ Safety SOS Triggered</div>
+          <div className="text-rose-400 font-bold uppercase tracking-wider">
+            ⚠️ Safety SOS Triggered
+          </div>
           <div className="text-slate-200">Immediate emergency assistance options are active.</div>
           <div className="flex gap-2 pt-1">
             <a

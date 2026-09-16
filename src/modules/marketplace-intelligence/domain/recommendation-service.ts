@@ -87,7 +87,8 @@ export async function generateOperationalRecommendations(params: {
         type: 'SUPPLY_SHORTAGE',
         severity: dispatchEligibleSupply < totalRequests * 0.5 ? 'CRITICAL' : 'HIGH',
         timeWindow: timeWindowStr,
-        reason: 'Current active demand exceeds available dispatch-eligible driver supply across the platform.',
+        reason:
+          'Current active demand exceeds available dispatch-eligible driver supply across the platform.',
         supportingMetrics: {
           currentRequests: totalRequests,
           eligibleSupply: dispatchEligibleSupply,
@@ -99,7 +100,8 @@ export async function generateOperationalRecommendations(params: {
           when: timeWindowStr,
           why: `Expected demand of ${totalRequests} rides exceeds current available eligible supply of ${dispatchEligibleSupply} drivers.`,
         },
-        suggestedAction: 'Consider alerting off-shift drivers or reviewing incentive broadcasts in high-demand zones.',
+        suggestedAction:
+          'Consider alerting off-shift drivers or reviewing incentive broadcasts in high-demand zones.',
         createdAt: now.toISOString(),
         expiresAt: expiresAt.toISOString(),
       });
@@ -129,7 +131,8 @@ export async function generateOperationalRecommendations(params: {
           when: timeWindowStr,
           why: `${cancelledRides} of ${totalRequests} ride requests (${cancellationRate.toFixed(1)}%) were cancelled in the current window.`,
         },
-        suggestedAction: 'Investigate dispatch match latency, pickup ETA accuracy, or driver cancellation reasons.',
+        suggestedAction:
+          'Investigate dispatch match latency, pickup ETA accuracy, or driver cancellation reasons.',
         createdAt: now.toISOString(),
         expiresAt: expiresAt.toISOString(),
       });
@@ -146,7 +149,8 @@ export async function generateOperationalRecommendations(params: {
         type: 'SCHEDULED_DEMAND_SPIKE',
         severity: 'MEDIUM',
         timeWindow: timeWindowStr,
-        reason: 'Significant volume of pre-scheduled rides scheduled for dispatch in upcoming time window.',
+        reason:
+          'Significant volume of pre-scheduled rides scheduled for dispatch in upcoming time window.',
         supportingMetrics: {
           scheduledDemandCount,
         },
@@ -156,7 +160,8 @@ export async function generateOperationalRecommendations(params: {
           when: timeWindowStr,
           why: `${scheduledDemandCount} advance scheduled rides are queuing for dispatch matching in the next 60 minutes.`,
         },
-        suggestedAction: 'Ensure favorite drivers and high-tier drivers are online and pre-allocated to scheduled occurrences.',
+        suggestedAction:
+          'Ensure favorite drivers and high-tier drivers are online and pre-allocated to scheduled occurrences.',
         createdAt: now.toISOString(),
         expiresAt: expiresAt.toISOString(),
       });
@@ -192,7 +197,8 @@ export async function generateOperationalRecommendations(params: {
               when: timeWindowStr,
               why: `${z.cancelled} out of ${z.requests} requests in ${z.zoneName} were cancelled.`,
             },
-            suggestedAction: 'Deploy additional driver supply or check local traffic/dispatch latency in this zone.',
+            suggestedAction:
+              'Deploy additional driver supply or check local traffic/dispatch latency in this zone.',
             createdAt: now.toISOString(),
             expiresAt: expiresAt.toISOString(),
           });

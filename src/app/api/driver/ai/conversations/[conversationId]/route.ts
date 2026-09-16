@@ -25,8 +25,9 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ conversation }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch driver conversation details.';
+      const message =
+        err instanceof Error ? err.message : 'Failed to fetch driver conversation details.';
       return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

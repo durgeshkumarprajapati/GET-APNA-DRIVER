@@ -6,24 +6,21 @@ import { prisma } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { toErrorResponse } from '@/shared/errors/app-error';
 
-export const GET = withPermission(
-  PERMISSIONS.ADMIN_CORPORATE_MANAGE,
-  async (req) => {
-    try {
-      const organizations = await prisma.organization.findMany({
-        include: {
-          billingProfile: true,
-          _count: { select: { members: true, bookings: true, travelPolicies: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+export const GET = withPermission(PERMISSIONS.ADMIN_CORPORATE_MANAGE, async (req) => {
+  try {
+    const organizations = await prisma.organization.findMany({
+      include: {
+        billingProfile: true,
+        _count: { select: { members: true, bookings: true, travelPolicies: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
-      return NextResponse.json({ organizations }, { status: 200 });
-    } catch (error: unknown) {
-      return toErrorResponse(error, req.nextUrl.pathname);
-    }
+    return NextResponse.json({ organizations }, { status: 200 });
+  } catch (error: unknown) {
+    return toErrorResponse(error, req.nextUrl.pathname);
   }
-);
+});
 
 export const PATCH = withPermission(
   PERMISSIONS.ADMIN_CORPORATE_MANAGE,
@@ -56,5 +53,5 @@ export const PATCH = withPermission(
     } catch (error: unknown) {
       return toErrorResponse(error, req.nextUrl.pathname);
     }
-  }
+  },
 );

@@ -1,6 +1,12 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
-import { BookingStatus, DriverAvailabilityStatus, SafetyIncidentStatus, SupportTicketStatus, ScheduledRideStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  DriverAvailabilityStatus,
+  SafetyIncidentStatus,
+  SupportTicketStatus,
+  ScheduledRideStatus,
+} from '@prisma/client';
 
 export interface OperationsRawSignals {
   searchingBookingsCount: number;
@@ -23,9 +29,7 @@ export interface OperationsRawSignals {
  * database tables and service layers in parallel.
  * Reuses existing domain models without duplicating domain state.
  */
-export async function collectOperationsSignals(
-  db: Db = prisma,
-): Promise<OperationsRawSignals> {
+export async function collectOperationsSignals(db: Db = prisma): Promise<OperationsRawSignals> {
   const now = new Date();
   const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
 
@@ -68,43 +72,57 @@ export async function collectOperationsSignals(
       .catch(() => 0),
     // Active reliability incidents (if model exists)
     db.tripReliabilityIncident
-      ? db.tripReliabilityIncident.count({
-          where: { status: { in: ['DETECTED', 'INVESTIGATING', 'CONFIRMED', 'RECOVERY_PENDING'] } },
-        }).catch(() => 0)
+      ? db.tripReliabilityIncident
+          .count({
+            where: {
+              status: { in: ['DETECTED', 'INVESTIGATING', 'CONFIRMED', 'RECOVERY_PENDING'] },
+            },
+          })
+          .catch(() => 0)
       : Promise.resolve(0),
     // Critical reliability incidents
     db.tripReliabilityIncident
-      ? db.tripReliabilityIncident.count({
-          where: {
-            severity: 'CRITICAL',
-            status: { in: ['DETECTED', 'INVESTIGATING', 'CONFIRMED', 'RECOVERY_PENDING'] },
-          },
-        }).catch(() => 0)
+      ? db.tripReliabilityIncident
+          .count({
+            where: {
+              severity: 'CRITICAL',
+              status: { in: ['DETECTED', 'INVESTIGATING', 'CONFIRMED', 'RECOVERY_PENDING'] },
+            },
+          })
+          .catch(() => 0)
       : Promise.resolve(0),
     // Active safety incidents
-    db.safetyIncident.count({
-      where: { status: { in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING] } },
-    }).catch(() => 0),
+    db.safetyIncident
+      .count({
+        where: { status: { in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING] } },
+      })
+      .catch(() => 0),
     // Open support tickets
-    db.supportTicket.count({
-      where: { status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] } },
-    }).catch(() => 0),
+    db.supportTicket
+      .count({
+        where: { status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] } },
+      })
+      .catch(() => 0),
     // High-priority support tickets
-    db.supportTicket.count({
-      where: {
-        priority: 'HIGH',
-        status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
-      },
-    }).catch(() => 0),
+    db.supportTicket
+      .count({
+        where: {
+          priority: 'HIGH',
+          status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+        },
+      })
+      .catch(() => 0),
     // Upcoming unassigned scheduled rides (next 60m)
     db.scheduledRide
-      ? db.scheduledRide.count({
-          where: {
-            status: ScheduledRideStatus.ACTIVE,
-            assignedDriverId: null,
-            scheduledFor: { gte: now, lte: nextHour },
-          },
-        }).catch(() => 0)
+      ? db.scheduledRide
+          .count({
+            where: {
+              status: ScheduledRideStatus.ACTIVE,
+              assignedDriverId: null,
+              scheduledFor: { gte: now, lte: nextHour },
+            },
+          })
+          .catch(() => 0)
       : Promise.resolve(0),
   ]);
 

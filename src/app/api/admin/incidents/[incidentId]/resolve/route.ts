@@ -23,5 +23,5 @@ export const POST = withPermission<RouteParams>(
       const message = err instanceof Error ? err.message : 'Failed to resolve incident.';
       return NextResponse.json({ error: 'RESOLUTION_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

@@ -412,7 +412,8 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
                 {item.actionUrl && (
                   <div className="shrink-0 self-end sm:self-center">
                     <span className="px-3.5 py-1.5 rounded-lg bg-[#25a475]/10 text-[#68dba9] hover:bg-[#25a475]/20 font-mono text-xs font-bold inline-flex items-center gap-1 border border-[#25a475]/30">
-                      View <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      View{' '}
+                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </span>
                   </div>
                 )}

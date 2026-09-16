@@ -27,7 +27,9 @@ export default function NewCorporateBookingPage() {
 
   // Form State
   const [pickupAddress, setPickupAddress] = useState('Bandra Kurla Complex, Mumbai');
-  const [dropoffAddress, setDropoffAddress] = useState('Chhatrapati Shivaji Maharaj International Airport T2');
+  const [dropoffAddress, setDropoffAddress] = useState(
+    'Chhatrapati Shivaji Maharaj International Airport T2',
+  );
   const [vehicleCategory, setVehicleCategory] = useState('SEDAN');
   const [departmentId, setDepartmentId] = useState('');
   const [costCenterId, setCostCenterId] = useState('');
@@ -97,7 +99,7 @@ export default function NewCorporateBookingPage() {
 
       if (data.requiresApproval) {
         setSuccessMsg(
-          'Booking submitted! Under corporate travel policy rules, this booking requires manager approval before dispatching a driver.'
+          'Booking submitted! Under corporate travel policy rules, this booking requires manager approval before dispatching a driver.',
         );
         setTimeout(() => router.push('/corporate/approvals'), 2500);
       } else {
@@ -122,7 +124,8 @@ export default function NewCorporateBookingPage() {
             Book Corporate Travel
           </h1>
           <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-            Schedule official travel for yourself or colleagues with automatic travel policy evaluation and cost center allocation.
+            Schedule official travel for yourself or colleagues with automatic travel policy
+            evaluation and cost center allocation.
           </p>
         </div>
 
@@ -144,10 +147,15 @@ export default function NewCorporateBookingPage() {
             Loading corporate travel configuration...
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-5"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Pickup Address</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Pickup Address
+                </label>
                 <input
                   type="text"
                   value={pickupAddress}
@@ -158,7 +166,9 @@ export default function NewCorporateBookingPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Dropoff Address</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Dropoff Address
+                </label>
                 <input
                   type="text"
                   value={dropoffAddress}
@@ -171,7 +181,9 @@ export default function NewCorporateBookingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Vehicle Category</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Vehicle Category
+                </label>
                 <select
                   value={vehicleCategory}
                   onChange={(e) => setVehicleCategory(e.target.value)}
@@ -185,7 +197,9 @@ export default function NewCorporateBookingPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Department</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Department
+                </label>
                 <select
                   value={departmentId}
                   onChange={(e) => setDepartmentId(e.target.value)}
@@ -204,7 +218,9 @@ export default function NewCorporateBookingPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Cost Center Allocation</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Cost Center Allocation
+                </label>
                 <select
                   value={costCenterId}
                   onChange={(e) => setCostCenterId(e.target.value)}
@@ -224,7 +240,9 @@ export default function NewCorporateBookingPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Business Purpose / Audit Reason</label>
+              <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                Business Purpose / Audit Reason
+              </label>
               <textarea
                 value={businessPurpose}
                 onChange={(e) => setBusinessPurpose(e.target.value)}
@@ -237,8 +255,12 @@ export default function NewCorporateBookingPage() {
 
             <div className="p-4 bg-[#1c2028] border border-[#262a33] rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-xs text-[#bccac0] block font-mono">Estimated Fare Billed To Corporate</span>
-                <span className="text-xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">₹{estimatedFare.toLocaleString()}</span>
+                <span className="text-xs text-[#bccac0] block font-mono">
+                  Estimated Fare Billed To Corporate
+                </span>
+                <span className="text-xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">
+                  ₹{estimatedFare.toLocaleString()}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button

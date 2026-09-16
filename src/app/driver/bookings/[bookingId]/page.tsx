@@ -221,12 +221,8 @@ export default function DriverJourneyControlPage({
   return (
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
-        {intelligence && (
-          <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />
-        )}
-        {reliability && (
-          <DriverPickupReliabilityCard reliability={reliability} />
-        )}
+        {intelligence && <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />}
+        {reliability && <DriverPickupReliabilityCard reliability={reliability} />}
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>

@@ -49,7 +49,10 @@ export function LocationMapModal({
       >
         <div className="flex items-center justify-between pb-3 border-b border-[#262a33]">
           <div>
-            <h3 id="map-modal-title" className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h3
+              id="map-modal-title"
+              className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']"
+            >
               {title}
             </h3>
             {subtitle && <p className="text-xs text-[#87948b] mt-0.5">{subtitle}</p>}

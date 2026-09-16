@@ -16,7 +16,6 @@ describe('SloService', () => {
 
     const reports = await SloService.evaluateAllSlos({} as unknown as Db);
 
-
     expect(reports.length).toBeGreaterThan(0);
     const apiAvail = reports.find((r) => r.serviceName === 'API Gateway & Routes');
     expect(apiAvail).toBeDefined();

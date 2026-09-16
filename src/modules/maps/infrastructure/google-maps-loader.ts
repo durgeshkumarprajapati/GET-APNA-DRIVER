@@ -1,5 +1,3 @@
-
-
 let loadPromise: Promise<void> | null = null;
 
 /**

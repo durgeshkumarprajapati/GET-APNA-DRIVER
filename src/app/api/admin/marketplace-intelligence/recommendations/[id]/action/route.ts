@@ -35,7 +35,10 @@ export const POST = withPermission(
 
       return NextResponse.json({ success: true, record });
     } catch (error: unknown) {
-      return NextResponse.json({ error: (error as Error).message || 'Internal Server Error' }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message || 'Internal Server Error' },
+        { status: 500 },
+      );
     }
   },
 );

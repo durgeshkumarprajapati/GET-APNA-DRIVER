@@ -10,8 +10,22 @@ jest.mock('@/shared/database/prisma', () => ({
       findUnique: jest.fn(),
     },
     customerProfile: {
-      findUnique: jest.fn().mockResolvedValue({ id: 'cp-1', userId: 'user-1', firstName: 'Rahul', lastName: 'Sharma' }),
-      create: jest.fn().mockResolvedValue({ id: 'cp-1', userId: 'user-1', firstName: 'Rahul', lastName: 'Sharma' }),
+      findUnique: jest
+        .fn()
+        .mockResolvedValue({
+          id: 'cp-1',
+          userId: 'user-1',
+          firstName: 'Rahul',
+          lastName: 'Sharma',
+        }),
+      create: jest
+        .fn()
+        .mockResolvedValue({
+          id: 'cp-1',
+          userId: 'user-1',
+          firstName: 'Rahul',
+          lastName: 'Sharma',
+        }),
     },
   },
 }));
@@ -56,7 +70,9 @@ describe('Phase 49 — Authentication UX & Access Reliability Spec', () => {
     };
 
     it('maps known Google OAuth error codes to friendly localized messages', () => {
-      expect(GOOGLE_OAUTH_ERROR_MESSAGES['google_not_configured']).toContain('Google sign-in is not available');
+      expect(GOOGLE_OAUTH_ERROR_MESSAGES['google_not_configured']).toContain(
+        'Google sign-in is not available',
+      );
       expect(GOOGLE_OAUTH_ERROR_MESSAGES['google_auth_failed']).toContain('Google sign-in failed');
     });
   });

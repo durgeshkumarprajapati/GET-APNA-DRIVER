@@ -45,12 +45,7 @@ export interface TrackingLocationSnapshot {
   capturedAt?: Date | string | null;
 }
 
-export type MapLoaderStatus =
-  | 'IDLE'
-  | 'LOADING'
-  | 'READY'
-  | 'NO_KEY'
-  | 'ERROR';
+export type MapLoaderStatus = 'IDLE' | 'LOADING' | 'READY' | 'NO_KEY' | 'ERROR';
 
 export interface MapLoaderState {
   status: MapLoaderStatus;

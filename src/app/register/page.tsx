@@ -217,7 +217,8 @@ function RegisterFormContent() {
             </div>
 
             <p className="text-xs text-[#bccac0] leading-relaxed">
-              Book hourly chauffeurs for personal cars, airport transfers, and intercity travel with zero surge pricing.
+              Book hourly chauffeurs for personal cars, airport transfers, and intercity travel with
+              zero surge pricing.
             </p>
 
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#262a33] text-[11px] font-mono text-[#87948b]">
@@ -263,7 +264,8 @@ function RegisterFormContent() {
             </div>
 
             <p className="text-xs text-[#bccac0] leading-relaxed">
-              Drive customer-owned luxury cars and outstation missions with zero platform commission and daily IMPS payouts.
+              Drive customer-owned luxury cars and outstation missions with zero platform commission
+              and daily IMPS payouts.
             </p>
 
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#262a33] text-[11px] font-mono text-[#87948b]">
@@ -332,7 +334,9 @@ function RegisterFormContent() {
 
           {error && (
             <div className="p-3.5 rounded-xl bg-[#3b0909] border border-[#93000a] text-[#ff8e8e] text-xs font-mono flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-base text-red-400 shrink-0">error</span>
+              <span className="material-symbols-outlined text-base text-red-400 shrink-0">
+                error
+              </span>
               <span>{error}</span>
             </div>
           )}
@@ -346,7 +350,9 @@ function RegisterFormContent() {
                   First Name
                 </label>
                 <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-2.5 border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
-                  <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">person</span>
+                  <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">
+                    person
+                  </span>
                   <input
                     required
                     type="text"
@@ -402,7 +408,9 @@ function RegisterFormContent() {
                 {t('auth.register.emailLabel', { defaultValue: 'Email Address' })}
               </label>
               <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-2.5 border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
-                <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">mail</span>
+                <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">
+                  mail
+                </span>
                 <input
                   required
                   type="email"
@@ -420,7 +428,9 @@ function RegisterFormContent() {
                 {t('auth.register.passwordLabel', { defaultValue: 'Password' })}
               </label>
               <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-2.5 border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
-                <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">lock</span>
+                <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">
+                  lock
+                </span>
                 <input
                   required
                   type={showPassword ? 'text' : 'password'}
@@ -445,9 +455,15 @@ function RegisterFormContent() {
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center gap-1.5">
                     <div className="flex-1 h-1 bg-[#262a33] rounded-full overflow-hidden flex gap-0.5">
-                      <div className={`h-full transition-all duration-300 ${entropyScore >= 1 ? 'w-1/3 bg-[#ff8e8e]' : 'w-0'}`} />
-                      <div className={`h-full transition-all duration-300 ${entropyScore >= 2 ? 'w-1/3 bg-[#ffe662]' : 'w-0'}`} />
-                      <div className={`h-full transition-all duration-300 ${entropyScore >= 3 ? 'w-1/3 bg-[#68dba9]' : 'w-0'}`} />
+                      <div
+                        className={`h-full transition-all duration-300 ${entropyScore >= 1 ? 'w-1/3 bg-[#ff8e8e]' : 'w-0'}`}
+                      />
+                      <div
+                        className={`h-full transition-all duration-300 ${entropyScore >= 2 ? 'w-1/3 bg-[#ffe662]' : 'w-0'}`}
+                      />
+                      <div
+                        className={`h-full transition-all duration-300 ${entropyScore >= 3 ? 'w-1/3 bg-[#68dba9]' : 'w-0'}`}
+                      />
                     </div>
                     <span className="text-[10px] font-mono text-[#68dba9] font-bold">
                       {entropyScore >= 3 ? 'Strong' : entropyScore >= 2 ? 'Moderate' : 'Weak'}
@@ -463,7 +479,9 @@ function RegisterFormContent() {
                 Referral Code (Optional)
               </label>
               <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-2.5 border border-[#262a33] focus-within:border-[#68dba9] transition-colors">
-                <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">card_giftcard</span>
+                <span className="material-symbols-outlined text-sm text-[#87948b] mr-2.5">
+                  card_giftcard
+                </span>
                 <input
                   type="text"
                   value={referralCode}
@@ -535,7 +553,9 @@ function RegisterFormContent() {
                 Account Clearance Granted
               </span>
               <h3 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                {selectedRole === 'driver' ? 'Chauffeur Account Created!' : 'Welcome to Get Apna Driver!'}
+                {selectedRole === 'driver'
+                  ? 'Chauffeur Account Created!'
+                  : 'Welcome to Get Apna Driver!'}
               </h3>
               <p className="text-xs text-[#87948b] leading-relaxed">
                 {selectedRole === 'driver'
@@ -547,7 +567,9 @@ function RegisterFormContent() {
             <div className="p-3.5 rounded-xl bg-[#0a0e16] border border-[#262a33] flex items-center justify-between text-xs font-mono">
               <div className="text-left">
                 <span className="text-[#dfe2ee] font-bold block">
-                  {selectedRole === 'driver' ? '₹500 Onboarding Credit' : '₹200 Welcome Booking Credit'}
+                  {selectedRole === 'driver'
+                    ? '₹500 Onboarding Credit'
+                    : '₹200 Welcome Booking Credit'}
                 </span>
                 <span className="text-[10px] text-[#68dba9]">Applied to your wallet</span>
               </div>
@@ -560,7 +582,9 @@ function RegisterFormContent() {
               onClick={() => router.push(redirectPath)}
               className="w-full py-3 px-4 bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold rounded-xl text-xs font-mono transition-colors flex items-center justify-center gap-2"
             >
-              <span>{selectedRole === 'driver' ? 'Continue to KYC Wizard' : 'Go to Booking Console'}</span>
+              <span>
+                {selectedRole === 'driver' ? 'Continue to KYC Wizard' : 'Go to Booking Console'}
+              </span>
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
           </div>

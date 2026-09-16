@@ -20,7 +20,8 @@ export const GET = withPermission<RouteParams>(
           { status: 404 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to fetch driver booking location.';
+      const message =
+        err instanceof Error ? err.message : 'Failed to fetch driver booking location.';
       return NextResponse.json({ error: 'LOCATION_FETCH_FAILED', message }, { status: 500 });
     }
   },

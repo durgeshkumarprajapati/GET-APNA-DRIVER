@@ -50,7 +50,7 @@ export default function CorporateReportsPage() {
     const lines = [
       'Department Code,Department Name,Spend (INR),Ride Count',
       ...report.departmentBreakdown.map(
-        (d) => `"${d.departmentCode}","${d.departmentName}",${d.spend},${d.rideCount}`
+        (d) => `"${d.departmentCode}","${d.departmentName}",${d.spend},${d.rideCount}`,
       ),
     ];
     const csvContent = 'data:text/csv;charset=utf-8,' + lines.join('\n');
@@ -75,7 +75,8 @@ export default function CorporateReportsPage() {
               Spend Analytics & Allocation
             </h1>
             <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-              Consolidated department travel spend, cost center allocations, and downloadable CSV statements.
+              Consolidated department travel spend, cost center allocations, and downloadable CSV
+              statements.
             </p>
           </div>
 
@@ -121,12 +122,17 @@ export default function CorporateReportsPage() {
                 ) : (
                   <div className="space-y-3">
                     {report.departmentBreakdown.map((d, i) => {
-                      const percentage = report.totalSpend > 0 ? (d.spend / report.totalSpend) * 100 : 0;
+                      const percentage =
+                        report.totalSpend > 0 ? (d.spend / report.totalSpend) * 100 : 0;
                       return (
                         <div key={i} className="space-y-1 text-xs font-mono">
                           <div className="flex items-center justify-between">
-                            <span className="text-[#dfe2ee] font-semibold">{d.departmentName} ({d.departmentCode})</span>
-                            <span className="text-[#68dba9] font-bold">₹{d.spend.toLocaleString()} ({d.rideCount} rides)</span>
+                            <span className="text-[#dfe2ee] font-semibold">
+                              {d.departmentName} ({d.departmentCode})
+                            </span>
+                            <span className="text-[#68dba9] font-bold">
+                              ₹{d.spend.toLocaleString()} ({d.rideCount} rides)
+                            </span>
                           </div>
                           <div className="h-2 w-full bg-[#1c2028] rounded-full overflow-hidden border border-[#262a33]">
                             <div
@@ -159,12 +165,17 @@ export default function CorporateReportsPage() {
                 ) : (
                   <div className="space-y-3">
                     {report.costCenterBreakdown.map((cc, i) => {
-                      const percentage = report.totalSpend > 0 ? (cc.spend / report.totalSpend) * 100 : 0;
+                      const percentage =
+                        report.totalSpend > 0 ? (cc.spend / report.totalSpend) * 100 : 0;
                       return (
                         <div key={i} className="space-y-1 text-xs font-mono">
                           <div className="flex items-center justify-between">
-                            <span className="text-[#dfe2ee] font-semibold">{cc.costCenterName} ({cc.costCenterCode})</span>
-                            <span className="text-[#68dba9] font-bold">₹{cc.spend.toLocaleString()} ({cc.rideCount} rides)</span>
+                            <span className="text-[#dfe2ee] font-semibold">
+                              {cc.costCenterName} ({cc.costCenterCode})
+                            </span>
+                            <span className="text-[#68dba9] font-bold">
+                              ₹{cc.spend.toLocaleString()} ({cc.rideCount} rides)
+                            </span>
                           </div>
                           <div className="h-2 w-full bg-[#1c2028] rounded-full overflow-hidden border border-[#262a33]">
                             <div

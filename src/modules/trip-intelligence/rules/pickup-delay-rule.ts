@@ -20,7 +20,10 @@ export function evaluatePickupDelayRisk(input: DelayRuleInput): boolean {
   }
 
   if (input.driverEnRouteAt) {
-    const enRouteTime = typeof input.driverEnRouteAt === 'string' ? new Date(input.driverEnRouteAt).getTime() : input.driverEnRouteAt.getTime();
+    const enRouteTime =
+      typeof input.driverEnRouteAt === 'string'
+        ? new Date(input.driverEnRouteAt).getTime()
+        : input.driverEnRouteAt.getTime();
     const elapsedSeconds = (Date.now() - enRouteTime) / 1000;
     if (elapsedSeconds > config.delayThresholdSeconds) {
       return true;

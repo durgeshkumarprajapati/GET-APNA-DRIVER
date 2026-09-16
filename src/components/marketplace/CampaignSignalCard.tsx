@@ -109,7 +109,11 @@ export function CampaignSignalCard({ signal, labels }: CampaignSignalCardProps) 
         <div className="flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-500/5 px-3 py-2 rounded-lg border border-emerald-500/10">
           <span className="material-symbols-outlined text-base">trending_up</span>
           <span className="truncate">
-            {signal.metrics.trendLabel} ({signal.metrics.observedTrendPercent > 0 ? `+${signal.metrics.observedTrendPercent}%` : 'Stable'})
+            {signal.metrics.trendLabel} (
+            {signal.metrics.observedTrendPercent > 0
+              ? `+${signal.metrics.observedTrendPercent}%`
+              : 'Stable'}
+            )
           </span>
         </div>
 
