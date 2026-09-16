@@ -2,7 +2,11 @@ import { OperationalMetricsRepository } from '../repositories/operational-metric
 import type { Db } from '@/shared/database/prisma';
 
 export class ScheduledRideMetricsCollector {
-  static async recordScheduledDispatch(success: boolean, leadTimeMinutes: number, db?: Db): Promise<void> {
+  static async recordScheduledDispatch(
+    success: boolean,
+    leadTimeMinutes: number,
+    db?: Db,
+  ): Promise<void> {
     await OperationalMetricsRepository.recordMetric(
       {
         metricName: 'scheduled_ride.dispatch',
@@ -11,7 +15,7 @@ export class ScheduledRideMetricsCollector {
         isError: !success,
         metadata: { leadTimeMinutes },
       },
-      db
+      db,
     );
   }
 }

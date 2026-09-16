@@ -22,15 +22,19 @@ export function AIAssistantPanel({
   onClose,
 }: AIAssistantPanelProps) {
   const defaultTitle = role === 'CUSTOMER' ? 'Customer AI Concierge' : 'Driver AI Copilot';
-  const defaultSubtitle = role === 'CUSTOMER' ? 'Smart booking assistant & trip guide' : 'Shift briefing, earnings & operational guide';
+  const defaultSubtitle =
+    role === 'CUSTOMER'
+      ? 'Smart booking assistant & trip guide'
+      : 'Shift briefing, earnings & operational guide';
 
   const [messages, setMessages] = useState<MessageItem[]>(() => [
     {
       id: 'welcome-msg',
       sender: 'ASSISTANT',
-      content: role === 'CUSTOMER'
-        ? '👋 Hello! I am your GET APNA DRIVER AI Concierge. I can help prefill bookings, check fare quotes, find active promotions, review loyalty rewards, or assist with active trips. How can I help you today?'
-        : '👋 Good day, Captain! I am your GET APNA DRIVER Copilot. I can provide your daily shift briefing, summarize earnings, track incentive progress, check shift schedules, or guide you to customer pickup points. What would you like to know?',
+      content:
+        role === 'CUSTOMER'
+          ? '👋 Hello! I am your GET APNA DRIVER AI Concierge. I can help prefill bookings, check fare quotes, find active promotions, review loyalty rewards, or assist with active trips. How can I help you today?'
+          : '👋 Good day, Captain! I am your GET APNA DRIVER Copilot. I can provide your daily shift briefing, summarize earnings, track incentive progress, check shift schedules, or guide you to customer pickup points. What would you like to know?',
       createdAt: new Date().toISOString(),
     },
   ]);
@@ -82,7 +86,8 @@ export function AIAssistantPanel({
         {
           id: `err-${Date.now()}`,
           sender: 'ASSISTANT',
-          content: 'I am temporarily unable to connect to the AI service. You can continue using the standard application features.',
+          content:
+            'I am temporarily unable to connect to the AI service. You can continue using the standard application features.',
           createdAt: new Date().toISOString(),
         },
       ]);
@@ -92,7 +97,9 @@ export function AIAssistantPanel({
   };
 
   return (
-    <div className={`flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+    <div
+      className={`flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl ${className}`}
+    >
       {/* Panel Header */}
       <div className="flex items-center justify-between px-5 py-4 bg-slate-850 border-b border-slate-800">
         <div>

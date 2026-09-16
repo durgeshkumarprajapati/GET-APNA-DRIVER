@@ -91,7 +91,8 @@ export default function AdminCorporatePage() {
             Corporate Accounts & Fleet Governance
           </h1>
           <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-            Platform-wide administration for business accounts, credit line allocations, and verification status controls.
+            Platform-wide administration for business accounts, credit line allocations, and
+            verification status controls.
           </p>
         </div>
 

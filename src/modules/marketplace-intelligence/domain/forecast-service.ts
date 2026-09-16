@@ -63,7 +63,9 @@ export class HistoricalBaselineForecastProvider implements ForecastProvider {
     const windowMs = durationMinutes * 60 * 1000;
 
     for (let weekOffset = 1; weekOffset <= 4; weekOffset++) {
-      const sampleStart = new Date(targetStartTime.getTime() - weekOffset * 7 * 24 * 60 * 60 * 1000);
+      const sampleStart = new Date(
+        targetStartTime.getTime() - weekOffset * 7 * 24 * 60 * 60 * 1000,
+      );
       const sampleEnd = new Date(sampleStart.getTime() + windowMs);
 
       const count = await prisma.booking.count({

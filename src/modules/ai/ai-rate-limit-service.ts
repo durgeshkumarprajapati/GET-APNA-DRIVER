@@ -11,7 +11,8 @@ export class AIRateLimitService {
 
   checkRateLimit(userId: string, role: AIRole): { allowed: boolean; retryAfterSeconds?: number } {
     const config = getAIConfig();
-    const limit = role === 'CUSTOMER' ? config.customerRateLimitPerMinute : config.driverRateLimitPerMinute;
+    const limit =
+      role === 'CUSTOMER' ? config.customerRateLimitPerMinute : config.driverRateLimitPerMinute;
     const now = Date.now();
     const key = `${role}:${userId}`;
 

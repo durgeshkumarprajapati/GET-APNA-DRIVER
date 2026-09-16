@@ -993,20 +993,35 @@ async function seedPhase41CorporateData(): Promise<void> {
   // 3. Departments
   await prisma.organizationDepartment.upsert({
     where: { organizationId_code: { organizationId: org.id, code: 'ENG' } },
-    create: { organizationId: org.id, code: 'ENG', name: 'Engineering & Tech', description: 'R&D and Software Team' },
+    create: {
+      organizationId: org.id,
+      code: 'ENG',
+      name: 'Engineering & Tech',
+      description: 'R&D and Software Team',
+    },
     update: {},
   });
 
   await prisma.organizationDepartment.upsert({
     where: { organizationId_code: { organizationId: org.id, code: 'SLS' } },
-    create: { organizationId: org.id, code: 'SLS', name: 'Sales & BD', description: 'Enterprise Sales Team' },
+    create: {
+      organizationId: org.id,
+      code: 'SLS',
+      name: 'Sales & BD',
+      description: 'Enterprise Sales Team',
+    },
     update: {},
   });
 
   // 4. Cost Centers
   await prisma.organizationCostCenter.upsert({
     where: { organizationId_code: { organizationId: org.id, code: 'CC-ENG-01' } },
-    create: { organizationId: org.id, code: 'CC-ENG-01', name: 'Engineering Operations', description: 'Tech Travel Budget' },
+    create: {
+      organizationId: org.id,
+      code: 'CC-ENG-01',
+      name: 'Engineering Operations',
+      description: 'Tech Travel Budget',
+    },
     update: {},
   });
 
@@ -1051,7 +1066,8 @@ async function seedMarketplaceZones(): Promise<void> {
     {
       code: 'AIRPORT_HUB',
       name: 'Mumbai International Airport Hub',
-      description: 'Chhatrapati Shivaji Maharaj International Airport (BOM) departure & arrival terminal zone',
+      description:
+        'Chhatrapati Shivaji Maharaj International Airport (BOM) departure & arrival terminal zone',
       centerLatitude: 19.0896,
       centerLongitude: 72.8656,
       radiusMeters: 5000,
@@ -1069,7 +1085,7 @@ async function seedMarketplaceZones(): Promise<void> {
       name: 'Powai Tech Park & Hiranandani',
       description: 'Powai IT corridors, start-up hub & residential complex',
       centerLatitude: 19.1176,
-      centerLongitude: 72.9060,
+      centerLongitude: 72.906,
       radiusMeters: 4500,
     },
     {
@@ -1128,5 +1144,3 @@ main()
   .finally(() => {
     void prisma.$disconnect();
   });
-
-

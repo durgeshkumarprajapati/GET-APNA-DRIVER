@@ -22,13 +22,30 @@ export function SmartTripStatusCard({ intelligence, bookingId }: SmartTripStatus
   const getFreshnessBadge = () => {
     switch (intelligence.freshness) {
       case 'LIVE':
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>LIVE LOCATION</span>;
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>LIVE
+            LOCATION
+          </span>
+        );
       case 'RECENT':
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">RECENT ({intelligence.freshnessSeconds}s)</span>;
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            RECENT ({intelligence.freshnessSeconds}s)
+          </span>
+        );
       case 'STALE':
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">STALE UPDATE</span>;
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            STALE UPDATE
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">UNAVAILABLE</span>;
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+            UNAVAILABLE
+          </span>
+        );
     }
   };
 
@@ -38,7 +55,9 @@ export function SmartTripStatusCard({ intelligence, bookingId }: SmartTripStatus
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Smart Trip Intelligence</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Smart Trip Intelligence
+          </span>
         </div>
         {getFreshnessBadge()}
       </div>
@@ -72,16 +91,26 @@ export function SmartTripStatusCard({ intelligence, bookingId }: SmartTripStatus
               markers={[
                 {
                   id: 'pickup',
-                  position: { latitude: mapAction.payload.pickupLatitude, longitude: mapAction.payload.pickupLongitude },
+                  position: {
+                    latitude: mapAction.payload.pickupLatitude,
+                    longitude: mapAction.payload.pickupLongitude,
+                  },
                   type: 'PICKUP',
                   title: 'Pickup Location',
                 },
-                ...(mapAction.payload.driverLatitude && mapAction.payload.driverLongitude ? [{
-                  id: 'driver',
-                  position: { latitude: mapAction.payload.driverLatitude, longitude: mapAction.payload.driverLongitude },
-                  type: 'DRIVER' as const,
-                  title: 'Driver Location',
-                }] : []),
+                ...(mapAction.payload.driverLatitude && mapAction.payload.driverLongitude
+                  ? [
+                      {
+                        id: 'driver',
+                        position: {
+                          latitude: mapAction.payload.driverLatitude,
+                          longitude: mapAction.payload.driverLongitude,
+                        },
+                        type: 'DRIVER' as const,
+                        title: 'Driver Location',
+                      },
+                    ]
+                  : []),
               ]}
             />
           )}
@@ -96,13 +125,19 @@ export function SmartTripStatusCard({ intelligence, bookingId }: SmartTripStatus
             {invoiceAction && invoiceAction.type === 'OPEN_INVOICE' && (
               <div className="p-3 rounded-xl bg-slate-850 border border-slate-800">
                 <div className="text-[10px] text-slate-500 uppercase font-semibold">Final Fare</div>
-                <div className="text-sm font-bold text-emerald-400">₹{invoiceAction.payload.finalFare}</div>
+                <div className="text-sm font-bold text-emerald-400">
+                  ₹{invoiceAction.payload.finalFare}
+                </div>
               </div>
             )}
             {rewardAction && rewardAction.type === 'OPEN_REWARD' && (
               <div className="p-3 rounded-xl bg-slate-850 border border-slate-800">
-                <div className="text-[10px] text-slate-500 uppercase font-semibold">Points Earned</div>
-                <div className="text-sm font-bold text-amber-400">+{rewardAction.payload.earnedPoints} pts</div>
+                <div className="text-[10px] text-slate-500 uppercase font-semibold">
+                  Points Earned
+                </div>
+                <div className="text-sm font-bold text-amber-400">
+                  +{rewardAction.payload.earnedPoints} pts
+                </div>
               </div>
             )}
           </div>

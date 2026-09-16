@@ -22,7 +22,9 @@ export function SmartPickupAssistant({ intelligence }: SmartPickupAssistantProps
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Smart Pickup Assistant</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Smart Pickup Assistant
+          </span>
         </div>
         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
           {intelligence.freshness}
@@ -58,7 +60,10 @@ export function SmartPickupAssistant({ intelligence }: SmartPickupAssistantProps
               markers={[
                 {
                   id: 'pickup',
-                  position: { latitude: mapAction.payload.pickupLatitude, longitude: mapAction.payload.pickupLongitude },
+                  position: {
+                    latitude: mapAction.payload.pickupLatitude,
+                    longitude: mapAction.payload.pickupLongitude,
+                  },
                   type: 'PICKUP',
                   title: 'Pickup Location',
                 },
@@ -69,21 +74,30 @@ export function SmartPickupAssistant({ intelligence }: SmartPickupAssistantProps
       )}
 
       {/* Post-Trip Completion Driver Card */}
-      {intelligence.signalType === 'TRIP_COMPLETED' && incentiveAction && incentiveAction.type === 'SHOW_INCENTIVE' && (
-        <div className="pt-3 border-t border-slate-800 space-y-2">
-          <div className="text-xs font-semibold text-purple-400">Incentive Target Progress</div>
-          <div className="flex justify-between items-center text-xs text-slate-300">
-            <span>Completed Rides: {incentiveAction.payload.completedRides} / {incentiveAction.payload.targetRides}</span>
-            <span className="font-bold text-amber-400">+₹{incentiveAction.payload.bonusAmount} Bonus</span>
+      {intelligence.signalType === 'TRIP_COMPLETED' &&
+        incentiveAction &&
+        incentiveAction.type === 'SHOW_INCENTIVE' && (
+          <div className="pt-3 border-t border-slate-800 space-y-2">
+            <div className="text-xs font-semibold text-purple-400">Incentive Target Progress</div>
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span>
+                Completed Rides: {incentiveAction.payload.completedRides} /{' '}
+                {incentiveAction.payload.targetRides}
+              </span>
+              <span className="font-bold text-amber-400">
+                +₹{incentiveAction.payload.bonusAmount} Bonus
+              </span>
+            </div>
+            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-purple-500 h-full rounded-full"
+                style={{
+                  width: `${Math.min(100, (incentiveAction.payload.completedRides / incentiveAction.payload.targetRides) * 100)}%`,
+                }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div
-              className="bg-purple-500 h-full rounded-full"
-              style={{ width: `${Math.min(100, (incentiveAction.payload.completedRides / incentiveAction.payload.targetRides) * 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
+        )}
 
       {/* Action Buttons */}
       <div className="flex gap-2 pt-1">

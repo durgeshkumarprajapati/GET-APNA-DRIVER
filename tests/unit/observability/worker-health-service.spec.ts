@@ -39,4 +39,3 @@ describe('WorkerHealthService', () => {
     expect(result.score).toBe(25);
   });
 });
-

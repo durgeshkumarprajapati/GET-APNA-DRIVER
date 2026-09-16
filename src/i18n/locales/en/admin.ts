@@ -55,11 +55,13 @@ export const adminEn = {
     marketplaceIntelligence: 'Marketplace Intelligence',
     operationsCommandCenter: 'Operations Command Center',
     scheduledRides: 'Scheduled Rides',
+    riskAndTrust: 'Risk & Trust Engine',
   },
   marketplaceIntelligence: {
     title: 'Marketplace Intelligence Console',
     eyebrow: 'DEMAND FORECASTING & CAMPAIGN SIGNALS',
-    subtitle: 'Real-time advisory decision-support layer, zone intelligence, supply-demand forecasting, and campaign signal analysis',
+    subtitle:
+      'Real-time advisory decision-support layer, zone intelligence, supply-demand forecasting, and campaign signal analysis',
   },
   analytics: {
     title: 'Analytics & Business Intelligence',
@@ -214,8 +216,8 @@ export const adminEn = {
     workersSubtitle: 'Asynchronous event queues, outbox lag & queue worker status',
     performanceSubtitle: '24-Hour throughput, response latency distributions & error rates',
     reliabilitySubtitle: 'SLO compliance targets, error budgets & automated root cause analysis',
-    diagnosticsSubtitle: 'On-demand read-only diagnostic inspection for Database, Redis & Worker subsystem',
+    diagnosticsSubtitle:
+      'On-demand read-only diagnostic inspection for Database, Redis & Worker subsystem',
     loading: 'Evaluating platform metrics...',
   },
 };
-

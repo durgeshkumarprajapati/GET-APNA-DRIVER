@@ -62,24 +62,56 @@ export function CorporateLayout({ children, userEmail = null }: CorporateLayoutP
     {
       label: t('corporate.nav.main', { defaultValue: 'BUSINESS MANAGEMENT' }),
       items: [
-        { href: '/corporate/dashboard', label: t('corporate.nav.dashboard', { defaultValue: 'Dashboard' }), icon: 'dashboard' },
-        { href: '/corporate/bookings', label: t('corporate.nav.bookings', { defaultValue: 'Corporate Rides' }), icon: 'local_taxi' },
-        { href: '/corporate/bookings/new', label: t('corporate.nav.newBooking', { defaultValue: 'Book Corporate Ride' }), icon: 'add_circle' },
+        {
+          href: '/corporate/dashboard',
+          label: t('corporate.nav.dashboard', { defaultValue: 'Dashboard' }),
+          icon: 'dashboard',
+        },
+        {
+          href: '/corporate/bookings',
+          label: t('corporate.nav.bookings', { defaultValue: 'Corporate Rides' }),
+          icon: 'local_taxi',
+        },
+        {
+          href: '/corporate/bookings/new',
+          label: t('corporate.nav.newBooking', { defaultValue: 'Book Corporate Ride' }),
+          icon: 'add_circle',
+        },
       ],
     },
     {
       label: t('corporate.nav.governance', { defaultValue: 'GOVERNANCE & TEAM' }),
       items: [
-        { href: '/corporate/members', label: t('corporate.nav.members', { defaultValue: 'Employees & Roster' }), icon: 'group' },
-        { href: '/corporate/approvals', label: t('corporate.nav.approvals', { defaultValue: 'Approval Queue' }), icon: 'verified' },
-        { href: '/corporate/policies', label: t('corporate.nav.policies', { defaultValue: 'Travel Policies' }), icon: 'policy' },
+        {
+          href: '/corporate/members',
+          label: t('corporate.nav.members', { defaultValue: 'Employees & Roster' }),
+          icon: 'group',
+        },
+        {
+          href: '/corporate/approvals',
+          label: t('corporate.nav.approvals', { defaultValue: 'Approval Queue' }),
+          icon: 'verified',
+        },
+        {
+          href: '/corporate/policies',
+          label: t('corporate.nav.policies', { defaultValue: 'Travel Policies' }),
+          icon: 'policy',
+        },
       ],
     },
     {
       label: t('corporate.nav.finance', { defaultValue: 'FINANCE & REPORTS' }),
       items: [
-        { href: '/corporate/billing', label: t('corporate.nav.billing', { defaultValue: 'Billing & GST' }), icon: 'receipt_long' },
-        { href: '/corporate/reports', label: t('corporate.nav.reports', { defaultValue: 'Spend Analytics' }), icon: 'analytics' },
+        {
+          href: '/corporate/billing',
+          label: t('corporate.nav.billing', { defaultValue: 'Billing & GST' }),
+          icon: 'receipt_long',
+        },
+        {
+          href: '/corporate/reports',
+          label: t('corporate.nav.reports', { defaultValue: 'Spend Analytics' }),
+          icon: 'analytics',
+        },
       ],
     },
   ];

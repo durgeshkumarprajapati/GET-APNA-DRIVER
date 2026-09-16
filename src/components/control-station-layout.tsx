@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/context';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -19,11 +19,52 @@ export function ControlStationLayout({
   const { t } = useTranslation();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const sidebarRef = useRef<HTMLElement | null>(null);
+
+  // Restore sidebar scroll position and scroll active item into view if out of bounds
+  useEffect(() => {
+    if (!sidebarRef.current) return;
+
+    const key = 'gad-control-station-sidebar-scroll';
+    const storedScroll = sessionStorage.getItem(key);
+
+    if (storedScroll !== null && !isNaN(Number(storedScroll))) {
+      sidebarRef.current.scrollTop = Number(storedScroll);
+    }
+
+    const activeEl = sidebarRef.current.querySelector('[data-sidebar-active="true"]');
+    if (activeEl) {
+      const containerTop = sidebarRef.current.scrollTop;
+      const containerHeight = sidebarRef.current.clientHeight;
+      const containerBottom = containerTop + containerHeight;
+
+      const itemTop = (activeEl as HTMLElement).offsetTop;
+      const itemHeight = (activeEl as HTMLElement).offsetHeight;
+      const itemBottom = itemTop + itemHeight;
+
+      if (itemTop < containerTop || itemBottom > containerBottom) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    }
+  }, [activePath]);
+
+  const handleSidebarScroll = () => {
+    if (sidebarRef.current) {
+      sessionStorage.setItem(
+        'gad-control-station-sidebar-scroll',
+        String(sidebarRef.current.scrollTop),
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
       {/* FIXED SIDEBAR */}
-      <aside className="fixed left-0 top-0 h-full w-72 bg-[#0a0e16] z-50 flex flex-col justify-between p-4 border-r border-[#262a33] shadow-[1px_0_12px_rgba(0,0,0,0.5)]">
+      <aside
+        ref={sidebarRef}
+        onScroll={handleSidebarScroll}
+        className="fixed left-0 top-0 h-full w-72 bg-[#0a0e16] z-50 flex flex-col justify-between p-4 border-r border-[#262a33] shadow-[1px_0_12px_rgba(0,0,0,0.5)] overflow-y-auto"
+      >
         <div className="flex flex-col gap-5">
           {/* Brand Header */}
           <Link href="/" className="flex items-center gap-3 px-1 group">

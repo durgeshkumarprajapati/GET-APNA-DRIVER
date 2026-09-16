@@ -29,7 +29,9 @@ describe('AI Provider Unit Tests', () => {
 
     expect(res.intent).toBe('EARNINGS_SUMMARY');
     expect(res.actions?.[0].type).toBe('SHOW_EARNINGS');
-    expect((res.actions?.[0] as { payload: { todayEarnings: number } }).payload.todayEarnings).toBe(1850);
+    expect((res.actions?.[0] as { payload: { todayEarnings: number } }).payload.todayEarnings).toBe(
+      1850,
+    );
   });
 
   it('LLMProvider should fallback to DevelopmentProvider when API key is unconfigured', async () => {

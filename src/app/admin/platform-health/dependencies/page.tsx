@@ -41,7 +41,8 @@ export default function DependenciesHealthPage() {
           {t('platformHealth.navDependencies') || 'External Dependencies Health'}
         </h1>
         <p className="text-sm text-gray-500">
-          {t('platformHealth.dependenciesSubtitle') || 'Google Maps, Payment Gateways & Notification Infrastructure'}
+          {t('platformHealth.dependenciesSubtitle') ||
+            'Google Maps, Payment Gateways & Notification Infrastructure'}
         </p>
       </div>
 
@@ -54,13 +55,18 @@ export default function DependenciesHealthPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {dependencies.map((dep, idx) => (
-            <div key={idx} className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div
+              key={idx}
+              className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
+            >
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-bold text-base">{dep.name}</h3>
                   <span className="text-xs text-gray-500">Type: {dep.type}</span>
                 </div>
-                <span className="px-2 py-1 text-xs font-bold rounded bg-emerald-500 text-white">{dep.status}</span>
+                <span className="px-2 py-1 text-xs font-bold rounded bg-emerald-500 text-white">
+                  {dep.status}
+                </span>
               </div>
               <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 space-y-1">
                 <div>Latency: {dep.latencyMs} ms</div>

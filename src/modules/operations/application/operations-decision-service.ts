@@ -1,10 +1,7 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { collectOperationsSignals } from './operations-signal-service';
-import type {
-  OperationsDecision,
-  OperationsDecisionStatus,
-} from '../domain/operations-types';
+import type { OperationsDecision, OperationsDecisionStatus } from '../domain/operations-types';
 
 // In-memory decision cache & deduplication store for high-performance decision lookup
 const memoryDecisionStore = new Map<string, OperationsDecision>();
@@ -24,9 +21,7 @@ export function generateDecisionFingerprint(
  * OperationsDecisionService evaluates deterministic operational rules against aggregated signals,
  * generating actionable, explainable decision records with evidence and recommended actions.
  */
-export async function evaluateOperationsDecisions(
-  db: Db = prisma,
-): Promise<OperationsDecision[]> {
+export async function evaluateOperationsDecisions(db: Db = prisma): Promise<OperationsDecision[]> {
   const signals = await collectOperationsSignals(db);
   const now = new Date();
   const timeBucket = Math.floor(now.getTime() / (5 * 60 * 1000));
@@ -46,9 +41,14 @@ export async function evaluateOperationsDecisions(
       summary: `${signals.activeSafetyIncidentsCount} active safety or SOS incidents require immediate operational response.`,
       why: 'Active emergency or safety incidents take highest operational precedence to guarantee passenger & driver security.',
       evidence: [
-        { key: 'activeSafetyIncidents', label: 'Active SOS Incidents', value: signals.activeSafetyIncidentsCount, expected: 0 },
+        {
+          key: 'activeSafetyIncidents',
+          label: 'Active SOS Incidents',
+          value: signals.activeSafetyIncidentsCount,
+          expected: 0,
+        },
       ],
-        recommendedActions: [
+      recommendedActions: [
         {
           id: 'act-safety-view',
           type: 'VIEW_INCIDENT',
@@ -67,15 +67,21 @@ export async function evaluateOperationsDecisions(
           impactSummary: 'Alerts duty ops manager for escalation.',
         },
       ],
-      expectedImpact: 'Prevents passenger/driver harm and ensures emergency protocol execution within SLO.',
+      expectedImpact:
+        'Prevents passenger/driver harm and ensures emergency protocol execution within SLO.',
       createdAt: now,
       evaluatedAt: now,
     });
   }
 
   // 2. DRIVER_SHORTAGE / DISPATCH_PRESSURE
-  if (signals.searchingBookingsCount > 0 && signals.searchingBookingsCount >= signals.availableDriversCount) {
-    const isSevere = signals.searchingBookingsCount >= signals.availableDriversCount * 2 || signals.availableDriversCount === 0;
+  if (
+    signals.searchingBookingsCount > 0 &&
+    signals.searchingBookingsCount >= signals.availableDriversCount
+  ) {
+    const isSevere =
+      signals.searchingBookingsCount >= signals.availableDriversCount * 2 ||
+      signals.availableDriversCount === 0;
     const fingerprint = generateDecisionFingerprint('DRIVER_SHORTAGE', undefined, timeBucket);
     decisions.push({
       id: `dec-shortage-${now.getTime()}`,
@@ -88,8 +94,18 @@ export async function evaluateOperationsDecisions(
       summary: `Active booking searches (${signals.searchingBookingsCount}) exceed available dispatch-eligible drivers (${signals.availableDriversCount}).`,
       why: 'Dispatch matching queue is experiencing driver supply pressure, which will increase customer pickup wait times.',
       evidence: [
-        { key: 'searchingBookings', label: 'Active Searching Rides', value: signals.searchingBookingsCount, expected: 0 },
-        { key: 'availableDrivers', label: 'Available Eligible Drivers', value: signals.availableDriversCount, expected: '> ' + signals.searchingBookingsCount },
+        {
+          key: 'searchingBookings',
+          label: 'Active Searching Rides',
+          value: signals.searchingBookingsCount,
+          expected: 0,
+        },
+        {
+          key: 'availableDrivers',
+          label: 'Available Eligible Drivers',
+          value: signals.availableDriversCount,
+          expected: '> ' + signals.searchingBookingsCount,
+        },
       ],
       recommendedActions: [
         {
@@ -111,7 +127,8 @@ export async function evaluateOperationsDecisions(
           impactSummary: 'Inspect unassigned booking queue.',
         },
       ],
-      expectedImpact: 'Identifies supply bottlenecks and enables partner incentive or dispatch adjustments.',
+      expectedImpact:
+        'Identifies supply bottlenecks and enables partner incentive or dispatch adjustments.',
       createdAt: now,
       evaluatedAt: now,
     });
@@ -119,7 +136,11 @@ export async function evaluateOperationsDecisions(
 
   // 3. TRIP_RELIABILITY_PRESSURE
   if (signals.activeReliabilityIncidentsCount > 0) {
-    const fingerprint = generateDecisionFingerprint('TRIP_RELIABILITY_PRESSURE', undefined, timeBucket);
+    const fingerprint = generateDecisionFingerprint(
+      'TRIP_RELIABILITY_PRESSURE',
+      undefined,
+      timeBucket,
+    );
     decisions.push({
       id: `dec-reliability-${now.getTime()}`,
       fingerprint,
@@ -131,8 +152,18 @@ export async function evaluateOperationsDecisions(
       summary: `${signals.activeReliabilityIncidentsCount} active reliability incidents detected (assignment timeouts, stuck trips, stale telemetry).`,
       why: 'Reliability Engine detected automated operational exceptions requiring monitoring or recovery intervention.',
       evidence: [
-        { key: 'activeIncidents', label: 'Active Incidents', value: signals.activeReliabilityIncidentsCount, expected: 0 },
-        { key: 'criticalIncidents', label: 'Critical Incidents', value: signals.criticalReliabilityIncidentsCount, expected: 0 },
+        {
+          key: 'activeIncidents',
+          label: 'Active Incidents',
+          value: signals.activeReliabilityIncidentsCount,
+          expected: 0,
+        },
+        {
+          key: 'criticalIncidents',
+          label: 'Critical Incidents',
+          value: signals.criticalReliabilityIncidentsCount,
+          expected: 0,
+        },
       ],
       recommendedActions: [
         {
@@ -165,7 +196,12 @@ export async function evaluateOperationsDecisions(
       summary: `${signals.upcomingUnassignedScheduledRidesCount} scheduled rides in the next 60 minutes have no assigned driver partner.`,
       why: 'Unassigned upcoming scheduled rides carry high risk of execution failure and customer dissatisfaction.',
       evidence: [
-        { key: 'unassignedRides', label: 'Unassigned Scheduled Rides (60m)', value: signals.upcomingUnassignedScheduledRidesCount, expected: 0 },
+        {
+          key: 'unassignedRides',
+          label: 'Unassigned Scheduled Rides (60m)',
+          value: signals.upcomingUnassignedScheduledRidesCount,
+          expected: 0,
+        },
       ],
       recommendedActions: [
         {
@@ -198,8 +234,17 @@ export async function evaluateOperationsDecisions(
       summary: `${signals.openSupportTicketsCount} open support tickets (${signals.highPrioritySupportTicketsCount} high priority).`,
       why: 'Support queue buildup increases customer & partner resolution latency.',
       evidence: [
-        { key: 'openTickets', label: 'Open Support Tickets', value: signals.openSupportTicketsCount },
-        { key: 'highPriority', label: 'High Priority Tickets', value: signals.highPrioritySupportTicketsCount, expected: 0 },
+        {
+          key: 'openTickets',
+          label: 'Open Support Tickets',
+          value: signals.openSupportTicketsCount,
+        },
+        {
+          key: 'highPriority',
+          label: 'High Priority Tickets',
+          value: signals.highPrioritySupportTicketsCount,
+          expected: 0,
+        },
       ],
       recommendedActions: [
         {
@@ -232,7 +277,12 @@ export async function evaluateOperationsDecisions(
       summary: `Composite platform health score is ${signals.platformHealthScore}/100.`,
       why: 'Subsystem performance or incident buildup is degrading operational service levels.',
       evidence: [
-        { key: 'healthScore', label: 'Platform Health Score', value: signals.platformHealthScore, expected: '>= 85' },
+        {
+          key: 'healthScore',
+          label: 'Platform Health Score',
+          value: signals.platformHealthScore,
+          expected: '>= 85',
+        },
       ],
       recommendedActions: [
         {

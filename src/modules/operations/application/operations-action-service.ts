@@ -65,7 +65,11 @@ export async function executeOperationsAction(
         if (!bookingId) throw new Error('Booking ID is required for CANCEL_BOOKING action.');
         await db.booking.update({
           where: { id: bookingId },
-          data: { status: 'CANCELLED', cancellationReason: reason || 'Cancelled by Operations Command', updatedAt: now },
+          data: {
+            status: 'CANCELLED',
+            cancellationReason: reason || 'Cancelled by Operations Command',
+            updatedAt: now,
+          },
         });
         resultMessage = `Booking ${bookingId} cancelled by Operations Command.`;
         details.bookingId = bookingId;

@@ -282,7 +282,6 @@ export default function LoginPage() {
       {/* Main Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex items-center justify-center">
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
           {/* Left Column: Brand Identity (Desktop Only) */}
           <div className="hidden lg:flex lg:col-span-6 flex-col justify-center space-y-6 pr-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#181c24] rounded-full border border-[#262a33] w-fit">
@@ -306,8 +305,12 @@ export default function LoginPage() {
                   <span className="material-symbols-outlined text-lg">verified_user</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">Verified Drivers</h4>
-                  <p className="text-xs text-[#87948b]">Aadhaar &amp; commercial RTO licensing background checked.</p>
+                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                    Verified Drivers
+                  </h4>
+                  <p className="text-xs text-[#87948b]">
+                    Aadhaar &amp; commercial RTO licensing background checked.
+                  </p>
                 </div>
               </div>
 
@@ -316,8 +319,12 @@ export default function LoginPage() {
                   <span className="material-symbols-outlined text-lg">schedule</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">On-Demand &amp; Outstation</h4>
-                  <p className="text-xs text-[#87948b]">Hourly chauffeur services and intercity journeys.</p>
+                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                    On-Demand &amp; Outstation
+                  </h4>
+                  <p className="text-xs text-[#87948b]">
+                    Hourly chauffeur services and intercity journeys.
+                  </p>
                 </div>
               </div>
 
@@ -326,8 +333,12 @@ export default function LoginPage() {
                   <span className="material-symbols-outlined text-lg">security</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">Secure Access Rails</h4>
-                  <p className="text-xs text-[#87948b]">Encrypted session tokens &amp; zero-trust authentication.</p>
+                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                    Secure Access Rails
+                  </h4>
+                  <p className="text-xs text-[#87948b]">
+                    Encrypted session tokens &amp; zero-trust authentication.
+                  </p>
                 </div>
               </div>
             </div>
@@ -336,15 +347,10 @@ export default function LoginPage() {
           {/* Right Column: Clean Authentication Card */}
           <div className="lg:col-span-6 w-full max-w-md mx-auto">
             <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
-              
               {/* Header */}
               <div>
-                <h2 className="font-bold text-2xl text-[#dfe2ee]">
-                  {t('auth.login.title')}
-                </h2>
-                <p className="text-xs text-[#87948b] mt-1">
-                  {t('auth.login.tagline')}
-                </p>
+                <h2 className="font-bold text-2xl text-[#dfe2ee]">{t('auth.login.title')}</h2>
+                <p className="text-xs text-[#87948b] mt-1">{t('auth.login.tagline')}</p>
               </div>
 
               {/* Mode Toggle Tabs */}
@@ -379,7 +385,9 @@ export default function LoginPage() {
                   role="alert"
                   className="p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-start gap-2.5"
                 >
-                  <span className="material-symbols-outlined text-base text-red-400 shrink-0">error</span>
+                  <span className="material-symbols-outlined text-base text-red-400 shrink-0">
+                    error
+                  </span>
                   <span>{error}</span>
                 </div>
               )}
@@ -396,7 +404,9 @@ export default function LoginPage() {
                     </label>
                     <div
                       className={`flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border transition-colors ${
-                        phoneTouched && !isPhoneValid ? 'border-red-500/60' : 'border-[#262a33] focus-within:border-[#68dba9]'
+                        phoneTouched && !isPhoneValid
+                          ? 'border-red-500/60'
+                          : 'border-[#262a33] focus-within:border-[#68dba9]'
                       }`}
                     >
                       <span className="text-sm font-mono text-[#dfe2ee] mr-2 pr-2 border-r border-[#262a33] flex items-center gap-1.5">
@@ -437,7 +447,9 @@ export default function LoginPage() {
                       onClick={() => void handleSendOtp()}
                       className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
                     >
-                      <span>{sendingOtp ? t('auth.login.sendingOtp') : t('auth.login.sendOtp')}</span>
+                      <span>
+                        {sendingOtp ? t('auth.login.sendingOtp') : t('auth.login.sendOtp')}
+                      </span>
                       <span className="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                   )}
@@ -448,7 +460,9 @@ export default function LoginPage() {
                       <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] space-y-3">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-mono text-[#68dba9] font-medium flex items-center gap-1">
-                            <span className="material-symbols-outlined text-sm">mark_email_read</span>
+                            <span className="material-symbols-outlined text-sm">
+                              mark_email_read
+                            </span>
                             OTP Sent
                           </span>
                           <button
@@ -515,7 +529,9 @@ export default function LoginPage() {
                         onClick={() => void handleOtpSubmit()}
                         className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
                       >
-                        <span>{loading ? t('auth.login.verifying') : t('auth.login.verifyAndEnter')}</span>
+                        <span>
+                          {loading ? t('auth.login.verifying') : t('auth.login.verifyAndEnter')}
+                        </span>
                         <span className="material-symbols-outlined text-sm">login</span>
                       </button>
                     </div>
@@ -582,7 +598,9 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
+                        aria-label={
+                          showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')
+                        }
                         className="text-[#87948b] hover:text-[#dfe2ee] ml-2"
                       >
                         <span className="material-symbols-outlined text-base">
@@ -673,10 +691,8 @@ export default function LoginPage() {
                   </Link>
                 </p>
               </div>
-
             </div>
           </div>
-
         </div>
       </main>
 

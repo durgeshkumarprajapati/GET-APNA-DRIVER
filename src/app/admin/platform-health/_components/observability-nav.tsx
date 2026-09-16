@@ -10,12 +10,30 @@ export function ObservabilityNav() {
   const { t } = useTranslation();
 
   const links = [
-    { href: '/admin/platform-health', label: t('platformHealth.navOverview') || 'Platform Overview' },
-    { href: '/admin/platform-health/dependencies', label: t('platformHealth.navDependencies') || 'Dependencies' },
-    { href: '/admin/platform-health/workers', label: t('platformHealth.navWorkers') || 'Workers & Outbox' },
-    { href: '/admin/platform-health/performance', label: t('platformHealth.navPerformance') || 'Performance' },
-    { href: '/admin/platform-health/reliability', label: t('platformHealth.navReliability') || 'Reliability & SLOs' },
-    { href: '/admin/platform-health/diagnostics', label: t('platformHealth.navDiagnostics') || 'Diagnostics' },
+    {
+      href: '/admin/platform-health',
+      label: t('platformHealth.navOverview') || 'Platform Overview',
+    },
+    {
+      href: '/admin/platform-health/dependencies',
+      label: t('platformHealth.navDependencies') || 'Dependencies',
+    },
+    {
+      href: '/admin/platform-health/workers',
+      label: t('platformHealth.navWorkers') || 'Workers & Outbox',
+    },
+    {
+      href: '/admin/platform-health/performance',
+      label: t('platformHealth.navPerformance') || 'Performance',
+    },
+    {
+      href: '/admin/platform-health/reliability',
+      label: t('platformHealth.navReliability') || 'Reliability & SLOs',
+    },
+    {
+      href: '/admin/platform-health/diagnostics',
+      label: t('platformHealth.navDiagnostics') || 'Diagnostics',
+    },
   ];
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
@@ -8,6 +8,7 @@ import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
+import { UserAvatar } from './ui/user-avatar';
 
 type AvailabilityStatus = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE';
 
@@ -35,7 +36,41 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('DRIVER');
+
+  // Restore sidebar scroll position and scroll active item into view if out of bounds
+  useEffect(() => {
+    if (!sidebarRef.current) return;
+
+    const key = 'gad-driver-sidebar-scroll';
+    const storedScroll = sessionStorage.getItem(key);
+
+    if (storedScroll !== null && !isNaN(Number(storedScroll))) {
+      sidebarRef.current.scrollTop = Number(storedScroll);
+    }
+
+    const activeEl = sidebarRef.current.querySelector('[data-sidebar-active="true"]');
+    if (activeEl) {
+      const containerTop = sidebarRef.current.scrollTop;
+      const containerHeight = sidebarRef.current.clientHeight;
+      const containerBottom = containerTop + containerHeight;
+
+      const itemTop = (activeEl as HTMLElement).offsetTop;
+      const itemHeight = (activeEl as HTMLElement).offsetHeight;
+      const itemBottom = itemTop + itemHeight;
+
+      if (itemTop < containerTop || itemBottom > containerBottom) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    }
+  }, [pathname]);
+
+  const handleSidebarScroll = () => {
+    if (sidebarRef.current) {
+      sessionStorage.setItem('gad-driver-sidebar-scroll', String(sidebarRef.current.scrollTop));
+    }
+  };
 
   const navGroups: NavGroup[] = [
     {
@@ -182,7 +217,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex-1 overflow-y-auto px-3 space-y-4 mt-3">
+          <nav ref={sidebarRef} onScroll={handleSidebarScroll} className="flex-1 overflow-y-auto px-3 space-y-4 mt-3">
             {navGroups.map((group) => (
               <div key={group.label} className="space-y-1">
                 <span className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
@@ -193,6 +228,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                     <Link
                       key={item.href}
                       href={item.href}
+                      data-sidebar-active={isActive(item.href)}
                       className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition-all ${
                         isActive(item.href)
                           ? item.href === '/driver/sos-support'
@@ -275,9 +311,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                     {userEmail ?? 'Driver'}
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9] shrink-0">
-                  {(userEmail ?? 'D').charAt(0).toUpperCase()}
-                </div>
+                <UserAvatar src={null} name={userEmail || 'Driver Profile'} className="w-8 h-8 ring-1 ring-[#68dba9]" />
                 <button
                   type="button"
                   onClick={() => void handleLogout()}

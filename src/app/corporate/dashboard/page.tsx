@@ -87,18 +87,24 @@ export default function CorporateDashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-[#bccac0]">
-                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">Total Travel Spend</span>
+                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+                      Total Travel Spend
+                    </span>
                     <span className="material-symbols-outlined text-[#68dba9]">payments</span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">
                     ₹{report.totalSpend.toLocaleString()}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">Billed to corporate account</p>
+                  <p className="text-[11px] text-[#87948b] font-mono">
+                    Billed to corporate account
+                  </p>
                 </div>
 
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-[#bccac0]">
-                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">Rides Completed</span>
+                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+                      Rides Completed
+                    </span>
                     <span className="material-symbols-outlined text-[#68dba9]">local_taxi</span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
@@ -109,24 +115,32 @@ export default function CorporateDashboardPage() {
 
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-[#bccac0]">
-                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">Enrolled Employees</span>
+                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+                      Enrolled Employees
+                    </span>
                     <span className="material-symbols-outlined text-[#68dba9]">groups</span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
                     {report.totalMembersCount}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">Active organization members</p>
+                  <p className="text-[11px] text-[#87948b] font-mono">
+                    Active organization members
+                  </p>
                 </div>
 
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-[#bccac0]">
-                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">Active Policies</span>
+                    <span className="text-xs font-mono uppercase tracking-wider font-semibold">
+                      Active Policies
+                    </span>
                     <span className="material-symbols-outlined text-[#68dba9]">policy</span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
                     {report.activePoliciesCount}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">Fare & distance governance rules</p>
+                  <p className="text-[11px] text-[#87948b] font-mono">
+                    Fare & distance governance rules
+                  </p>
                 </div>
               </div>
 
@@ -137,11 +151,19 @@ export default function CorporateDashboardPage() {
                   className="p-5 bg-[#141822] hover:bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9]/40 rounded-2xl transition-all group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">group_add</span>
-                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">
+                      group_add
+                    </span>
+                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">Employee Onboarding</h3>
-                  <p className="text-xs text-[#bccac0] mt-1">Invite team members, assign departments & cost centers.</p>
+                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">
+                    Employee Onboarding
+                  </h3>
+                  <p className="text-xs text-[#bccac0] mt-1">
+                    Invite team members, assign departments & cost centers.
+                  </p>
                 </Link>
 
                 <Link
@@ -149,11 +171,19 @@ export default function CorporateDashboardPage() {
                   className="p-5 bg-[#141822] hover:bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9]/40 rounded-2xl transition-all group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">verified</span>
-                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">
+                      verified
+                    </span>
+                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">Approval Workflow</h3>
-                  <p className="text-xs text-[#bccac0] mt-1">Review out-of-policy travel requests and fare exception overrides.</p>
+                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">
+                    Approval Workflow
+                  </h3>
+                  <p className="text-xs text-[#bccac0] mt-1">
+                    Review out-of-policy travel requests and fare exception overrides.
+                  </p>
                 </Link>
 
                 <Link
@@ -161,11 +191,19 @@ export default function CorporateDashboardPage() {
                   className="p-5 bg-[#141822] hover:bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9]/40 rounded-2xl transition-all group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">analytics</span>
-                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">
+                      analytics
+                    </span>
+                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">Spend Analytics</h3>
-                  <p className="text-xs text-[#bccac0] mt-1">Export department travel breakdowns and monthly GST statements.</p>
+                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">
+                    Spend Analytics
+                  </h3>
+                  <p className="text-xs text-[#bccac0] mt-1">
+                    Export department travel breakdowns and monthly GST statements.
+                  </p>
                 </Link>
               </div>
 
@@ -175,7 +213,10 @@ export default function CorporateDashboardPage() {
                   <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                     Recent Corporate Trips
                   </h2>
-                  <Link href="/corporate/bookings" className="text-xs text-[#68dba9] font-mono hover:underline">
+                  <Link
+                    href="/corporate/bookings"
+                    className="text-xs text-[#68dba9] font-mono hover:underline"
+                  >
                     View All Rides →
                   </Link>
                 </div>
@@ -183,7 +224,8 @@ export default function CorporateDashboardPage() {
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
                   {report.recentRides.length === 0 ? (
                     <div className="p-8 text-center text-[#bccac0] text-xs font-mono">
-                      No corporate rides recorded yet. Click &quot;Book Corporate Ride&quot; to schedule the first trip.
+                      No corporate rides recorded yet. Click &quot;Book Corporate Ride&quot; to
+                      schedule the first trip.
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
@@ -201,8 +243,12 @@ export default function CorporateDashboardPage() {
                           {report.recentRides.map((ride) => (
                             <tr key={ride.id} className="hover:bg-[#1c2028] transition-colors">
                               <td className="p-3.5 font-bold text-[#dfe2ee]">{ride.bookerName}</td>
-                              <td className="p-3.5 text-[#bccac0] max-w-xs truncate">{ride.pickupAddress}</td>
-                              <td className="p-3.5 font-bold text-[#68dba9]">₹{ride.fareAmount.toLocaleString()}</td>
+                              <td className="p-3.5 text-[#bccac0] max-w-xs truncate">
+                                {ride.pickupAddress}
+                              </td>
+                              <td className="p-3.5 font-bold text-[#68dba9]">
+                                ₹{ride.fareAmount.toLocaleString()}
+                              </td>
                               <td className="p-3.5">
                                 <span className="px-2 py-0.5 rounded bg-[#1e2330] border border-[#262a33] text-[10px] uppercase font-bold text-[#dfe2ee]">
                                   {ride.status}

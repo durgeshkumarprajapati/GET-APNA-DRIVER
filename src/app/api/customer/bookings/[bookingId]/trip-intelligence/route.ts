@@ -12,7 +12,11 @@ export const GET = withPermission<RouteParams>(
   async (_req, { principal }, routeContext) => {
     try {
       const { bookingId } = await routeContext!.params;
-      const intelligence = await service.getTripIntelligence(principal.userId, bookingId, 'CUSTOMER');
+      const intelligence = await service.getTripIntelligence(
+        principal.userId,
+        bookingId,
+        'CUSTOMER',
+      );
 
       if (!intelligence) {
         return NextResponse.json({ error: 'INTELLIGENCE_UNAVAILABLE' }, { status: 404 });
@@ -20,8 +24,9 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ intelligence }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch customer trip intelligence.';
+      const message =
+        err instanceof Error ? err.message : 'Failed to fetch customer trip intelligence.';
       return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

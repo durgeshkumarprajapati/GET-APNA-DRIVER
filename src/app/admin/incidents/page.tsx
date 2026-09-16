@@ -98,8 +98,12 @@ export default function AdminIncidentsListPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">Trip Reliability Incident Management</h1>
-            <p className="text-xs text-slate-400 mt-1">Real-time operational anomaly tracking and automated recovery control.</p>
+            <h1 className="text-2xl font-bold text-slate-100">
+              Trip Reliability Incident Management
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Real-time operational anomaly tracking and automated recovery control.
+            </p>
           </div>
           <Link
             href="/admin/live-ops-console"
@@ -126,11 +130,15 @@ export default function AdminIncidentsListPage() {
             </div>
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
               <span className="text-xs font-semibold text-slate-400">Human Escalations</span>
-              <p className="text-2xl font-extrabold text-purple-400 mt-1">{metrics.totalEscalated}</p>
+              <p className="text-2xl font-extrabold text-purple-400 mt-1">
+                {metrics.totalEscalated}
+              </p>
             </div>
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
               <span className="text-xs font-semibold text-slate-400">Resolved Today</span>
-              <p className="text-2xl font-extrabold text-emerald-400 mt-1">{metrics.totalResolvedToday}</p>
+              <p className="text-2xl font-extrabold text-emerald-400 mt-1">
+                {metrics.totalResolvedToday}
+              </p>
             </div>
           </div>
         )}
@@ -168,7 +176,9 @@ export default function AdminIncidentsListPage() {
         {loading ? (
           <LoadingState message="Fetching active trip reliability incidents..." />
         ) : error ? (
-          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">{error}</div>
+          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
+            {error}
+          </div>
         ) : incidents.length === 0 ? (
           <EmptyState
             icon="done_all"
@@ -183,15 +193,27 @@ export default function AdminIncidentsListPage() {
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-100">{incident.incidentNumber}</span>
-                    <StatusBadge label={incident.severity} tone={SEVERITY_TONE[incident.severity] || 'neutral'} />
-                    <StatusBadge label={incident.status} tone={STATUS_TONE[incident.status] || 'neutral'} />
+                    <span className="font-bold text-sm text-slate-100">
+                      {incident.incidentNumber}
+                    </span>
+                    <StatusBadge
+                      label={incident.severity}
+                      tone={SEVERITY_TONE[incident.severity] || 'neutral'}
+                    />
+                    <StatusBadge
+                      label={incident.status}
+                      tone={STATUS_TONE[incident.status] || 'neutral'}
+                    />
                   </div>
                   <p className="text-xs text-slate-300">
-                    Incident Type: <strong className="text-slate-100">{incident.type}</strong> • Booking #{incident.bookingId}
+                    Incident Type: <strong className="text-slate-100">{incident.type}</strong> •
+                    Booking #{incident.bookingId}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    Detected: {new Date(incident.detectedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                    Detected:{' '}
+                    {new Date(incident.detectedAt).toLocaleString('en-IN', {
+                      timeZone: 'Asia/Kolkata',
+                    })}
                   </p>
                 </div>
 

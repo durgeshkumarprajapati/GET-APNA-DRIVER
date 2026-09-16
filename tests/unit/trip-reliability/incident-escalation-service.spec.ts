@@ -36,7 +36,11 @@ describe('IncidentEscalationService', () => {
       escalatedAt: new Date(),
     });
 
-    const result = await escalationService.escalateIncident('inc_301', 'admin_1', 'Critical safety trigger');
+    const result = await escalationService.escalateIncident(
+      'inc_301',
+      'admin_1',
+      'Critical safety trigger',
+    );
 
     expect(result).not.toBeNull();
     expect(result?.status).toBe('ESCALATED');
@@ -46,7 +50,7 @@ describe('IncidentEscalationService', () => {
         data: expect.objectContaining({
           status: 'ESCALATED',
         }),
-      })
+      }),
     );
     expect(prisma.tripReliabilityTimeline.create).toHaveBeenCalled();
   });

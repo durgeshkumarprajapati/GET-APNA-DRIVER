@@ -17,7 +17,10 @@ export class AIRedactionService {
     redacted = redacted.replace(/\b(\+?91[\-\s]?)?[6-9]\d{9}\b/g, '[PHONE_REDACTED]');
 
     // Redact internal UUIDs if matching exact pattern
-    redacted = redacted.replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[ID_REDACTED]');
+    redacted = redacted.replace(
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+      '[ID_REDACTED]',
+    );
 
     return redacted;
   }

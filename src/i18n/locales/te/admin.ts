@@ -54,7 +54,8 @@ export const adminTe = {
     kycApprovals: 'కెవైసి ఆమోదాలు',
     marketplaceIntelligence: 'మార్కెట్‌ప్లేస్ ఇంటెలిజెన్స్',
     operationsCommandCenter: 'ఆపరేషన్స్ కమాండ్ సెంటర్',
-    scheduledRides: 'షెడ్యూల్ చేసిన రౌడ్లు',
+    scheduledRides: 'షెడ్యూల్ చేసిన రైడ్‌లు',
+    riskAndTrust: 'రిస్క్ మరియు ట్రస్ట్ ఇంజిన్',
   },
   marketplaceIntelligence: {
     title: 'మార్కెట్‌ప్లేస్ ఇంటెలిజెన్స్ కన్సోల్',
@@ -218,4 +219,3 @@ export const adminTe = {
     loading: 'ప్లాట్‌ఫారమ్ మెట్రిక్స్ మూల్యాంకనం చేయబడుతోంది...',
   },
 };
-

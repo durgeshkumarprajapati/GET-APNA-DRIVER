@@ -8,7 +8,11 @@ export interface AIInputProps {
   placeholder?: string;
 }
 
-export function AIInput({ onSendMessage, loading = false, placeholder = 'Ask AI assistant...' }: AIInputProps) {
+export function AIInput({
+  onSendMessage,
+  loading = false,
+  placeholder = 'Ask AI assistant...',
+}: AIInputProps) {
   const [text, setText] = useState('');
 
   const handleSend = () => {

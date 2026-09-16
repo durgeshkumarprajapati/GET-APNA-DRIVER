@@ -24,9 +24,7 @@ export type OperationsDecisionStatus =
   | 'ESCALATED';
 
 export type OperationsActionCategory =
-  | 'OBSERVE_ONLY'
-  | 'MANUAL_CONFIRMATION'
-  | 'AUTOMATED_LOW_RISK';
+  'OBSERVE_ONLY' | 'MANUAL_CONFIRMATION' | 'AUTOMATED_LOW_RISK';
 
 export type OperationsActionType =
   | 'VIEW_BOOKINGS'

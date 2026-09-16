@@ -23,5 +23,5 @@ export const POST = withPermission<RouteParams>(
       const message = err instanceof Error ? err.message : 'Failed to escalate incident.';
       return NextResponse.json({ error: 'ESCALATION_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

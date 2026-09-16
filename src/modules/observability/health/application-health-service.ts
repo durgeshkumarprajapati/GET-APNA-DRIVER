@@ -15,7 +15,7 @@ export class ApplicationHealthService {
         fifteenMinsAgo,
         now,
         'GLOBAL',
-        db
+        db,
       );
 
       const latencyMs = Date.now() - startTime;

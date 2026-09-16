@@ -13,7 +13,6 @@ describe('Read-Only Security Safeguard', () => {
       operationalMetricBucket: { findMany: jest.fn().mockResolvedValue([]) },
     } as unknown as Db;
 
-
     await PlatformHealthService.evaluatePlatformHealth(mockDb, false);
     await DatabaseDiagnostics.runDiagnostics(mockDb);
     await WorkerDiagnostics.runDiagnostics(mockDb);
@@ -25,4 +24,3 @@ describe('Read-Only Security Safeguard', () => {
     expect(recordDb.driverProfile).toBeUndefined();
   });
 });
-

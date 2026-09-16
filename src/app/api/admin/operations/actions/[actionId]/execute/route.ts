@@ -5,11 +5,7 @@ import { executeOperationsAction } from '@/modules/operations';
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_OPERATIONS_ACTION,
-  async (
-    req: NextRequest,
-    context,
-    routeContext?: { params: Promise<{ actionId: string }> },
-  ) => {
+  async (req: NextRequest, context, routeContext?: { params: Promise<{ actionId: string }> }) => {
     try {
       if (!routeContext) {
         return NextResponse.json({ success: false, error: 'Missing parameters' }, { status: 400 });

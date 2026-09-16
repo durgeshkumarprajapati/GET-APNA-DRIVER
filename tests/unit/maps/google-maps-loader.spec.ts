@@ -48,7 +48,9 @@ describe('Google Maps Script Loader Tests', () => {
     const originalKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     delete process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-    await expect(loadGoogleMapsScript()).rejects.toThrow('NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is missing.');
+    await expect(loadGoogleMapsScript()).rejects.toThrow(
+      'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is missing.',
+    );
 
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = originalKey;
   });

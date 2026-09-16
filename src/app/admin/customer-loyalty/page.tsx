@@ -244,7 +244,6 @@ export default function AdminCustomerLoyaltyPage() {
               {t('admin.loyalty.noRewards')}
             </div>
           ) : (
-
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>

@@ -3,7 +3,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/admin-layout';
-import type { OperationsCommandSummary, OperationsDecision, OperationsActionDefinition } from '@/modules/operations';
+import type {
+  OperationsCommandSummary,
+  OperationsDecision,
+  OperationsActionDefinition,
+} from '@/modules/operations';
 
 export default function OperationsCommandCenterPage() {
   const [summary, setSummary] = useState<OperationsCommandSummary | null>(null);
@@ -29,7 +33,9 @@ export default function OperationsCommandCenterPage() {
       setError(null);
       const [summaryRes, decisionsRes] = await Promise.all([
         fetch('/api/admin/operations'),
-        fetch(`/api/admin/operations/decisions?status=${statusFilter}&severity=${severityFilter}&type=${typeFilter}`),
+        fetch(
+          `/api/admin/operations/decisions?status=${statusFilter}&severity=${severityFilter}&type=${typeFilter}`,
+        ),
       ]);
 
       if (!summaryRes.ok || !decisionsRes.ok) {
@@ -54,7 +60,9 @@ export default function OperationsCommandCenterPage() {
       try {
         const [summaryRes, decisionsRes] = await Promise.all([
           fetch('/api/admin/operations'),
-          fetch(`/api/admin/operations/decisions?status=${statusFilter}&severity=${severityFilter}&type=${typeFilter}`),
+          fetch(
+            `/api/admin/operations/decisions?status=${statusFilter}&severity=${severityFilter}&type=${typeFilter}`,
+          ),
         ]);
 
         if (!summaryRes.ok || !decisionsRes.ok) {
@@ -187,10 +195,18 @@ export default function OperationsCommandCenterPage() {
               </h1>
             </div>
             <p className="text-xs text-[#87948b] mt-1 font-mono">
-              Real-time cross-domain orchestration, deterministic decision evaluation & action dispatch
+              Real-time cross-domain orchestration, deterministic decision evaluation & action
+              dispatch
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/admin/risk-and-trust"
+              className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
+            >
+              <span className="material-symbols-outlined text-sm">shield</span>
+              Risk & Trust Console
+            </Link>
             <button
               onClick={() => void fetchOperationsData()}
               className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#dfe2ee] text-xs font-mono flex items-center gap-2 transition-all"
@@ -224,7 +240,9 @@ export default function OperationsCommandCenterPage() {
               <div className="text-sm font-bold font-mono text-[#68dba9] mt-2">
                 {summary.systemStatus}
               </div>
-              <span className="text-[10px] text-[#87948b] mt-1">Health Score: {summary.platformHealthScore}/100</span>
+              <span className="text-[10px] text-[#87948b] mt-1">
+                Health Score: {summary.platformHealthScore}/100
+              </span>
             </div>
 
             <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
@@ -333,7 +351,8 @@ export default function OperationsCommandCenterPage() {
           </div>
 
           <div className="ml-auto text-xs font-mono text-[#87948b]">
-            Showing <span className="text-[#dfe2ee] font-bold">{decisions.length}</span> decision records
+            Showing <span className="text-[#dfe2ee] font-bold">{decisions.length}</span> decision
+            records
           </div>
         </div>
 
@@ -362,14 +381,14 @@ export default function OperationsCommandCenterPage() {
                   <div className="flex items-center gap-3">
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getSeverityBadgeClass(
-                        decision.severity
+                        decision.severity,
                       )}`}
                     >
                       {decision.severity}
                     </span>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getStatusBadgeClass(
-                        decision.status
+                        decision.status,
                       )}`}
                     >
                       {decision.status}
@@ -379,11 +398,14 @@ export default function OperationsCommandCenterPage() {
                     </h3>
                   </div>
                   <div className="flex items-center gap-4 text-xs font-mono text-[#87948b]">
-                    <span>Zone: <strong className="text-[#dfe2ee]">{decision.zoneId ?? 'SYSTEM'}</strong></span>
-                    <span>Confidence: <strong className="text-[#68dba9]">{decision.confidence}</strong></span>
                     <span>
-                      Evaluated: {new Date(decision.createdAt).toLocaleTimeString()}
+                      Zone:{' '}
+                      <strong className="text-[#dfe2ee]">{decision.zoneId ?? 'SYSTEM'}</strong>
                     </span>
+                    <span>
+                      Confidence: <strong className="text-[#68dba9]">{decision.confidence}</strong>
+                    </span>
+                    <span>Evaluated: {new Date(decision.createdAt).toLocaleTimeString()}</span>
                   </div>
                 </div>
 
@@ -397,7 +419,8 @@ export default function OperationsCommandCenterPage() {
                           key={idx}
                           className="px-2 py-1 rounded bg-[#0f131c] border border-[#262a33] text-[11px] text-[#87948b]"
                         >
-                          <strong className="text-[#dfe2ee]">{ev.label || ev.key}:</strong> {String(ev.value)}
+                          <strong className="text-[#dfe2ee]">{ev.label || ev.key}:</strong>{' '}
+                          {String(ev.value)}
                         </span>
                       ))}
                     </div>
@@ -406,7 +429,9 @@ export default function OperationsCommandCenterPage() {
                   {/* Actions & Dispatch Options */}
                   <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] flex flex-col justify-between space-y-3">
                     <div className="text-[11px] text-[#87948b]">
-                      <span className="text-[#dfe2ee] font-bold block mb-1">Recommended Action</span>
+                      <span className="text-[#dfe2ee] font-bold block mb-1">
+                        Recommended Action
+                      </span>
                       {decision.recommendedActions[0]?.label ?? 'No automated action needed'}
                     </div>
 
@@ -494,7 +519,8 @@ export default function OperationsCommandCenterPage() {
                       </span>
                       <div className="text-[#68dba9] font-bold">{selectedAction.action.type}</div>
                       <div className="text-[11px] text-[#87948b]">
-                        Guarded by Redis Distributed Lock (`lock:action:${selectedAction.action.id}`)
+                        Guarded by Redis Distributed Lock (`lock:action:${selectedAction.action.id}
+                        `)
                       </div>
                     </div>
 

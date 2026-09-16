@@ -36,15 +36,18 @@ export interface MetricAggregationWindow {
   window: '1m' | '5m' | '15m' | '1h' | '24h';
   startTime: string;
   endTime: string;
-  metrics: Record<string, {
-    count: number;
-    avg: number;
-    p95: number;
-    p99: number;
-    min: number;
-    max: number;
-    errorRate: number;
-  }>;
+  metrics: Record<
+    string,
+    {
+      count: number;
+      avg: number;
+      p95: number;
+      p99: number;
+      min: number;
+      max: number;
+      errorRate: number;
+    }
+  >;
 }
 
 export interface AlertRule {

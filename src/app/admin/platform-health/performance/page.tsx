@@ -46,7 +46,8 @@ export default function PerformanceMetricsPage() {
           {t('platformHealth.navPerformance') || 'Performance & Telemetry Metrics'}
         </h1>
         <p className="text-sm text-gray-500">
-          {t('platformHealth.performanceSubtitle') || '24-Hour throughput, response latency distributions & error rates'}
+          {t('platformHealth.performanceSubtitle') ||
+            '24-Hour throughput, response latency distributions & error rates'}
         </p>
       </div>
 
@@ -55,7 +56,9 @@ export default function PerformanceMetricsPage() {
       {error && <div className="p-4 mb-6 bg-rose-100 text-rose-800 rounded">{error}</div>}
 
       {loading || !data ? (
-        <div className="p-8 text-center text-gray-500">Loading performance metric aggregates...</div>
+        <div className="p-8 text-center text-gray-500">
+          Loading performance metric aggregates...
+        </div>
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -80,19 +83,33 @@ export default function PerformanceMetricsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-bold mb-4">Aggregated Metric Buckets (Recent)</h3>
             {data.buckets.length === 0 ? (
-              <p className="text-sm text-gray-500">No telemetry buckets recorded in the selected window.</p>
+              <p className="text-sm text-gray-500">
+                No telemetry buckets recorded in the selected window.
+              </p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {data.buckets.slice(-20).reverse().map((b) => (
-                  <div key={b.id} className="p-3 bg-gray-50 dark:bg-gray-900 rounded flex justify-between items-center text-xs">
-                    <div>{new Date(b.bucketStart).toLocaleString()}</div>
-                    <div className="flex gap-4">
-                      <span>Requests: <strong>{b.count}</strong></span>
-                      <span>Errors: <strong className="text-rose-600">{b.errorCount}</strong></span>
-                      <span>Total Time: <strong>{Math.round(b.totalDurationMs)}ms</strong></span>
+                {data.buckets
+                  .slice(-20)
+                  .reverse()
+                  .map((b) => (
+                    <div
+                      key={b.id}
+                      className="p-3 bg-gray-50 dark:bg-gray-900 rounded flex justify-between items-center text-xs"
+                    >
+                      <div>{new Date(b.bucketStart).toLocaleString()}</div>
+                      <div className="flex gap-4">
+                        <span>
+                          Requests: <strong>{b.count}</strong>
+                        </span>
+                        <span>
+                          Errors: <strong className="text-rose-600">{b.errorCount}</strong>
+                        </span>
+                        <span>
+                          Total Time: <strong>{Math.round(b.totalDurationMs)}ms</strong>
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>

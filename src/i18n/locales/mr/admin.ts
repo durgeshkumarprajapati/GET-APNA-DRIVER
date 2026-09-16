@@ -55,6 +55,7 @@ export const adminMr = {
     marketplaceIntelligence: 'मार्केटप्लेस इंटेलिजन्स',
     operationsCommandCenter: 'ऑपरेशन्स कमांड सेंटर',
     scheduledRides: 'शेड्यूल केलेल्या राइड्स',
+    riskAndTrust: 'जोखीम आणि विश्वास इंजिन',
   },
   marketplaceIntelligence: {
     title: 'मार्केटप्लेस इंटेलिजन्स कन्सोल',
@@ -219,4 +220,3 @@ export const adminMr = {
     loading: 'प्लॅटफॉर्म मॅट्रिक्सचे मूल्यांकन केले जात आहे...',
   },
 };
-

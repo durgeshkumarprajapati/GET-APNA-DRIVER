@@ -16,9 +16,10 @@ export const GET = withAuth(async (req, { principal }) => {
       return NextResponse.json({ error: 'Corporate organization not found' }, { status: 404 });
     }
     const rawStatus = req.nextUrl.searchParams.get('status');
-    const statusParam = rawStatus && Object.values(ApprovalStatus).includes(rawStatus as ApprovalStatus)
-      ? (rawStatus as ApprovalStatus)
-      : undefined;
+    const statusParam =
+      rawStatus && Object.values(ApprovalStatus).includes(rawStatus as ApprovalStatus)
+        ? (rawStatus as ApprovalStatus)
+        : undefined;
 
     const approvals = await listOrganizationApprovals(membership.organizationId, statusParam);
 

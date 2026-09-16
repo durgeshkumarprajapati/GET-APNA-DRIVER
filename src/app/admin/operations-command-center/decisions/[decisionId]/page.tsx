@@ -162,7 +162,7 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${getSeverityClass(
-                        decision.severity
+                        decision.severity,
                       )}`}
                     >
                       {decision.severity}
@@ -172,7 +172,10 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                     </span>
                   </div>
                   <div className="text-xs font-mono text-[#87948b]">
-                    Evaluated At: <strong className="text-[#dfe2ee]">{new Date(decision.createdAt).toLocaleString()}</strong>
+                    Evaluated At:{' '}
+                    <strong className="text-[#dfe2ee]">
+                      {new Date(decision.createdAt).toLocaleString()}
+                    </strong>
                   </div>
                 </div>
 
@@ -187,7 +190,9 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
 
                 <div className="grid grid-cols-3 gap-4 pt-3 border-t border-[#262a33] text-xs font-mono">
                   <div>
-                    <span className="text-[#87948b] block text-[10px] uppercase">Decision Type</span>
+                    <span className="text-[#87948b] block text-[10px] uppercase">
+                      Decision Type
+                    </span>
                     <strong className="text-[#dfe2ee]">{decision.decisionType}</strong>
                   </div>
                   <div>
@@ -204,7 +209,9 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
               {/* Evidence Breakdown Card */}
               <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-4">
                 <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">fact_check</span>
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                    fact_check
+                  </span>
                   Evidence Metric Trail
                 </h3>
 
@@ -235,12 +242,12 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
               {/* Impact Card */}
               <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-2">
                 <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#70d2ff] text-base">analytics</span>
+                  <span className="material-symbols-outlined text-[#70d2ff] text-base">
+                    analytics
+                  </span>
                   Expected Impact
                 </h3>
-                <p className="text-xs font-mono text-[#bccac0]">
-                  {decision.expectedImpact}
-                </p>
+                <p className="text-xs font-mono text-[#bccac0]">{decision.expectedImpact}</p>
               </div>
             </div>
 
@@ -272,13 +279,17 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                         </div>
 
                         <div className="p-2 rounded bg-[#181c24] border border-[#262a33]">
-                          <span className="text-[10px] text-[#87948b] uppercase block">Action Category</span>
+                          <span className="text-[10px] text-[#87948b] uppercase block">
+                            Action Category
+                          </span>
                           <span className="text-[#dfe2ee] font-bold">{action.category}</span>
                         </div>
 
                         <button
                           onClick={() => handleExecuteAction(action.id, action.type)}
-                          disabled={executingActionId === action.id || decision.status === 'RESOLVED'}
+                          disabled={
+                            executingActionId === action.id || decision.status === 'RESOLVED'
+                          }
                           className="w-full py-2 px-3 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                           {executingActionId === action.id ? (
@@ -308,12 +319,12 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                   Orchestrator Safety Guard
                 </h3>
                 <p className="text-[#87948b] leading-relaxed">
-                  All action dispatches acquire distributed Redis locks before mutating domain state. High & Critical actions require explicit human operator confirmation.
+                  All action dispatches acquire distributed Redis locks before mutating domain
+                  state. High & Critical actions require explicit human operator confirmation.
                 </p>
                 <div className="pt-2 border-t border-[#262a33] text-[11px] text-[#68dba9]">
                   ✓ Domain DB Direct Mutation Blocked
-                  <br />
-                  ✓ Domain Layer Orchestration Enforced
+                  <br />✓ Domain Layer Orchestration Enforced
                 </div>
               </div>
             </div>

@@ -29,8 +29,7 @@ export function UserAvatar({
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
 
-  const effectiveSrc =
-    !isAuthenticated || !src || imageError ? DEFAULT_AVATAR : src;
+  const effectiveSrc = !isAuthenticated || !src || imageError ? DEFAULT_AVATAR : src;
 
   const displayName = name || 'User Profile';
 

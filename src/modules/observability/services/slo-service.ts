@@ -21,14 +21,14 @@ export class SloService {
     slo: SloDefinition,
     startTime: Date,
     endTime: Date,
-    db: Db = prisma
+    db: Db = prisma,
   ): Promise<ServiceSloReport> {
     const metrics = await OperationalMetricsRepository.getMetricAggregates(
       slo.metricName,
       startTime,
       endTime,
       'GLOBAL',
-      db
+      db,
     );
 
     let actualPercent = 100.0;
@@ -40,9 +40,16 @@ export class SloService {
     // Error budget calculation: 100 - target
     const totalAllowedErrorPercent = 100.0 - slo.targetPercent; // e.g. 0.1% for 99.9%
     const currentErrorPercent = 100.0 - actualPercent;
-    const errorBudgetRemainingPercent = totalAllowedErrorPercent > 0
-      ? Math.max(0, Math.min(100, ((totalAllowedErrorPercent - currentErrorPercent) / totalAllowedErrorPercent) * 100))
-      : 100;
+    const errorBudgetRemainingPercent =
+      totalAllowedErrorPercent > 0
+        ? Math.max(
+            0,
+            Math.min(
+              100,
+              ((totalAllowedErrorPercent - currentErrorPercent) / totalAllowedErrorPercent) * 100,
+            ),
+          )
+        : 100;
 
     return {
       serviceName: slo.serviceName,

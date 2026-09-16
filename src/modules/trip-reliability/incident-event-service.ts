@@ -1,5 +1,10 @@
 import { prisma } from '@/shared/database/prisma';
-import type { IncidentType, IncidentSeverity, IncidentStatus, IncidentConfidence } from './trip-reliability-types';
+import type {
+  IncidentType,
+  IncidentSeverity,
+  IncidentStatus,
+  IncidentConfidence,
+} from './trip-reliability-types';
 
 export interface CreateIncidentInput {
   bookingId: string;

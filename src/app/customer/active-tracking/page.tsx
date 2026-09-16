@@ -103,9 +103,7 @@ export default function CustomerActiveTrackingPage() {
               <SmartTripStatusCard intelligence={intelligence} bookingId={displayBooking.id} />
             )}
 
-            {reliability && (
-              <SmartTripReliabilityCard reliability={reliability} />
-            )}
+            {reliability && <SmartTripReliabilityCard reliability={reliability} />}
 
             <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -164,71 +162,73 @@ export default function CustomerActiveTrackingPage() {
             </section>
 
             <section className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] space-y-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>
-                    <span>Live Ride Map</span>
-                  </h2>
-                  {driverLocation && (
-                    <span className="text-[10px] text-[#87948b]">
-                      Updated {formatDateTime(driverLocation.capturedAt)}
-                      {driverLocation.speed !== null ? ` • ${driverLocation.speed.toFixed(0)} km/h` : ''}
-                    </span>
-                  )}
-                </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>
+                  <span>Live Ride Map</span>
+                </h2>
+                {driverLocation && (
+                  <span className="text-[10px] text-[#87948b]">
+                    Updated {formatDateTime(driverLocation.capturedAt)}
+                    {driverLocation.speed !== null
+                      ? ` • ${driverLocation.speed.toFixed(0)} km/h`
+                      : ''}
+                  </span>
+                )}
+              </div>
 
-                {(() => {
-                  const markers: MapMarkerDefinition[] = [
-                    {
-                      id: 'pickup',
-                      position: {
-                        latitude: displayBooking.pickupLocation.latitude,
-                        longitude: displayBooking.pickupLocation.longitude,
-                      },
-                      type: 'PICKUP',
-                      title: 'Pickup Location',
-                      snippet: displayBooking.pickupLocation.address,
+              {(() => {
+                const markers: MapMarkerDefinition[] = [
+                  {
+                    id: 'pickup',
+                    position: {
+                      latitude: displayBooking.pickupLocation.latitude,
+                      longitude: displayBooking.pickupLocation.longitude,
                     },
-                  ];
+                    type: 'PICKUP',
+                    title: 'Pickup Location',
+                    snippet: displayBooking.pickupLocation.address,
+                  },
+                ];
 
-                  if (displayBooking.dropoffLocation) {
-                    markers.push({
-                      id: 'dropoff',
-                      position: {
-                        latitude: displayBooking.dropoffLocation.latitude,
-                        longitude: displayBooking.dropoffLocation.longitude,
-                      },
-                      type: 'DROPOFF',
-                      title: 'Dropoff Location',
-                      snippet: displayBooking.dropoffLocation.address,
-                    });
-                  }
+                if (displayBooking.dropoffLocation) {
+                  markers.push({
+                    id: 'dropoff',
+                    position: {
+                      latitude: displayBooking.dropoffLocation.latitude,
+                      longitude: displayBooking.dropoffLocation.longitude,
+                    },
+                    type: 'DROPOFF',
+                    title: 'Dropoff Location',
+                    snippet: displayBooking.dropoffLocation.address,
+                  });
+                }
 
-                  if (driverLocation) {
-                    markers.push({
-                      id: 'driver',
-                      position: {
-                        latitude: driverLocation.latitude,
-                        longitude: driverLocation.longitude,
-                      },
-                      type: 'DRIVER',
-                      title: displayBooking.assignedDriver?.displayName
-                        ? `${displayBooking.assignedDriver.displayName}'s Location`
-                        : 'Driver Location',
-                      heading: driverLocation.heading,
-                    });
-                  }
+                if (driverLocation) {
+                  markers.push({
+                    id: 'driver',
+                    position: {
+                      latitude: driverLocation.latitude,
+                      longitude: driverLocation.longitude,
+                    },
+                    type: 'DRIVER',
+                    title: displayBooking.assignedDriver?.displayName
+                      ? `${displayBooking.assignedDriver.displayName}'s Location`
+                      : 'Driver Location',
+                    heading: driverLocation.heading,
+                  });
+                }
 
-                  return (
-                    <GoogleMapCard
-                      markers={markers}
-                      height="380px"
-                      fitBounds={true}
-                      ariaLabel="Active ride tracking map"
-                    />
-                  );
-                })()}
-              </section>
+                return (
+                  <GoogleMapCard
+                    markers={markers}
+                    height="380px"
+                    fitBounds={true}
+                    ariaLabel="Active ride tracking map"
+                  />
+                );
+              })()}
+            </section>
           </>
         )}
       </div>

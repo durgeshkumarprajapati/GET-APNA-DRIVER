@@ -45,10 +45,7 @@ Authoritative Context: ${JSON.stringify(input.context)}`;
         body: JSON.stringify({
           contents: [
             {
-              parts: [
-                { text: systemPrompt },
-                { text: input.message },
-              ],
+              parts: [{ text: systemPrompt }, { text: input.message }],
             },
           ],
         }),

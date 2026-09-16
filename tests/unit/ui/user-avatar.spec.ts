@@ -8,7 +8,11 @@ describe('UserAvatar Fallback & Security Policy Spec', () => {
   it('determines fallback image source correctly for unauthenticated or missing avatar states', () => {
     const DEFAULT_AVATAR = '/profile.png';
 
-    const getEffectiveSrc = (isAuthenticated: boolean, src?: string | null, imageError?: boolean) => {
+    const getEffectiveSrc = (
+      isAuthenticated: boolean,
+      src?: string | null,
+      imageError?: boolean,
+    ) => {
       return !isAuthenticated || !src || imageError ? DEFAULT_AVATAR : src;
     };
 
@@ -22,6 +26,8 @@ describe('UserAvatar Fallback & Security Policy Spec', () => {
     expect(getEffectiveSrc(true, 'https://example.com/pic.jpg', true)).toBe(DEFAULT_AVATAR);
 
     // Authenticated user with valid avatar URL
-    expect(getEffectiveSrc(true, 'https://example.com/pic.jpg')).toBe('https://example.com/pic.jpg');
+    expect(getEffectiveSrc(true, 'https://example.com/pic.jpg')).toBe(
+      'https://example.com/pic.jpg',
+    );
   });
 });

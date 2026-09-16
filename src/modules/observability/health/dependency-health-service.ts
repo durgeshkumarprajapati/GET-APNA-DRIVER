@@ -23,7 +23,10 @@ export class DependencyHealthService {
         status: 'HEALTHY',
         latencyMs: 85,
         lastChecked: new Date().toISOString(),
-        details: { provider: 'Google Cloud Platform', services: ['Directions', 'Geocoding', 'Distance Matrix'] },
+        details: {
+          provider: 'Google Cloud Platform',
+          services: ['Directions', 'Geocoding', 'Distance Matrix'],
+        },
       },
       {
         name: 'Payment Gateway (Stripe/Razorpay)',

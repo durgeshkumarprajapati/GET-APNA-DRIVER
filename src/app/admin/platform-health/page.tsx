@@ -54,7 +54,10 @@ export default function PlatformHealthOverviewPage() {
     };
 
     fetchHealth();
-    if (!autoRefresh) return () => { isMounted = false; };
+    if (!autoRefresh)
+      return () => {
+        isMounted = false;
+      };
     const interval = setInterval(fetchHealth, 10000);
     return () => {
       isMounted = false;
@@ -95,7 +98,8 @@ export default function PlatformHealthOverviewPage() {
             {t('platformHealth.title') || 'Platform SRE Observability & Control Plane'}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('platformHealth.subtitle') || 'Real-time deterministic system state, component matrix & operational metrics'}
+            {t('platformHealth.subtitle') ||
+              'Real-time deterministic system state, component matrix & operational metrics'}
           </p>
         </div>
 
@@ -127,7 +131,9 @@ export default function PlatformHealthOverviewPage() {
       )}
 
       {loading && !data ? (
-        <div className="p-12 text-center text-gray-500">{t('platformHealth.loading') || 'Evaluating platform metrics...'}</div>
+        <div className="p-12 text-center text-gray-500">
+          {t('platformHealth.loading') || 'Evaluating platform metrics...'}
+        </div>
       ) : data ? (
         <div className="space-y-6">
           {/* Top Score Banner */}
@@ -136,7 +142,9 @@ export default function PlatformHealthOverviewPage() {
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                 {t('platformHealth.overallScore') || 'Platform Health Score'}
               </span>
-              <div className={`text-4xl font-extrabold mt-2 ${getScoreBadgeColor(data.overallScore)}`}>
+              <div
+                className={`text-4xl font-extrabold mt-2 ${getScoreBadgeColor(data.overallScore)}`}
+              >
                 {data.overallScore} / 100
               </div>
             </div>
@@ -146,7 +154,9 @@ export default function PlatformHealthOverviewPage() {
                 {t('platformHealth.overallStatus') || 'Overall Status'}
               </span>
               <div className="mt-2">
-                <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(data.overallStatus)}`}>
+                <span
+                  className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(data.overallStatus)}`}
+                >
                   {data.overallStatus}
                 </span>
               </div>
@@ -173,7 +183,9 @@ export default function PlatformHealthOverviewPage() {
 
           {/* Component Matrix Grid */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-            <h2 className="text-lg font-bold mb-4">{t('platformHealth.componentHealthMatrix') || 'Component Health Matrix'}</h2>
+            <h2 className="text-lg font-bold mb-4">
+              {t('platformHealth.componentHealthMatrix') || 'Component Health Matrix'}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(data.components).map(([key, comp]) => (
                 <div
@@ -183,7 +195,9 @@ export default function PlatformHealthOverviewPage() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-sm">{comp.name}</span>
-                      <span className={`px-2 py-0.5 text-xs font-bold rounded ${getStatusColor(comp.status)}`}>
+                      <span
+                        className={`px-2 py-0.5 text-xs font-bold rounded ${getStatusColor(comp.status)}`}
+                      >
                         {comp.status}
                       </span>
                     </div>
@@ -191,7 +205,9 @@ export default function PlatformHealthOverviewPage() {
                       <div>Category: {comp.category}</div>
                       <div>Weight: {Math.round(comp.weight * 100)}%</div>
                       {comp.latencyMs !== undefined && <div>Latency: {comp.latencyMs}ms</div>}
-                      {comp.errorRatePercent !== undefined && <div>Error Rate: {comp.errorRatePercent}%</div>}
+                      {comp.errorRatePercent !== undefined && (
+                        <div>Error Rate: {comp.errorRatePercent}%</div>
+                      )}
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-xs">

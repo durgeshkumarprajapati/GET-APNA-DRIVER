@@ -2,7 +2,11 @@ import { OperationalMetricsRepository } from '../repositories/operational-metric
 import type { Db } from '@/shared/database/prisma';
 
 export class BookingMetricsCollector {
-  static async recordBookingAttempt(status: 'SUCCESS' | 'CANCELLED' | 'FAILED', durationMs: number, db?: Db): Promise<void> {
+  static async recordBookingAttempt(
+    status: 'SUCCESS' | 'CANCELLED' | 'FAILED',
+    durationMs: number,
+    db?: Db,
+  ): Promise<void> {
     await OperationalMetricsRepository.recordMetric(
       {
         metricName: 'booking.attempt',
@@ -10,7 +14,7 @@ export class BookingMetricsCollector {
         durationMs,
         isError: status === 'FAILED',
       },
-      db
+      db,
     );
   }
 }

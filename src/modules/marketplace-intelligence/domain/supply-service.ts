@@ -33,11 +33,7 @@ export async function getSupplyMetrics(
   vehicleCategory?: string,
   currentDemand: number = 0,
 ): Promise<SupplyMetricsSummary> {
-  const [
-    driverProfiles,
-    currentLocations,
-    activeZones,
-  ] = await Promise.all([
+  const [driverProfiles, currentLocations, activeZones] = await Promise.all([
     prisma.driverProfile.findMany({
       where: {
         approvalStatus: DriverApprovalStatus.APPROVED,
@@ -90,7 +86,11 @@ export async function getSupplyMetrics(
       continue;
     }
 
-    const zEntry = zoneSupplyMap[zone.id] || { availableSupply: 0, busySupply: 0, eligibleSupply: 0 };
+    const zEntry = zoneSupplyMap[zone.id] || {
+      availableSupply: 0,
+      busySupply: 0,
+      eligibleSupply: 0,
+    };
 
     if (driver.availabilityStatus === DriverAvailabilityStatus.AVAILABLE) {
       onlineDrivers++;

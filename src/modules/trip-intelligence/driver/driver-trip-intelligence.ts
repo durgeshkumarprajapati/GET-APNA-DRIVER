@@ -12,7 +12,10 @@ export class DriverTripIntelligence {
   private recommendationService = new TripRecommendationService();
   private eventService = new TripEventService();
 
-  async getDriverTripIntelligence(userId: string, bookingId: string): Promise<TripIntelligenceResult | null> {
+  async getDriverTripIntelligence(
+    userId: string,
+    bookingId: string,
+  ): Promise<TripIntelligenceResult | null> {
     const driverProfile = await prisma.driverProfile.findUnique({
       where: { userId },
       select: { id: true },
@@ -57,16 +60,21 @@ export class DriverTripIntelligence {
       driverArrivedAt: booking.driverArrivedAt,
       tripStartedAt: booking.tripStartedAt,
       tripCompletedAt: booking.tripCompletedAt,
-      driverTelemetry: telemetry?.driverLocation ? {
-        latitude: telemetry.driverLocation.latitude,
-        longitude: telemetry.driverLocation.longitude,
-        capturedAt: telemetry.driverLocation.capturedAt,
-      } : null,
+      driverTelemetry: telemetry?.driverLocation
+        ? {
+            latitude: telemetry.driverLocation.latitude,
+            longitude: telemetry.driverLocation.longitude,
+            capturedAt: telemetry.driverLocation.capturedAt,
+          }
+        : null,
 
       activeSafetyIncident: Boolean(activeSafetyIncident),
     });
 
-    const confidence = this.riskService.evaluateConfidence(extraction.freshness, extraction.signalType);
+    const confidence = this.riskService.evaluateConfidence(
+      extraction.freshness,
+      extraction.signalType,
+    );
 
     const actions = this.recommendationService.generateActions({
       role: 'DRIVER',
@@ -90,7 +98,10 @@ export class DriverTripIntelligence {
     });
 
     const title = this.formatSignalTitle(extraction.signalType);
-    const explanation = this.formatSignalExplanation(extraction.signalType, extraction.distanceMeters);
+    const explanation = this.formatSignalExplanation(
+      extraction.signalType,
+      extraction.distanceMeters,
+    );
 
     return {
       bookingId,
@@ -106,24 +117,37 @@ export class DriverTripIntelligence {
 
   private formatSignalTitle(signalType: string): string {
     switch (signalType) {
-      case 'SAFETY_REQUIRED': return 'Emergency Safety Alert Active';
-      case 'DRIVER_ARRIVED': return 'Arrived At Pickup Point';
-      case 'DRIVER_NEAR_PICKUP': return 'Pickup Point Approaching';
-      case 'TRIP_PROGRESS': return 'Trip In Progress';
-      case 'DESTINATION_NEAR': return 'Destination Approaching';
-      case 'TRIP_COMPLETED': return 'Trip Completed';
-      default: return 'Booking Assigned';
+      case 'SAFETY_REQUIRED':
+        return 'Emergency Safety Alert Active';
+      case 'DRIVER_ARRIVED':
+        return 'Arrived At Pickup Point';
+      case 'DRIVER_NEAR_PICKUP':
+        return 'Pickup Point Approaching';
+      case 'TRIP_PROGRESS':
+        return 'Trip In Progress';
+      case 'DESTINATION_NEAR':
+        return 'Destination Approaching';
+      case 'TRIP_COMPLETED':
+        return 'Trip Completed';
+      default:
+        return 'Booking Assigned';
     }
   }
 
   private formatSignalExplanation(signalType: string, distanceMeters?: number): string {
     switch (signalType) {
-      case 'SAFETY_REQUIRED': return 'Emergency alert active. Follow safety guidelines.';
-      case 'DRIVER_ARRIVED': return 'You have arrived at customer pickup. Verify ride PIN when customer enters.';
-      case 'DRIVER_NEAR_PICKUP': return `Customer pickup point is approximately ${distanceMeters || 350}m away.`;
-      case 'DESTINATION_NEAR': return 'Customer dropoff destination is nearby.';
-      case 'TRIP_COMPLETED': return 'Trip completed successfully. Review earnings and incentive progress below.';
-      default: return 'Booking is assigned. Tap View Pickup to see pickup location.';
+      case 'SAFETY_REQUIRED':
+        return 'Emergency alert active. Follow safety guidelines.';
+      case 'DRIVER_ARRIVED':
+        return 'You have arrived at customer pickup. Verify ride PIN when customer enters.';
+      case 'DRIVER_NEAR_PICKUP':
+        return `Customer pickup point is approximately ${distanceMeters || 350}m away.`;
+      case 'DESTINATION_NEAR':
+        return 'Customer dropoff destination is nearby.';
+      case 'TRIP_COMPLETED':
+        return 'Trip completed successfully. Review earnings and incentive progress below.';
+      default:
+        return 'Booking is assigned. Tap View Pickup to see pickup location.';
     }
   }
 }

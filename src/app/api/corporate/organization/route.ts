@@ -40,7 +40,10 @@ export const PATCH = withAuth(async (req, { principal }) => {
     const body = await req.json();
     const membership = await getUserActiveOrganization(principal.userId);
     if (!membership) {
-      return NextResponse.json({ error: 'No active corporate organization found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'No active corporate organization found' },
+        { status: 404 },
+      );
     }
     const updated = await updateOrganization(membership.organizationId, principal.userId, body);
     return NextResponse.json({ organization: updated }, { status: 200 });

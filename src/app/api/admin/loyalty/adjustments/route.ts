@@ -39,7 +39,9 @@ export const POST = withPermission(PERMISSIONS.ADMIN_LOYALTY_ADJUST, async (req,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to adjust points';
-    return NextResponse.json({ success: false, error: 'POINTS_ADJUST_FAILED', message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'POINTS_ADJUST_FAILED', message },
+      { status: 500 },
+    );
   }
 });
-

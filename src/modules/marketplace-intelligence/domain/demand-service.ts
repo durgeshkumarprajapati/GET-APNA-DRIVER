@@ -64,12 +64,7 @@ export async function getDemandMetrics(query: DemandWindowQuery): Promise<Demand
     whereClause.vehicleCategory = vehicleCategory;
   }
 
-  const [
-    allBookings,
-    assignmentAttempts,
-    scheduledRides,
-    activeZones,
-  ] = await Promise.all([
+  const [allBookings, assignmentAttempts, scheduledRides, activeZones] = await Promise.all([
     prisma.booking.findMany({
       where: whereClause,
       select: {

@@ -30,7 +30,9 @@ export default function CorporatePoliciesPage() {
           setName(p.name);
           setMaxFareAmount(p.maxFareAmount ? String(p.maxFareAmount) : '5000');
           setMaxDistanceKm(p.maxDistanceKm ? String(p.maxDistanceKm) : '100');
-          setRequireApprovalAboveAmount(p.requireApprovalAboveAmount ? String(p.requireApprovalAboveAmount) : '3000');
+          setRequireApprovalAboveAmount(
+            p.requireApprovalAboveAmount ? String(p.requireApprovalAboveAmount) : '3000',
+          );
           setRequireApprovalAllRides(p.requireApprovalAllRides ?? false);
         }
       } catch (err: unknown) {
@@ -57,7 +59,9 @@ export default function CorporatePoliciesPage() {
           isDefault: true,
           maxFareAmount: maxFareAmount ? Number(maxFareAmount) : null,
           maxDistanceKm: maxDistanceKm ? Number(maxDistanceKm) : null,
-          requireApprovalAboveAmount: requireApprovalAboveAmount ? Number(requireApprovalAboveAmount) : null,
+          requireApprovalAboveAmount: requireApprovalAboveAmount
+            ? Number(requireApprovalAboveAmount)
+            : null,
           requireApprovalAllRides,
         }),
       });
@@ -87,7 +91,8 @@ export default function CorporatePoliciesPage() {
             Corporate Travel Policies
           </h1>
           <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-            Configure fare limits, distance caps, vehicle permissions, and manager approval triggers for employee bookings.
+            Configure fare limits, distance caps, vehicle permissions, and manager approval triggers
+            for employee bookings.
           </p>
         </div>
 
@@ -100,7 +105,9 @@ export default function CorporatePoliciesPage() {
         {success && (
           <div className="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
             <span className="material-symbols-outlined text-base">check_circle</span>
-            <span>Corporate travel policy updated & active immediately across all employee bookings!</span>
+            <span>
+              Corporate travel policy updated & active immediately across all employee bookings!
+            </span>
           </div>
         )}
 
@@ -109,9 +116,14 @@ export default function CorporatePoliciesPage() {
             Loading travel policy rules...
           </div>
         ) : (
-          <form onSubmit={handleSave} className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-6">
+          <form
+            onSubmit={handleSave}
+            className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-6"
+          >
             <div className="space-y-1">
-              <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Policy Name</label>
+              <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                Policy Name
+              </label>
               <input
                 type="text"
                 value={name}
@@ -123,7 +135,9 @@ export default function CorporatePoliciesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Maximum Fare Amount Cap (₹)</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Maximum Fare Amount Cap (₹)
+                </label>
                 <input
                   type="number"
                   value={maxFareAmount}
@@ -131,11 +145,15 @@ export default function CorporatePoliciesPage() {
                   placeholder="5000"
                   className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
                 />
-                <span className="text-[10px] text-[#87948b] font-mono">Fares exceeding this trigger approval request</span>
+                <span className="text-[10px] text-[#87948b] font-mono">
+                  Fares exceeding this trigger approval request
+                </span>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Maximum Distance Cap (KM)</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Maximum Distance Cap (KM)
+                </label>
                 <input
                   type="number"
                   value={maxDistanceKm}
@@ -143,13 +161,17 @@ export default function CorporatePoliciesPage() {
                   placeholder="100"
                   className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
                 />
-                <span className="text-[10px] text-[#87948b] font-mono">Trips exceeding this distance require approval</span>
+                <span className="text-[10px] text-[#87948b] font-mono">
+                  Trips exceeding this distance require approval
+                </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#262a33]">
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Manager Approval Threshold (₹)</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Manager Approval Threshold (₹)
+                </label>
                 <input
                   type="number"
                   value={requireApprovalAboveAmount}
@@ -157,7 +179,9 @@ export default function CorporatePoliciesPage() {
                   placeholder="3000"
                   className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
                 />
-                <span className="text-[10px] text-[#87948b] font-mono">Rides priced equal or above this value auto-route to approval queue</span>
+                <span className="text-[10px] text-[#87948b] font-mono">
+                  Rides priced equal or above this value auto-route to approval queue
+                </span>
               </div>
 
               <div className="flex items-center gap-3 pt-4">
@@ -168,7 +192,10 @@ export default function CorporatePoliciesPage() {
                   onChange={(e) => setRequireApprovalAllRides(e.target.checked)}
                   className="w-4 h-4 rounded bg-[#0a0e16] border-[#262a33] text-[#25a475] focus:ring-[#68dba9]"
                 />
-                <label htmlFor="requireAll" className="text-xs font-mono text-[#dfe2ee] cursor-pointer">
+                <label
+                  htmlFor="requireAll"
+                  className="text-xs font-mono text-[#dfe2ee] cursor-pointer"
+                >
                   Require manager approval on ALL corporate bookings regardless of fare
                 </label>
               </div>

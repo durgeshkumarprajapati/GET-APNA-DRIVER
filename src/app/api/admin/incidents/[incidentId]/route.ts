@@ -49,5 +49,5 @@ export const GET = withPermission<RouteParams>(
       const message = err instanceof Error ? err.message : 'Failed to fetch incident details.';
       return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

@@ -9,9 +9,7 @@ jest.mock('@/shared/database/prisma', () => ({
 }));
 
 import { prisma } from '@/shared/database/prisma';
-import {
-  resolveZoneForLocation,
-} from '@/modules/marketplace-intelligence/domain/zone-service';
+import { resolveZoneForLocation } from '@/modules/marketplace-intelligence/domain/zone-service';
 import { MarketplaceZoneStatus } from '@prisma/client';
 
 describe('Marketplace Zone Service Tests', () => {
@@ -34,7 +32,7 @@ describe('Marketplace Zone Service Tests', () => {
     ]);
 
     // Pickup near airport (distance ~100m)
-    const result = await resolveZoneForLocation(19.0890, 72.8650);
+    const result = await resolveZoneForLocation(19.089, 72.865);
 
     expect(result.id).toBe('zone-airport');
     expect(result.code).toBe('AIRPORT_HUB');

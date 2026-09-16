@@ -34,11 +34,20 @@ export const POST = withAuth(async (req, { principal }) => {
       maxFareAmount: body.maxFareAmount !== undefined ? Number(body.maxFareAmount) : undefined,
       maxDistanceKm: body.maxDistanceKm !== undefined ? Number(body.maxDistanceKm) : undefined,
       allowedVehicleCategories: body.allowedVehicleCategories,
-      requireApprovalAboveAmount: body.requireApprovalAboveAmount !== undefined ? Number(body.requireApprovalAboveAmount) : undefined,
+      requireApprovalAboveAmount:
+        body.requireApprovalAboveAmount !== undefined
+          ? Number(body.requireApprovalAboveAmount)
+          : undefined,
       requireApprovalAllRides: body.requireApprovalAllRides,
-      allowAdvanceBookingHours: body.allowAdvanceBookingHours !== undefined ? Number(body.allowAdvanceBookingHours) : undefined,
+      allowAdvanceBookingHours:
+        body.allowAdvanceBookingHours !== undefined
+          ? Number(body.allowAdvanceBookingHours)
+          : undefined,
       allowedBookingDays: body.allowedBookingDays,
-      monthlyEmployeeSpendLimit: body.monthlyEmployeeSpendLimit !== undefined ? Number(body.monthlyEmployeeSpendLimit) : undefined,
+      monthlyEmployeeSpendLimit:
+        body.monthlyEmployeeSpendLimit !== undefined
+          ? Number(body.monthlyEmployeeSpendLimit)
+          : undefined,
       status: body.status,
     });
 

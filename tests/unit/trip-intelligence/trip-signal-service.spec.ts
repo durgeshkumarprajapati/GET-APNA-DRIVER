@@ -9,8 +9,8 @@ describe('TripSignalService Unit Tests', () => {
         status: 'ASSIGNED',
         pickupLatitude: 22.3072,
         pickupLongitude: 73.1812,
-        dropoffLatitude: 22.3150,
-        dropoffLongitude: 73.2000,
+        dropoffLatitude: 22.315,
+        dropoffLongitude: 73.2,
         driverTelemetry: null,
       });
 
@@ -25,8 +25,8 @@ describe('TripSignalService Unit Tests', () => {
         pickupLongitude: 73.1812,
         driverEnRouteAt: new Date(),
         driverTelemetry: {
-          latitude: 22.3200,
-          longitude: 73.1900,
+          latitude: 22.32,
+          longitude: 73.19,
           capturedAt: new Date(Date.now() - 5000), // 5s ago
         },
       });

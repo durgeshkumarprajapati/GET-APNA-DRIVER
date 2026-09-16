@@ -28,7 +28,10 @@ describe('TripEventService Idempotency Tests', () => {
   });
 
   it('should create event and return true if fingerprint is unique', async () => {
-    (prisma.tripIntelligenceEvent.create as jest.Mock).mockResolvedValue({ id: 'evt_1', fingerprint: 'b1:u1:DRIVER_ARRIVED' });
+    (prisma.tripIntelligenceEvent.create as jest.Mock).mockResolvedValue({
+      id: 'evt_1',
+      fingerprint: 'b1:u1:DRIVER_ARRIVED',
+    });
 
     const result = await eventService.recordIntelligenceEvent({
       bookingId: 'b1',
@@ -53,7 +56,9 @@ describe('TripEventService Idempotency Tests', () => {
   });
 
   it('should return false if database throws duplicate constraint error (idempotent duplicate event)', async () => {
-    (prisma.tripIntelligenceEvent.create as jest.Mock).mockRejectedValue(new Error('Unique constraint failed on fingerprint'));
+    (prisma.tripIntelligenceEvent.create as jest.Mock).mockRejectedValue(
+      new Error('Unique constraint failed on fingerprint'),
+    );
 
     const result = await eventService.recordIntelligenceEvent({
       bookingId: 'b1',

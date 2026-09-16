@@ -224,11 +224,12 @@ describe('Phase 40 Notification & Engagement Center Service Unit Tests', () => {
     });
 
     it('enforces SAFETY category preference as non-disableable', async () => {
-      mockDb.notificationPreference.upsert.mockImplementation((args: { create: Record<string, unknown> }) =>
-        Promise.resolve({
-          id: 'pref-safety',
-          ...args.create,
-        }),
+      mockDb.notificationPreference.upsert.mockImplementation(
+        (args: { create: Record<string, unknown> }) =>
+          Promise.resolve({
+            id: 'pref-safety',
+            ...args.create,
+          }),
       );
 
       const pref = await updateUserNotificationPreference(
@@ -240,7 +241,12 @@ describe('Phase 40 Notification & Engagement Center Service Unit Tests', () => {
       expect(pref.push).toBe(true);
       expect(pref.email).toBe(true);
 
-      const isEnabled = await isChannelEnabledForCategory('user-1', 'SAFETY', 'push', mockDb as never);
+      const isEnabled = await isChannelEnabledForCategory(
+        'user-1',
+        'SAFETY',
+        'push',
+        mockDb as never,
+      );
       expect(isEnabled).toBe(true);
     });
   });

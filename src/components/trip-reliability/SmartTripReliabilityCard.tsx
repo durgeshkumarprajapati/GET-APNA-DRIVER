@@ -17,27 +17,33 @@ export function SmartTripReliabilityCard({ reliability }: SmartTripReliabilityCa
   }
 
   return (
-    <div className={`p-4 rounded-2xl border shadow-lg space-y-3 ${
-      reliability.severity === 'CRITICAL' || reliability.severity === 'HIGH'
-        ? 'bg-rose-950/40 border-rose-800/60 text-rose-100'
-        : 'bg-slate-900 border-slate-800 text-slate-100'
-    }`}>
+    <div
+      className={`p-4 rounded-2xl border shadow-lg space-y-3 ${
+        reliability.severity === 'CRITICAL' || reliability.severity === 'HIGH'
+          ? 'bg-rose-950/40 border-rose-800/60 text-rose-100'
+          : 'bg-slate-900 border-slate-800 text-slate-100'
+      }`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${
-            reliability.hasActiveIncident ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
-          }`}></span>
+          <span
+            className={`w-2.5 h-2.5 rounded-full ${
+              reliability.hasActiveIncident ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+            }`}
+          ></span>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
             Trip Reliability Monitor
           </span>
         </div>
         {reliability.severity && (
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-            reliability.severity === 'CRITICAL'
-              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-              : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-          }`}>
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+              reliability.severity === 'CRITICAL'
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+            }`}
+          >
             {reliability.severity} SEVERITY
           </span>
         )}
@@ -46,7 +52,9 @@ export function SmartTripReliabilityCard({ reliability }: SmartTripReliabilityCa
       {/* Title & Explanation */}
       <div>
         <h3 className="text-sm font-bold text-slate-100">{reliability.statusTitle}</h3>
-        <p className="text-xs text-slate-300 mt-1 leading-relaxed">{reliability.statusExplanation}</p>
+        <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+          {reliability.statusExplanation}
+        </p>
       </div>
 
       {/* Actions */}

@@ -22,7 +22,11 @@ export class AIService {
     const startTime = Date.now();
     const config = getAIConfig();
 
-    if (!config.enabled || (input.role === 'CUSTOMER' && !config.customerEnabled) || (input.role === 'DRIVER' && !config.driverEnabled)) {
+    if (
+      !config.enabled ||
+      (input.role === 'CUSTOMER' && !config.customerEnabled) ||
+      (input.role === 'DRIVER' && !config.driverEnabled)
+    ) {
       return {
         message: 'AI Assistant is currently unavailable.',
         intent: 'GENERAL_ASSISTANCE',

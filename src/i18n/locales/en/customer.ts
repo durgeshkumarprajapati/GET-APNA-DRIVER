@@ -529,9 +529,11 @@ export const customerEn = {
   tripReliability: {
     title: 'Trip Reliability Monitor',
     findingDriver: 'Finding Your Driver',
-    researchingDriver: "Your assigned driver is unavailable. We're searching for another verified driver.",
+    researchingDriver:
+      "Your assigned driver is unavailable. We're searching for another verified driver.",
     locationStale: 'Location Signal Stale',
-    locationStaleNotice: "We haven't received a recent location update from your driver. Your trip remains active.",
+    locationStaleNotice:
+      "We haven't received a recent location update from your driver. Your trip remains active.",
     pickupDelay: 'Pickup Route Delay',
     pickupDelayNotice: 'Your driver is experiencing traffic delays en route to your pickup point.',
     safetyPriority: 'Safety Priority Active',
@@ -541,4 +543,3 @@ export const customerEn = {
     contactSupport: 'Contact Support',
   },
 };
-

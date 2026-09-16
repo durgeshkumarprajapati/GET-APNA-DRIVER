@@ -5,7 +5,12 @@ import { createApprovalRequest } from './corporate-approval-service';
 import { findAndOfferNextDriver } from '@/modules/booking/application/matching-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
-import { BookingStatus, BookingType, OrganizationMemberStatus, ApprovalStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  BookingType,
+  OrganizationMemberStatus,
+  ApprovalStatus,
+} from '@prisma/client';
 
 export interface CreateCorporateBookingParams {
   organizationId: string;
@@ -187,7 +192,7 @@ export async function listCorporateBookings(
     costCenterId?: string;
     status?: BookingStatus;
     limit?: number;
-  }
+  },
 ) {
   return await prisma.booking.findMany({
     where: {

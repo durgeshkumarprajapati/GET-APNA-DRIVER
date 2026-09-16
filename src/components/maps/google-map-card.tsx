@@ -38,7 +38,9 @@ export function GoogleMapCard({
 }: GoogleMapCardProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const advancedMarkersRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
+  const advancedMarkersRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(
+    new Map(),
+  );
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -50,7 +52,8 @@ export function GoogleMapCard({
   const createMarkerElement = useCallback((m: MapMarkerDefinition) => {
     const style = MARKER_COLORS[m.type] || MARKER_COLORS.PICKUP;
     const el = document.createElement('div');
-    el.className = 'flex items-center justify-center p-1.5 rounded-full shadow-lg border-2 border-white transition-transform hover:scale-110';
+    el.className =
+      'flex items-center justify-center p-1.5 rounded-full shadow-lg border-2 border-white transition-transform hover:scale-110';
     el.style.backgroundColor = style.bg;
     el.style.color = style.text;
     el.title = m.title;

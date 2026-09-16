@@ -57,7 +57,11 @@ describe('Booking Location Authorization & IDOR Protection Tests', () => {
         driverProfileId: 'driver-profile-1',
       });
 
-      const result = await getCustomerBookingLocationTelemetry('customer-1', 'booking-1', mockDb as never);
+      const result = await getCustomerBookingLocationTelemetry(
+        'customer-1',
+        'booking-1',
+        mockDb as never,
+      );
 
       expect(result.bookingId).toBe('booking-1');
       expect(result.driverLocation).toBeNull();
@@ -82,19 +86,23 @@ describe('Booking Location Authorization & IDOR Protection Tests', () => {
 
       mockDb.driverCurrentLocation.findUnique.mockResolvedValue({
         driverProfileId: 'driver-profile-1',
-        latitude: 19.080,
-        longitude: 72.880,
+        latitude: 19.08,
+        longitude: 72.88,
         heading: 90,
         speed: 35,
         accuracy: 5,
         capturedAt: new Date('2026-09-15T15:00:00Z'),
       });
 
-      const result = await getCustomerBookingLocationTelemetry('customer-1', 'booking-1', mockDb as never);
+      const result = await getCustomerBookingLocationTelemetry(
+        'customer-1',
+        'booking-1',
+        mockDb as never,
+      );
 
       expect(result.bookingId).toBe('booking-1');
       expect(result.driverLocation).not.toBeNull();
-      expect(result.driverLocation?.latitude).toBe(19.080);
+      expect(result.driverLocation?.latitude).toBe(19.08);
       expect(result.assignedDriver?.displayName).toBe('John Driver');
     });
   });
@@ -141,7 +149,11 @@ describe('Booking Location Authorization & IDOR Protection Tests', () => {
         capturedAt: new Date(),
       });
 
-      const result = await getDriverBookingLocationTelemetry('driver-user-1', 'booking-1', mockDb as never);
+      const result = await getDriverBookingLocationTelemetry(
+        'driver-user-1',
+        'booking-1',
+        mockDb as never,
+      );
 
       expect(result.bookingId).toBe('booking-1');
       expect(result.pickupLocation.latitude).toBe(19.076);
