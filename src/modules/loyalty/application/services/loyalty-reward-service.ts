@@ -1,6 +1,7 @@
 import 'server-only';
 import {
   LoyaltyRewardStatus,
+  LoyaltyRewardType,
   LoyaltyTransactionType,
   LoyaltyRedemptionStatus,
   Prisma,
@@ -249,3 +250,30 @@ export async function redeemReward(
   }
   return runInTx(db);
 }
+
+export async function listAllLoyaltyRewardsForAdmin(db: Db = prisma) {
+  const rewards = await db.loyaltyReward.findMany({
+    include: { minimumTier: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return rewards.map((reward) => ({
+    id: reward.id,
+    rewardCode: reward.title.toUpperCase().replace(/\s+/g, '_'),
+    title: reward.title,
+    description: reward.description,
+    rewardType: reward.rewardType,
+    pointsCost: reward.pointsRequired,
+    minTierCode: reward.minimumTier?.code ?? 'BRONZE',
+    discountType: reward.rewardType === LoyaltyRewardType.DISCOUNT ? 'FLAT_AMOUNT' : 'FLAT_AMOUNT',
+
+    discountValue: reward.discountValue ? Number(reward.discountValue) : 0,
+    active: reward.status === LoyaltyRewardStatus.ACTIVE,
+    singleUse: reward.perCustomerLimit === 1,
+    maxRedemptionsPerUser: reward.perCustomerLimit,
+    maxTotalRedemptions: reward.totalRedemptionLimit,
+    currentRedemptionsCount: reward.totalRedeemedCount,
+    createdAt: reward.createdAt.toISOString(),
+  }));
+}
+

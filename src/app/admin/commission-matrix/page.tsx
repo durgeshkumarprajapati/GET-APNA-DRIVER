@@ -33,17 +33,20 @@ export default function AdminCommissionMatrixPage() {
 
   const load = async () => {
     try {
+      setError(null);
       const res = await fetch('/api/admin/commission');
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
         setPolicy(data.policy);
         setEditValue(data.policy.percentage);
-        setHistory(data.history.entries ?? []);
+        setHistory(data.history?.entries ?? []);
         setError(null);
       } else {
-        setError('Failed to load commission policy.');
+        setPolicy(null);
+        setError(data.message || 'Failed to load commission policy.');
       }
     } catch (err) {
+      setPolicy(null);
       setError(err instanceof Error ? err.message : 'Failed to load commission policy.');
     } finally {
       setLoading(false);
@@ -94,8 +97,19 @@ export default function AdminCommissionMatrixPage() {
         />
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-            {error}
+          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true);
+                setError(null);
+                void load();
+              }}
+              className="px-3 py-1 bg-[#93000a] hover:bg-[#b21c24] text-white rounded font-mono text-xs font-bold transition-colors flex items-center gap-1"
+            >
+              <span>Retry</span>
+            </button>
           </div>
         )}
         {message && (
@@ -107,6 +121,7 @@ export default function AdminCommissionMatrixPage() {
         {loading ? (
           <LoadingState message="Loading commission policy…" />
         ) : (
+
           policy && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

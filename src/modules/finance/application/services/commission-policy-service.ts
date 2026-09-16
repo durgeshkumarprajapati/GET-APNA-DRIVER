@@ -37,12 +37,20 @@ export interface CommissionPolicy {
  */
 export async function getCommissionPolicy(db: Db = prisma): Promise<CommissionPolicy> {
   const config = await getConfiguration(COMMISSION_RATE_CONFIG_KEY, db);
+  const rawUpdatedAt = config?.updatedAt ?? config?.createdAt;
+  const updatedAtDate = rawUpdatedAt
+    ? rawUpdatedAt instanceof Date
+      ? rawUpdatedAt
+      : new Date(rawUpdatedAt)
+    : new Date();
+
   return {
     percentage: config?.value ?? DEFAULT_COMMISSION_PERCENTAGE,
-    updatedAt: (config?.updatedAt ?? config?.createdAt ?? new Date()).toISOString(),
+    updatedAt: updatedAtDate.toISOString(),
     updatedBy: config?.updatedBy ?? null,
   };
 }
+
 
 export class InvalidCommissionPercentageError extends Error {
   constructor(value: string) {
