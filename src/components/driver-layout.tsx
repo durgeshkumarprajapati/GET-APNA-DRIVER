@@ -104,6 +104,11 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
       label: t('driver.nav.growthReputation'),
       items: [
         {
+          href: '/driver/offers',
+          label: t('driver.nav.offers', { defaultValue: 'Offers & Perks' }),
+          icon: 'confirmation_number',
+        },
+        {
           href: '/driver/performance-and-badges',
           label: t('driver.nav.performanceAndBadges'),
           icon: 'military_tech',
@@ -217,7 +222,11 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           </div>
 
           {/* Navigation Links */}
-          <nav ref={sidebarRef} onScroll={handleSidebarScroll} className="flex-1 overflow-y-auto px-3 space-y-4 mt-3">
+          <nav
+            ref={sidebarRef}
+            onScroll={handleSidebarScroll}
+            className="flex-1 overflow-y-auto px-3 space-y-4 mt-3"
+          >
             {navGroups.map((group) => (
               <div key={group.label} className="space-y-1">
                 <span className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
@@ -311,7 +320,11 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                     {userEmail ?? 'Driver'}
                   </span>
                 </div>
-                <UserAvatar src={null} name={userEmail || 'Driver Profile'} className="w-8 h-8 ring-1 ring-[#68dba9]" />
+                <UserAvatar
+                  src={null}
+                  name={userEmail || 'Driver Profile'}
+                  className="w-8 h-8 ring-1 ring-[#68dba9]"
+                />
                 <button
                   type="button"
                   onClick={() => void handleLogout()}

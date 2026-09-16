@@ -1,35 +1,35 @@
 'use client';
 
 import { useState } from 'react';
-import { CustomerLayout } from '@/components/customer-layout';
+import { DriverLayout } from '@/components/driver-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EnhancedOfferCard } from '@/components/ui/enhanced-offer-card';
-import { CUSTOMER_OFFERS_CATALOG } from '@/modules/promotion/domain/offers-catalog';
+import { DRIVER_OFFERS_CATALOG } from '@/modules/promotion/domain/offers-catalog';
 import { useTranslation } from '@/i18n/context';
 
-export default function CustomerOffersPage() {
+export default function DriverOffersPage() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<
     'ALL' | 'DISCOUNT' | 'GIFT_BOX' | 'SCRATCH_CARD' | 'LOCKED'
   >('ALL');
 
-  const filteredOffers = CUSTOMER_OFFERS_CATALOG.filter((offer) => {
+  const filteredOffers = DRIVER_OFFERS_CATALOG.filter((offer) => {
     if (activeTab === 'ALL') return true;
     if (activeTab === 'LOCKED') return offer.isLocked;
     return offer.category === activeTab;
   });
 
   return (
-    <CustomerLayout>
-      <div className="flex flex-col w-full gap-6">
+    <DriverLayout>
+      <div className="p-6 flex flex-col w-full gap-6 bg-[#0f131c] min-h-screen text-[#dfe2ee]">
         <PageHeader
-          eyebrow={t('customer.offers.eyebrow', { defaultValue: 'REWARDS & SAVINGS' })}
-          title={t('customer.offers.title', {
-            defaultValue: 'Exclusive Customer Offers & Coupons',
+          eyebrow={t('driver.offers.eyebrow', { defaultValue: 'PARTNER INCENTIVES & PERKS' })}
+          title={t('driver.offers.title', {
+            defaultValue: 'Driver Offers, Bonus Vouchers & Rewards',
           })}
-          subtitle={t('customer.offers.subtitle', {
+          subtitle={t('driver.offers.subtitle', {
             defaultValue:
-              'Claim ride discounts, reveal lucky scratch cards, and unlock festive surprise gift boxes.',
+              'Earn shift bonuses, unlock monthly milestone gift boxes, and scratch weekly reliability cards.',
           })}
         />
 
@@ -44,7 +44,7 @@ export default function CustomerOffersPage() {
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
             }`}
           >
-            All Offers ({CUSTOMER_OFFERS_CATALOG.length})
+            All Driver Offers ({DRIVER_OFFERS_CATALOG.length})
           </button>
           <button
             type="button"
@@ -55,7 +55,7 @@ export default function CustomerOffersPage() {
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
             }`}
           >
-            Discount Coupons
+            Shift & Fuel Subsidies
           </button>
           <button
             type="button"
@@ -66,7 +66,7 @@ export default function CustomerOffersPage() {
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
             }`}
           >
-            Scratch Cards
+            Reliability Scratch Cards
           </button>
           <button
             type="button"
@@ -77,7 +77,7 @@ export default function CustomerOffersPage() {
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
             }`}
           >
-            Surprise Gift Boxes
+            Milestone Gift Boxes
           </button>
           <button
             type="button"
@@ -88,7 +88,7 @@ export default function CustomerOffersPage() {
                 : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
             }`}
           >
-            🔒 Locked Offers ({CUSTOMER_OFFERS_CATALOG.filter((o) => o.isLocked).length})
+            🔒 Locked Perks ({DRIVER_OFFERS_CATALOG.filter((o) => o.isLocked).length})
           </button>
         </div>
 
@@ -99,6 +99,6 @@ export default function CustomerOffersPage() {
           ))}
         </div>
       </div>
-    </CustomerLayout>
+    </DriverLayout>
   );
 }
