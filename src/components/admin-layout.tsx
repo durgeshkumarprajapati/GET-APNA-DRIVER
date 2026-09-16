@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
@@ -37,6 +37,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
   const [badgeCounts, setBadgeCounts] = useState<DashboardBadgeCounts | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,6 +61,39 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       clearInterval(interval);
     };
   }, []);
+
+  // Restore sidebar scroll position and scroll active item into view if out of bounds
+  useEffect(() => {
+    if (!sidebarRef.current) return;
+
+    const key = 'gad-admin-sidebar-scroll';
+    const storedScroll = sessionStorage.getItem(key);
+
+    if (storedScroll !== null && !isNaN(Number(storedScroll))) {
+      sidebarRef.current.scrollTop = Number(storedScroll);
+    }
+
+    const activeEl = sidebarRef.current.querySelector('[data-sidebar-active="true"]');
+    if (activeEl) {
+      const containerTop = sidebarRef.current.scrollTop;
+      const containerHeight = sidebarRef.current.clientHeight;
+      const containerBottom = containerTop + containerHeight;
+
+      const itemTop = (activeEl as HTMLElement).offsetTop;
+      const itemHeight = (activeEl as HTMLElement).offsetHeight;
+      const itemBottom = itemTop + itemHeight;
+
+      if (itemTop < containerTop || itemBottom > containerBottom) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    }
+  }, [pathname]);
+
+  const handleSidebarScroll = () => {
+    if (sidebarRef.current) {
+      sessionStorage.setItem('gad-admin-sidebar-scroll', String(sidebarRef.current.scrollTop));
+    }
+  };
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -196,7 +230,11 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       />
 
       {/* FIXED SIDEBAR — desktop only, md and up */}
-      <aside className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-[#0a0e16] border-r border-[#262a33] z-50 flex-col overflow-y-auto shadow-2xl">
+      <aside
+        ref={sidebarRef}
+        onScroll={handleSidebarScroll}
+        className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-[#0a0e16] border-r border-[#262a33] z-50 flex-col overflow-y-auto shadow-2xl"
+      >
         {/* Brand Header */}
         <div className="h-16 px-6 flex items-center gap-3 border-b border-[#262a33] shrink-0 bg-[#0a0e16]/80 backdrop-blur-md">
           <Link href="/admin/mission-dashboard" className="flex items-center gap-3">
@@ -221,30 +259,35 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
               <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
                 {group.label}
               </span>
-              {group.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-between gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
-                    isActive(item.href)
-                      ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
-                      : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-                  }`}
-                >
-                  <span className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </span>
-                  {!!item.badge && (
-                    <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] font-mono text-[10px] font-bold">
-                      {item.badge}
+              {group.items.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    data-sidebar-active={active ? 'true' : 'false'}
+                    className={`flex items-center justify-between gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
+                      active
+                        ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
+                        : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                      <span>{item.label}</span>
                     </span>
-                  )}
-                </Link>
-              ))}
+                    {!!item.badge && (
+                      <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] font-mono text-[10px] font-bold">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           ))}
         </nav>
+
 
         {/* Footer Security Badge */}
         <div className="p-3 border-t border-[#262a33] bg-[#0a0e16]/90">

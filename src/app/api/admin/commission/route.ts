@@ -10,16 +10,47 @@ import {
 } from '@/modules/finance/application/services/commission-policy-service';
 
 export const GET = withPermission(PERMISSIONS.FINANCE_COMMISSION_MANAGE, async (req) => {
-  const searchParams = req.nextUrl.searchParams;
-  const [policy, history] = await Promise.all([
-    getCommissionPolicy(),
-    getCommissionPolicyHistory({
-      page: Number(searchParams.get('page')) || undefined,
-      pageSize: Number(searchParams.get('pageSize')) || undefined,
-    }),
-  ]);
-  return NextResponse.json({ policy, history }, { status: 200 });
+  try {
+    const searchParams = req.nextUrl.searchParams;
+    let policy = null;
+    let history: { entries: unknown[]; total: number; page?: number; pageSize?: number } = {
+      entries: [],
+      total: 0,
+    };
+
+    try {
+      policy = await getCommissionPolicy();
+    } catch {
+      // Handled below if policy stays null
+    }
+
+    try {
+      history = await getCommissionPolicyHistory({
+        page: Number(searchParams.get('page')) || undefined,
+        pageSize: Number(searchParams.get('pageSize')) || undefined,
+      });
+    } catch {
+      // History fallback
+    }
+
+    if (!policy) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'COMMISSION_POLICY_LOAD_FAILED',
+          message: 'Failed to load commission policy.',
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ success: true, policy, history }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to load commission policy.';
+    return NextResponse.json({ success: false, error: 'COMMISSION_FETCH_FAILED', message }, { status: 500 });
+  }
 });
+
 
 const updateCommissionSchema = z.object({
   percentage: z.string().trim().min(1),

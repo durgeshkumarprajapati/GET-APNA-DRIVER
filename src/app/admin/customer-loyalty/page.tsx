@@ -57,13 +57,15 @@ export default function AdminCustomerLoyaltyPage() {
     let ignore = false;
     async function loadRewards() {
       try {
+        setError(null);
+        setLoading(true);
         const res = await fetch('/api/admin/loyalty/rewards');
-        if (!res.ok) {
-          throw new Error('Failed to load customer rewards catalog');
-        }
         const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || data.error || 'Failed to load customer rewards catalog');
+        }
         if (!ignore) {
-          setRewards(data.rewards || []);
+          setRewards(data.rewards || data.data || []);
         }
       } catch (err: unknown) {
         if (!ignore) {
@@ -88,22 +90,25 @@ export default function AdminCustomerLoyaltyPage() {
       setError(null);
       setAdjustSuccess(null);
 
+      const pts = Number(adjustPoints);
       const res = await fetch('/api/admin/loyalty/adjustments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerId: adjustCustomer,
-          points: Number(adjustPoints),
+          points: Math.abs(pts),
+          direction: pts >= 0 ? 'ADD' : 'DEDUCT',
           reason: adjustReason,
         }),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to adjust points');
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || 'Failed to adjust points');
       }
 
-      setAdjustSuccess(`Successfully adjusted points! New balance: ${data.account?.pointsBalance}`);
+      const newBal = data.account?.currentPoints ?? data.account?.pointsBalance ?? 'Updated';
+      setAdjustSuccess(`Successfully adjusted points! New balance: ${newBal}`);
       setAdjustCustomer('');
       setAdjustReason('');
       setTimeout(() => {
@@ -134,8 +139,8 @@ export default function AdminCustomerLoyaltyPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create reward');
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || 'Failed to create reward');
       }
 
       setCreateModalOpen(false);
@@ -196,13 +201,20 @@ export default function AdminCustomerLoyaltyPage() {
 
         {error && (
           <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/50 text-red-300 text-xs flex items-center justify-between">
-            <span>{error}</span>
+            <span className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">warning</span>
+              <span>{error}</span>
+            </span>
             <button
               type="button"
-              onClick={() => setError(null)}
-              className="text-red-400 hover:text-red-200"
+              onClick={() => {
+                setError(null);
+                setRefreshKey((k) => k + 1);
+              }}
+              className="px-3 py-1 bg-red-900/60 hover:bg-red-800/80 text-white rounded font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
             >
-              ✕
+              <span className="material-symbols-outlined text-xs">refresh</span>
+              <span>{t('common.actions.retry') || 'Retry'}</span>
             </button>
           </div>
         )}
@@ -219,14 +231,20 @@ export default function AdminCustomerLoyaltyPage() {
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[#bccac0] text-xs font-mono animate-pulse">
-              {t('common.labels.loading')}
+            <div className="p-12 text-center text-[#bccac0] text-xs font-mono animate-pulse flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+              <span>{t('common.labels.loading')}</span>
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center text-red-400 text-xs font-mono">
+              Failed to load rewards. Please click Retry above.
             </div>
           ) : rewards.length === 0 ? (
             <div className="p-12 text-center text-[#bccac0] text-xs font-mono">
               {t('admin.loyalty.noRewards')}
             </div>
           ) : (
+
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
