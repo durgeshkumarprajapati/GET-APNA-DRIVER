@@ -179,6 +179,10 @@ export const PERMISSIONS = {
   ADMIN_RISK_REVIEW: 'admin.risk.review',
   ADMIN_RISK_ACTION: 'admin.risk.action',
 
+  // Production Intelligent Experience Orchestration Engine (Phase 52)
+  ADMIN_EXPERIENCE_READ: 'admin.experience.read',
+  ADMIN_EXPERIENCE_MANAGE: 'admin.experience.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -598,5 +602,15 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.ADMIN_RISK_ACTION,
     description:
       'Execute advisory or policy-backed risk actions (verification request, warning, review lock).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_EXPERIENCE_READ,
+    description:
+      'View experience orchestration analytics, recommendation counts, latency breakdown, and dismissals.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_EXPERIENCE_MANAGE,
+    description:
+      'Manage experience orchestration policies, clear cached recommendations, and configure rule weights.',
   },
 ];

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { DriverEngagementWidget } from '@/components/driver/driver-engagement-widget';
+import { DriverExperienceSection } from '@/components/experience/driver-experience-section';
 
 interface AssignmentOffer {
   id: string;
@@ -193,6 +194,9 @@ export default function DriverDashboardPage() {
             </div>
           )}
         </section>
+
+        {/* Intelligent Experience Orchestration Engine (Phase 52) */}
+        <DriverExperienceSection />
 
         {error && (
           <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">

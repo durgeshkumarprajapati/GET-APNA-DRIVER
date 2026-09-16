@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CustomerRecommendationsWidget } from '@/components/customer/customer-recommendations-widget';
+import { CustomerExperienceSection } from '@/components/experience/customer-experience-section';
 import { useTranslation } from '@/i18n/context';
 
 interface CustomerProfile {
@@ -224,6 +225,9 @@ export default function CustomerDashboardPage() {
                 {t('customer.dashboard.editProfile')}
               </Link>
             </section>
+
+            {/* Intelligent Experience Orchestration Engine (Phase 52) */}
+            <CustomerExperienceSection />
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

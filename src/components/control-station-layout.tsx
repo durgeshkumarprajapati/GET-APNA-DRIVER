@@ -311,7 +311,9 @@ export function ControlStationLayout({
         </header>
 
         {/* MAIN PAGE BODY */}
-        <main className="relative pt-14 bg-[#0f131c] w-full min-h-screen p-3.5 sm:p-4">{children}</main>
+        <main className="relative pt-14 bg-[#0f131c] w-full min-h-screen p-3.5 sm:p-4">
+          {children}
+        </main>
       </div>
 
       {/* SEARCH MODAL */}

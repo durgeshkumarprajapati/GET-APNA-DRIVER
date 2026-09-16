@@ -163,6 +163,13 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           label: t('admin.nav.riskAndTrust', { defaultValue: 'Risk & Trust Engine' }),
           icon: 'security',
         },
+        {
+          href: '/admin/experience-orchestration',
+          label: t('admin.nav.experienceOrchestration', {
+            defaultValue: 'Experience Orchestrator',
+          }),
+          icon: 'psychology',
+        },
         { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
         {
           href: '/admin/scheduled-rides',
@@ -292,7 +299,9 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
                     }`}
                   >
                     <span className="flex items-center gap-2 min-w-0">
-                      <span className="material-symbols-outlined text-[17px] shrink-0">{item.icon}</span>
+                      <span className="material-symbols-outlined text-[17px] shrink-0">
+                        {item.icon}
+                      </span>
                       <span className="truncate">{item.label}</span>
                     </span>
                     {!!item.badge && (
@@ -385,7 +394,9 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         </header>
 
         {/* MAIN BODY AREA */}
-        <main className="relative w-full pt-14 bg-[#0f131c] min-h-screen p-3.5 sm:p-4">{children}</main>
+        <main className="relative w-full pt-14 bg-[#0f131c] min-h-screen p-3.5 sm:p-4">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -117,6 +117,7 @@ model User {
   aiConversations            AIConversation[]
   aiAuditLogs                AIAuditLog[]
   tripIntelligenceEvents     TripIntelligenceEvent[]
+  experienceDismissals       ExperienceDismissal[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -3450,6 +3451,21 @@ model PlatformAlert {
   @@index([status, severity])
   @@index([component, status])
   @@map("platform_alerts")
+}
+
+/// Phase 52 — Persistent dismissals for experience orchestration recommendations
+model ExperienceDismissal {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experienceType String    @map("experience_type")
+  fingerprint    String
+  dismissedAt    DateTime  @default(now()) @map("dismissed_at") @db.Timestamptz(6)
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+
+  @@unique([userId, fingerprint])
+  @@index([userId, experienceType])
+  @@map("experience_dismissals")
 }
 
 
