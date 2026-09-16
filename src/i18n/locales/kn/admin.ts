@@ -53,6 +53,8 @@ export const adminKn = {
     liveOpsMap: 'ಲೈವ್ ಆಪ್ಸ್ ಮ್ಯಾಪ್',
     kycApprovals: 'ಕೆವೈಸಿ ಅನುಮೋದನೆಗಳು',
     marketplaceIntelligence: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ',
+    operationsCommandCenter: 'ಕಾರ್ಯಾಚರಣೆಗಳ ಕಮಾಂಡ್ ಸೆಂಟರ್',
+    scheduledRides: 'ನಿಗದಿತ ಸವಾರಿಗಳು',
   },
   marketplaceIntelligence: {
     title: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ ಕನ್ಸೋಲ್',

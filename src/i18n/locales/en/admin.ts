@@ -53,6 +53,8 @@ export const adminEn = {
     liveOpsMap: 'Live Ops Map',
     kycApprovals: 'KYC Approvals',
     marketplaceIntelligence: 'Marketplace Intelligence',
+    operationsCommandCenter: 'Operations Command Center',
+    scheduledRides: 'Scheduled Rides',
   },
   marketplaceIntelligence: {
     title: 'Marketplace Intelligence Console',

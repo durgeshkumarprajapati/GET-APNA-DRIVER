@@ -1,5 +1,6 @@
 'use client';
 
+import { UserAvatar } from './ui/user-avatar';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -148,8 +149,13 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
     {
       label: t('admin.nav.operations'),
       items: [
+        {
+          href: '/admin/operations-command-center',
+          label: t('admin.nav.operationsCommandCenter', { defaultValue: 'Operations Command Center' }),
+          icon: 'terminal',
+        },
         { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
-        { href: '/admin/scheduled-rides', label: t('scheduledRides.adminTitle'), icon: 'schedule' },
+        { href: '/admin/scheduled-rides', label: t('admin.nav.scheduledRides', { defaultValue: 'Scheduled Rides' }), icon: 'schedule' },
         {
           href: '/admin/sos-and-disputes',
           label: t('admin.nav.sosAndDisputes'),
@@ -346,10 +352,8 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
                 </div>
               </div>
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border-2 border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9] font-['Space_Grotesk']">
-                  {(userEmail ?? 'A').charAt(0).toUpperCase()}
-                </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] border-2 border-[#0a0e16]" />
+                <UserAvatar name={userEmail ?? 'Admin'} size={32} className="border-2 border-[#68dba9]" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] border-2 border-[#0a0e16] z-10" />
               </div>
               <button
                 type="button"

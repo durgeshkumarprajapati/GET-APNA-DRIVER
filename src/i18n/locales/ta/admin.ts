@@ -53,6 +53,8 @@ export const adminTa = {
     liveOpsMap: 'நேரலை வரைபடம்',
     kycApprovals: 'கேஒய்சி ஒப்புதல்கள்',
     marketplaceIntelligence: 'சந்தை நுண்ணறிவு',
+    operationsCommandCenter: 'செயல்பாட்டு கட்டளை மையம்',
+    scheduledRides: 'திட்டமிடப்பட்ட சவாரிகள்',
   },
   marketplaceIntelligence: {
     title: 'சந்தை நுண்ணறிவு கன்சோல்',
