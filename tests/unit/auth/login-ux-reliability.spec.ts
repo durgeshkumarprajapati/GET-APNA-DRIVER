@@ -10,22 +10,18 @@ jest.mock('@/shared/database/prisma', () => ({
       findUnique: jest.fn(),
     },
     customerProfile: {
-      findUnique: jest
-        .fn()
-        .mockResolvedValue({
-          id: 'cp-1',
-          userId: 'user-1',
-          firstName: 'Rahul',
-          lastName: 'Sharma',
-        }),
-      create: jest
-        .fn()
-        .mockResolvedValue({
-          id: 'cp-1',
-          userId: 'user-1',
-          firstName: 'Rahul',
-          lastName: 'Sharma',
-        }),
+      findUnique: jest.fn().mockResolvedValue({
+        id: 'cp-1',
+        userId: 'user-1',
+        firstName: 'Rahul',
+        lastName: 'Sharma',
+      }),
+      create: jest.fn().mockResolvedValue({
+        id: 'cp-1',
+        userId: 'user-1',
+        firstName: 'Rahul',
+        lastName: 'Sharma',
+      }),
     },
   },
 }));

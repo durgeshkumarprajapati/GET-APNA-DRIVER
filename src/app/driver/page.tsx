@@ -163,8 +163,8 @@ export default function DriverDashboardPage() {
 
   return (
     <DriverLayout>
-      <div className="flex flex-col w-full px-6 py-6 gap-6">
-        <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col w-full gap-3.5">
+        <section className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
               Welcome back

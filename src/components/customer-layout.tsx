@@ -203,12 +203,12 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       <aside
         ref={sidebarRef}
         onScroll={handleSidebarScroll}
-        className="hidden md:flex fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex-col justify-between border-r border-[#262a33]"
+        className="hidden md:flex fixed left-0 top-16 bottom-10 w-52 bg-[#0a0e16] z-40 overflow-y-auto px-2 py-3 flex-col justify-between border-r border-[#262a33]"
       >
-        <div className="space-y-5">
+        <div className="space-y-4">
           {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
+              <p className="px-2.5 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
                 {group.label}
               </p>
               <nav className="space-y-0.5">
@@ -217,7 +217,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                     key={item.href}
                     href={item.href}
                     data-sidebar-active={isActive(item.href)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
                       isActive(item.href)
                         ? item.href === '/customer/safety-sos'
                           ? 'bg-[#93000a] text-[#ffdad6] font-bold'
@@ -226,7 +226,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                     }`}
                   >
                     <span
-                      className={`material-symbols-outlined text-lg ${
+                      className={`material-symbols-outlined text-base ${
                         item.href === '/customer/safety-sos' && !isActive(item.href)
                           ? 'text-[#ffb4ab]'
                           : ''
@@ -234,7 +234,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                     >
                       {item.icon}
                     </span>
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 ))}
               </nav>
@@ -244,8 +244,8 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       </aside>
 
       {/* MAIN BODY AREA */}
-      <div className="md:pl-64">
-        <main className="w-full pt-16 pb-12 px-4 sm:px-6 min-h-screen bg-[#0f131c]">
+      <div className="md:pl-52">
+        <main className="w-full pt-14 pb-8 px-3 sm:px-4 min-h-screen bg-[#0f131c]">
           {children}
         </main>
       </div>
