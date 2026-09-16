@@ -16,6 +16,8 @@ export const authHi = {
     noAccount: 'खाता नहीं है?',
     registerLink: 'साइन अप करें',
     useOtp: 'मोबाइल ओटीपी से साइन इन करें',
+    useOtpTab: 'मोबाइल ओटीपी',
+    usePasswordTab: 'ईमेल एवं पासवर्ड',
     continue: 'जारी रखें',
     orDivider: 'या',
     continueWithGoogle: 'गूगल के साथ जारी रखें',

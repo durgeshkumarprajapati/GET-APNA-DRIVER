@@ -16,6 +16,8 @@ export const authMr = {
     noAccount: 'खाते नाही?',
     registerLink: 'साइन अप करा',
     useOtp: 'मोबाईल ओटीपीने साइन इन करा',
+    useOtpTab: 'मोबाइल ओटीपी',
+    usePasswordTab: 'ईमेल आणि पासवर्ड',
     continue: 'पुढे जा',
     orDivider: 'किंवा',
     continueWithGoogle: 'गूगलसह पुढे जा',

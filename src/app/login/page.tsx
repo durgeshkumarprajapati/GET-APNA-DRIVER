@@ -358,7 +358,7 @@ export default function LoginPage() {
                       : 'text-[#87948b] hover:text-[#dfe2ee]'
                   }`}
                 >
-                  {t('auth.login.useOtpTab')}
+                  {t('auth.login.useOtpTab', { defaultValue: 'Mobile OTP' })}
                 </button>
                 <button
                   type="button"
@@ -369,7 +369,7 @@ export default function LoginPage() {
                       : 'text-[#87948b] hover:text-[#dfe2ee]'
                   }`}
                 >
-                  {t('auth.login.usePasswordTab')}
+                  {t('auth.login.usePasswordTab', { defaultValue: 'Email & Password' })}
                 </button>
               </div>
 

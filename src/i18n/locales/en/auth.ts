@@ -16,6 +16,8 @@ export const authEn = {
     noAccount: "Don't have an account?",
     registerLink: 'Sign Up',
     useOtp: 'Sign in with Mobile OTP',
+    useOtpTab: 'Mobile OTP',
+    usePasswordTab: 'Email & Password',
     continue: 'Continue',
     orDivider: 'OR',
     continueWithGoogle: 'Continue with Google',

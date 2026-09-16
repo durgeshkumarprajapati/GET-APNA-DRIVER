@@ -16,6 +16,8 @@ export const authPa = {
     noAccount: 'ਖਾਤਾ ਨਹੀਂ ਹੈ?',
     registerLink: 'ਸਾਈਨ ਅੱਪ ਕਰੋ',
     useOtp: 'ਮੋਬਾਈਲ OTP ਨਾਲ ਸਾਈਨ ਇਨ ਕਰੋ',
+    useOtpTab: 'ਮੋਬਾਈਲ OTP',
+    usePasswordTab: 'ਈਮੇਲ ਅਤੇ ਪਾਸਵਰਡ',
     continue: 'ਜਾਰੀ ਰੱਖੋ',
     orDivider: 'ਜਾਂ',
     continueWithGoogle: 'ਗੂਗਲ ਨਾਲ ਜਾਰੀ ਰੱਖੋ',

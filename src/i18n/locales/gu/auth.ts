@@ -16,6 +16,8 @@ export const authGu = {
     noAccount: 'ખાતું નથી?',
     registerLink: 'સાઇન અપ કરો',
     useOtp: 'મોબાઇલ ઓટીપીથી સાઇન ઇન કરો',
+    useOtpTab: 'મોબાઇલ ઓટીપી',
+    usePasswordTab: 'ઇમેઇલ અને પાસવર્ડ',
     continue: 'ચાલુ રાખો',
     orDivider: 'અથવા',
     continueWithGoogle: 'ગૂગલ સાથે ચાલુ રાખો',
