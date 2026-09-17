@@ -20,6 +20,7 @@ export interface UnifiedMapProps {
   showControls?: boolean;
   mapId?: string;
   onMarkerClick?: (markerId: string) => void;
+  onMapClick?: (coord: MapCoordinate) => void;
   ariaLabel?: string;
   showProviderBadge?: boolean;
   forceProvider?: MapProviderType;
@@ -69,6 +70,7 @@ export function UnifiedMap({
   showControls = true,
   mapId,
   onMarkerClick,
+  onMapClick,
   ariaLabel = 'Unified Multi-Provider Map',
   showProviderBadge = true,
   forceProvider,
@@ -214,6 +216,7 @@ export function UnifiedMap({
             showControls={showControls}
             mapId={mapId}
             onMarkerClick={onMarkerClick}
+            onMapClick={onMapClick}
             ariaLabel={ariaLabel}
             onLoadError={handleGoogleError}
           />
@@ -229,6 +232,7 @@ export function UnifiedMap({
             className={className}
             showControls={showControls}
             onMarkerClick={onMarkerClick}
+            onMapClick={onMapClick}
             ariaLabel={ariaLabel}
             onLoadError={handleMapboxError}
           />

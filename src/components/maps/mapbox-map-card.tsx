@@ -14,6 +14,7 @@ export interface MapboxMapCardProps {
   className?: string;
   showControls?: boolean;
   onMarkerClick?: (markerId: string) => void;
+  onMapClick?: (coord: MapCoordinate) => void;
   onLoadError?: (error: string) => void;
   ariaLabel?: string;
 }
@@ -36,6 +37,7 @@ export function MapboxMapCard({
   className = '',
   showControls = true,
   onMarkerClick,
+  onMapClick,
   onLoadError,
   ariaLabel = 'Interactive Mapbox Map',
 }: MapboxMapCardProps) {
@@ -191,6 +193,27 @@ export function MapboxMapCard({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
+
+  // Handle click events on map for location selection
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !onMapClick || loading || loadError) return;
+
+    const handleClick = (e: { lngLat: { lat: number; lng: number } }) => {
+      if (e.lngLat) {
+        onMapClick({
+          latitude: e.lngLat.lat,
+          longitude: e.lngLat.lng,
+        });
+      }
+    };
+
+    map.on('click', handleClick);
+
+    return () => {
+      map.off('click', handleClick);
+    };
+  }, [onMapClick, loading, loadError]);
 
   // Recenter helper button
   const handleRecenter = () => {

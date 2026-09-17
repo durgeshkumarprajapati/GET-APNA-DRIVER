@@ -14,6 +14,7 @@ export interface GoogleMapCardProps {
   showControls?: boolean;
   mapId?: string;
   onMarkerClick?: (markerId: string) => void;
+  onMapClick?: (coord: MapCoordinate) => void;
   onLoadError?: (error: string) => void;
   ariaLabel?: string;
 }
@@ -35,6 +36,7 @@ export function GoogleMapCard({
   showControls = true,
   mapId,
   onMarkerClick,
+  onMapClick,
   onLoadError,
   ariaLabel = 'Interactive Google Map',
 }: GoogleMapCardProps) {
@@ -226,6 +228,30 @@ export function GoogleMapCard({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, activeMapId]);
+
+  // Handle map click listener for selecting coordinates
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !onMapClick || loading || loadError) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const listener = map.addListener('click', (e: any) => {
+      if (e?.latLng) {
+        const lat = typeof e.latLng.lat === 'function' ? e.latLng.lat() : e.latLng.lat;
+        const lng = typeof e.latLng.lng === 'function' ? e.latLng.lng() : e.latLng.lng;
+        onMapClick({
+          latitude: lat,
+          longitude: lng,
+        });
+      }
+    });
+
+    return () => {
+      if (listener && typeof listener.remove === 'function') {
+        listener.remove();
+      }
+    };
+  }, [onMapClick, loading, loadError]);
 
   // Handle marker updates when props change
   useEffect(() => {
