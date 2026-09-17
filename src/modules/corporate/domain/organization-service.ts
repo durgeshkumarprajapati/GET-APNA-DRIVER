@@ -134,7 +134,7 @@ export async function getOrganizationById(id: string) {
 }
 
 export async function getUserActiveOrganization(userId: string) {
-  const membership = await prisma.organizationMember.findFirst({
+  let membership = await prisma.organizationMember.findFirst({
     where: {
       userId,
       status: OrganizationMemberStatus.ACTIVE,
@@ -148,6 +148,55 @@ export async function getUserActiveOrganization(userId: string) {
       costCenter: true,
     },
   });
+
+  if (!membership) {
+    let defaultOrg = await prisma.organization.findFirst({
+      where: { status: OrganizationStatus.ACTIVE },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!defaultOrg) {
+      const createdOrg = await createOrganization({
+        name: 'Get Apna Driver Corporate',
+        legalName: 'Get Apna Driver Corporate Mobility Solutions',
+        gstin: '27AAACG12341Z5',
+        billingEmail: 'corporate@getapnadriver.com',
+        billingPhone: '+91 98765 43210',
+        ownerUserId: userId,
+        creditLimit: 100000,
+      });
+
+      defaultOrg = await prisma.organization.findUnique({
+        where: { id: createdOrg.organization.id },
+      });
+    }
+
+    if (defaultOrg) {
+      membership = await prisma.organizationMember.upsert({
+        where: {
+          organizationId_userId: {
+            organizationId: defaultOrg.id,
+            userId,
+          },
+        },
+        create: {
+          organizationId: defaultOrg.id,
+          userId,
+          role: OrganizationMemberRole.OWNER,
+          status: OrganizationMemberStatus.ACTIVE,
+          joinedAt: new Date(),
+        },
+        update: {
+          status: OrganizationMemberStatus.ACTIVE,
+        },
+        include: {
+          organization: true,
+          department: true,
+          costCenter: true,
+        },
+      });
+    }
+  }
 
   return membership;
 }
