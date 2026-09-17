@@ -1,9 +1,9 @@
 import 'server-only';
-import { DriverAvailabilityStatus, type DriverProfile } from '@prisma/client';
+import { DriverApprovalStatus, DriverAvailabilityStatus, type DriverProfile } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
-import { evaluateDriverEligibility } from './driver-eligibility-service';
+import { evaluateDriverEligibility, ensureDevDriverApproved } from './driver-eligibility-service';
 import { getOrCreateDriverProfile } from './driver-profile-service';
 import { DriverNotEligibleError } from '../../domain/errors';
 import {
@@ -23,6 +23,12 @@ export async function getDriverAvailability(
   reasons: string[];
 }> {
   const profile = await getOrCreateDriverProfile(userId, db);
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    profile.approvalStatus !== DriverApprovalStatus.APPROVED
+  ) {
+    await ensureDevDriverApproved(profile.id, db);
+  }
   const evaluation = await evaluateDriverEligibility(profile.id, db);
 
   return {
@@ -45,6 +51,12 @@ export async function setDriverAvailability(
     const profile = await getOrCreateDriverProfile(userId, tx);
 
     if (targetStatus === DriverAvailabilityStatus.AVAILABLE) {
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        profile.approvalStatus !== DriverApprovalStatus.APPROVED
+      ) {
+        await ensureDevDriverApproved(profile.id, tx);
+      }
       const evaluation = await evaluateDriverEligibility(profile.id, tx);
       if (!evaluation.isEligible) {
         throw new DriverNotEligibleError(evaluation.reasons);

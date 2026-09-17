@@ -9,6 +9,8 @@ import {
   setDriverAvailability,
 } from '@/modules/driver/application/services/driver-availability-service';
 
+import { DriverNotEligibleError } from '@/modules/driver/domain/errors';
+
 const setAvailabilitySchema = z.object({
   targetStatus: z.nativeEnum(DriverAvailabilityStatus),
 });
@@ -19,12 +21,26 @@ export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (_req, { principal }
 });
 
 export const PUT = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal }) => {
-  const body = await req.json();
-  const parsed = setAvailabilitySchema.parse(body);
+  try {
+    const body = await req.json();
+    const parsed = setAvailabilitySchema.parse(body);
 
-  const profile = await setDriverAvailability(principal.userId, parsed.targetStatus, {
-    ipAddress: req.headers.get('x-forwarded-for'),
-  });
+    const profile = await setDriverAvailability(principal.userId, parsed.targetStatus, {
+      ipAddress: req.headers.get('x-forwarded-for'),
+    });
 
-  return NextResponse.json({ profile }, { status: 200 });
+    return NextResponse.json({ profile }, { status: 200 });
+  } catch (err: unknown) {
+    if (err instanceof DriverNotEligibleError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: err.message,
+          errorCode: 'DRIVER_NOT_ELIGIBLE',
+        },
+        { status: 403 },
+      );
+    }
+    throw err;
+  }
 });

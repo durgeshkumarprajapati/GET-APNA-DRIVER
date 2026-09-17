@@ -5,8 +5,10 @@ import {
   DriverAvailabilityStatus,
   DriverDocument,
   DriverDocumentStatus,
+  DriverDocumentType,
   DriverOnboardingStatus,
   DriverProfile,
+  DriverVerificationStatus,
   User,
 } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
@@ -189,4 +191,81 @@ export async function isDriverDispatchEligible(
     isEligible: reasons.length === 0,
     reasons,
   };
+}
+
+/**
+ * Auto-provisions required verified profile fields and verified compliance documents
+ * for driver accounts in non-production environments so developers and testing can
+ * toggle availability without administrative bottlenecks.
+ */
+export async function ensureDevDriverApproved(
+  driverProfileId: string,
+  db: Db = prisma,
+): Promise<void> {
+  const profile = await db.driverProfile.findUnique({
+    where: { id: driverProfileId },
+    include: {
+      user: true,
+      documents: { where: { isCurrent: true } },
+    },
+  });
+
+  if (!profile) return;
+
+  const now = new Date();
+  const dob = profile.dateOfBirth || new Date('1990-01-01');
+
+  // 1. Update DriverProfile fields to COMPLETED & APPROVED
+  await db.driverProfile.update({
+    where: { id: driverProfileId },
+    data: {
+      firstName: profile.firstName || 'Dev',
+      lastName: profile.lastName || 'Driver',
+      displayName: profile.displayName || 'DevDriver',
+      dateOfBirth: dob,
+      primaryServiceArea: profile.primaryServiceArea || 'Mumbai',
+      drivingExperienceYears:
+        profile.drivingExperienceYears && profile.drivingExperienceYears > 0
+          ? profile.drivingExperienceYears
+          : 5,
+      onboardingStatus: DriverOnboardingStatus.COMPLETED,
+      verificationStatus: DriverVerificationStatus.VERIFIED,
+      approvalStatus: DriverApprovalStatus.APPROVED,
+      approvedAt: profile.approvedAt || now,
+    },
+  });
+
+  // 2. Ensure required documents exist and are set to VERIFIED
+  const requiredDocTypes: DriverDocumentType[] = [
+    DriverDocumentType.DRIVING_LICENSE,
+    DriverDocumentType.AADHAAR_CARD,
+  ];
+  for (const docType of requiredDocTypes) {
+    const doc = profile.documents.find((d) => d.documentType === docType);
+    if (!doc) {
+      await db.driverDocument.create({
+        data: {
+          driverProfileId,
+          documentType: docType,
+          documentNumber: `DEV-${docType}-12345`,
+          storageKey: 'docs/dev-license.pdf',
+          originalFileName: 'dev-license.pdf',
+          contentType: 'application/pdf',
+          fileSizeBytes: 1024,
+          status: DriverDocumentStatus.VERIFIED,
+          isCurrent: true,
+          verifiedAt: now,
+          expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+        },
+      });
+    } else if (doc.status !== DriverDocumentStatus.VERIFIED) {
+      await db.driverDocument.update({
+        where: { id: doc.id },
+        data: {
+          status: DriverDocumentStatus.VERIFIED,
+          verifiedAt: now,
+        },
+      });
+    }
+  }
 }
