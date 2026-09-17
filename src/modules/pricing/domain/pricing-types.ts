@@ -30,6 +30,8 @@ export interface PricingRulesConfig {
   platformFee: string;
   hourlyRate: string;
   dailyRate: string;
+  weeklyRate: string;
+  monthlyRate: string;
 }
 
 export interface PricingCalculationInput {
@@ -38,7 +40,10 @@ export interface PricingCalculationInput {
   estimatedDurationMinutes?: number | null;
   actualDurationMinutes?: number | null;
   numberOfDays?: number | null;
+  numberOfWeeks?: number | null;
+  numberOfMonths?: number | null;
   hourlyPackageHours?: number | null;
+  hireDurationMinutes?: number | null;
   config: PricingRulesConfig;
 }
 
