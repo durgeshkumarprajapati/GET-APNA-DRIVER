@@ -133,6 +133,22 @@ export function GoogleMapCard({
   useEffect(() => {
     let isMounted = true;
 
+    // Register Google Maps auth/billing error handler (e.g. BillingNotEnabledMapError)
+    const existingAuthFailure = (window as unknown as Record<string, unknown>).gm_authFailure;
+    (window as unknown as Record<string, unknown>).gm_authFailure = () => {
+      const errMsg =
+        'Google Maps API error: BillingNotEnabledMapError or authentication failed. Switching to Mapbox GL JS.';
+      console.warn(`[GoogleMapCard] ${errMsg}`);
+      if (isMounted) {
+        setLoading(false);
+        setLoadError(errMsg);
+        if (onLoadError) onLoadError(errMsg);
+      }
+      if (typeof existingAuthFailure === 'function') {
+        (existingAuthFailure as () => void)();
+      }
+    };
+
     const initMap = async () => {
       if (!apiKey) {
         const errMsg = 'Google Maps API key is missing.';

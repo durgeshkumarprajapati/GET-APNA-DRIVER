@@ -79,7 +79,9 @@ export function UnifiedMap({
 
   const handleGoogleError = useCallback(
     (reason: string) => {
-      console.warn(`[UnifiedMap] Google Maps failed (${reason}). Switching to Mapbox GL.`);
+      console.warn(
+        `[UnifiedMap] Google Maps failed (${reason}). Switching provider — now using Mapbox GL JS map renderer.`,
+      );
       const nextProvider = MapProviderManager.reportProviderFailure('google', reason);
       setProvider(forceProvider || nextProvider);
     },

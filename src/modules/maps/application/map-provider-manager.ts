@@ -79,12 +79,20 @@ export class MapProviderManager {
       timestamp: new Date().toISOString(),
     });
 
-    console.warn(
-      `[MapProviderManager] Provider '${provider}' failed (${reason}). Failover triggered.`,
-    );
-
     const nextProvider = this.getActiveProvider();
     this.activeProvider = nextProvider;
+
+    const fallbackMsg =
+      nextProvider === 'mapbox'
+        ? 'Now using Mapbox GL JS map provider.'
+        : nextProvider === 'fallback'
+          ? 'Now using Location Textual Details fallback provider.'
+          : '';
+
+    console.warn(
+      `[MapProviderManager] Provider '${provider}' failed (${reason}). Failover triggered. ${fallbackMsg}`,
+    );
+
     return nextProvider;
   }
 
