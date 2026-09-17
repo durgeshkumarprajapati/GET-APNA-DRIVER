@@ -5,10 +5,9 @@ export function getAIConfig(): AIConfig {
   const customerEnabled = process.env.AI_CUSTOMER_ENABLED !== 'false';
   const driverEnabled = process.env.AI_DRIVER_ENABLED !== 'false';
   const providerRaw = (process.env.AI_PROVIDER || 'development').toLowerCase();
-  
-  const provider: 'development' | 'gemini' | 'openai' = 
-    providerRaw === 'gemini' ? 'gemini' : 
-    providerRaw === 'openai' ? 'openai' : 'development';
+
+  const provider: 'development' | 'gemini' | 'openai' =
+    providerRaw === 'gemini' ? 'gemini' : providerRaw === 'openai' ? 'openai' : 'development';
 
   return {
     enabled,

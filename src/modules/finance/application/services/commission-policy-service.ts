@@ -51,7 +51,6 @@ export async function getCommissionPolicy(db: Db = prisma): Promise<CommissionPo
   };
 }
 
-
 export class InvalidCommissionPercentageError extends Error {
   constructor(value: string) {
     super(`Commission percentage must be a number between 0 and 100, got: ${value}`);

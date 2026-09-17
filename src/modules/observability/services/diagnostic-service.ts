@@ -2,7 +2,11 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { DatabaseDiagnostics } from '../diagnostics/database-diagnostics';
 import { RedisDiagnostics } from '../diagnostics/redis-diagnostics';
 import { WorkerDiagnostics } from '../diagnostics/worker-diagnostics';
-import type { DatabaseDiagnosticsReport, RedisDiagnosticsReport, WorkerDiagnosticsReport } from '../types/observability-types';
+import type {
+  DatabaseDiagnosticsReport,
+  RedisDiagnosticsReport,
+  WorkerDiagnosticsReport,
+} from '../types/observability-types';
 
 export class DiagnosticService {
   static async runDatabaseDiagnostics(db: Db = prisma): Promise<DatabaseDiagnosticsReport> {

@@ -1,5 +1,6 @@
 'use client';
 
+import { UserAvatar } from './ui/user-avatar';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -117,7 +118,9 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         { href: '/admin/analytics-and-bi', label: t('admin.nav.analyticsAndBi'), icon: 'insights' },
         {
           href: '/admin/marketplace-intelligence',
-          label: t('admin.nav.marketplaceIntelligence', { defaultValue: 'Marketplace Intelligence' }),
+          label: t('admin.nav.marketplaceIntelligence', {
+            defaultValue: 'Marketplace Intelligence',
+          }),
           icon: 'monitoring',
         },
       ],
@@ -148,8 +151,31 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
     {
       label: t('admin.nav.operations'),
       items: [
+        {
+          href: '/admin/operations-command-center',
+          label: t('admin.nav.operationsCommandCenter', {
+            defaultValue: 'Operations Command Center',
+          }),
+          icon: 'terminal',
+        },
+        {
+          href: '/admin/risk-and-trust',
+          label: t('admin.nav.riskAndTrust', { defaultValue: 'Risk & Trust Engine' }),
+          icon: 'security',
+        },
+        {
+          href: '/admin/experience-orchestration',
+          label: t('admin.nav.experienceOrchestration', {
+            defaultValue: 'Experience Orchestrator',
+          }),
+          icon: 'psychology',
+        },
         { href: '/admin/live-bookings', label: t('admin.nav.liveBookings'), icon: 'local_taxi' },
-        { href: '/admin/scheduled-rides', label: t('scheduledRides.adminTitle'), icon: 'schedule' },
+        {
+          href: '/admin/scheduled-rides',
+          label: t('admin.nav.scheduledRides', { defaultValue: 'Scheduled Rides' }),
+          icon: 'schedule',
+        },
         {
           href: '/admin/sos-and-disputes',
           label: t('admin.nav.sosAndDisputes'),
@@ -233,19 +259,19 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
       <aside
         ref={sidebarRef}
         onScroll={handleSidebarScroll}
-        className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-[#0a0e16] border-r border-[#262a33] z-50 flex-col overflow-y-auto shadow-2xl"
+        className="hidden md:flex fixed left-0 top-0 h-full w-52 bg-[#0a0e16] border-r border-[#262a33] z-50 flex-col overflow-y-auto shadow-2xl"
       >
         {/* Brand Header */}
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-[#262a33] shrink-0 bg-[#0a0e16]/80 backdrop-blur-md">
-          <Link href="/admin/mission-dashboard" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold">
-              <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
+        <div className="h-16 px-4 flex items-center gap-2.5 border-b border-[#262a33] shrink-0 bg-[#0a0e16]/80 backdrop-blur-md">
+          <Link href="/admin/mission-dashboard" className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold">
+              <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-base text-[#dfe2ee] tracking-tight leading-none font-['Space_Grotesk']">
+              <span className="font-bold text-sm text-[#dfe2ee] tracking-tight leading-none font-['Space_Grotesk']">
                 Get Apna Driver
               </span>
-              <span className="text-[9px] font-bold text-[#68dba9] tracking-widest mt-0.5 uppercase font-['Space_Grotesk']">
+              <span className="text-[8.5px] font-bold text-[#68dba9] tracking-widest mt-0.5 uppercase font-['Space_Grotesk']">
                 Chauffeur Matrix OS
               </span>
             </div>
@@ -253,10 +279,10 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         </div>
 
         {/* Navigation Section */}
-        <nav className="flex-1 px-3 py-4 space-y-4">
+        <nav className="flex-1 px-2 py-3 space-y-3">
           {navGroups.map((group) => (
-            <div key={group.label} className="space-y-1">
-              <span className="px-3 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
+            <div key={group.label} className="space-y-0.5">
+              <span className="px-2.5 text-[10px] font-bold text-[#87948b] uppercase tracking-wider block font-['Space_Grotesk']">
                 {group.label}
               </span>
               {group.items.map((item) => {
@@ -266,18 +292,20 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
                     key={item.href}
                     href={item.href}
                     data-sidebar-active={active ? 'true' : 'false'}
-                    className={`flex items-center justify-between gap-2.5 px-3 py-1.5 rounded-lg transition-colors text-xs ${
+                    className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg transition-colors text-xs ${
                       active
                         ? 'bg-[#25a475] text-[#00311f] font-bold shadow-[0_0_12px_rgba(37,164,117,0.25)]'
                         : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
                     }`}
                   >
-                    <span className="flex items-center gap-2.5">
-                      <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                      <span>{item.label}</span>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="material-symbols-outlined text-[17px] shrink-0">
+                        {item.icon}
+                      </span>
+                      <span className="truncate">{item.label}</span>
                     </span>
                     {!!item.badge && (
-                      <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] font-mono text-[10px] font-bold">
+                      <span className="px-1.5 py-0.5 rounded bg-[#93000a] text-[#ffdad6] font-mono text-[9px] font-bold shrink-0">
                         {item.badge}
                       </span>
                     )}
@@ -288,24 +316,23 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           ))}
         </nav>
 
-
         {/* Footer Security Badge */}
-        <div className="p-3 border-t border-[#262a33] bg-[#0a0e16]/90">
-          <div className="flex items-center justify-between px-3 py-1.5 bg-[#181c24] rounded-lg border border-[#262a33]">
-            <div className="flex items-center gap-1.5 font-mono text-xs">
-              <span className="material-symbols-outlined text-[#68dba9] text-[16px]">
+        <div className="p-2 border-t border-[#262a33] bg-[#0a0e16]/90">
+          <div className="flex items-center justify-between px-2.5 py-1 bg-[#181c24] rounded-lg border border-[#262a33]">
+            <div className="flex items-center gap-1 font-mono text-[11px]">
+              <span className="material-symbols-outlined text-[#68dba9] text-[15px]">
                 shield_with_heart
               </span>
               <span className="text-[#dfe2ee] font-bold">ENCRYPTED V4</span>
             </div>
-            <span className="font-mono text-[10px] text-[#87948b]">TLS 1.3</span>
+            <span className="font-mono text-[9px] text-[#87948b]">TLS 1.3</span>
           </div>
         </div>
       </aside>
 
       {/* HEADER BAR */}
-      <div className="md:pl-72">
-        <header className="fixed top-0 left-0 md:left-72 right-0 h-16 bg-[#0a0e16]/85 backdrop-blur-xl border-b border-[#262a33] z-40 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="md:pl-52">
+        <header className="fixed top-0 left-0 md:left-52 right-0 h-16 bg-[#0a0e16]/85 backdrop-blur-xl border-b border-[#262a33] z-40 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <MobileNavTrigger onClick={() => setMobileNavOpen(true)} />
             <div className="hidden sm:flex px-3 py-1 rounded bg-[#181c24] border border-[#262a33] items-center gap-2 shrink-0">
@@ -346,10 +373,12 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
                 </div>
               </div>
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-[#25a475]/20 border-2 border-[#68dba9] flex items-center justify-center font-bold text-xs text-[#68dba9] font-['Space_Grotesk']">
-                  {(userEmail ?? 'A').charAt(0).toUpperCase()}
-                </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] border-2 border-[#0a0e16]" />
+                <UserAvatar
+                  name={userEmail ?? 'Admin'}
+                  size={32}
+                  className="border-2 border-[#68dba9]"
+                />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] border-2 border-[#0a0e16] z-10" />
               </div>
               <button
                 type="button"
@@ -365,7 +394,9 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         </header>
 
         {/* MAIN BODY AREA */}
-        <main className="relative w-full pt-16 bg-[#0f131c] min-h-screen p-6">{children}</main>
+        <main className="relative w-full pt-14 bg-[#0f131c] min-h-screen p-3.5 sm:p-4">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -27,4 +27,3 @@ describe('DatabaseHealthService', () => {
     expect(result.details?.connectionStatus).toBe('DISCONNECTED');
   });
 });
-

@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
-import { GoogleMapCard } from '@/components/maps/google-map-card';
+import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { useActiveBooking } from '@/components/use-active-booking';
 import { useBookingTracking, type TrackedBooking } from '@/components/use-booking-tracking';
@@ -16,6 +16,7 @@ import { SmartTripStatusCard } from '@/components/trip-intelligence/SmartTripSta
 import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-intelligence-types';
 import { SmartTripReliabilityCard } from '@/components/trip-reliability/SmartTripReliabilityCard';
 import type { CustomerReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
+import { LocationETACard } from '@/components/location-intelligence/LocationETACard';
 
 const STATUS_TONE: Record<string, StatusBadgeTone> = {
   SEARCHING_DRIVER: 'warning',
@@ -48,6 +49,7 @@ export default function CustomerActiveTrackingPage() {
 
   const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
   const [reliability, setReliability] = useState<CustomerReliabilityView | null>(null);
+  const [locationIntel, setLocationIntel] = useState<Record<string, unknown> | null>(null);
 
   const loading = resolvingActiveBooking || (Boolean(activeBooking) && trackingLoading);
   const displayBooking = booking ?? activeBooking;
@@ -68,6 +70,15 @@ export default function CustomerActiveTrackingPage() {
       .then((data) => {
         if (data?.data) {
           setReliability(data.data);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`/api/customer/bookings/${displayBooking.id}/location-intelligence`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.locationIntelligence) {
+          setLocationIntel(data.locationIntelligence);
         }
       })
       .catch(() => {});
@@ -99,13 +110,13 @@ export default function CustomerActiveTrackingPage() {
           </EmptyState>
         ) : (
           <>
+            {locationIntel && <LocationETACard locationIntelligence={locationIntel} />}
+
             {intelligence && (
               <SmartTripStatusCard intelligence={intelligence} bookingId={displayBooking.id} />
             )}
 
-            {reliability && (
-              <SmartTripReliabilityCard reliability={reliability} />
-            )}
+            {reliability && <SmartTripReliabilityCard reliability={reliability} />}
 
             <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -164,71 +175,73 @@ export default function CustomerActiveTrackingPage() {
             </section>
 
             <section className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] space-y-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>
-                    <span>Live Ride Map</span>
-                  </h2>
-                  {driverLocation && (
-                    <span className="text-[10px] text-[#87948b]">
-                      Updated {formatDateTime(driverLocation.capturedAt)}
-                      {driverLocation.speed !== null ? ` • ${driverLocation.speed.toFixed(0)} km/h` : ''}
-                    </span>
-                  )}
-                </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>
+                  <span>Live Ride Map</span>
+                </h2>
+                {driverLocation && (
+                  <span className="text-[10px] text-[#87948b]">
+                    Updated {formatDateTime(driverLocation.capturedAt)}
+                    {driverLocation.speed !== null
+                      ? ` • ${driverLocation.speed.toFixed(0)} km/h`
+                      : ''}
+                  </span>
+                )}
+              </div>
 
-                {(() => {
-                  const markers: MapMarkerDefinition[] = [
-                    {
-                      id: 'pickup',
-                      position: {
-                        latitude: displayBooking.pickupLocation.latitude,
-                        longitude: displayBooking.pickupLocation.longitude,
-                      },
-                      type: 'PICKUP',
-                      title: 'Pickup Location',
-                      snippet: displayBooking.pickupLocation.address,
+              {(() => {
+                const markers: MapMarkerDefinition[] = [
+                  {
+                    id: 'pickup',
+                    position: {
+                      latitude: displayBooking.pickupLocation.latitude,
+                      longitude: displayBooking.pickupLocation.longitude,
                     },
-                  ];
+                    type: 'PICKUP',
+                    title: 'Pickup Location',
+                    snippet: displayBooking.pickupLocation.address,
+                  },
+                ];
 
-                  if (displayBooking.dropoffLocation) {
-                    markers.push({
-                      id: 'dropoff',
-                      position: {
-                        latitude: displayBooking.dropoffLocation.latitude,
-                        longitude: displayBooking.dropoffLocation.longitude,
-                      },
-                      type: 'DROPOFF',
-                      title: 'Dropoff Location',
-                      snippet: displayBooking.dropoffLocation.address,
-                    });
-                  }
+                if (displayBooking.dropoffLocation) {
+                  markers.push({
+                    id: 'dropoff',
+                    position: {
+                      latitude: displayBooking.dropoffLocation.latitude,
+                      longitude: displayBooking.dropoffLocation.longitude,
+                    },
+                    type: 'DROPOFF',
+                    title: 'Dropoff Location',
+                    snippet: displayBooking.dropoffLocation.address,
+                  });
+                }
 
-                  if (driverLocation) {
-                    markers.push({
-                      id: 'driver',
-                      position: {
-                        latitude: driverLocation.latitude,
-                        longitude: driverLocation.longitude,
-                      },
-                      type: 'DRIVER',
-                      title: displayBooking.assignedDriver?.displayName
-                        ? `${displayBooking.assignedDriver.displayName}'s Location`
-                        : 'Driver Location',
-                      heading: driverLocation.heading,
-                    });
-                  }
+                if (driverLocation) {
+                  markers.push({
+                    id: 'driver',
+                    position: {
+                      latitude: driverLocation.latitude,
+                      longitude: driverLocation.longitude,
+                    },
+                    type: 'DRIVER',
+                    title: displayBooking.assignedDriver?.displayName
+                      ? `${displayBooking.assignedDriver.displayName}'s Location`
+                      : 'Driver Location',
+                    heading: driverLocation.heading,
+                  });
+                }
 
-                  return (
-                    <GoogleMapCard
-                      markers={markers}
-                      height="380px"
-                      fitBounds={true}
-                      ariaLabel="Active ride tracking map"
-                    />
-                  );
-                })()}
-              </section>
+                return (
+                  <UnifiedMap
+                    markers={markers}
+                    height="380px"
+                    fitBounds={true}
+                    ariaLabel="Active ride tracking map"
+                  />
+                );
+              })()}
+            </section>
           </>
         )}
       </div>

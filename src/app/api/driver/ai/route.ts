@@ -22,7 +22,7 @@ export const POST = withPermission(
       if (!parsed.success) {
         return NextResponse.json(
           { error: 'INVALID_INPUT', details: parsed.error.format() },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -38,7 +38,7 @@ export const POST = withPermission(
       const message = err instanceof Error ? err.message : 'Failed to process Driver AI request.';
       return NextResponse.json({ error: 'AI_PROCESSING_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );
 
 export const GET = withPermission(
@@ -52,8 +52,9 @@ export const GET = withPermission(
       });
       return NextResponse.json({ conversations }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch Driver AI conversations.';
+      const message =
+        err instanceof Error ? err.message : 'Failed to fetch Driver AI conversations.';
       return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
     }
-  }
+  },
 );

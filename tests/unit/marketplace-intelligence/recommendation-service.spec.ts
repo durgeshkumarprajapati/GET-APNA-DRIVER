@@ -47,7 +47,10 @@ describe('Operational Recommendation Service Tests', () => {
 
   it('should filter out dismissed recommendations', async () => {
     (prisma.marketplaceRecommendationAction.findMany as jest.Mock).mockResolvedValue([
-      { recommendationFingerprint: 'SUPPLY_SHORTAGE_GLOBAL_' + new Date().toISOString().slice(0, 13) },
+      {
+        recommendationFingerprint:
+          'SUPPLY_SHORTAGE_GLOBAL_' + new Date().toISOString().slice(0, 13),
+      },
     ]);
 
     const recs = await generateOperationalRecommendations({

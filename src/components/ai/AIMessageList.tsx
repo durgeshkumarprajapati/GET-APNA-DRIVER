@@ -25,10 +25,7 @@ export function AIMessageList({ messages, loading = false }: AIMessageListProps)
         const isUser = msg.sender === 'USER';
 
         return (
-          <div
-            key={msg.id}
-            className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-          >
+          <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
             <div
               className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed ${
                 isUser
@@ -50,7 +47,9 @@ export function AIMessageList({ messages, loading = false }: AIMessageListProps)
               {/* Data References / Citations */}
               {!isUser && msg.citations && msg.citations.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-slate-800 text-[10px] text-slate-400 space-y-0.5">
-                  <div className="font-semibold text-slate-500 uppercase tracking-wider">Source References</div>
+                  <div className="font-semibold text-slate-500 uppercase tracking-wider">
+                    Source References
+                  </div>
                   {msg.citations.map((c, i) => (
                     <div key={i} className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>

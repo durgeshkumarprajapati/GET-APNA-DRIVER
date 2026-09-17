@@ -62,7 +62,9 @@ export default function AdminZoneDetailPage({ params }: { params: Promise<{ zone
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-2xl text-blue-400">location_on</span>
+                  <span className="material-symbols-outlined text-2xl text-blue-400">
+                    location_on
+                  </span>
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
@@ -72,7 +74,8 @@ export default function AdminZoneDetailPage({ params }: { params: Promise<{ zone
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Radius: {data.zone.radiusMeters}m | Center: {data.zone.centerLatitude.toFixed(4)}, {data.zone.centerLongitude.toFixed(4)}
+                    Radius: {data.zone.radiusMeters}m | Center:{' '}
+                    {data.zone.centerLatitude.toFixed(4)}, {data.zone.centerLongitude.toFixed(4)}
                   </p>
                 </div>
               </div>
@@ -88,15 +91,21 @@ export default function AdminZoneDetailPage({ params }: { params: Promise<{ zone
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
                 <span className="text-xs text-slate-400 block mb-1">Zone Requests</span>
-                <span className="text-2xl font-bold font-mono text-white">{data.demand.totalRequests}</span>
+                <span className="text-2xl font-bold font-mono text-white">
+                  {data.demand.totalRequests}
+                </span>
               </div>
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
                 <span className="text-xs text-slate-400 block mb-1">Completed Rides</span>
-                <span className="text-2xl font-bold font-mono text-emerald-400">{data.demand.completedRides}</span>
+                <span className="text-2xl font-bold font-mono text-emerald-400">
+                  {data.demand.completedRides}
+                </span>
               </div>
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
                 <span className="text-xs text-slate-400 block mb-1">Cancelled Rides</span>
-                <span className="text-2xl font-bold font-mono text-red-400">{data.demand.cancelledRides}</span>
+                <span className="text-2xl font-bold font-mono text-red-400">
+                  {data.demand.cancelledRides}
+                </span>
               </div>
             </div>
           </div>

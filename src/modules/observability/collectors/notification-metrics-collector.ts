@@ -2,7 +2,11 @@ import { OperationalMetricsRepository } from '../repositories/operational-metric
 import type { Db } from '@/shared/database/prisma';
 
 export class NotificationMetricsCollector {
-  static async recordNotificationSent(channel: 'SSE' | 'WEBPUSH' | 'SMS', success: boolean, db?: Db): Promise<void> {
+  static async recordNotificationSent(
+    channel: 'SSE' | 'WEBPUSH' | 'SMS',
+    success: boolean,
+    db?: Db,
+  ): Promise<void> {
     await OperationalMetricsRepository.recordMetric(
       {
         metricName: 'notification.sent',
@@ -10,7 +14,7 @@ export class NotificationMetricsCollector {
         durationMs: 0,
         isError: !success,
       },
-      db
+      db,
     );
   }
 }

@@ -123,14 +123,17 @@ export default function AdminMarketplaceIntelligencePage() {
   ) => {
     setActionLoadingId(recId);
     try {
-      const res = await fetch(`/api/admin/marketplace-intelligence/recommendations/${recId}/action`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          recommendationFingerprint: fingerprint,
-        }),
-      });
+      const res = await fetch(
+        `/api/admin/marketplace-intelligence/recommendations/${recId}/action`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action,
+            recommendationFingerprint: fingerprint,
+          }),
+        },
+      );
       if (!res.ok) throw new Error('Action failed');
       await loadData();
     } catch (err) {
@@ -187,7 +190,9 @@ export default function AdminMarketplaceIntelligencePage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-emerald-400">monitoring</span>
+              <span className="material-symbols-outlined text-3xl text-emerald-400">
+                monitoring
+              </span>
             </div>
             <div>
               <div className="flex items-center space-x-2">
@@ -238,7 +243,9 @@ export default function AdminMarketplaceIntelligencePage() {
               className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700 disabled:opacity-50 flex items-center justify-center"
               title="Refresh Analytics"
             >
-              <span className={`material-symbols-outlined text-base ${loading ? 'animate-spin' : ''}`}>
+              <span
+                className={`material-symbols-outlined text-base ${loading ? 'animate-spin' : ''}`}
+              >
                 refresh
               </span>
             </button>
@@ -257,7 +264,9 @@ export default function AdminMarketplaceIntelligencePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Health State */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-md">
-              <span className="text-xs font-medium text-slate-400 block mb-2">Marketplace Health</span>
+              <span className="text-xs font-medium text-slate-400 block mb-2">
+                Marketplace Health
+              </span>
               <div className="flex items-center justify-between">
                 {getHealthBadge(data.health.healthState)}
                 <span className="text-2xl font-bold font-mono text-white">
@@ -269,13 +278,16 @@ export default function AdminMarketplaceIntelligencePage() {
 
             {/* Supply-Demand Ratio */}
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-md">
-              <span className="text-xs font-medium text-slate-400 block mb-1">Supply/Demand Ratio</span>
+              <span className="text-xs font-medium text-slate-400 block mb-1">
+                Supply/Demand Ratio
+              </span>
               <div className="flex items-baseline space-x-2">
                 <span className="text-2xl font-bold font-mono text-emerald-400">
                   {data.supply.supplyDemandRatio}x
                 </span>
                 <span className="text-xs text-slate-400">
-                  ({data.supply.dispatchEligibleDrivers} supply / {data.demand.totalRequests} demand)
+                  ({data.supply.dispatchEligibleDrivers} supply / {data.demand.totalRequests}{' '}
+                  demand)
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-3 line-clamp-2">
@@ -293,7 +305,8 @@ export default function AdminMarketplaceIntelligencePage() {
                 <span className="text-xs text-emerald-400 font-semibold">
                   {data.demand.observedDemandTrendPercent >= 0
                     ? `+${data.demand.observedDemandTrendPercent}%`
-                    : `${data.demand.observedDemandTrendPercent}%`} vs baseline
+                    : `${data.demand.observedDemandTrendPercent}%`}{' '}
+                  vs baseline
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400 mt-3">
@@ -316,7 +329,9 @@ export default function AdminMarketplaceIntelligencePage() {
                 </span>
                 <span className="text-xs text-slate-400">expected rides</span>
               </div>
-              <p className="text-xs text-slate-400 mt-3 line-clamp-2">{data.forecast.explanation}</p>
+              <p className="text-xs text-slate-400 mt-3 line-clamp-2">
+                {data.forecast.explanation}
+              </p>
             </div>
           </div>
         )}
@@ -327,10 +342,14 @@ export default function AdminMarketplaceIntelligencePage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-xl text-amber-400">shield_with_heart</span>
+                  <span className="material-symbols-outlined text-xl text-amber-400">
+                    shield_with_heart
+                  </span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Active Operational Recommendations</h3>
+                  <h3 className="text-lg font-bold text-white">
+                    Active Operational Recommendations
+                  </h3>
                   <p className="text-xs text-slate-400">
                     Advisory decision-support alerts for live ops optimization
                   </p>
@@ -387,7 +406,9 @@ export default function AdminMarketplaceIntelligencePage() {
                         <span className="material-symbols-outlined text-base">check</span>
                       </button>
                       <button
-                        onClick={() => handleRecommendationAction(rec.fingerprint, 'DISMISSED', rec.id)}
+                        onClick={() =>
+                          handleRecommendationAction(rec.fingerprint, 'DISMISSED', rec.id)
+                        }
                         disabled={actionLoadingId === rec.id}
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center"
                         title="Dismiss Recommendation"
@@ -408,7 +429,9 @@ export default function AdminMarketplaceIntelligencePage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-xl text-purple-400">auto_awesome</span>
+                  <span className="material-symbols-outlined text-xl text-purple-400">
+                    auto_awesome
+                  </span>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">Campaign & Engagement Signals</h3>
@@ -441,7 +464,9 @@ export default function AdminMarketplaceIntelligencePage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-xl text-blue-400">location_on</span>
+                  <span className="material-symbols-outlined text-xl text-blue-400">
+                    location_on
+                  </span>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">Zone Intelligence Grid</h3>
@@ -480,7 +505,9 @@ export default function AdminMarketplaceIntelligencePage() {
                             location_on
                           </span>
                           <span>{zone.zoneName}</span>
-                          <span className="text-xs text-slate-500 font-mono">({zone.zoneCode})</span>
+                          <span className="text-xs text-slate-500 font-mono">
+                            ({zone.zoneCode})
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-3.5 font-mono font-semibold text-slate-200">
@@ -489,7 +516,8 @@ export default function AdminMarketplaceIntelligencePage() {
                       <td className="px-4 py-3.5 font-mono text-emerald-400">{zone.completed}</td>
                       <td className="px-4 py-3.5 font-mono text-red-400">{zone.cancelled}</td>
                       <td className="px-4 py-3.5 font-mono text-blue-400">
-                        {zone.requests > 0 ? Math.max(1, Math.round(zone.requests * 0.8)) : 0} eligible
+                        {zone.requests > 0 ? Math.max(1, Math.round(zone.requests * 0.8)) : 0}{' '}
+                        eligible
                       </td>
                       <td className="px-4 py-3.5 text-right">
                         <Link

@@ -1,0 +1,80 @@
+export const experienceEn = {
+  title: 'Personalized Actions & Recommendations',
+  activeSignals: '{{count}} Active Signal(s)',
+  bookAgain: {
+    title: 'Book Again to {{destination}}',
+    description: 'Re-book your recent route from {{pickup}} to {{destination}}.',
+    reason: 'Frequently booked route based on completed trips',
+    cta: 'Book Again',
+  },
+  favoriteDriver: {
+    title: 'Book with {{driverName}}',
+    onlineDesc: '{{driverName}} is online and available for direct assignment.',
+    offlineDesc: 'Your saved favorite driver ({{rating}}★ rating).',
+    onlineReason: 'Favorite driver is currently online',
+    savedReason: 'Saved favorite driver in your profile',
+    cta: 'Select Driver',
+  },
+  scheduledRide: {
+    title: 'Upcoming Scheduled Chauffeur Ride',
+    description: 'Your ride to {{destination}} is scheduled for {{scheduledTime}}.',
+    reason: 'Scheduled chauffeur booking active',
+    cta: 'View Schedule',
+  },
+  loyaltyReward: {
+    title: '{{count}} Unclaimed Loyalty Rewards',
+    description: 'You have {{points}} points in {{tier}} tier. Redeem your ride discounts now!',
+    reason: 'Unclaimed loyalty rewards in account',
+    cta: 'Redeem Reward',
+  },
+  loyaltyProgress: {
+    title: '{{points}} Points to Next Tier Upgrade',
+    description: 'You are close to reaching the next VIP tier status with higher ride cashbacks.',
+    reason: 'Loyalty tier progression threshold reached',
+    cta: 'View Loyalty',
+  },
+  promotion: {
+    title: 'Save with Code {{code}}',
+    description: '{{promoTitle}}: {{discount}} instant discount on your next chauffeur booking.',
+    reason: 'Eligible promo code in customer catalog',
+    cta: 'Claim Offer',
+  },
+  referral: {
+    title: 'Invite Friends & Earn Free Rides',
+    description:
+      'Share code {{code}}. You have earned {{totalEarned}} across {{count}} successful referrals.',
+    reason: 'Referral program eligibility active',
+    cta: 'Share Code',
+  },
+  driverIncentive: {
+    title: '{{title}}',
+    descriptionProgress: 'Complete {{remaining}} more trip(s) to unlock ₹{{amount}} shift bonus!',
+    descriptionUnlocked: 'Congratulations! You unlocked the ₹{{amount}} shift bonus.',
+    reason: 'Active driver shift bonus campaign',
+    cta: 'View Bonus',
+  },
+  driverGoal: {
+    title: 'Daily Goal: {{percent}}% Achieved',
+    description: 'Earned ₹{{today}} of your ₹{{target}} daily target.',
+    reason: 'Daily earnings goal progress tracking',
+    cta: 'View Earnings',
+  },
+  safety: {
+    title: 'Safety Hub: {{title}}',
+    description: 'Active safety monitor: {{severity}} status. Tap to open SOS Emergency Hub.',
+    reason: 'Active safety monitor event detected',
+    cta: 'Open Safety',
+  },
+  reliability: {
+    title: 'Trip Reliability Update',
+    description: '{{message}}',
+    reason: 'Active reliability monitor event',
+    cta: 'Contact Support',
+  },
+  activeTrip: {
+    title: 'Ride In Progress',
+    description: 'Chauffeur {{driverName}} is assigned ({{status}}). Track live location.',
+    reason: 'Customer active ride in progress',
+    cta: 'Track Live',
+  },
+};

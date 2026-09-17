@@ -161,12 +161,7 @@ export function NotificationCenter() {
                 >
                   {item.imageAsset ? (
                     <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-[#181c24] border border-[#262a33]">
-                      <Image
-                        src={item.imageAsset}
-                        alt="Engagement"
-                        fill
-                        className="object-cover"
-                      />
+                      <Image src={item.imageAsset} alt="Engagement" fill className="object-cover" />
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center justify-center shrink-0 text-[#68dba9]">

@@ -9,7 +9,8 @@ export default function DriverAIAssistantPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-100 tracking-tight">Driver AI Copilot</h1>
           <p className="text-xs text-slate-400 mt-1">
-            Operational shift briefing, earnings summary, incentive targets, and pickup location assistance.
+            Operational shift briefing, earnings summary, incentive targets, and pickup location
+            assistance.
           </p>
         </div>
 

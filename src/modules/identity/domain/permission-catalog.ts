@@ -167,6 +167,22 @@ export const PERMISSIONS = {
   ADMIN_PLATFORM_DIAGNOSTICS_READ: 'admin.platform_diagnostics.read',
   ADMIN_PLATFORM_METRICS_READ: 'admin.platform_metrics.read',
 
+  // Production Operations Command & Decision Engine (Phase 50)
+  ADMIN_OPERATIONS_READ: 'admin.operations.read',
+  ADMIN_OPERATIONS_MANAGE: 'admin.operations.manage',
+  ADMIN_OPERATIONS_ACTION: 'admin.operations.action',
+  ADMIN_OPERATIONS_OVERRIDE: 'admin.operations.override',
+
+  // Production Trust, Fraud & Risk Intelligence Engine (Phase 51)
+  ADMIN_RISK_READ: 'admin.risk.read',
+  ADMIN_RISK_MANAGE: 'admin.risk.manage',
+  ADMIN_RISK_REVIEW: 'admin.risk.review',
+  ADMIN_RISK_ACTION: 'admin.risk.action',
+
+  // Production Intelligent Experience Orchestration Engine (Phase 52)
+  ADMIN_EXPERIENCE_READ: 'admin.experience.read',
+  ADMIN_EXPERIENCE_MANAGE: 'admin.experience.manage',
+
   // System
   SYSTEM_CONFIGURATION_MANAGE: 'system.configuration.manage',
   SYSTEM_OUTBOX_MANAGE: 'system.outbox.manage',
@@ -530,7 +546,8 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   },
   {
     code: PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_READ,
-    description: 'View marketplace health, demand forecasting, supply intelligence, and campaign signals.',
+    description:
+      'View marketplace health, demand forecasting, supply intelligence, and campaign signals.',
   },
   {
     code: PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE,
@@ -551,5 +568,49 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_INCIDENT_ESCALATE,
     description: 'Escalate trip incidents to emergency or operational support teams.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_READ,
+    description: 'View Operations Command Center, real-time signals, and operational decisions.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_MANAGE,
+    description: 'Acknowledge, dismiss, or update operational decision status.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_ACTION,
+    description:
+      'Execute authorized manual operational actions (reassign driver, restart dispatch).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_OPERATIONS_OVERRIDE,
+    description: 'Execute high-impact administrative overrides in Operations Command Center.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_RISK_READ,
+    description: 'View trust, fraud, and risk intelligence dashboards, signals, and decisions.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_RISK_MANAGE,
+    description: 'Acknowledge, dismiss, or escalate risk decisions and manage risk rules.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_RISK_REVIEW,
+    description: 'Perform operator review of flagged subjects and risk evidence.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_RISK_ACTION,
+    description:
+      'Execute advisory or policy-backed risk actions (verification request, warning, review lock).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_EXPERIENCE_READ,
+    description:
+      'View experience orchestration analytics, recommendation counts, latency breakdown, and dismissals.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_EXPERIENCE_MANAGE,
+    description:
+      'Manage experience orchestration policies, clear cached recommendations, and configure rule weights.',
   },
 ];

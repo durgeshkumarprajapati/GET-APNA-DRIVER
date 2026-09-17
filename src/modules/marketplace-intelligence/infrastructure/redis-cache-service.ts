@@ -33,6 +33,9 @@ export async function invalidateMarketplaceCachePattern(pattern: string = '*'): 
       await redis.del(...keys);
     }
   } catch (error) {
-    console.warn(`[MarketplaceIntelligenceCache] Cache invalidation error for pattern ${pattern}:`, error);
+    console.warn(
+      `[MarketplaceIntelligenceCache] Cache invalidation error for pattern ${pattern}:`,
+      error,
+    );
   }
 }

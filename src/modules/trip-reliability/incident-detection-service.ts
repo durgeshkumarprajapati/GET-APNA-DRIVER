@@ -37,7 +37,7 @@ export class IncidentDetectionService {
       if (evaluation && evaluation.detected) {
         const { severity, confidence } = this.classificationService.classifyIncident(
           evaluation.type,
-          input.activeSafetyIncident
+          input.activeSafetyIncident,
         );
 
         const incident = await this.eventService.recordIncident({
@@ -56,7 +56,7 @@ export class IncidentDetectionService {
             input.customerId,
             input.bookingId,
             evaluation.type,
-            severity
+            severity,
           );
         }
 
@@ -64,7 +64,7 @@ export class IncidentDetectionService {
           await this.notificationService.notifyDriverReliabilityEvent(
             input.driverId,
             input.bookingId,
-            evaluation.type
+            evaluation.type,
           );
         }
 

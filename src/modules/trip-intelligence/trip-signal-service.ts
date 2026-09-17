@@ -31,7 +31,9 @@ export interface SignalExtractionResult {
 
 export class TripSignalService {
   extractSignal(input: SignalExtractionInput): SignalExtractionResult {
-    const { freshness, freshnessSeconds } = evaluateLocationFreshness(input.driverTelemetry?.capturedAt);
+    const { freshness, freshnessSeconds } = evaluateLocationFreshness(
+      input.driverTelemetry?.capturedAt,
+    );
 
     if (input.activeSafetyIncident) {
       return {
@@ -82,7 +84,11 @@ export class TripSignalService {
       };
     }
 
-    if (input.status === 'DRIVER_EN_ROUTE' || input.status === 'DRIVER_ASSIGNED' || input.status === 'ASSIGNED') {
+    if (
+      input.status === 'DRIVER_EN_ROUTE' ||
+      input.status === 'DRIVER_ASSIGNED' ||
+      input.status === 'ASSIGNED'
+    ) {
       const delayRisk = evaluatePickupDelayRisk({
         status: input.status,
         driverEnRouteAt: input.driverEnRouteAt,

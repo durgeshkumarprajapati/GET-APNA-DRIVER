@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/context';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -19,11 +19,52 @@ export function ControlStationLayout({
   const { t } = useTranslation();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const sidebarRef = useRef<HTMLElement | null>(null);
+
+  // Restore sidebar scroll position and scroll active item into view if out of bounds
+  useEffect(() => {
+    if (!sidebarRef.current) return;
+
+    const key = 'gad-control-station-sidebar-scroll';
+    const storedScroll = sessionStorage.getItem(key);
+
+    if (storedScroll !== null && !isNaN(Number(storedScroll))) {
+      sidebarRef.current.scrollTop = Number(storedScroll);
+    }
+
+    const activeEl = sidebarRef.current.querySelector('[data-sidebar-active="true"]');
+    if (activeEl) {
+      const containerTop = sidebarRef.current.scrollTop;
+      const containerHeight = sidebarRef.current.clientHeight;
+      const containerBottom = containerTop + containerHeight;
+
+      const itemTop = (activeEl as HTMLElement).offsetTop;
+      const itemHeight = (activeEl as HTMLElement).offsetHeight;
+      const itemBottom = itemTop + itemHeight;
+
+      if (itemTop < containerTop || itemBottom > containerBottom) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    }
+  }, [activePath]);
+
+  const handleSidebarScroll = () => {
+    if (sidebarRef.current) {
+      sessionStorage.setItem(
+        'gad-control-station-sidebar-scroll',
+        String(sidebarRef.current.scrollTop),
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
       {/* FIXED SIDEBAR */}
-      <aside className="fixed left-0 top-0 h-full w-72 bg-[#0a0e16] z-50 flex flex-col justify-between p-4 border-r border-[#262a33] shadow-[1px_0_12px_rgba(0,0,0,0.5)]">
+      <aside
+        ref={sidebarRef}
+        onScroll={handleSidebarScroll}
+        className="fixed left-0 top-0 h-full w-52 bg-[#0a0e16] z-50 flex flex-col justify-between p-2.5 border-r border-[#262a33] shadow-[1px_0_12px_rgba(0,0,0,0.5)] overflow-y-auto"
+      >
         <div className="flex flex-col gap-5">
           {/* Brand Header */}
           <Link href="/" className="flex items-center gap-3 px-1 group">
@@ -219,12 +260,12 @@ export function ControlStationLayout({
       </aside>
 
       {/* HEADER BAR */}
-      <div className="pl-72">
-        <header className="fixed top-0 left-72 right-0 h-16 bg-[#0f131c]/90 backdrop-blur-xl z-40 px-6 flex items-center justify-between border-b border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.2)]">
-          <div className="flex items-center gap-4">
+      <div className="pl-52">
+        <header className="fixed top-0 left-52 right-0 h-16 bg-[#0f131c]/90 backdrop-blur-xl z-40 px-3 sm:px-4 flex items-center justify-between border-b border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.2)]">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setSearchModalOpen(true)}
-              className="flex items-center bg-[#0a0e16] px-3.5 py-1.5 rounded-xl w-72 justify-between border border-[#262a33] text-xs text-[#bccac0]"
+              className="flex items-center bg-[#0a0e16] px-3 py-1.5 rounded-xl w-56 justify-between border border-[#262a33] text-xs text-[#bccac0]"
             >
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">search</span>
@@ -243,15 +284,15 @@ export function ControlStationLayout({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <LanguageSelector variant="dark" />
             <button
               aria-label="Notifications"
               onClick={() => setSearchModalOpen(true)}
-              className="relative w-9 h-9 rounded-xl bg-[#181c24] hover:bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee] flex items-center justify-center transition-colors border border-[#262a33]"
+              className="relative w-8 h-8 rounded-xl bg-[#181c24] hover:bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee] flex items-center justify-center transition-colors border border-[#262a33]"
             >
-              <span className="material-symbols-outlined text-lg">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#68dba9]" />
+              <span className="material-symbols-outlined text-base">notifications</span>
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#68dba9]" />
             </button>
 
             <Link href="/profile" className="flex items-center gap-2 pl-1">
@@ -270,7 +311,9 @@ export function ControlStationLayout({
         </header>
 
         {/* MAIN PAGE BODY */}
-        <main className="relative pt-16 bg-[#0f131c] w-full min-h-screen">{children}</main>
+        <main className="relative pt-14 bg-[#0f131c] w-full min-h-screen p-3.5 sm:p-4">
+          {children}
+        </main>
       </div>
 
       {/* SEARCH MODAL */}

@@ -53,6 +53,9 @@ export const adminHi = {
     liveOpsMap: 'लाइव ऑप्स मैप',
     kycApprovals: 'केवाईसी मंजूरी',
     marketplaceIntelligence: 'मार्केटप्लेस इंटेलिजेंस',
+    operationsCommandCenter: 'ऑपरेशन्स कमांड सेंटर',
+    scheduledRides: 'शेड्यूल की गई सवारी',
+    riskAndTrust: 'जोखिम एवं विश्वास इंजन',
   },
   marketplaceIntelligence: {
     title: 'मार्केटप्लेस इंटेलिजेंस कंसोल',
@@ -216,4 +219,3 @@ export const adminHi = {
     loading: 'प्लेटफ़ॉर्म मेट्रिक्स का मूल्यांकन किया जा रहा है...',
   },
 };
-

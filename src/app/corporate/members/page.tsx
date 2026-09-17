@@ -102,7 +102,8 @@ export default function CorporateMembersPage() {
               Employees & Roster
             </h1>
             <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-              Manage corporate membership, role-based access, department assignments, and pending invitations.
+              Manage corporate membership, role-based access, department assignments, and pending
+              invitations.
             </p>
           </div>
 
@@ -133,7 +134,8 @@ export default function CorporateMembersPage() {
           <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
             {members.length === 0 ? (
               <div className="p-12 text-center text-[#bccac0] text-xs font-mono">
-                No active employee members found. Click &quot;Invite Employee&quot; to invite team members.
+                No active employee members found. Click &quot;Invite Employee&quot; to invite team
+                members.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -152,7 +154,9 @@ export default function CorporateMembersPage() {
                     {members.map((m) => (
                       <tr key={m.id} className="hover:bg-[#1c2028] transition-colors">
                         <td className="p-3.5">
-                          <div className="font-bold text-[#dfe2ee]">{m.user.customerProfile?.fullName || 'Employee Member'}</div>
+                          <div className="font-bold text-[#dfe2ee]">
+                            {m.user.customerProfile?.fullName || 'Employee Member'}
+                          </div>
                         </td>
                         <td className="p-3.5">
                           <span className="px-2 py-0.5 rounded bg-[#1e2330] border border-[#262a33] text-[10px] font-bold text-[#68dba9]">
@@ -162,9 +166,7 @@ export default function CorporateMembersPage() {
                         <td className="p-3.5 text-[#dfe2ee]">
                           {m.department?.name || 'Unassigned'}
                         </td>
-                        <td className="p-3.5 text-[#bccac0]">
-                          {m.costCenter?.code || 'Default'}
-                        </td>
+                        <td className="p-3.5 text-[#bccac0]">{m.costCenter?.code || 'Default'}</td>
                         <td className="p-3.5">
                           <span className="px-2 py-0.5 rounded bg-[#00311f] text-[#68dba9] border border-[#25a475] text-[10px] uppercase font-bold">
                             {m.status}
@@ -219,7 +221,9 @@ export default function CorporateMembersPage() {
               ) : (
                 <form onSubmit={handleSendInvite} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Employee Email</label>
+                    <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                      Employee Email
+                    </label>
                     <input
                       type="email"
                       value={inviteEmail}
@@ -231,7 +235,9 @@ export default function CorporateMembersPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Organization Role</label>
+                    <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                      Organization Role
+                    </label>
                     <select
                       value={inviteRole}
                       onChange={(e) => setInviteRole(e.target.value)}

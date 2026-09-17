@@ -1,6 +1,8 @@
 import type { RuleEvaluationInput, RuleEvaluationResult } from '../trip-reliability-types';
 
-export function evaluateNotificationFailure(input: RuleEvaluationInput): RuleEvaluationResult | null {
+export function evaluateNotificationFailure(
+  input: RuleEvaluationInput,
+): RuleEvaluationResult | null {
   if (input.notificationFailedCount && input.notificationFailedCount >= 3) {
     return {
       detected: true,

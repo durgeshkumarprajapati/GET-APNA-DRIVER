@@ -53,6 +53,9 @@ export const adminMl = {
     liveOpsMap: 'ലൈവ് മാപ്പ്',
     kycApprovals: 'KYC അംഗീകാരങ്ങൾ',
     marketplaceIntelligence: 'മാർക്കറ്റ് പ്ലേസ് ഇന്റലിജൻസ്',
+    operationsCommandCenter: 'ഓപ്പറേഷൻസ് കമാൻഡ് സെന്റർ',
+    scheduledRides: 'ഷെഡ്യൂൾ ചെയ്ത റൈഡുകൾ',
+    riskAndTrust: 'റിസ്ക് & ട്രസ്റ്റ് എഞ്ചിൻ',
   },
   marketplaceIntelligence: {
     title: 'മാർക്കറ്റ് പ്ലേസ് ഇന്റലിജൻസ് കൺസോൾ',
@@ -216,4 +219,3 @@ export const adminMl = {
     loading: 'പ്ലാറ്റ്‌ഫോം വിവരങ്ങൾ വിലയിരുത്തുന്നു...',
   },
 };
-

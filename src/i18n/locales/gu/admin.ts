@@ -53,6 +53,9 @@ export const adminGu = {
     liveOpsMap: 'લાઈવ ઓપ્સ મેપ',
     kycApprovals: 'કેવાયસી મંજૂરીઓ',
     marketplaceIntelligence: 'માર્કેટપ્લેસ ઈન્ટેલિજન્સ',
+    operationsCommandCenter: 'ઓપરેશન્સ કમાન્ડ સેન્ટર',
+    scheduledRides: 'શેડ્યૂલ કરેલી રાઇડ્સ',
+    riskAndTrust: 'જોખમ અને ટ્રસ્ટ એન્જિન',
   },
   marketplaceIntelligence: {
     title: 'માર્કેટપ્લેસ ઈન્ટેલિજન્સ કન્સોલ',
@@ -216,4 +219,3 @@ export const adminGu = {
     loading: 'પ્લેટફોર્મ મેટ્રિક્સનું મૂલ્યાંકન થઈ રહ્યું છે...',
   },
 };
-

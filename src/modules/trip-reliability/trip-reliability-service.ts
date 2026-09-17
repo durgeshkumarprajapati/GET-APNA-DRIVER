@@ -12,7 +12,10 @@ export class TripReliabilityService {
   private recoveryService = new IncidentRecoveryService();
   private escalationService = new IncidentEscalationService();
 
-  async getCustomerReliabilityView(customerId: string, bookingId: string): Promise<CustomerReliabilityView | null> {
+  async getCustomerReliabilityView(
+    customerId: string,
+    bookingId: string,
+  ): Promise<CustomerReliabilityView | null> {
     const context = await this.contextService.assembleContext(bookingId);
     if (!context || context.booking.customerId !== customerId) {
       return null;
@@ -53,12 +56,26 @@ export class TripReliabilityService {
       pickupLongitude: context.booking.pickupLongitude,
       activeSafetyIncident: Boolean(activeSafety),
       paymentCaptured: context.paymentState.paymentCaptured,
-      finalFareAmount: context.booking.finalFareAmount ? Number(context.booking.finalFareAmount) : null,
+      finalFareAmount: context.booking.finalFareAmount
+        ? Number(context.booking.finalFareAmount)
+        : null,
       hasTaxInvoice: context.paymentState.hasTaxInvoice,
     });
 
     const activeIncident = await prisma.tripReliabilityIncident.findFirst({
-      where: { bookingId, status: { in: ['DETECTED', 'INVESTIGATING', 'CONFIRMED', 'RECOVERY_PENDING', 'RECOVERING', 'ESCALATED'] } },
+      where: {
+        bookingId,
+        status: {
+          in: [
+            'DETECTED',
+            'INVESTIGATING',
+            'CONFIRMED',
+            'RECOVERY_PENDING',
+            'RECOVERING',
+            'ESCALATED',
+          ],
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -90,13 +107,15 @@ export class TripReliabilityService {
       case 'ASSIGNMENT_TIMEOUT':
       case 'DISPATCH_FAILURE':
         statusTitle = 'Finding Your Driver';
-        statusExplanation = "Your assigned driver is unavailable. We're searching for another verified driver.";
+        statusExplanation =
+          "Your assigned driver is unavailable. We're searching for another verified driver.";
         recommendedAction = { type: 'VIEW_MAP', label: 'View Trip' };
         break;
 
       case 'DRIVER_LOCATION_STALE':
         statusTitle = 'Location Signal Stale';
-        statusExplanation = "We haven't received a recent location update from your driver. Your trip remains active.";
+        statusExplanation =
+          "We haven't received a recent location update from your driver. Your trip remains active.";
         recommendedAction = {
           type: 'VIEW_MAP',
           label: 'View Last Known Location',
@@ -111,7 +130,8 @@ export class TripReliabilityService {
 
       case 'PICKUP_DELAY':
         statusTitle = 'Pickup Route Delay';
-        statusExplanation = 'Your driver is experiencing traffic delays en route to your pickup point.';
+        statusExplanation =
+          'Your driver is experiencing traffic delays en route to your pickup point.';
         recommendedAction = { type: 'CALL_DRIVER', label: 'Call Driver' };
         break;
 
@@ -140,7 +160,10 @@ export class TripReliabilityService {
     };
   }
 
-  async getDriverReliabilityView(userId: string, bookingId: string): Promise<DriverReliabilityView | null> {
+  async getDriverReliabilityView(
+    userId: string,
+    bookingId: string,
+  ): Promise<DriverReliabilityView | null> {
     const driverProfile = await prisma.driverProfile.findUnique({
       where: { userId },
       select: { id: true },
@@ -150,13 +173,31 @@ export class TripReliabilityService {
 
     const booking = await prisma.booking.findFirst({
       where: { id: bookingId, driverProfileId: driverProfile.id },
-      select: { id: true, status: true, customerId: true, pickupLatitude: true, pickupLongitude: true },
+      select: {
+        id: true,
+        status: true,
+        customerId: true,
+        pickupLatitude: true,
+        pickupLongitude: true,
+      },
     });
 
     if (!booking) return null;
 
     const activeIncident = await prisma.tripReliabilityIncident.findFirst({
-      where: { bookingId, status: { in: ['DETECTED', 'INVESTIGATING', 'CONFIRMED', 'RECOVERY_PENDING', 'RECOVERING', 'ESCALATED'] } },
+      where: {
+        bookingId,
+        status: {
+          in: [
+            'DETECTED',
+            'INVESTIGATING',
+            'CONFIRMED',
+            'RECOVERY_PENDING',
+            'RECOVERING',
+            'ESCALATED',
+          ],
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 

@@ -1,6 +1,8 @@
 import type { RuleEvaluationInput, RuleEvaluationResult } from '../trip-reliability-types';
 
-export function evaluatePaymentReconciliation(input: RuleEvaluationInput): RuleEvaluationResult | null {
+export function evaluatePaymentReconciliation(
+  input: RuleEvaluationInput,
+): RuleEvaluationResult | null {
   const isCompleted = input.status === 'TRIP_COMPLETED' || input.status === 'COMPLETED';
 
   if (isCompleted) {

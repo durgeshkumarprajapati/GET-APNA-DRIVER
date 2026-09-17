@@ -53,6 +53,9 @@ export const adminTa = {
     liveOpsMap: 'நேரலை வரைபடம்',
     kycApprovals: 'கேஒய்சி ஒப்புதல்கள்',
     marketplaceIntelligence: 'சந்தை நுண்ணறிவு',
+    operationsCommandCenter: 'செயல்பாட்டு கட்டுப்பாட்டு மையம்',
+    scheduledRides: 'திட்டமிடப்பட்ட சவாரிகள்',
+    riskAndTrust: 'ஆபத்து மற்றும் நம்பிக்கை என்ஜின்',
   },
   marketplaceIntelligence: {
     title: 'சந்தை நுண்ணறிவு கன்சோல்',
@@ -216,4 +219,3 @@ export const adminTa = {
     loading: 'தள அளவீடுகள் மதிப்பிடப்படுகின்றன...',
   },
 };
-

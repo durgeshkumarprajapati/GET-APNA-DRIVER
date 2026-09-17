@@ -14,7 +14,8 @@ export const DEFAULT_ALERT_RULES: AlertRule[] = [
     durationSeconds: 300,
     severity: 'CRITICAL',
     description: 'API error rate exceeded 5% over the past 5 minutes',
-    remediationHint: 'Check application server logs for unhandled exceptions or DB connectivity drops.',
+    remediationHint:
+      'Check application server logs for unhandled exceptions or DB connectivity drops.',
   },
   {
     id: 'rule-slow-database',
@@ -43,7 +44,10 @@ export const DEFAULT_ALERT_RULES: AlertRule[] = [
 ];
 
 export class AlertEvaluationService {
-  static async evaluateRules(rules: AlertRule[] = DEFAULT_ALERT_RULES, db: Db = prisma): Promise<PlatformAlert[]> {
+  static async evaluateRules(
+    rules: AlertRule[] = DEFAULT_ALERT_RULES,
+    db: Db = prisma,
+  ): Promise<PlatformAlert[]> {
     const evaluatedAlerts: PlatformAlert[] = [];
     const now = new Date();
     const fiveMinsAgo = new Date(now.getTime() - 5 * 60 * 1000);
@@ -55,7 +59,7 @@ export class AlertEvaluationService {
         fiveMinsAgo,
         now,
         'GLOBAL',
-        db
+        db,
       );
 
       let currentValue = 0;

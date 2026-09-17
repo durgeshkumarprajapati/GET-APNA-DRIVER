@@ -1,12 +1,12 @@
 export const HEALTH_COMPONENT_WEIGHTS = {
   app_availability: 0.15,
   database: 0.15,
-  redis: 0.10,
-  worker_outbox: 0.10,
+  redis: 0.1,
+  worker_outbox: 0.1,
   dispatch: 0.15,
-  booking: 0.10,
-  payment: 0.10,
-  notification_location: 0.10,
+  booking: 0.1,
+  payment: 0.1,
+  notification_location: 0.1,
   scheduled_trip_reliability: 0.05,
 } as const;
 

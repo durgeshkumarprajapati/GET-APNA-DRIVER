@@ -276,4 +276,3 @@ export async function listAllLoyaltyRewardsForAdmin(db: Db = prisma) {
     createdAt: reward.createdAt.toISOString(),
   }));
 }
-

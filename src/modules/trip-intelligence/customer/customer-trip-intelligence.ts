@@ -12,7 +12,10 @@ export class CustomerTripIntelligence {
   private recommendationService = new TripRecommendationService();
   private eventService = new TripEventService();
 
-  async getCustomerTripIntelligence(userId: string, bookingId: string): Promise<TripIntelligenceResult | null> {
+  async getCustomerTripIntelligence(
+    userId: string,
+    bookingId: string,
+  ): Promise<TripIntelligenceResult | null> {
     const booking = await prisma.booking.findFirst({
       where: { id: bookingId, customerId: userId },
       select: {
@@ -52,15 +55,20 @@ export class CustomerTripIntelligence {
       driverArrivedAt: booking.driverArrivedAt,
       tripStartedAt: booking.tripStartedAt,
       tripCompletedAt: booking.tripCompletedAt,
-      driverTelemetry: telemetry?.driverLocation ? {
-        latitude: telemetry.driverLocation.latitude,
-        longitude: telemetry.driverLocation.longitude,
-        capturedAt: telemetry.driverLocation.capturedAt,
-      } : null,
+      driverTelemetry: telemetry?.driverLocation
+        ? {
+            latitude: telemetry.driverLocation.latitude,
+            longitude: telemetry.driverLocation.longitude,
+            capturedAt: telemetry.driverLocation.capturedAt,
+          }
+        : null,
       activeSafetyIncident: Boolean(activeSafetyIncident),
     });
 
-    const confidence = this.riskService.evaluateConfidence(extraction.freshness, extraction.signalType);
+    const confidence = this.riskService.evaluateConfidence(
+      extraction.freshness,
+      extraction.signalType,
+    );
 
     const actions = this.recommendationService.generateActions({
       role: 'CUSTOMER',
@@ -87,7 +95,12 @@ export class CustomerTripIntelligence {
     });
 
     const title = this.formatSignalTitle(extraction.signalType);
-    const explanation = this.formatSignalExplanation(extraction.signalType, extraction.freshness, extraction.freshnessSeconds, extraction.distanceMeters);
+    const explanation = this.formatSignalExplanation(
+      extraction.signalType,
+      extraction.freshness,
+      extraction.freshnessSeconds,
+      extraction.distanceMeters,
+    );
 
     return {
       bookingId,
@@ -104,30 +117,57 @@ export class CustomerTripIntelligence {
 
   private formatSignalTitle(signalType: string): string {
     switch (signalType) {
-      case 'SAFETY_REQUIRED': return 'Emergency Safety Alert Active';
-      case 'DRIVER_ARRIVED': return 'Driver Has Arrived';
-      case 'DRIVER_NEAR_PICKUP': return 'Driver Is Approaching Pickup';
-      case 'DRIVER_EN_ROUTE': return 'Driver En Route To Pickup';
-      case 'TRIP_DELAY_RISK': return 'Trip Update Delay';
-      case 'TRIP_PROGRESS': return 'Trip In Progress';
-      case 'DESTINATION_NEAR': return 'Approaching Destination';
-      case 'TRIP_COMPLETED': return 'Trip Completed';
-      default: return 'Driver Assigned';
+      case 'SAFETY_REQUIRED':
+        return 'Emergency Safety Alert Active';
+      case 'DRIVER_ARRIVED':
+        return 'Driver Has Arrived';
+      case 'DRIVER_NEAR_PICKUP':
+        return 'Driver Is Approaching Pickup';
+      case 'DRIVER_EN_ROUTE':
+        return 'Driver En Route To Pickup';
+      case 'TRIP_DELAY_RISK':
+        return 'Trip Update Delay';
+      case 'TRIP_PROGRESS':
+        return 'Trip In Progress';
+      case 'DESTINATION_NEAR':
+        return 'Approaching Destination';
+      case 'TRIP_COMPLETED':
+        return 'Trip Completed';
+      default:
+        return 'Driver Assigned';
     }
   }
 
-  private formatSignalExplanation(signalType: string, freshness: string, seconds: number, distanceMeters?: number): string {
-    const freshnessText = freshness === 'LIVE' ? 'Location updated live' : freshness === 'UNAVAILABLE' ? 'Location data unavailable' : `Location updated ${seconds}s ago`;
+  private formatSignalExplanation(
+    signalType: string,
+    freshness: string,
+    seconds: number,
+    distanceMeters?: number,
+  ): string {
+    const freshnessText =
+      freshness === 'LIVE'
+        ? 'Location updated live'
+        : freshness === 'UNAVAILABLE'
+          ? 'Location data unavailable'
+          : `Location updated ${seconds}s ago`;
 
     switch (signalType) {
-      case 'SAFETY_REQUIRED': return 'A safety alert is active on this trip. Support coordinator option is available.';
-      case 'DRIVER_ARRIVED': return `Your driver has arrived at the pickup location. (${freshnessText})`;
-      case 'DRIVER_NEAR_PICKUP': return `Your driver is approximately ${distanceMeters || 350}m away from your pickup point. (${freshnessText})`;
-      case 'DRIVER_EN_ROUTE': return `Your driver is navigating to your pickup location. (${freshnessText})`;
-      case 'TRIP_DELAY_RISK': return `We haven't received a recent location update. If you need assistance, tap Contact Support below.`;
-      case 'DESTINATION_NEAR': return `You're approaching your dropoff destination. (${freshnessText})`;
-      case 'TRIP_COMPLETED': return `Your trip has ended successfully. Thank you for riding with GET APNA DRIVER.`;
-      default: return `Driver is assigned and getting ready. (${freshnessText})`;
+      case 'SAFETY_REQUIRED':
+        return 'A safety alert is active on this trip. Support coordinator option is available.';
+      case 'DRIVER_ARRIVED':
+        return `Your driver has arrived at the pickup location. (${freshnessText})`;
+      case 'DRIVER_NEAR_PICKUP':
+        return `Your driver is approximately ${distanceMeters || 350}m away from your pickup point. (${freshnessText})`;
+      case 'DRIVER_EN_ROUTE':
+        return `Your driver is navigating to your pickup location. (${freshnessText})`;
+      case 'TRIP_DELAY_RISK':
+        return `We haven't received a recent location update. If you need assistance, tap Contact Support below.`;
+      case 'DESTINATION_NEAR':
+        return `You're approaching your dropoff destination. (${freshnessText})`;
+      case 'TRIP_COMPLETED':
+        return `Your trip has ended successfully. Thank you for riding with GET APNA DRIVER.`;
+      default:
+        return `Driver is assigned and getting ready. (${freshnessText})`;
     }
   }
 }

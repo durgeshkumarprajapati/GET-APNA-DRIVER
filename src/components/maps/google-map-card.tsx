@@ -14,6 +14,7 @@ export interface GoogleMapCardProps {
   showControls?: boolean;
   mapId?: string;
   onMarkerClick?: (markerId: string) => void;
+  onLoadError?: (error: string) => void;
   ariaLabel?: string;
 }
 
@@ -34,11 +35,14 @@ export function GoogleMapCard({
   showControls = true,
   mapId,
   onMarkerClick,
+  onLoadError,
   ariaLabel = 'Interactive Google Map',
 }: GoogleMapCardProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const advancedMarkersRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
+  const advancedMarkersRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(
+    new Map(),
+  );
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -50,7 +54,8 @@ export function GoogleMapCard({
   const createMarkerElement = useCallback((m: MapMarkerDefinition) => {
     const style = MARKER_COLORS[m.type] || MARKER_COLORS.PICKUP;
     const el = document.createElement('div');
-    el.className = 'flex items-center justify-center p-1.5 rounded-full shadow-lg border-2 border-white transition-transform hover:scale-110';
+    el.className =
+      'flex items-center justify-center p-1.5 rounded-full shadow-lg border-2 border-white transition-transform hover:scale-110';
     el.style.backgroundColor = style.bg;
     el.style.color = style.text;
     el.title = m.title;
@@ -128,11 +133,29 @@ export function GoogleMapCard({
   useEffect(() => {
     let isMounted = true;
 
+    // Register Google Maps auth/billing error handler (e.g. BillingNotEnabledMapError)
+    const existingAuthFailure = (window as unknown as Record<string, unknown>).gm_authFailure;
+    (window as unknown as Record<string, unknown>).gm_authFailure = () => {
+      const errMsg =
+        'Google Maps API error: BillingNotEnabledMapError or authentication failed. Switching to Mapbox GL JS.';
+      console.warn(`[GoogleMapCard] ${errMsg}`);
+      if (isMounted) {
+        setLoading(false);
+        setLoadError(errMsg);
+        if (onLoadError) onLoadError(errMsg);
+      }
+      if (typeof existingAuthFailure === 'function') {
+        (existingAuthFailure as () => void)();
+      }
+    };
+
     const initMap = async () => {
       if (!apiKey) {
+        const errMsg = 'Google Maps API key is missing.';
         if (isMounted) {
           setLoading(false);
-          setLoadError('Google Maps API key is missing.');
+          setLoadError(errMsg);
+          if (onLoadError) onLoadError(errMsg);
         }
         return;
       }
@@ -166,9 +189,11 @@ export function GoogleMapCard({
           updateMarkers();
         }
       } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Failed to initialize Google Map';
         if (isMounted) {
           setLoading(false);
-          setLoadError(err instanceof Error ? err.message : 'Failed to initialize Google Map');
+          setLoadError(errMsg);
+          if (onLoadError) onLoadError(errMsg);
         }
       }
     };

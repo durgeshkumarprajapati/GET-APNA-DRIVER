@@ -10,7 +10,9 @@ export default function CorporateBillingPage() {
   const [success, setSuccess] = useState(false);
 
   const [legalName, setLegalName] = useState('Acme Mobility Private Limited');
-  const [billingAddress, setBillingAddress] = useState('Plot 42, Bandra Kurla Complex, Mumbai, Maharashtra 400051');
+  const [billingAddress, setBillingAddress] = useState(
+    'Plot 42, Bandra Kurla Complex, Mumbai, Maharashtra 400051',
+  );
   const [gstin, setGstin] = useState('27AAACA12341Z5');
   const [billingEmail, setBillingEmail] = useState('finance@acme.com');
 
@@ -77,7 +79,8 @@ export default function CorporateBillingPage() {
             Billing Profile & GSTIN
           </h1>
           <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-            Configure GST registration details, monthly consolidated invoicing address, and finance contact email.
+            Configure GST registration details, monthly consolidated invoicing address, and finance
+            contact email.
           </p>
         </div>
 
@@ -90,7 +93,9 @@ export default function CorporateBillingPage() {
         {success && (
           <div className="p-4 rounded-xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
             <span className="material-symbols-outlined text-base">check_circle</span>
-            <span>Billing profile updated cleanly! Tax invoices will reflect these legal GST details.</span>
+            <span>
+              Billing profile updated cleanly! Tax invoices will reflect these legal GST details.
+            </span>
           </div>
         )}
 
@@ -103,23 +108,38 @@ export default function CorporateBillingPage() {
             {/* CREDIT LINE CARD */}
             <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <span className="text-[10px] font-mono text-[#bccac0] uppercase">Approved Corporate Line</span>
-                <div className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk']">₹50,000</div>
+                <span className="text-[10px] font-mono text-[#bccac0] uppercase">
+                  Approved Corporate Line
+                </span>
+                <div className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk']">
+                  ₹50,000
+                </div>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-mono text-[#bccac0] uppercase">Current Billed Balance</span>
+                <span className="text-[10px] font-mono text-[#bccac0] uppercase">
+                  Current Billed Balance
+                </span>
                 <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">₹0</div>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-mono text-[#bccac0] uppercase">Payment Terms</span>
-                <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">Net 30 Days</div>
+                <span className="text-[10px] font-mono text-[#bccac0] uppercase">
+                  Payment Terms
+                </span>
+                <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  Net 30 Days
+                </div>
               </div>
             </div>
 
-            <form onSubmit={handleSave} className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-5">
+            <form
+              onSubmit={handleSave}
+              className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-5"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Legal Entity Name</label>
+                  <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                    Legal Entity Name
+                  </label>
                   <input
                     type="text"
                     value={legalName}
@@ -130,7 +150,9 @@ export default function CorporateBillingPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">GSTIN Number</label>
+                  <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                    GSTIN Number
+                  </label>
                   <input
                     type="text"
                     value={gstin}
@@ -141,7 +163,9 @@ export default function CorporateBillingPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Billing Email (Invoices Sent Here)</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Billing Email (Invoices Sent Here)
+                </label>
                 <input
                   type="email"
                   value={billingEmail}
@@ -152,7 +176,9 @@ export default function CorporateBillingPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">Registered Billing Address</label>
+                <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
+                  Registered Billing Address
+                </label>
                 <textarea
                   value={billingAddress}
                   onChange={(e) => setBillingAddress(e.target.value)}

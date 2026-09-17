@@ -24,7 +24,6 @@ describe('AdminSidebar Scroll & Navigation Hardening', () => {
     });
   });
 
-
   beforeEach(() => {
     sessionStorageMock.clear();
   });
@@ -49,4 +48,3 @@ describe('AdminSidebar Scroll & Navigation Hardening', () => {
     expect(isBelowVisible).toBe(false);
   });
 });
-

@@ -420,7 +420,11 @@ describe('Referral Service', () => {
           qualifiedAt: new Date(),
           channel: 'CODE',
           referredUser: {
-            customerProfile: { firstName: 'Rahul', lastName: 'Sharma', displayName: 'Rahul Sharma' },
+            customerProfile: {
+              firstName: 'Rahul',
+              lastName: 'Sharma',
+              displayName: 'Rahul Sharma',
+            },
             phone: '+919876543210',
           },
         },

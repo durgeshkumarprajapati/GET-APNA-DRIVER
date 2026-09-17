@@ -25,12 +25,13 @@ export class DevelopmentProvider {
     intent: AIIntent,
     context: Record<string, unknown>,
     actions: AIAssistantAction[],
-    citations: AIDataReference[]
+    citations: AIDataReference[],
   ): AIResponse {
     switch (intent) {
       case 'BOOK_RIDE':
       case 'REBOOK_RIDE': {
-        const usual = context.usualRide as { pickup?: string; dropoff?: string; vehicle?: string } | undefined;
+        const usual = context.usualRide as
+          { pickup?: string; dropoff?: string; vehicle?: string } | undefined;
         const pickup = usual?.pickup || (context.pickupAddress as string) || 'Current Location';
         const dropoff = usual?.dropoff || (context.dropoffAddress as string) || 'Destination';
         const vehicleCategory = usual?.vehicle || 'Sedan';
@@ -87,7 +88,8 @@ export class DevelopmentProvider {
       }
 
       case 'FIND_PROMOTION': {
-        const promo = context.promotion as { code?: string; title?: string; discountText?: string } | undefined;
+        const promo = context.promotion as
+          { code?: string; title?: string; discountText?: string } | undefined;
         const code = promo?.code || 'WELCOME50';
         const title = promo?.title || '50% Off First 3 Rides';
         const discountText = promo?.discountText || '50% discount up to ₹100';
@@ -178,7 +180,7 @@ export class DevelopmentProvider {
     intent: AIIntent,
     context: Record<string, unknown>,
     actions: AIAssistantAction[],
-    citations: AIDataReference[]
+    citations: AIDataReference[],
   ): AIResponse {
     switch (intent) {
       case 'SHIFT_SUMMARY': {
@@ -204,7 +206,8 @@ export class DevelopmentProvider {
       }
 
       case 'EARNINGS_SUMMARY': {
-        const earnings = context.earnings as { todayEarnings?: number; completedTrips?: number } | undefined;
+        const earnings = context.earnings as
+          { todayEarnings?: number; completedTrips?: number } | undefined;
         const todayEarnings = earnings?.todayEarnings ?? 1450;
         const completedTripsCount = earnings?.completedTrips ?? 6;
 

@@ -26,7 +26,9 @@ export async function createApprovalRequest(params: CreateApprovalRequestParams)
         requesterUserId: params.requesterUserId,
         status: ApprovalStatus.PENDING,
         bookingParameters: params.bookingParameters as unknown as Prisma.InputJsonValue,
-        policyViolations: params.policyViolations ? (params.policyViolations as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+        policyViolations: params.policyViolations
+          ? (params.policyViolations as unknown as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
         reason: params.reason,
         requestedAt: new Date(),
       },
@@ -141,10 +143,7 @@ export async function cancelApprovalRequest(approvalRequestId: string, userId: s
   });
 }
 
-export async function listOrganizationApprovals(
-  organizationId: string,
-  status?: ApprovalStatus
-) {
+export async function listOrganizationApprovals(organizationId: string, status?: ApprovalStatus) {
   return await prisma.corporateApprovalRequest.findMany({
     where: {
       organizationId,

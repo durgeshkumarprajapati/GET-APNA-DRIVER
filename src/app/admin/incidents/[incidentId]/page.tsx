@@ -186,21 +186,30 @@ export default function AdminIncidentDetailPage({
                 Incident Control Case: {incident.incidentNumber}
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                Fingerprint ID: <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono text-[11px]">{incident.fingerprint}</code>
+                Fingerprint ID:{' '}
+                <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono text-[11px]">
+                  {incident.fingerprint}
+                </code>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <StatusBadge label={incident.status} tone="neutral" />
-            <StatusBadge label={incident.severity} tone={SEVERITY_TONE[incident.severity] || 'neutral'} />
+            <StatusBadge
+              label={incident.severity}
+              tone={SEVERITY_TONE[incident.severity] || 'neutral'}
+            />
           </div>
         </div>
 
         {actionToast && (
           <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center justify-between">
             <span>{actionToast}</span>
-            <button onClick={() => setActionToast(null)} className="text-emerald-400 hover:text-emerald-200">
+            <button
+              onClick={() => setActionToast(null)}
+              className="text-emerald-400 hover:text-emerald-200"
+            >
               ✕
             </button>
           </div>
@@ -210,7 +219,9 @@ export default function AdminIncidentDetailPage({
         <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold text-slate-200">Operator Recovery Actions</h2>
-            <p className="text-xs text-slate-400">Trigger authorized recovery routines or escalate for human intervention</p>
+            <p className="text-xs text-slate-400">
+              Trigger authorized recovery routines or escalate for human intervention
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -267,7 +278,9 @@ export default function AdminIncidentDetailPage({
           <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
             <span className="text-xs font-bold uppercase text-slate-400">Driver Partner</span>
             <p className="text-sm font-bold text-slate-100">
-              {incident.driverProfile ? `Driver Profile #${incident.driverProfile.id}` : 'Unassigned / searching'}
+              {incident.driverProfile
+                ? `Driver Profile #${incident.driverProfile.id}`
+                : 'Unassigned / searching'}
             </p>
           </div>
         </div>
@@ -284,14 +297,22 @@ export default function AdminIncidentDetailPage({
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-300">{entry.action}</span>
                     <span className="text-[11px] text-slate-400">
-                      {new Date(entry.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                      {new Date(entry.createdAt).toLocaleString('en-IN', {
+                        timeZone: 'Asia/Kolkata',
+                      })}
                     </span>
                   </div>
-                  {entry.notes && <p className="text-xs text-slate-300 mt-1 leading-relaxed">{entry.notes}</p>}
+                  {entry.notes && (
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">{entry.notes}</p>
+                  )}
                   <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-400">
-                    <span>Actor Role: <strong>{entry.actorRole}</strong></span>
+                    <span>
+                      Actor Role: <strong>{entry.actorRole}</strong>
+                    </span>
                     {entry.fromStatus && entry.toStatus && (
-                      <span>• Transition: {entry.fromStatus} → {entry.toStatus}</span>
+                      <span>
+                        • Transition: {entry.fromStatus} → {entry.toStatus}
+                      </span>
                     )}
                   </div>
                 </div>

@@ -52,7 +52,7 @@ describe('IncidentRecoveryService', () => {
     expect(prisma.tripReliabilityIncident.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'inc_201' },
-      })
+      }),
     );
   });
 

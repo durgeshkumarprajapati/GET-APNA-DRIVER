@@ -51,7 +51,8 @@ export default function WorkerHealthPage() {
           {t('platformHealth.navWorkers') || 'Workers & Outbox Pipeline Health'}
         </h1>
         <p className="text-sm text-gray-500">
-          {t('platformHealth.workersSubtitle') || 'Asynchronous event queues, outbox lag & queue worker status'}
+          {t('platformHealth.workersSubtitle') ||
+            'Asynchronous event queues, outbox lag & queue worker status'}
         </p>
       </div>
 
@@ -70,15 +71,21 @@ export default function WorkerHealthPage() {
             </div>
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
               <span className="text-xs text-gray-500">Processing Events</span>
-              <div className="text-3xl font-bold mt-1 text-blue-600">{data.outboxStats.processingCount}</div>
+              <div className="text-3xl font-bold mt-1 text-blue-600">
+                {data.outboxStats.processingCount}
+              </div>
             </div>
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
               <span className="text-xs text-gray-500">Failed Events</span>
-              <div className="text-3xl font-bold mt-1 text-rose-600">{data.outboxStats.failedCount}</div>
+              <div className="text-3xl font-bold mt-1 text-rose-600">
+                {data.outboxStats.failedCount}
+              </div>
             </div>
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
               <span className="text-xs text-gray-500">Oldest Pending Lag</span>
-              <div className="text-3xl font-bold mt-1 text-amber-600">{data.outboxStats.oldestPendingAgeSeconds}s</div>
+              <div className="text-3xl font-bold mt-1 text-amber-600">
+                {data.outboxStats.oldestPendingAgeSeconds}s
+              </div>
             </div>
           </div>
 

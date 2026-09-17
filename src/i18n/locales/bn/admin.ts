@@ -53,6 +53,9 @@ export const adminBn = {
     liveOpsMap: 'লাইভ ম্যাপ',
     kycApprovals: 'কেওয়াইসি অনুমোদন',
     marketplaceIntelligence: 'মার্কেটপ্লেস ইন্টেলিজেন্স',
+    operationsCommandCenter: 'অপারেশনস কমান্ড সেন্টার',
+    scheduledRides: 'নির্ধারিত রাইডসমূহ',
+    riskAndTrust: 'ঝুঁকি ও ট্রাস্ট ইঞ্জিন',
   },
   marketplaceIntelligence: {
     title: 'মার্কেটপ্লেস ইন্টেলিজেন্স কনসোল',
@@ -216,4 +219,3 @@ export const adminBn = {
     loading: 'প্ল্যাটফর্ম মেট্রিক্স মূল্যায়ন করা হচ্ছে...',
   },
 };
-

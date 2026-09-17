@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslation } from '@/i18n/context';
 import { isValidIndianMobile } from '@/shared/validation/auth-form-validation';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 
@@ -12,14 +12,9 @@ const GOOGLE_OAUTH_ERROR_MESSAGES: Record<string, string> = {
   google_invalid_callback: 'Google sign-in was interrupted. Please try again.',
   google_auth_failed: 'Google sign-in failed. Please try again, or use mobile or email login.',
 };
-export default function LoginPage() {
-  // Test Harness State
-  const [testHarnessState, setTestHarnessState] = useState<
-    'default' | 'error' | 'pending' | 'suspended'
-  >('default');
 
-  // Role Preview Active Tab
-  const [activeRoleTab, setActiveRoleTab] = useState<'customer' | 'driver' | 'admin'>('customer');
+export default function LoginPage() {
+  const { t, locale, setLocale } = useTranslation();
 
   // Auth Mode: OTP vs Email
   const [authMode, setAuthMode] = useState<'otp' | 'email'>('otp');
@@ -57,9 +52,32 @@ export default function LoginPage() {
   const [connectingToGoogle, setConnectingToGoogle] = useState(false);
   const { toast, showToast, dismissToast } = useToast();
 
-  // Surface a Google sign-in failure the callback route redirected back
-  // with (?error=...) as a toast, instead of a raw query string sitting in
-  // the address bar with no explanation.
+  // Check if session already exists — if so, send to server-authoritative role redirect landing page
+  useEffect(() => {
+    let isMounted = true;
+    const checkExistingSession = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.principal) {
+            // Hard navigation to '/' so server-authoritative dashboard-redirect-service resolves role destination
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+            window.location.href = '/';
+          }
+        }
+      } catch {
+        // Unauthenticated — stay on login page
+      }
+    };
+    void checkExistingSession();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Surface Google sign-in failure callback errors as toast
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get('error');
@@ -83,9 +101,7 @@ export default function LoginPage() {
     window.location.href = '/api/auth/google';
   };
 
-  // OTP expiry countdown — driven by the server's `expiresAt`, never a
-  // client-invented duration. This timer is a visual aid only; the backend
-  // independently rejects an expired OTP regardless of what this shows.
+  // OTP expiry countdown
   useEffect(() => {
     if (otpStep !== 'otp' || !otpExpiresAt) return;
     const tick = () => {
@@ -96,9 +112,7 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [otpStep, otpExpiresAt]);
 
-  // Resend cooldown — a short local debounce against accidental double-taps,
-  // not a security control. The real resend limit (3 requests / 10 minutes)
-  // is enforced server-side and surfaces as an error if exceeded.
+  // Resend cooldown countdown
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const interval = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
@@ -184,15 +198,11 @@ export default function LoginPage() {
         throw new Error(data.error || 'Authentication failed');
       }
 
-      // Hard navigation ensures the server re-reads the freshly-set session cookie.
+      // Hard navigation to '/' so server-authoritative redirect service routes by role
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/';
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unexpected authentication error occurred.');
-      }
+      setError(err instanceof Error ? err.message : 'An unexpected authentication error occurred.');
       setLoading(false);
     }
   };
@@ -217,8 +227,7 @@ export default function LoginPage() {
         throw new Error(data.message || data.error || 'Invalid OTP code.');
       }
 
-      // Hard navigation to the server-side role-aware redirect (src/app/page.tsx)
-      // — the client never decides its own destination.
+      // Hard navigation to '/' for server-authoritative role redirecting
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/';
     } catch (err: unknown) {
@@ -228,813 +237,497 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased">
-      {/* Fixed Top Navigation Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#0f131c]/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.45)] border-b border-[#262a33]">
-        <div className="h-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 shrink-0">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#262a33] flex items-center justify-center text-[#68dba9]">
-                <span className="material-symbols-outlined text-lg font-bold">local_taxi</span>
-              </div>
-              <span className="font-display font-bold text-lg uppercase tracking-tight text-[#dfe2ee]">
+    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased flex flex-col justify-between selection:bg-[#68dba9] selection:text-[#003825]">
+      {/* Top Bar */}
+      <header className="w-full bg-[#0a0e16]/80 backdrop-blur-xl border-b border-[#262a33] sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9] shadow-inner group-hover:bg-[#68dba9] group-hover:text-[#003825] transition-all duration-300">
+              <span className="material-symbols-outlined text-xl font-bold">local_taxi</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-base uppercase tracking-wider text-[#dfe2ee]">
                 Get Apna Driver
               </span>
-            </Link>
-
-            <div className="hidden xl:flex items-center gap-2 bg-[#0a0e16] px-3 py-1 rounded-full border border-[#3d4a42]/30 text-xs font-mono">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#68dba9]"></span>
-              </span>
-              <span className="text-[#bccac0]">
-                256-Bit SSL Auth Rails • ISO/IEC 27001 Certified
+              <span className="text-[10px] font-mono text-[#87948b] hidden sm:inline-block">
+                {t('auth.login.tagline')}
               </span>
             </div>
-          </div>
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-1 bg-[#0a0e16] p-1 rounded-full border border-[#3d4a42]/20 text-xs font-mono">
-            <span className="px-3 py-1.5 uppercase tracking-wider bg-[#262a33] text-[#dfe2ee] font-semibold rounded-lg shadow-[0_0_12px_rgba(5,150,105,0.25)]">
-              Unified Login
-            </span>
-            <Link
-              href="/register"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
+          {/* Language Selector Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm text-[#87948b]">language</span>
+            <select
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as Parameters<typeof setLocale>[0])}
+              className="bg-[#181c24] border border-[#262a33] text-[#dfe2ee] text-xs font-mono py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-[#68dba9] cursor-pointer"
+              aria-label="Select language"
             >
-              Role Selection
-            </Link>
-            <Link
-              href="/register"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Customer Onboarding
-            </Link>
-            <Link
-              href="/driver/onboarding"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Driver KYC Wizard
-            </Link>
-            <Link
-              href="/admin/drivers"
-              className="px-3 py-1.5 rounded-lg uppercase tracking-wider text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors"
-            >
-              Admin Vault
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-4 shrink-0">
-            <button
-              aria-label="Toggle system theme"
-              className="p-2 rounded-lg text-[#bccac0] hover:text-[#dfe2ee] hover:bg-[#181c24] transition-colors flex items-center justify-center"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-lg">dark_mode</span>
-            </button>
-            <div className="relative flex items-center">
-              <Image
-                alt="Profile"
-                width={32}
-                height={32}
-                unoptimized
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-[#68dba9]/40"
-                src="https://lh3.googleusercontent.com/aida/AEtjO1WxTO3NWRJYA6Ib8PoLewFtFM192nboytw0dzwqWk0TIlG-EKLuweHK3XEBiNQPnRKauOOKRhAitZ0MSszwg63MMJtw0CZH0PQuLqh2eFIwV8e0k116pkMkpiHFZjv6K7_YcBF4yrXC9ju4097kjEeBXeIHsRM6FJqVKl32MXq3hJit4vg6qpYolsOCW13MleiFjFXW7na0Il8qSvKmcsODjxcQAHKnbfL_TtjEDmBexYKDZrzUvLjYLyQ"
-              />
-            </div>
+              <option value="en">English</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+              <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+              <option value="bn">বাংলা (Bengali)</option>
+            </select>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="pt-20 pb-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Interactive Test Harness Controller Strip */}
-        <div className="w-full mb-6 bg-[#0a0e16] p-3 rounded-xl border border-[#262a33] shadow-xl flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-mono">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#68dba9]"></span>
-            </span>
-            <span className="text-[#bccac0] uppercase tracking-wider font-bold">
-              Interactive Test Harness:
-            </span>
-          </div>
+      {/* Main Area */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex items-center justify-center">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* Left Column: Brand Identity (Desktop Only) */}
+          <div className="hidden lg:flex lg:col-span-6 flex-col justify-center space-y-6 pr-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#181c24] rounded-full border border-[#262a33] w-fit">
+              <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse"></span>
+              <span className="text-xs font-mono text-[#68dba9] font-medium uppercase tracking-wider">
+                Chauffeur Mobility Terminal
+              </span>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {(['default', 'error', 'pending', 'suspended'] as const).map((st) => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setTestHarnessState(st)}
-                className={`px-3 py-1 rounded text-xs font-mono uppercase tracking-wider transition-all ${
-                  testHarnessState === st
-                    ? 'bg-[#262a33] text-[#68dba9] font-bold border border-[#68dba9]/50 shadow'
-                    : 'bg-[#181c24] text-[#bccac0] hover:text-[#dfe2ee]'
-                }`}
-              >
-                {st === 'default'
-                  ? 'Normal'
-                  : st === 'error'
-                    ? 'Auth Error'
-                    : st === 'pending'
-                      ? 'KYC Pending'
-                      : 'Access Suspended'}
-              </button>
-            ))}
-          </div>
-        </div>
+            <h1 className="font-bold text-4xl text-[#dfe2ee] tracking-tight leading-tight">
+              {t('auth.login.heroTitle')}
+            </h1>
 
-        {/* Dynamic Alert Banner based on Test Harness */}
-        {testHarnessState !== 'default' && (
-          <div className="mb-6">
-            {testHarnessState === 'error' && (
-              <div className="p-4 rounded-xl bg-[#93000a]/40 border border-red-500/50 shadow-lg flex items-start gap-3">
-                <span className="material-symbols-outlined text-red-400 text-xl shrink-0">
-                  gpp_bad
-                </span>
-                <div className="space-y-0.5">
-                  <h5 className="font-display font-bold text-sm text-red-300">
-                    Authentication Protocol Fault
-                  </h5>
-                  <p className="text-xs text-[#dfe2ee]">
-                    Invalid cryptographic key or security code combination. 2 attempts remaining
-                    prior to session throttle.
+            <p className="text-sm text-[#87948b] leading-relaxed max-w-md">
+              {t('auth.login.heroSubtitle')}
+            </p>
+
+            <div className="space-y-4 pt-2 border-t border-[#262a33]/60">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-[#181c24] text-[#68dba9] border border-[#262a33]">
+                  <span className="material-symbols-outlined text-lg">verified_user</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                    Verified Drivers
+                  </h4>
+                  <p className="text-xs text-[#87948b]">
+                    Aadhaar &amp; commercial RTO licensing background checked.
                   </p>
                 </div>
               </div>
-            )}
-            {testHarnessState === 'pending' && (
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#68dba9]/40 shadow-lg flex items-start gap-3">
-                <span className="material-symbols-outlined text-[#68dba9] text-xl shrink-0">
-                  pending_actions
-                </span>
-                <div className="space-y-0.5">
-                  <h5 className="font-display font-bold text-sm text-[#68dba9]">
-                    Driver KYC Verification in Progress
-                  </h5>
-                  <p className="text-xs text-[#dfe2ee]">
-                    Your commercial driver partner profile is under human audit by the sovereign
-                    logistics desk. Estimated clearance: 45 minutes.
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-[#181c24] text-[#68dba9] border border-[#262a33]">
+                  <span className="material-symbols-outlined text-lg">schedule</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                    On-Demand &amp; Outstation
+                  </h4>
+                  <p className="text-xs text-[#87948b]">
+                    Hourly chauffeur services and intercity journeys.
                   </p>
                 </div>
               </div>
-            )}
-            {testHarnessState === 'suspended' && (
-              <div className="p-4 rounded-xl bg-[#93000a] border border-red-400 shadow-lg flex items-start gap-3">
-                <span className="material-symbols-outlined text-[#ffdad6] text-xl shrink-0">
-                  block
-                </span>
-                <div className="space-y-0.5">
-                  <h5 className="font-display font-bold text-sm text-[#ffdad6]">
-                    Access Suspended: Policy Exception
-                  </h5>
-                  <p className="text-xs text-[#ffdad6]">
-                    This operator account has been placed into precautionary lock due to sudden
-                    telematics divergence. Contact compliance.
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-[#181c24] text-[#68dba9] border border-[#262a33]">
+                  <span className="material-symbols-outlined text-lg">security</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                    Secure Access Rails
+                  </h4>
+                  <p className="text-xs text-[#87948b]">
+                    Encrypted session tokens &amp; zero-trust authentication.
                   </p>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Dual-Panel Operational Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          {/* Left Hero & Telemetry Column (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col justify-between bg-[#0a0e16] p-6 sm:p-8 lg:p-10 rounded-2xl border border-[#262a33] relative overflow-hidden shadow-2xl">
-            {/* Background Ambient Glows */}
-            <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[#68dba9]/10 blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-[#0053db]/20 blur-3xl pointer-events-none"></div>
-
-            {/* Top Header & VIP Network Badge */}
-            <div className="relative z-10 space-y-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#262a33] rounded-full shadow-sm">
-                  <span
-                    className="material-symbols-outlined text-[#68dba9] text-xs"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    verified
-                  </span>
-                  <span className="text-[10px] font-mono text-[#dfe2ee] uppercase tracking-wider font-bold">
-                    Verified Chauffeur Network
-                  </span>
-                </span>
-                <span className="text-[10px] font-mono text-[#bccac0] bg-[#181c24] px-3 py-1 rounded border border-[#262a33]">
-                  ISO/IEC 27001
-                </span>
-              </div>
-
-              <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#dfe2ee] max-w-xl leading-tight">
-                Sovereign Ground Logistics{' '}
-                <span className="text-[#68dba9]">&amp; Chauffeur Terminal</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-[#bccac0] max-w-lg leading-relaxed">
-                High-velocity unified portal for high-net-worth customers, elite licensed operators,
-                and national fleet dispatch operations.
-              </p>
-            </div>
-
-            {/* Role Preview Interactive Hub */}
-            <div className="relative z-10 my-6 bg-[#181c24] p-5 rounded-xl border border-[#262a33] shadow-md">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider font-bold">
-                  Target Scope Preview
-                </span>
-                <span className="text-[10px] font-mono text-[#68dba9] flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#68dba9] animate-pulse"></span>
-                  Dynamic Role Routing
-                </span>
-              </div>
-
-              {/* Tab Bar */}
-              <div className="grid grid-cols-3 gap-2 bg-[#0a0e16] p-1 rounded-lg mb-4 border border-[#262a33]">
-                {(['customer', 'driver', 'admin'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setActiveRoleTab(tab)}
-                    className={`py-1.5 px-3 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${
-                      activeRoleTab === tab
-                        ? 'bg-[#262a33] text-[#68dba9] font-bold shadow'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                    }`}
-                  >
-                    {tab === 'customer'
-                      ? 'Customer'
-                      : tab === 'driver'
-                        ? 'Driver Partner'
-                        : 'Ops Admin'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Dynamic Content */}
-              {activeRoleTab === 'customer' && (
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-[#31353e] rounded-lg shrink-0 text-[#68dba9]">
-                    <span className="material-symbols-outlined text-2xl">directions_car</span>
-                  </div>
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-[#dfe2ee] mb-1">
-                      VIP On-Demand &amp; Outstation
-                    </h4>
-                    <p className="text-xs text-[#bccac0] leading-relaxed">
-                      Instant booking with background-verified professional drivers. Full trip
-                      telemetry, real-time chauffeur vetting scores, and corporate invoice rails.
-                    </p>
-                    <div className="mt-2 flex items-center gap-3 font-mono text-[11px] text-[#68dba9]">
-                      <span>99.8% Availability</span>
-                      <span>•</span>
-                      <span>Avg ETA: 4.2 Min</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeRoleTab === 'driver' && (
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-[#31353e] rounded-lg shrink-0 text-[#68dba9]">
-                    <span className="material-symbols-outlined text-2xl">radar</span>
-                  </div>
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-[#dfe2ee] mb-1">
-                      Partner Shift Telemetry &amp; Radar
-                    </h4>
-                    <p className="text-xs text-[#bccac0] leading-relaxed">
-                      Geo-spatial heatmap dispatch, automated RazorpayX instant shift settlements,
-                      duty-time monitoring, and Aadhaar-backed digital credentials.
-                    </p>
-                    <div className="mt-2 flex items-center gap-3 font-mono text-[11px] text-[#68dba9]">
-                      <span>Daily Payouts Enabled</span>
-                      <span>•</span>
-                      <span>24/7 SOS Hotlink</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeRoleTab === 'admin' && (
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-[#31353e] rounded-lg shrink-0 text-[#b4c5ff]">
-                    <span className="material-symbols-outlined text-2xl">shield_person</span>
-                  </div>
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-[#dfe2ee] mb-1">
-                      Enterprise Fleet Ops &amp; Governance
-                    </h4>
-                    <p className="text-xs text-[#bccac0] leading-relaxed">
-                      Central KYC verification pipeline, fleet exception escalations, audit vault,
-                      and dynamic pricing overrides with multi-sig auth.
-                    </p>
-                    <div className="mt-2 flex items-center gap-3 font-mono text-[11px] text-[#b4c5ff]">
-                      <span>Zero-Trust Vault</span>
-                      <span>•</span>
-                      <span>Audit Trail Active</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Tri-Feature Trust Pillars */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10 pt-2">
-              <div className="p-4 bg-[#181c24] rounded-xl border border-[#262a33]">
-                <div className="flex items-center gap-1.5 text-[#68dba9] mb-1">
-                  <span className="material-symbols-outlined text-sm">security</span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold">
-                    Tier-4 Vetting
-                  </span>
-                </div>
-                <p className="font-display font-bold text-xs text-[#dfe2ee] mb-1">
-                  Military Screening
-                </p>
-                <p className="text-[11px] text-[#bccac0]">
-                  Criminal record, fingerprint, and RTO licensing certified.
-                </p>
-              </div>
-
-              <div className="p-4 bg-[#181c24] rounded-xl border border-[#262a33]">
-                <div className="flex items-center gap-1.5 text-[#68dba9] mb-1">
-                  <span className="material-symbols-outlined text-sm">sensors</span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold">
-                    Live In-Flight
-                  </span>
-                </div>
-                <p className="font-display font-bold text-xs text-[#dfe2ee] mb-1">
-                  Telematics &amp; SOS
-                </p>
-                <p className="text-[11px] text-[#bccac0]">
-                  Continuous geofence monitoring &amp; silent emergency telemetry.
-                </p>
-              </div>
-
-              <div className="p-4 bg-[#181c24] rounded-xl border border-[#262a33]">
-                <div className="flex items-center gap-1.5 text-[#68dba9] mb-1">
-                  <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold">
-                    Instant Ledger
-                  </span>
-                </div>
-                <p className="font-display font-bold text-xs text-[#dfe2ee] mb-1">
-                  Direct RazorpayX
-                </p>
-                <p className="text-[11px] text-[#bccac0]">
-                  Sub-second UPI and IMPS dispatch clearing for drivers.
-                </p>
-              </div>
-            </div>
-
-            {/* Security Status Footer Indicator */}
-            <div className="mt-6 pt-4 border-t border-[#262a33] flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-[#bccac0] relative z-10">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#68dba9] text-sm">lock</span>
-                <span>
-                  All sessions encrypted via{' '}
-                  <strong className="text-[#dfe2ee]">TLS 1.3 &amp; SHA-256</strong>
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#68dba9] text-sm">dns</span>
-                <span>
-                  Node Gateway: <strong className="text-[#dfe2ee]">BOM-01 Secure Rail</strong>
-                </span>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Authentication Interactive Console (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col justify-center bg-[#181c24] p-6 sm:p-8 lg:p-10 rounded-2xl border border-[#262a33] shadow-2xl relative">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-mono tracking-widest text-[#68dba9] uppercase font-bold">
-                  Identity Access Management
-                </span>
-                <span className="text-[10px] font-mono text-[#bccac0]">v4.19.2</span>
+          {/* Right Column: Clean Authentication Card */}
+          <div className="lg:col-span-6 w-full max-w-md mx-auto">
+            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+              {/* Header */}
+              <div>
+                <h2 className="font-bold text-2xl text-[#dfe2ee]">{t('auth.login.title')}</h2>
+                <p className="text-xs text-[#87948b] mt-1">{t('auth.login.tagline')}</p>
               </div>
-              <h2 className="font-display font-bold text-2xl text-[#dfe2ee]">Welcome Back</h2>
-              <p className="text-xs text-[#bccac0] mt-1">
-                Access your verified mobility workspace or partner console.
-              </p>
-            </div>
 
-            {/* Auth Method Selector Tabs */}
-            <div className="flex p-1 bg-[#0a0e16] rounded-lg mb-6 border border-[#262a33]">
-              <button
-                type="button"
-                onClick={() => setAuthMode('otp')}
-                className={`w-1/2 py-2 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${
-                  authMode === 'otp'
-                    ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
-                    : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                }`}
-              >
-                Mobile Number + OTP
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthMode('email')}
-                className={`w-1/2 py-2 rounded font-mono text-xs uppercase tracking-wider text-center transition-all ${
-                  authMode === 'email'
-                    ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
-                    : 'text-[#bccac0] hover:text-[#dfe2ee]'
-                }`}
-              >
-                Email &amp; Password
-              </button>
-            </div>
-
-            {/* General Error Message */}
-            {error && (
-              <div className="mb-4 p-3 rounded-lg bg-[#93000a]/30 border border-red-500/40 text-[#ffdad6] text-xs font-mono">
-                {error}
+              {/* Mode Toggle Tabs */}
+              <div className="grid grid-cols-2 p-1 bg-[#0a0e16] rounded-xl border border-[#262a33]">
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('otp')}
+                  className={`py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all ${
+                    authMode === 'otp'
+                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm'
+                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  {t('auth.login.useOtpTab', { defaultValue: 'Mobile OTP' })}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('email')}
+                  className={`py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all ${
+                    authMode === 'email'
+                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm'
+                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  {t('auth.login.usePasswordTab', { defaultValue: 'Email & Password' })}
+                </button>
               </div>
-            )}
 
-            {/* AUTH FORM: Mobile + OTP Workflow */}
-            {authMode === 'otp' && (
-              <div className="space-y-5">
-                <div className="space-y-1">
-                  <label
-                    htmlFor="inputPhone"
-                    className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block"
-                  >
-                    Registered Phone Number
-                  </label>
-                  <div
-                    className={`flex items-center bg-[#0a0e16] rounded-lg px-4 py-2.5 border focus-within:border-[#68dba9] ${
-                      phoneTouched && !isPhoneValid ? 'border-red-500/60' : 'border-[#262a33]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1 pr-3 mr-3 border-r border-[#3d4a42]/40 text-[#dfe2ee] font-mono text-sm">
-                      <span className="font-medium">🇮🇳 +91</span>
-                    </div>
-                    <input
-                      id="inputPhone"
-                      type="tel"
-                      inputMode="numeric"
-                      autoComplete="tel-national"
-                      disabled={otpStep === 'otp'}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      onBlur={() => setPhoneTouched(true)}
-                      placeholder="Enter 10-digit number"
-                      aria-invalid={phoneTouched && !isPhoneValid}
-                      aria-describedby="phone-validation-message"
-                      className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b] disabled:opacity-60"
-                    />
-                    {isPhoneValid && (
-                      <span className="material-symbols-outlined text-[#68dba9] text-base ml-2">
-                        verified
+              {/* General Error Alert */}
+              {error && (
+                <div
+                  role="alert"
+                  className="p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-start gap-2.5"
+                >
+                  <span className="material-symbols-outlined text-base text-red-400 shrink-0">
+                    error
+                  </span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Mode 1: Mobile + OTP Flow */}
+              {authMode === 'otp' && (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="inputPhone"
+                      className="text-xs font-mono text-[#87948b] uppercase tracking-wider block"
+                    >
+                      {t('auth.login.phoneLabel')}
+                    </label>
+                    <div
+                      className={`flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border transition-colors ${
+                        phoneTouched && !isPhoneValid
+                          ? 'border-red-500/60'
+                          : 'border-[#262a33] focus-within:border-[#68dba9]'
+                      }`}
+                    >
+                      <span className="text-sm font-mono text-[#dfe2ee] mr-2 pr-2 border-r border-[#262a33] flex items-center gap-1.5">
+                        <span>🇮🇳</span>
+                        <span>+91</span>
                       </span>
+                      <input
+                        id="inputPhone"
+                        type="tel"
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        disabled={otpStep === 'otp'}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onBlur={() => setPhoneTouched(true)}
+                        placeholder={t('auth.login.phonePlaceholder')}
+                        aria-invalid={phoneTouched && !isPhoneValid}
+                        aria-describedby="phone-validation-hint"
+                        className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]/60 disabled:opacity-60"
+                      />
+                      {isPhoneValid && (
+                        <span className="material-symbols-outlined text-[#68dba9] text-base shrink-0 ml-1">
+                          check_circle
+                        </span>
+                      )}
+                    </div>
+                    {phoneTouched && !isPhoneValid && (
+                      <p id="phone-validation-hint" className="text-[11px] text-red-400">
+                        {t('auth.login.invalidPhone')}
+                      </p>
                     )}
                   </div>
-                  <p
-                    id="phone-validation-message"
-                    className={`text-[10px] ${
-                      phoneTouched && !isPhoneValid ? 'text-red-400' : 'text-[#bccac0]'
-                    }`}
-                  >
-                    {phoneTouched && !isPhoneValid
-                      ? 'Enter a valid 10-digit Indian mobile number.'
-                      : 'We will send a one-time code to this number.'}
-                  </p>
-                </div>
 
-                {otpStep === 'phone' && (
-                  <button
-                    type="button"
-                    disabled={!isPhoneValid || sendingOtp}
-                    onClick={() => void handleSendOtp()}
-                    className="w-full py-3 px-6 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(104,219,169,0.25)] flex items-center justify-center gap-2"
-                  >
-                    <span>{sendingOtp ? 'Sending OTP…' : 'Send OTP'}</span>
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  </button>
-                )}
+                  {otpStep === 'phone' && (
+                    <button
+                      type="button"
+                      disabled={!isPhoneValid || sendingOtp}
+                      onClick={() => void handleSendOtp()}
+                      className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
+                    >
+                      <span>
+                        {sendingOtp ? t('auth.login.sendingOtp') : t('auth.login.sendOtp')}
+                      </span>
+                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+                  )}
 
-                {/* OTP input only appears after the backend confirms dispatch — never before. */}
-                {otpStep === 'otp' && (
-                  <>
-                    <div className="bg-[#262a33] p-4 rounded-xl space-y-4 border border-[#3d4a42]/40 shadow-lg">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-[#68dba9] uppercase tracking-wider font-bold flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">mark_email_read</span>{' '}
-                          OTP Dispatched
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleChangeNumber}
-                          className="text-[10px] font-mono text-[#bccac0] hover:text-[#68dba9] underline"
-                        >
-                          Change Number
-                        </button>
-                      </div>
+                  {/* Step 2: OTP Entry */}
+                  {otpStep === 'otp' && (
+                    <div className="space-y-4 pt-2">
+                      <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-mono text-[#68dba9] font-medium flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">
+                              mark_email_read
+                            </span>
+                            OTP Sent
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleChangeNumber}
+                            className="font-mono text-[#87948b] hover:text-[#dfe2ee] underline"
+                          >
+                            {t('auth.login.changeNumber')}
+                          </button>
+                        </div>
 
-                      <div>
-                        <label className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block mb-2">
-                          Enter {OTP_LENGTH}-Digit Code
-                        </label>
-                        <div className="grid grid-cols-6 gap-2">
-                          {otpDigits.map((digit, idx) => (
-                            <input
-                              key={idx}
-                              id={`otp-input-${idx}`}
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              autoComplete={idx === 0 ? 'one-time-code' : 'off'}
-                              maxLength={1}
-                              disabled={otpExpired}
-                              value={digit}
-                              onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
-                              onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                              onPaste={handleOtpPaste}
-                              aria-label={`OTP digit ${idx + 1}`}
-                              className="w-full text-center bg-[#0a0e16] text-[#dfe2ee] font-mono text-lg py-2 rounded-lg border border-[#3d4a42] focus:outline-none focus:border-[#68dba9] disabled:opacity-50"
-                            />
-                          ))}
+                        <div>
+                          <label className="text-[11px] font-mono text-[#87948b] block mb-2">
+                            Enter 6-Digit Verification Code
+                          </label>
+                          <div className="grid grid-cols-6 gap-2">
+                            {otpDigits.map((digit, idx) => (
+                              <input
+                                key={idx}
+                                id={`otp-input-${idx}`}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                autoComplete={idx === 0 ? 'one-time-code' : 'off'}
+                                maxLength={1}
+                                disabled={otpExpired}
+                                value={digit}
+                                onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                                onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                                onPaste={handleOtpPaste}
+                                aria-label={`OTP digit ${idx + 1}`}
+                                className="w-full text-center bg-[#181c24] text-[#dfe2ee] font-mono text-lg py-2.5 rounded-lg border border-[#262a33] focus:outline-none focus:border-[#68dba9] disabled:opacity-50"
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between font-mono text-[11px] text-[#87948b]">
+                          {otpExpired ? (
+                            <span className="text-red-400">{t('auth.login.otpExpired')}</span>
+                          ) : (
+                            <span>
+                              {t('auth.login.otpExpiresIn', {
+                                seconds: `${String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:${String(remainingSeconds % 60).padStart(2, '0')}`,
+                              })}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            disabled={resendCooldown > 0 || sendingOtp}
+                            onClick={() => void handleSendOtp()}
+                            className="text-[#87948b] hover:text-[#dfe2ee] disabled:opacity-50"
+                          >
+                            {resendCooldown > 0
+                              ? t('auth.login.resendIn', { seconds: String(resendCooldown) })
+                              : t('auth.otp.resendCode')}
+                          </button>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between font-mono text-[10px] text-[#bccac0]">
-                        {otpExpired ? (
-                          <span className="text-red-400">
-                            OTP expired. Please request a new OTP.
-                          </span>
-                        ) : (
-                          <span>
-                            OTP expires in:{' '}
-                            <strong className="text-[#68dba9]">
-                              {String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:
-                              {String(remainingSeconds % 60).padStart(2, '0')}
-                            </strong>
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          disabled={resendCooldown > 0 || sendingOtp}
-                          onClick={() => void handleSendOtp()}
-                          className="text-[#bccac0] hover:text-[#dfe2ee] disabled:opacity-50"
-                        >
-                          {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        disabled={loading || otpExpired || otpDigits.some((d) => !d)}
+                        onClick={() => void handleOtpSubmit()}
+                        className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
+                      >
+                        <span>
+                          {loading ? t('auth.login.verifying') : t('auth.login.verifyAndEnter')}
+                        </span>
+                        <span className="material-symbols-outlined text-sm">login</span>
+                      </button>
                     </div>
-
-                    <button
-                      type="button"
-                      disabled={loading || otpExpired || otpDigits.some((d) => !d)}
-                      onClick={() => void handleOtpSubmit()}
-                      className="w-full py-3 px-6 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(104,219,169,0.25)] flex items-center justify-center gap-2"
-                    >
-                      <span>{loading ? 'Verifying...' : 'Verify & Enter Workspace'}</span>
-                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* AUTH FORM: Email & Password Workflow */}
-            {authMode === 'email' && (
-              <form onSubmit={handleEmailSubmit} className="space-y-5">
-                <div className="space-y-1">
-                  <label
-                    htmlFor="inputEmail"
-                    className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block"
-                  >
-                    Enterprise Work Email
-                  </label>
-                  <div className="flex items-center bg-[#0a0e16] rounded-lg px-4 py-2.5 border border-[#262a33] focus-within:border-[#68dba9]">
-                    <span className="material-symbols-outlined text-[#87948b] text-base mr-3">
-                      alternate_email
-                    </span>
-                    <input
-                      id="inputEmail"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]"
-                    />
-                  </div>
+                  )}
                 </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="inputPassword"
-                      className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider"
-                    >
-                      Access Secret
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotModal(true)}
-                      className="text-[10px] font-mono text-[#68dba9] hover:underline"
-                    >
-                      Forgot Secret?
-                    </button>
-                  </div>
-                  <div className="flex items-center bg-[#0a0e16] rounded-lg px-4 py-2.5 border border-[#262a33] focus-within:border-[#68dba9]">
-                    <span className="material-symbols-outlined text-[#87948b] text-base mr-3">
-                      vpn_key
-                    </span>
-                    <input
-                      id="inputPassword"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••••••"
-                      className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-[#bccac0] hover:text-[#dfe2ee]"
-                    >
-                      <span className="material-symbols-outlined text-base">
-                        {showPassword ? 'visibility_off' : 'visibility'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={trustDevice}
-                      onChange={(e) => setTrustDevice(e.target.checked)}
-                      className="w-4 h-4 rounded bg-[#0a0e16] accent-[#68dba9]"
-                    />
-                    <span className="text-[#bccac0]">Trust this terminal for 30 days</span>
-                  </label>
-                  <span className="font-mono text-[10px] text-[#bccac0]">SSO Protected</span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 px-6 bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(104,219,169,0.25)] flex items-center justify-center gap-2"
-                >
-                  <span>{loading ? 'Authenticating...' : 'Authenticate Session'}</span>
-                  <span className="material-symbols-outlined text-sm">lock_open</span>
-                </button>
-              </form>
-            )}
-
-            {/* Divider */}
-            <div className="relative my-6 text-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full bg-[#262a33] h-px"></div>
-              </div>
-              <span className="relative bg-[#181c24] px-3 font-mono text-[10px] uppercase tracking-wider text-[#87948b]">
-                Federated Sovereign Auth
-              </span>
-            </div>
-
-            {/* Google Workspace Button */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={connectingToGoogle}
-              className="w-full min-h-[48px] py-2.5 px-4 bg-[#0a0e16] hover:bg-[#262a33] disabled:opacity-60 disabled:cursor-not-allowed rounded-lg font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33]"
-            >
-              {connectingToGoogle ? (
-                <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#dfe2ee] border-t-transparent" />
-              ) : (
-                <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                    fill="#4285F4"
-                  ></path>
-                  <path
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                    fill="#34A853"
-                  ></path>
-                  <path
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                    fill="#FBBC05"
-                  ></path>
-                  <path
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                    fill="#EA4335"
-                  ></path>
-                </svg>
               )}
-              <span>{connectingToGoogle ? 'Connecting to Google…' : 'Continue with Google'}</span>
-            </button>
 
-            {/* Register Link */}
-            <div className="mt-6 pt-3 text-center bg-[#0a0e16]/50 p-2.5 rounded-lg border border-[#262a33]">
-              <p className="text-xs text-[#bccac0]">
-                Don&apos;t have verified access yet?{' '}
-                <Link
-                  href="/register"
-                  className="text-[#68dba9] font-semibold hover:underline ml-1"
-                >
-                  Select your role &amp; begin KYC
-                </Link>
-              </p>
-            </div>
-          </div>
-        </div>
+              {/* Mode 2: Email & Password Flow */}
+              {authMode === 'email' && (
+                <form onSubmit={handleEmailSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="inputEmail"
+                      className="text-xs font-mono text-[#87948b] uppercase tracking-wider block"
+                    >
+                      {t('auth.login.emailLabel')}
+                    </label>
+                    <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border border-[#262a33] focus-within:border-[#68dba9]">
+                      <span className="material-symbols-outlined text-[#87948b] text-base mr-2.5">
+                        mail
+                      </span>
+                      <input
+                        id="inputEmail"
+                        type="email"
+                        inputMode="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder={t('auth.login.emailPlaceholder')}
+                        className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]/60"
+                      />
+                    </div>
+                  </div>
 
-        {/* Active Operations Live Monitor Strip */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex items-center justify-between shadow-md">
-            <div>
-              <span className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block">
-                Chauffeurs Online
-              </span>
-              <span className="font-display font-bold text-xl text-[#dfe2ee]">1,842</span>
-            </div>
-            <div className="p-2.5 bg-[#262a33] rounded-lg text-[#68dba9]">
-              <span className="material-symbols-outlined text-lg">person_pin_circle</span>
-            </div>
-          </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label
+                        htmlFor="inputPassword"
+                        className="text-xs font-mono text-[#87948b] uppercase tracking-wider block"
+                      >
+                        {t('auth.login.passwordLabel')}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotModal(true)}
+                        className="text-[11px] font-mono text-[#68dba9] hover:underline"
+                      >
+                        {t('auth.login.forgotPassword')}
+                      </button>
+                    </div>
+                    <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border border-[#262a33] focus-within:border-[#68dba9]">
+                      <span className="material-symbols-outlined text-[#87948b] text-base mr-2.5">
+                        key
+                      </span>
+                      <input
+                        id="inputPassword"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder={t('auth.login.passwordPlaceholder')}
+                        className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]/60"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={
+                          showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')
+                        }
+                        className="text-[#87948b] hover:text-[#dfe2ee] ml-2"
+                      >
+                        <span className="material-symbols-outlined text-base">
+                          {showPassword ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex items-center justify-between shadow-md">
-            <div>
-              <span className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block">
-                Real-Time Dispatch Rate
-              </span>
-              <span className="font-display font-bold text-xl text-[#68dba9]">99.4%</span>
-            </div>
-            <div className="p-2.5 bg-[#262a33] rounded-lg text-[#68dba9]">
-              <span className="material-symbols-outlined text-lg">speed</span>
-            </div>
-          </div>
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer text-[#87948b]">
+                      <input
+                        type="checkbox"
+                        checked={trustDevice}
+                        onChange={(e) => setTrustDevice(e.target.checked)}
+                        className="w-4 h-4 rounded bg-[#0a0e16] accent-[#68dba9]"
+                      />
+                      <span>{t('auth.login.trustDevice')}</span>
+                    </label>
+                  </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex items-center justify-between shadow-md">
-            <div>
-              <span className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block">
-                Settlement Latency
-              </span>
-              <span className="font-display font-bold text-xl text-[#dfe2ee]">1.8s</span>
-            </div>
-            <div className="p-2.5 bg-[#262a33] rounded-lg text-[#4edea3]">
-              <span className="material-symbols-outlined text-lg">bolt</span>
-            </div>
-          </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
+                  >
+                    <span>{loading ? t('auth.login.verifying') : t('auth.login.submit')}</span>
+                    <span className="material-symbols-outlined text-sm">login</span>
+                  </button>
+                </form>
+              )}
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex items-center justify-between shadow-md">
-            <div>
-              <span className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider block">
-                SOS Telemetry Vault
-              </span>
-              <span className="font-display font-bold text-xl text-[#dfe2ee]">Standby</span>
-            </div>
-            <div className="p-2.5 bg-[#262a33] rounded-lg text-[#68dba9]">
-              <span className="material-symbols-outlined text-lg">health_and_safety</span>
+              {/* Divider */}
+              <div className="relative text-center my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full bg-[#262a33] h-px"></div>
+                </div>
+                <span className="relative bg-[#181c24] px-3 font-mono text-[10px] uppercase tracking-wider text-[#87948b]">
+                  {t('auth.login.orDivider')}
+                </span>
+              </div>
+
+              {/* Google OAuth Button */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={connectingToGoogle}
+                className="w-full min-h-[48px] py-3 px-4 bg-[#0a0e16] hover:bg-[#262a33] disabled:opacity-60 disabled:cursor-not-allowed rounded-xl font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33]"
+              >
+                {connectingToGoogle ? (
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#dfe2ee] border-t-transparent" />
+                ) : (
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                      fill="#4285F4"
+                    ></path>
+                    <path
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                      fill="#34A853"
+                    ></path>
+                    <path
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                      fill="#FBBC05"
+                    ></path>
+                    <path
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                      fill="#EA4335"
+                    ></path>
+                  </svg>
+                )}
+                <span>
+                  {connectingToGoogle
+                    ? t('auth.login.connectingGoogle')
+                    : t('auth.login.continueWithGoogle')}
+                </span>
+              </button>
+
+              {/* Registration Link */}
+              <div className="text-center pt-2">
+                <p className="text-xs text-[#87948b]">
+                  {t('auth.login.newHere')}{' '}
+                  <Link
+                    href="/register"
+                    className="text-[#68dba9] font-semibold hover:underline ml-1"
+                  >
+                    {t('auth.login.createAccount')}
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Password Recovery Modal */}
+      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#262a33] p-6 rounded-xl border border-[#68dba9]/40 shadow-2xl space-y-4 relative">
+          <div className="w-full max-w-md bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow-2xl space-y-4 relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[#68dba9]">
                 <span className="material-symbols-outlined text-base">lock_reset</span>
                 <span className="text-xs font-mono uppercase tracking-wider font-bold">
-                  Credential Recovery
+                  {t('auth.login.forgotPassword')}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
-                className="text-[#bccac0] hover:text-[#dfe2ee]"
+                className="text-[#87948b] hover:text-[#dfe2ee]"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
-            <h3 className="font-display font-bold text-lg text-[#dfe2ee]">Reset Terminal Secret</h3>
-            <p className="text-xs text-[#bccac0] leading-relaxed">
-              Provide your verified mobility identity handle (email or telephone). Our automated
-              multi-sig pipeline will dispatch an authorization challenge.
+            <p className="text-xs text-[#87948b] leading-relaxed">
+              Enter your registered email address or mobile number to receive reset instructions.
             </p>
 
             <div className="space-y-1">
-              <label
-                htmlFor="recoveryInput"
-                className="text-[10px] font-mono text-[#bccac0] uppercase tracking-wider"
-              >
-                Account Identifier
-              </label>
               <input
                 id="recoveryInput"
                 type="text"
                 value={recoveryInput}
                 onChange={(e) => setRecoveryInput(e.target.value)}
-                placeholder="driver-id@apnadriver.in or +91..."
-                className="w-full bg-[#0a0e16] border border-[#3d4a42] px-4 py-2 rounded-lg text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                placeholder="name@company.com or +91..."
+                className="w-full bg-[#0a0e16] border border-[#262a33] px-4 py-2.5 rounded-xl text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
               />
             </div>
 
@@ -1045,26 +738,28 @@ export default function LoginPage() {
                 setTimeout(() => {
                   setShowForgotModal(false);
                   setResetSubmitted(false);
-                }, 1000);
+                }, 1200);
               }}
-              className="w-full py-2.5 bg-[#68dba9] text-[#003825] font-mono text-xs font-bold rounded-lg uppercase tracking-wider shadow hover:bg-[#85f8c4] transition-all"
+              className="w-full py-2.5 bg-[#68dba9] text-[#003825] font-mono text-xs font-bold rounded-xl uppercase tracking-wider shadow hover:bg-[#85f8c4] transition-all"
             >
-              {resetSubmitted ? 'Token Dispatched!' : 'Transmit Verification Link'}
+              {resetSubmitted ? 'Link Dispatched!' : 'Send Recovery Link'}
             </button>
           </div>
         </div>
       )}
 
       {/* Footer */}
-      <footer className="w-full border-t border-[#262a33] bg-[#0a0e16] py-6 px-4 sm:px-6 lg:px-8 text-xs font-mono text-[#bccac0]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span>&copy; 2026 Get Apna Driver Inc. Enterprise Mobility Systems.</span>
-          <div className="flex items-center gap-4">
-            <span className="text-[#68dba9]">Tier-4 Sovereign Compliance</span>
-            <span>Security Protocol v4.19</span>
+      <footer className="w-full border-t border-[#262a33] bg-[#0a0e16]/90 py-4 px-4 sm:px-6 text-xs font-mono text-[#87948b]">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+          <span>&copy; 2026 GET APNA DRIVER. All rights reserved.</span>
+          <div className="flex items-center gap-4 text-[11px]">
+            <span>TLS 1.3 Encrypted</span>
+            <span>•</span>
+            <span className="text-[#68dba9]">Verified Dispatch Rails</span>
           </div>
         </div>
       </footer>
+
       <ToastViewport toast={toast} onDismiss={dismissToast} />
     </div>
   );

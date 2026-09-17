@@ -53,6 +53,9 @@ export const adminPa = {
     liveOpsMap: 'ਲਾਈਵ ਨਕਸ਼ਾ',
     kycApprovals: 'ਕੇਵਾਈਸੀ ਮਨਜ਼ੂਰੀਆਂ',
     marketplaceIntelligence: 'ਮਾਰਕੀਟਪਲੇਸ ਇੰਟੈਲੀਜੈਂਸ',
+    operationsCommandCenter: 'ਓਪਰੇਸ਼ਨ ਕਮਾਂਡ ਸੈਂਟਰ',
+    scheduledRides: 'ਸ਼ਡਿਊਲ ਕੀਤੀਆਂ ਰਾਈਡਾਂ',
+    riskAndTrust: 'ਜੋਖਮ ਅਤੇ ਭਰੋਸਾ ਇੰਜਣ',
   },
   marketplaceIntelligence: {
     title: 'ਮਾਰਕੀਟਪਲੇਸ ਇੰਟੈਲੀਜੈਂਸ ਕੰਸੋਲ',
@@ -216,4 +219,3 @@ export const adminPa = {
     loading: 'ਪਲੇਟਫਾਰਮ ਮੈਟ੍ਰਿਕਸ ਦਾ ਮੁਲਾਂਕਣ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...',
   },
 };
-

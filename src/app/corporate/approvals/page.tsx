@@ -57,7 +57,8 @@ export default function CorporateApprovalsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status,
-          reviewComment: status === 'APPROVED' ? 'Approved by Corporate Travel Manager' : 'Rejected per policy',
+          reviewComment:
+            status === 'APPROVED' ? 'Approved by Corporate Travel Manager' : 'Rejected per policy',
         }),
       });
 
@@ -89,7 +90,8 @@ export default function CorporateApprovalsPage() {
             Approval Requests
           </h1>
           <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-            Review out-of-policy corporate travel requests, fare threshold exceptions, and Manager approvals.
+            Review out-of-policy corporate travel requests, fare threshold exceptions, and Manager
+            approvals.
           </p>
         </div>
 
@@ -136,8 +138,8 @@ export default function CorporateApprovalsPage() {
                           req.status === 'APPROVED'
                             ? 'bg-emerald-950/60 border border-emerald-500/50 text-emerald-300'
                             : req.status === 'REJECTED'
-                            ? 'bg-rose-950/60 border border-rose-500/50 text-rose-300'
-                            : 'bg-amber-950/60 border border-amber-500/50 text-amber-300 animate-pulse'
+                              ? 'bg-rose-950/60 border border-rose-500/50 text-rose-300'
+                              : 'bg-amber-950/60 border border-amber-500/50 text-amber-300 animate-pulse'
                         }`}
                       >
                         {req.status}
@@ -146,7 +148,9 @@ export default function CorporateApprovalsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                       <div>
-                        <span className="text-[10px] text-[#bccac0] uppercase block">Trip Parameters</span>
+                        <span className="text-[10px] text-[#bccac0] uppercase block">
+                          Trip Parameters
+                        </span>
                         <div className="text-[#dfe2ee] mt-1 space-y-1">
                           <p>Estimated Fare: ₹{fare}</p>
                           <p>Category: {cat}</p>
@@ -155,13 +159,20 @@ export default function CorporateApprovalsPage() {
                       </div>
 
                       <div>
-                        <span className="text-[10px] text-[#bccac0] uppercase block">Policy Evaluation Violations</span>
+                        <span className="text-[10px] text-[#bccac0] uppercase block">
+                          Policy Evaluation Violations
+                        </span>
                         {violations.length === 0 ? (
-                          <span className="text-emerald-400 mt-1 block">Requires manual manager sign-off</span>
+                          <span className="text-emerald-400 mt-1 block">
+                            Requires manual manager sign-off
+                          </span>
                         ) : (
                           <div className="space-y-1 mt-1">
                             {violations.map((v, i) => (
-                              <div key={i} className="text-rose-300 bg-rose-950/40 border border-rose-500/30 p-1.5 rounded text-[11px]">
+                              <div
+                                key={i}
+                                className="text-rose-300 bg-rose-950/40 border border-rose-500/30 p-1.5 rounded text-[11px]"
+                              >
                                 ⚠️ {v.message}
                               </div>
                             ))}

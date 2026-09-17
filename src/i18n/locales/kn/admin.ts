@@ -52,7 +52,10 @@ export const adminKn = {
     todaysEarnings: 'ಇಂದಿನ ಗಳಿಕೆ',
     liveOpsMap: 'ಲೈವ್ ಆಪ್ಸ್ ಮ್ಯಾಪ್',
     kycApprovals: 'ಕೆವೈಸಿ ಅನುಮೋದನೆಗಳು',
-    marketplaceIntelligence: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ',
+    marketplaceIntelligence: 'ಮಾರ್ಕೆಟ್‌ಪ್ಲೇಸ್ ಇಂಟೆಲಿಜೆನ್ಸ್',
+    operationsCommandCenter: 'ಆಪರೇಷನ್ಸ್ ಕಮಾಂಡ್ ಸೆಂಟರ್',
+    scheduledRides: 'ನಿಗದಿತ ಸವಾರಿಗಳು',
+    riskAndTrust: 'ರಿಸ್ಕ್ ಮತ್ತು ಟ್ರಸ್ಟ್ ಇಂಜಿನ್',
   },
   marketplaceIntelligence: {
     title: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ ಕನ್ಸೋಲ್',
@@ -216,4 +219,3 @@ export const adminKn = {
     loading: 'ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಮೆಟ್ರಿಕ್ಸ್ ಮೌಲ್ಯಮಾಪನ ಮಾಡಲಾಗುತ್ತಿದೆ...',
   },
 };
-

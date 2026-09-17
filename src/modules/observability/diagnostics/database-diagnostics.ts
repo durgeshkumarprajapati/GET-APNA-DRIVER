@@ -57,7 +57,9 @@ export class DatabaseDiagnostics {
         slowQueryCount: 0,
         tableStats: [],
         migrationsUpToDate: false,
-        notes: [error instanceof Error ? error.message : 'Database diagnostic check failed completely'],
+        notes: [
+          error instanceof Error ? error.message : 'Database diagnostic check failed completely',
+        ],
       };
     }
   }

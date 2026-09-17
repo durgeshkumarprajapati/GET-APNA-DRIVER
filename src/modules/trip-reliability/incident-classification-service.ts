@@ -1,7 +1,10 @@
 import type { IncidentType, IncidentSeverity, IncidentConfidence } from './trip-reliability-types';
 
 export class IncidentClassificationService {
-  classifyIncident(type: IncidentType, activeSafetyIncident?: boolean): { severity: IncidentSeverity; confidence: IncidentConfidence } {
+  classifyIncident(
+    type: IncidentType,
+    activeSafetyIncident?: boolean,
+  ): { severity: IncidentSeverity; confidence: IncidentConfidence } {
     if (activeSafetyIncident || type === 'SAFETY_ESCALATION') {
       return { severity: 'CRITICAL', confidence: 'HIGH' };
     }

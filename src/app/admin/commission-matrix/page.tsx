@@ -121,7 +121,6 @@ export default function AdminCommissionMatrixPage() {
         {loading ? (
           <LoadingState message="Loading commission policy…" />
         ) : (
-
           policy && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

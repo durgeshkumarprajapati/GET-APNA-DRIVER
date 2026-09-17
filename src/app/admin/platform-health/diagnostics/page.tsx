@@ -35,7 +35,8 @@ export default function DiagnosticsPage() {
           {t('platformHealth.navDiagnostics') || 'Platform Diagnostic Tools'}
         </h1>
         <p className="text-sm text-gray-500">
-          {t('platformHealth.diagnosticsSubtitle') || 'On-demand read-only diagnostic inspection for Database, Redis & Worker subsystem'}
+          {t('platformHealth.diagnosticsSubtitle') ||
+            'On-demand read-only diagnostic inspection for Database, Redis & Worker subsystem'}
         </p>
       </div>
 

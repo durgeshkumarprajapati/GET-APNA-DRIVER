@@ -19,13 +19,17 @@ export const GET = withPermission(
         metricName,
         startTime,
         endTime,
-        dimension
+        dimension,
       );
 
       return NextResponse.json({ success: true, data });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to fetch performance metrics';
-      return NextResponse.json({ success: false, error: 'PERFORMANCE_METRICS_FETCH_FAILED', message }, { status: 500 });
+      const message =
+        error instanceof Error ? error.message : 'Failed to fetch performance metrics';
+      return NextResponse.json(
+        { success: false, error: 'PERFORMANCE_METRICS_FETCH_FAILED', message },
+        { status: 500 },
+      );
     }
-  }
+  },
 );

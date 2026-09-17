@@ -75,14 +75,33 @@ export async function upsertPolicy(userId: string, params: UpsertPolicyParams) {
         name: params.name,
         description: params.description,
         isDefault: params.isDefault ?? true,
-        maxFareAmount: params.maxFareAmount !== undefined ? (params.maxFareAmount !== null ? new Prisma.Decimal(params.maxFareAmount) : null) : null,
+        maxFareAmount:
+          params.maxFareAmount !== undefined
+            ? params.maxFareAmount !== null
+              ? new Prisma.Decimal(params.maxFareAmount)
+              : null
+            : null,
         maxDistanceKm: params.maxDistanceKm ?? null,
-        allowedVehicleCategories: params.allowedVehicleCategories ? (params.allowedVehicleCategories as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
-        requireApprovalAboveAmount: params.requireApprovalAboveAmount !== undefined ? (params.requireApprovalAboveAmount !== null ? new Prisma.Decimal(params.requireApprovalAboveAmount) : null) : null,
+        allowedVehicleCategories: params.allowedVehicleCategories
+          ? (params.allowedVehicleCategories as unknown as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
+        requireApprovalAboveAmount:
+          params.requireApprovalAboveAmount !== undefined
+            ? params.requireApprovalAboveAmount !== null
+              ? new Prisma.Decimal(params.requireApprovalAboveAmount)
+              : null
+            : null,
         requireApprovalAllRides: params.requireApprovalAllRides ?? false,
         allowAdvanceBookingHours: params.allowAdvanceBookingHours ?? null,
-        allowedBookingDays: params.allowedBookingDays ? (params.allowedBookingDays as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
-        monthlyEmployeeSpendLimit: params.monthlyEmployeeSpendLimit !== undefined ? (params.monthlyEmployeeSpendLimit !== null ? new Prisma.Decimal(params.monthlyEmployeeSpendLimit) : null) : null,
+        allowedBookingDays: params.allowedBookingDays
+          ? (params.allowedBookingDays as unknown as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
+        monthlyEmployeeSpendLimit:
+          params.monthlyEmployeeSpendLimit !== undefined
+            ? params.monthlyEmployeeSpendLimit !== null
+              ? new Prisma.Decimal(params.monthlyEmployeeSpendLimit)
+              : null
+            : null,
         status: params.status || PolicyStatus.ACTIVE,
       },
     });
@@ -100,7 +119,7 @@ export async function upsertPolicy(userId: string, params: UpsertPolicyParams) {
 }
 
 export async function evaluateTravelPolicy(
-  params: PolicyEvaluationParams
+  params: PolicyEvaluationParams,
 ): Promise<PolicyEvaluationResult> {
   const policy = await getActivePolicy(params.organizationId);
 
@@ -156,7 +175,10 @@ export async function evaluateTravelPolicy(
   }
 
   // 4. Approval required above amount threshold
-  if (policy.requireApprovalAboveAmount !== null && policy.requireApprovalAboveAmount !== undefined) {
+  if (
+    policy.requireApprovalAboveAmount !== null &&
+    policy.requireApprovalAboveAmount !== undefined
+  ) {
     const threshold = Number(policy.requireApprovalAboveAmount);
     if (params.estimatedFare >= threshold) {
       requiresApproval = true;
@@ -179,7 +201,11 @@ export async function evaluateTravelPolicy(
   }
 
   // 6. Monthly spend limit
-  if (policy.monthlyEmployeeSpendLimit !== null && policy.monthlyEmployeeSpendLimit !== undefined && params.monthlySpentSoFar !== undefined) {
+  if (
+    policy.monthlyEmployeeSpendLimit !== null &&
+    policy.monthlyEmployeeSpendLimit !== undefined &&
+    params.monthlySpentSoFar !== undefined
+  ) {
     const limit = Number(policy.monthlyEmployeeSpendLimit);
     if (params.monthlySpentSoFar + params.estimatedFare > limit) {
       violations.push({

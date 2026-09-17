@@ -107,18 +107,25 @@ export default function CorporateBookingsPage() {
                       <tr key={b.id} className="hover:bg-[#1c2028] transition-colors">
                         <td className="p-3.5 font-bold text-[#dfe2ee]">#{b.id.substring(0, 8)}</td>
                         <td className="p-3.5">
-                          <div className="font-bold text-[#dfe2ee]">{b.bookedForUser?.fullName || b.customer.fullName}</div>
+                          <div className="font-bold text-[#dfe2ee]">
+                            {b.bookedForUser?.fullName || b.customer.fullName}
+                          </div>
                           <div className="text-[10px] text-[#87948b]">{b.customer.email}</div>
                         </td>
                         <td className="p-3.5">
-                          <div className="text-[#dfe2ee] font-semibold">{b.department?.name || 'General'}</div>
-                          <div className="text-[10px] text-[#68dba9]">{b.costCenter?.code || 'CC-DEFAULT'}</div>
+                          <div className="text-[#dfe2ee] font-semibold">
+                            {b.department?.name || 'General'}
+                          </div>
+                          <div className="text-[10px] text-[#68dba9]">
+                            {b.costCenter?.code || 'CC-DEFAULT'}
+                          </div>
                         </td>
                         <td className="p-3.5 text-[#bccac0] max-w-xs truncate">
                           {b.businessPurpose || 'Corporate Travel'}
                         </td>
                         <td className="p-3.5 font-bold text-[#68dba9]">
-                          ₹{Number(b.finalFareAmount || b.estimatedFareAmount || 0).toLocaleString()}
+                          ₹
+                          {Number(b.finalFareAmount || b.estimatedFareAmount || 0).toLocaleString()}
                         </td>
                         <td className="p-3.5">
                           <span className="px-2 py-0.5 rounded bg-[#1e2330] border border-[#262a33] text-[10px] uppercase font-bold text-[#dfe2ee]">

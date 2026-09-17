@@ -2,7 +2,11 @@ import { OperationalMetricsRepository } from '../repositories/operational-metric
 import type { Db } from '@/shared/database/prisma';
 
 export class TripReliabilityMetricsCollector {
-  static async recordReliabilityIncident(incidentType: string, resolved: boolean, db?: Db): Promise<void> {
+  static async recordReliabilityIncident(
+    incidentType: string,
+    resolved: boolean,
+    db?: Db,
+  ): Promise<void> {
     await OperationalMetricsRepository.recordMetric(
       {
         metricName: 'trip_reliability.incident',
@@ -10,7 +14,7 @@ export class TripReliabilityMetricsCollector {
         durationMs: 0,
         isError: !resolved,
       },
-      db
+      db,
     );
   }
 }

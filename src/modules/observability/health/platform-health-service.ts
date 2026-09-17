@@ -1,5 +1,9 @@
 import { prisma, type Db } from '@/shared/database/prisma';
-import type { PlatformHealthStatus, PlatformHealthSummary, HealthComponentScore } from '../types/observability-types';
+import type {
+  PlatformHealthStatus,
+  PlatformHealthSummary,
+  HealthComponentScore,
+} from '../types/observability-types';
 import { HEALTH_COMPONENT_WEIGHTS } from '../config/observability-config';
 import { DatabaseHealthService } from './database-health-service';
 import { RedisHealthService } from './redis-health-service';
@@ -9,7 +13,10 @@ import { DependencyHealthService } from './dependency-health-service';
 import { HealthSnapshotRepository } from '../repositories/health-snapshot-repository';
 
 export class PlatformHealthService {
-  static async evaluatePlatformHealth(db: Db = prisma, persistSnapshot: boolean = true): Promise<PlatformHealthSummary> {
+  static async evaluatePlatformHealth(
+    db: Db = prisma,
+    persistSnapshot: boolean = true,
+  ): Promise<PlatformHealthSummary> {
     const [dbHealth, redisHealth, workerHealth, appHealth, depHealth] = await Promise.all([
       DatabaseHealthService.evaluateHealth(db),
       RedisHealthService.evaluateHealth(),
@@ -148,7 +155,7 @@ export class PlatformHealthService {
             environment: process.env.NODE_ENV || 'production',
           },
         },
-        db
+        db,
       );
     }
 

@@ -26,7 +26,9 @@ jest.mock('@/shared/database/prisma', () => ({
       update: jest.fn(),
     },
     loyaltyTier: {
-      findUnique: jest.fn().mockResolvedValue({ id: 'tier-1', code: 'BRONZE', priority: 1, minimumLifetimePoints: 0 }),
+      findUnique: jest
+        .fn()
+        .mockResolvedValue({ id: 'tier-1', code: 'BRONZE', priority: 1, minimumLifetimePoints: 0 }),
       findMany: jest.fn().mockResolvedValue([]),
     },
     loyaltyPointTransaction: {

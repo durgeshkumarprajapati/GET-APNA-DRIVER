@@ -92,10 +92,7 @@ export default function AdminReferralGrowthPage() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      fetch('/api/admin/referral-growth'),
-      fetch('/api/admin/referral-campaigns'),
-    ])
+    Promise.all([fetch('/api/admin/referral-growth'), fetch('/api/admin/referral-campaigns')])
       .then(async ([growthRes, campRes]) => {
         if (!active) return;
         if (growthRes.ok) {
@@ -108,7 +105,8 @@ export default function AdminReferralGrowthPage() {
         }
       })
       .catch((err) => {
-        if (active) setError(err instanceof Error ? err.message : 'Failed to load referral growth data.');
+        if (active)
+          setError(err instanceof Error ? err.message : 'Failed to load referral growth data.');
       })
       .finally(() => {
         if (active) setLoading(false);

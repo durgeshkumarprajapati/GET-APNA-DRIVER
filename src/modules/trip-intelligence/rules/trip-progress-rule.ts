@@ -17,7 +17,12 @@ export function evaluateDestinationProximity(input: ProgressRuleInput): {
     return { isNearDestination: false };
   }
 
-  if (!input.dropoffLatitude || !input.dropoffLongitude || !input.driverLatitude || !input.driverLongitude) {
+  if (
+    !input.dropoffLatitude ||
+    !input.dropoffLongitude ||
+    !input.driverLatitude ||
+    !input.driverLongitude
+  ) {
     return { isNearDestination: false };
   }
 
@@ -25,7 +30,7 @@ export function evaluateDestinationProximity(input: ProgressRuleInput): {
     input.driverLatitude,
     input.driverLongitude,
     input.dropoffLatitude,
-    input.dropoffLongitude
+    input.dropoffLongitude,
   );
 
   const config = getTripIntelligenceConfig();

@@ -18,8 +18,8 @@ jest.mock('@/shared/database/prisma', () => ({
 jest.mock('@/modules/location/application/booking-location-service', () => ({
   getCustomerBookingLocationTelemetry: jest.fn().mockResolvedValue({
     driverLocation: {
-      latitude: 22.3100,
-      longitude: 73.1850,
+      latitude: 22.31,
+      longitude: 73.185,
       capturedAt: new Date(),
     },
   }),
@@ -41,8 +41,8 @@ describe('CustomerTripIntelligence Orchestrator Tests', () => {
       pickupLatitude: 22.3072,
       pickupLongitude: 73.1812,
       dropoffAddress: 'Alkapuri Mall',
-      dropoffLatitude: 22.3150,
-      dropoffLongitude: 73.2000,
+      dropoffLatitude: 22.315,
+      dropoffLongitude: 73.2,
       driverEnRouteAt: new Date(),
       driverArrivedAt: null,
       tripStartedAt: null,

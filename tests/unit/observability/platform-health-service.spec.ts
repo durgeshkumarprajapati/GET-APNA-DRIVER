@@ -21,7 +21,6 @@ describe('PlatformHealthService', () => {
     },
   } as unknown as Db;
 
-
   beforeEach(() => {
     jest.clearAllMocks();
     (DatabaseHealthService.evaluateHealth as jest.Mock).mockResolvedValue({
@@ -36,14 +35,14 @@ describe('PlatformHealthService', () => {
       category: 'STORAGE',
       status: 'HEALTHY',
       score: 100,
-      weight: 0.10,
+      weight: 0.1,
     });
     (WorkerHealthService.evaluateHealth as jest.Mock).mockResolvedValue({
       name: 'Worker',
       category: 'WORKER',
       status: 'HEALTHY',
       score: 100,
-      weight: 0.10,
+      weight: 0.1,
     });
     (ApplicationHealthService.evaluateHealth as jest.Mock).mockResolvedValue({
       name: 'App',
@@ -57,7 +56,9 @@ describe('PlatformHealthService', () => {
       overallStatus: 'HEALTHY',
       score: 100,
     });
-    (HealthSnapshotRepository.create as jest.Mock).mockResolvedValue({} as unknown as ReturnType<typeof HealthSnapshotRepository.create>);
+    (HealthSnapshotRepository.create as jest.Mock).mockResolvedValue(
+      {} as unknown as ReturnType<typeof HealthSnapshotRepository.create>,
+    );
   });
 
   it('should calculate 100 overall score when all components are healthy', async () => {

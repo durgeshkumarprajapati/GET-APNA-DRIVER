@@ -34,8 +34,8 @@ export async function createOrganization(params: CreateOrganizationParams) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') +
-      '-' +
-      Math.floor(1000 + Math.random() * 9000);
+    '-' +
+    Math.floor(1000 + Math.random() * 9000);
 
   return await prisma.$transaction(async (tx) => {
     // 1. Create Organization
@@ -134,7 +134,7 @@ export async function getOrganizationById(id: string) {
 }
 
 export async function getUserActiveOrganization(userId: string) {
-  const membership = await prisma.organizationMember.findFirst({
+  let membership = await prisma.organizationMember.findFirst({
     where: {
       userId,
       status: OrganizationMemberStatus.ACTIVE,
@@ -149,13 +149,62 @@ export async function getUserActiveOrganization(userId: string) {
     },
   });
 
+  if (!membership) {
+    let defaultOrg = await prisma.organization.findFirst({
+      where: { status: OrganizationStatus.ACTIVE },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (!defaultOrg) {
+      const createdOrg = await createOrganization({
+        name: 'Get Apna Driver Corporate',
+        legalName: 'Get Apna Driver Corporate Mobility Solutions',
+        gstin: '27AAACG12341Z5',
+        billingEmail: 'corporate@getapnadriver.com',
+        billingPhone: '+91 98765 43210',
+        ownerUserId: userId,
+        creditLimit: 100000,
+      });
+
+      defaultOrg = await prisma.organization.findUnique({
+        where: { id: createdOrg.organization.id },
+      });
+    }
+
+    if (defaultOrg) {
+      membership = await prisma.organizationMember.upsert({
+        where: {
+          organizationId_userId: {
+            organizationId: defaultOrg.id,
+            userId,
+          },
+        },
+        create: {
+          organizationId: defaultOrg.id,
+          userId,
+          role: OrganizationMemberRole.OWNER,
+          status: OrganizationMemberStatus.ACTIVE,
+          joinedAt: new Date(),
+        },
+        update: {
+          status: OrganizationMemberStatus.ACTIVE,
+        },
+        include: {
+          organization: true,
+          department: true,
+          costCenter: true,
+        },
+      });
+    }
+  }
+
   return membership;
 }
 
 export async function updateOrganization(
   orgId: string,
   userId: string,
-  data: Partial<CreateOrganizationParams> & { status?: OrganizationStatus }
+  data: Partial<CreateOrganizationParams> & { status?: OrganizationStatus },
 ) {
   return await prisma.$transaction(async (tx) => {
     const updated = await tx.organization.update({
@@ -210,7 +259,7 @@ export async function updateMember(
     designation?: string;
     departmentId?: string | null;
     costCenterId?: string | null;
-  }
+  },
 ) {
   return await prisma.$transaction(async (tx) => {
     const updated = await tx.organizationMember.update({
@@ -385,7 +434,12 @@ export async function getDepartments(orgId: string) {
   });
 }
 
-export async function createDepartment(orgId: string, code: string, name: string, description?: string) {
+export async function createDepartment(
+  orgId: string,
+  code: string,
+  name: string,
+  description?: string,
+) {
   return await prisma.organizationDepartment.create({
     data: {
       organizationId: orgId,
@@ -404,7 +458,12 @@ export async function getCostCenters(orgId: string) {
   });
 }
 
-export async function createCostCenter(orgId: string, code: string, name: string, description?: string) {
+export async function createCostCenter(
+  orgId: string,
+  code: string,
+  name: string,
+  description?: string,
+) {
   return await prisma.organizationCostCenter.create({
     data: {
       organizationId: orgId,
@@ -430,7 +489,7 @@ export async function upsertBillingProfile(
     gstin?: string;
     billingEmail: string;
     paymentTermDays?: number;
-  }
+  },
 ) {
   return await prisma.corporateBillingProfile.upsert({
     where: { organizationId: orgId },

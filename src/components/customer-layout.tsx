@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
@@ -8,6 +8,7 @@ import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
+import { UserAvatar } from './ui/user-avatar';
 
 interface CustomerLayoutProps {
   children: ReactNode;
@@ -32,7 +33,41 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('CUSTOMER');
+
+  // Restore sidebar scroll position and scroll active item into view if out of bounds
+  useEffect(() => {
+    if (!sidebarRef.current) return;
+
+    const key = 'gad-customer-sidebar-scroll';
+    const storedScroll = sessionStorage.getItem(key);
+
+    if (storedScroll !== null && !isNaN(Number(storedScroll))) {
+      sidebarRef.current.scrollTop = Number(storedScroll);
+    }
+
+    const activeEl = sidebarRef.current.querySelector('[data-sidebar-active="true"]');
+    if (activeEl) {
+      const containerTop = sidebarRef.current.scrollTop;
+      const containerHeight = sidebarRef.current.clientHeight;
+      const containerBottom = containerTop + containerHeight;
+
+      const itemTop = (activeEl as HTMLElement).offsetTop;
+      const itemHeight = (activeEl as HTMLElement).offsetHeight;
+      const itemBottom = itemTop + itemHeight;
+
+      if (itemTop < containerTop || itemBottom > containerBottom) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    }
+  }, [pathname]);
+
+  const handleSidebarScroll = () => {
+    if (sidebarRef.current) {
+      sessionStorage.setItem('gad-customer-sidebar-scroll', String(sidebarRef.current.scrollTop));
+    }
+  };
 
   const navGroups: NavGroup[] = [
     {
@@ -133,9 +168,11 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
               </div>
             </div>
             <div className="relative">
-              <div className="w-8 h-8 rounded-full bg-[#68dba9]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9] font-bold text-xs font-['Space_Grotesk']">
-                {(userEmail ?? 'C').charAt(0).toUpperCase()}
-              </div>
+              <UserAvatar
+                src={null}
+                name={userEmail || 'Customer Profile'}
+                className="w-8 h-8 ring-1 ring-[#68dba9]"
+              />
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] ring-2 ring-[#0a0e16]" />
             </div>
           </Link>
@@ -163,11 +200,15 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       </header>
 
       {/* FIXED SIDEBAR — desktop only, md and up */}
-      <aside className="hidden md:flex fixed left-0 top-16 bottom-10 w-64 bg-[#0a0e16] z-40 overflow-y-auto px-3 py-4 flex-col justify-between border-r border-[#262a33]">
-        <div className="space-y-5">
+      <aside
+        ref={sidebarRef}
+        onScroll={handleSidebarScroll}
+        className="hidden md:flex fixed left-0 top-16 bottom-10 w-52 bg-[#0a0e16] z-40 overflow-y-auto px-2 py-3 flex-col justify-between border-r border-[#262a33]"
+      >
+        <div className="space-y-4">
           {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <p className="px-3 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
+              <p className="px-2.5 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
                 {group.label}
               </p>
               <nav className="space-y-0.5">
@@ -175,7 +216,8 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors ${
+                    data-sidebar-active={isActive(item.href)}
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
                       isActive(item.href)
                         ? item.href === '/customer/safety-sos'
                           ? 'bg-[#93000a] text-[#ffdad6] font-bold'
@@ -184,7 +226,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                     }`}
                   >
                     <span
-                      className={`material-symbols-outlined text-lg ${
+                      className={`material-symbols-outlined text-base ${
                         item.href === '/customer/safety-sos' && !isActive(item.href)
                           ? 'text-[#ffb4ab]'
                           : ''
@@ -192,7 +234,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                     >
                       {item.icon}
                     </span>
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
                   </Link>
                 ))}
               </nav>
@@ -202,10 +244,8 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       </aside>
 
       {/* MAIN BODY AREA */}
-      <div className="md:pl-64">
-        <main className="w-full pt-16 pb-12 px-4 sm:px-6 min-h-screen bg-[#0f131c]">
-          {children}
-        </main>
+      <div className="md:pl-52">
+        <main className="w-full pt-14 pb-8 px-3 sm:px-4 min-h-screen bg-[#0f131c]">{children}</main>
       </div>
 
       {/* FOOTER BAR */}

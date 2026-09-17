@@ -19,7 +19,11 @@ export class WorkerHealthService {
       if (stats.failed > 50 || oldestPending > 600 || oldestProcessing > 900) {
         status = 'CRITICAL';
         score = 25;
-      } else if (stats.failed > 10 || oldestPending > TELEMETRY_CONFIG.outboxOldestPendingThresholdSeconds || stats.pending > TELEMETRY_CONFIG.outboxPendingLagThresholdCount) {
+      } else if (
+        stats.failed > 10 ||
+        oldestPending > TELEMETRY_CONFIG.outboxOldestPendingThresholdSeconds ||
+        stats.pending > TELEMETRY_CONFIG.outboxPendingLagThresholdCount
+      ) {
         status = 'WARNING';
         score = 60;
       } else if (stats.failed > 0 || oldestPending > 30 || stats.pending > 30) {

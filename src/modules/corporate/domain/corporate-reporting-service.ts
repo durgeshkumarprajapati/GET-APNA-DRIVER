@@ -33,7 +33,7 @@ export interface CorporateSpendReport {
 export async function getCorporateSpendReport(
   organizationId: string,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ): Promise<CorporateSpendReport> {
   const dateFilter = {
     ...(startDate && { gte: startDate }),
@@ -71,14 +71,22 @@ export async function getCorporateSpendReport(
   });
 
   // 3. Department breakdown
-  const deptMap = new Map<string, { departmentCode: string; departmentName: string; spend: number; rideCount: number }>();
+  const deptMap = new Map<
+    string,
+    { departmentCode: string; departmentName: string; spend: number; rideCount: number }
+  >();
   for (const b of bookings) {
     const key = b.departmentId || 'unassigned';
     const code = b.department?.code || 'GENERAL';
     const name = b.department?.name || 'General / Unassigned';
     const fare = Number(b.finalFareAmount || b.estimatedFareAmount || 0);
 
-    const existing = deptMap.get(key) || { departmentCode: code, departmentName: name, spend: 0, rideCount: 0 };
+    const existing = deptMap.get(key) || {
+      departmentCode: code,
+      departmentName: name,
+      spend: 0,
+      rideCount: 0,
+    };
     existing.spend += fare;
     existing.rideCount += 1;
     deptMap.set(key, existing);
@@ -90,14 +98,22 @@ export async function getCorporateSpendReport(
   }));
 
   // 4. Cost Center breakdown
-  const ccMap = new Map<string, { costCenterCode: string; costCenterName: string; spend: number; rideCount: number }>();
+  const ccMap = new Map<
+    string,
+    { costCenterCode: string; costCenterName: string; spend: number; rideCount: number }
+  >();
   for (const b of bookings) {
     const key = b.costCenterId || 'unassigned';
     const code = b.costCenter?.code || 'GENERAL';
     const name = b.costCenter?.name || 'General / Unassigned';
     const fare = Number(b.finalFareAmount || b.estimatedFareAmount || 0);
 
-    const existing = ccMap.get(key) || { costCenterCode: code, costCenterName: name, spend: 0, rideCount: 0 };
+    const existing = ccMap.get(key) || {
+      costCenterCode: code,
+      costCenterName: name,
+      spend: 0,
+      rideCount: 0,
+    };
     existing.spend += fare;
     existing.rideCount += 1;
     ccMap.set(key, existing);
@@ -111,7 +127,9 @@ export async function getCorporateSpendReport(
   // 5. Recent Rides
   const recentBookingsRaw = await prisma.booking.findMany({
     where: { organizationId },
-    include: { customer: { select: { customerProfile: { select: { displayName: true, firstName: true } } } } },
+    include: {
+      customer: { select: { customerProfile: { select: { displayName: true, firstName: true } } } },
+    },
     orderBy: { createdAt: 'desc' },
     take: 10,
   });
@@ -119,7 +137,10 @@ export async function getCorporateSpendReport(
   const recentRides = recentBookingsRaw.map((b) => {
     return {
       id: b.id,
-      bookerName: b.customer?.customerProfile?.displayName || b.customer?.customerProfile?.firstName || 'Employee',
+      bookerName:
+        b.customer?.customerProfile?.displayName ||
+        b.customer?.customerProfile?.firstName ||
+        'Employee',
       pickupAddress: b.pickupAddress || 'Pickup Location',
       fareAmount: Number(b.finalFareAmount || b.estimatedFareAmount || 0),
       status: b.status,

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { DriverEngagementWidget } from '@/components/driver/driver-engagement-widget';
+import { DriverExperienceSection } from '@/components/experience/driver-experience-section';
 
 interface AssignmentOffer {
   id: string;
@@ -163,8 +164,8 @@ export default function DriverDashboardPage() {
 
   return (
     <DriverLayout>
-      <div className="flex flex-col w-full px-6 py-6 gap-6">
-        <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col w-full gap-3.5">
+        <section className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
               Welcome back
@@ -193,6 +194,9 @@ export default function DriverDashboardPage() {
             </div>
           )}
         </section>
+
+        {/* Intelligent Experience Orchestration Engine (Phase 52) */}
+        <DriverExperienceSection />
 
         {error && (
           <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
