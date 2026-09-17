@@ -29,4 +29,6 @@ export const bookingHi = {
     subtitle: 'यात्रा शुरू करने से पहले ग्राहक से 6-अंकों का पिन पूछें',
     submit: 'पिन सत्यापित करें',
   },
+  noActiveDriverNearby: 'आपके पास कोई सक्रिय ड्राइवर नहीं मिला।',
+  searchingNearbyDrivers: 'पास के ड्राइवरों की तलाश की जा रही है…',
 };

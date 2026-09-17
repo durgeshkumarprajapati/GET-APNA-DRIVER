@@ -1,12 +1,14 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
-import { BookingStatus, AssignmentAttemptStatus } from '@prisma/client';
+import { BookingStatus, AssignmentAttemptStatus, DriverAvailabilityStatus } from '@prisma/client';
 import { getInteger } from '@/shared/config/configuration-service';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
 import { validateBookingStatusTransition } from '../domain/booking-state-machine';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { BookingNotFoundError } from '../domain/errors';
+import { rankCandidateDrivers } from '@/modules/dispatch/application/candidate-ranking-service';
+import { cancelBookingNoDriverFound, SEARCH_DEADLINE_SECONDS } from '@/modules/dispatch/application/dispatch-search-service';
 
 export interface MatchingResult {
   attemptId: string | null;
@@ -41,12 +43,13 @@ export async function findAndOfferNextDriver(
 
   const now = new Date();
 
-  // 1. Check Overall Search Expiration
-  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 300, db);
+  // 1. Check Overall Search Expiration (Server-authoritative 2-minute limit)
+  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', SEARCH_DEADLINE_SECONDS, db);
+  const searchStarted = booking.searchStartedAt || booking.requestedAt;
   const effectiveExpiresAt =
-    booking.expiresAt || new Date(booking.requestedAt.getTime() + searchTimeoutSeconds * 1000);
+    booking.expiresAt || new Date(searchStarted.getTime() + searchTimeoutSeconds * 1000);
   if (now > effectiveExpiresAt) {
-    await expireBookingSearch(booking.id, 'Search timeout reached', db);
+    await cancelBookingNoDriverFound(booking.id, db);
     return {
       attemptId: null,
       status: 'SEARCH_EXPIRED',
@@ -99,13 +102,9 @@ export async function findAndOfferNextDriver(
   const unattempted = candidates.filter((c) => !attemptedDriverIds.has(c.driverId));
 
   if (unattempted.length === 0) {
-    // If maximum radius reached and no candidate found, check if search should expire
+    // If maximum radius reached and no candidate found, trigger no-driver check
     if (currentRadius >= maxRadius) {
-      await expireBookingSearch(
-        booking.id,
-        'No eligible drivers available within maximum radius',
-        db,
-      );
+      await cancelBookingNoDriverFound(booking.id, db);
       return {
         attemptId: null,
         status: 'NO_DRIVERS_FOUND',
@@ -120,18 +119,31 @@ export async function findAndOfferNextDriver(
     };
   }
 
-  // Rank candidates: honor the customer's preferred-driver preference if
-  // that driver happens to surface in this radius's eligible/nearby
-  // candidate pool; otherwise (or with no preference) fall back to the
-  // closest candidate. This never widens the pool or bypasses any
-  // eligibility/availability/schedule/compliance/distance check already
-  // applied by findNearbyDrivers — it only reorders within it, so a
-  // preference can never be "assigned" if the driver isn't actually
-  // dispatchable right now.
-  const preferredCandidate = booking.preferredDriverProfileId
-    ? unattempted.find((c) => c.driverId === booking.preferredDriverProfileId)
-    : undefined;
-  const targetDriver = preferredCandidate ?? unattempted[0];
+  // 6. Intelligent Candidate Ranking
+  const ranked = await rankCandidateDrivers(
+    unattempted.map((c) => ({
+      driverProfileId: c.driverId,
+      displayName: c.displayName,
+      latitude: c.location.latitude,
+      longitude: c.location.longitude,
+      accuracy: null,
+      capturedAt: now,
+      availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
+    })),
+    {
+      pickupLatitude: booking.pickupLatitude,
+      pickupLongitude: booking.pickupLongitude,
+      preferredDriverProfileId: booking.preferredDriverProfileId,
+      customerId: booking.customerId,
+    },
+    db,
+  );
+
+  const topRankedCandidate = ranked.length > 0 ? ranked[0] : null;
+  const targetDriver = topRankedCandidate
+    ? unattempted.find((c) => c.driverId === topRankedCandidate.driverProfileId) || unattempted[0]
+    : unattempted[0];
+
   const offerExpiresAt = new Date(now.getTime() + responseTimeoutSeconds * 1000);
   const nextAttemptNumber = booking.assignmentAttempts.length + 1;
 

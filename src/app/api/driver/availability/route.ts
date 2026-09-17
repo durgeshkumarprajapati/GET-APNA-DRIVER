@@ -13,6 +13,9 @@ import { DriverNotEligibleError } from '@/modules/driver/domain/errors';
 
 const setAvailabilitySchema = z.object({
   targetStatus: z.nativeEnum(DriverAvailabilityStatus),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  accuracy: z.number().min(0).optional(),
 });
 
 export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (_req, { principal }) => {
@@ -27,6 +30,9 @@ export const PUT = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal })
 
     const profile = await setDriverAvailability(principal.userId, parsed.targetStatus, {
       ipAddress: req.headers.get('x-forwarded-for'),
+      latitude: parsed.latitude,
+      longitude: parsed.longitude,
+      accuracy: parsed.accuracy,
     });
 
     return NextResponse.json({ profile }, { status: 200 });

@@ -168,15 +168,47 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
     const targetStatus: AvailabilityStatus =
       availabilityStatus === 'AVAILABLE' ? 'OFFLINE' : 'AVAILABLE';
     setUpdatingAvailability(true);
+
+    let locationPayload: { latitude?: number; longitude?: number; accuracy?: number } = {};
+
+    if (targetStatus === 'AVAILABLE') {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 10000,
+          });
+        });
+
+        locationPayload = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+      } catch {
+        // Location capture failed
+      }
+    }
+
     try {
       const res = await fetch('/api/driver/availability', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetStatus }),
+        body: JSON.stringify({ targetStatus, ...locationPayload }),
       });
       if (res.ok) {
         const data = await res.json();
         setAvailabilityStatus(data.profile?.availabilityStatus ?? targetStatus);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        if (errData?.errorCode === 'DRIVER_NOT_ELIGIBLE') {
+          alert(errData.error || 'Location required to go online.');
+        }
       }
     } catch {
       // Ignore — status remains unchanged on failure.
