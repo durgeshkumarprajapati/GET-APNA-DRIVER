@@ -19,6 +19,7 @@ import {
   DriverDocumentsNotVerifiedError,
 } from '../../domain/errors';
 import { getOrCreateDriverProfile, type DriverProfileWithContact } from './driver-profile-service';
+import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 
 /**
  * Submits driver profile and documents for administrative review.
@@ -315,6 +316,15 @@ export async function approveDriver(
       aggregateId: driverProfileId,
       payload: { driverProfileId, approvedBy: adminUserId },
     });
+
+    // Process referral reward if driver was referred by another user
+    await evaluateAndQualifyReferral(
+      {
+        userId: profile.userId,
+        trigger: 'DRIVER_APPROVED_ONBOARDING',
+      },
+      tx,
+    );
 
     return updated;
   });

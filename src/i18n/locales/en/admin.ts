@@ -56,6 +56,7 @@ export const adminEn = {
     operationsCommandCenter: 'Operations Command Center',
     scheduledRides: 'Scheduled Rides',
     riskAndTrust: 'Risk & Trust Engine',
+    dynamicPricing: 'Dynamic Pricing',
   },
   marketplaceIntelligence: {
     title: 'Marketplace Intelligence Console',

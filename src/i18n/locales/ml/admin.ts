@@ -56,6 +56,7 @@ export const adminMl = {
     operationsCommandCenter: 'ഓപ്പറേഷൻസ് കമാൻഡ് സെന്റർ',
     scheduledRides: 'ഷെഡ്യൂൾ ചെയ്ത റൈഡുകൾ',
     riskAndTrust: 'റിസ്ക് & ട്രസ്റ്റ് എഞ്ചിൻ',
+    dynamicPricing: 'ഡൈനാമിക് പ്രൈസിംഗ്',
   },
   marketplaceIntelligence: {
     title: 'മാർക്കറ്റ് പ്ലേസ് ഇന്റലിജൻസ് കൺസോൾ',

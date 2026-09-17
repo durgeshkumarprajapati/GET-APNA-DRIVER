@@ -269,6 +269,10 @@ export async function evaluateAndQualifyReferral(
 ): Promise<Referral | null> {
   const { userId, trigger } = input;
 
+  if (!db.referral?.findUnique) {
+    return null;
+  }
+
   const referral = await db.referral.findUnique({
     where: { referredUserId: userId },
     include: { campaign: true },
