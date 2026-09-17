@@ -38,25 +38,27 @@ export class RiskDecisionService {
 
     // Record audit entry for risk decision
     try {
-      await prisma.auditLog
-        .create({
-          data: {
-            action: 'RISK_DECISION_CREATED',
-            entityType: 'RiskDecision',
-            entityId: evaluation.riskId,
-            details: JSON.stringify({
-              subjectType: evaluation.subjectType,
-              subjectId: evaluation.subjectId,
-              riskScore: evaluation.riskScore,
-              riskLevel: evaluation.riskLevel,
-              confidence: evaluation.confidence,
-              fingerprint: evaluation.fingerprint,
-            }),
-          },
-        })
-        .catch(() => {
-          // Safe failover if audit schema field naming differs
-        });
+      if (prisma.auditLog?.create) {
+        await prisma.auditLog
+          .create({
+            data: {
+              action: 'RISK_DECISION_CREATED',
+              entityType: 'RiskDecision',
+              entityId: evaluation.riskId,
+              afterState: {
+                subjectType: evaluation.subjectType,
+                subjectId: evaluation.subjectId,
+                riskScore: evaluation.riskScore,
+                riskLevel: evaluation.riskLevel,
+                confidence: evaluation.confidence,
+                fingerprint: evaluation.fingerprint,
+              },
+            },
+          })
+          .catch(() => {
+            // Safe failover if audit schema field naming differs
+          });
+      }
     } catch {
       // Non-blocking
     }

@@ -47,31 +47,41 @@ export async function collectOperationsSignals(db: Db = prisma): Promise<Operati
     upcomingUnassignedScheduledRidesCount,
   ] = await Promise.all([
     // Searching bookings
-    db.booking.count({ where: { status: BookingStatus.SEARCHING_DRIVER } }).catch(() => 0),
+    db.booking?.count
+      ? db.booking.count({ where: { status: BookingStatus.SEARCHING_DRIVER } }).catch(() => 0)
+      : Promise.resolve(0),
     // Assigned bookings awaiting pickup
-    db.booking.count({ where: { status: BookingStatus.DRIVER_ASSIGNED } }).catch(() => 0),
+    db.booking?.count
+      ? db.booking.count({ where: { status: BookingStatus.DRIVER_ASSIGNED } }).catch(() => 0)
+      : Promise.resolve(0),
     // Active trips in progress
-    db.booking.count({ where: { status: BookingStatus.TRIP_IN_PROGRESS } }).catch(() => 0),
+    db.booking?.count
+      ? db.booking.count({ where: { status: BookingStatus.TRIP_IN_PROGRESS } }).catch(() => 0)
+      : Promise.resolve(0),
     // Online drivers
-    db.driverProfile
-      .count({
-        where: {
-          availabilityStatus: {
-            in: [DriverAvailabilityStatus.AVAILABLE, DriverAvailabilityStatus.BUSY],
-          },
-        },
-      })
-      .catch(() => 0),
+    db.driverProfile?.count
+      ? db.driverProfile
+          .count({
+            where: {
+              availabilityStatus: {
+                in: [DriverAvailabilityStatus.AVAILABLE, DriverAvailabilityStatus.BUSY],
+              },
+            },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
     // Available drivers ready for assignment
-    db.driverProfile
-      .count({
-        where: {
-          availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
-        },
-      })
-      .catch(() => 0),
+    db.driverProfile?.count
+      ? db.driverProfile
+          .count({
+            where: {
+              availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
+            },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
     // Active reliability incidents (if model exists)
-    db.tripReliabilityIncident
+    db.tripReliabilityIncident?.count
       ? db.tripReliabilityIncident
           .count({
             where: {
@@ -81,7 +91,7 @@ export async function collectOperationsSignals(db: Db = prisma): Promise<Operati
           .catch(() => 0)
       : Promise.resolve(0),
     // Critical reliability incidents
-    db.tripReliabilityIncident
+    db.tripReliabilityIncident?.count
       ? db.tripReliabilityIncident
           .count({
             where: {
@@ -92,28 +102,34 @@ export async function collectOperationsSignals(db: Db = prisma): Promise<Operati
           .catch(() => 0)
       : Promise.resolve(0),
     // Active safety incidents
-    db.safetyIncident
-      .count({
-        where: { status: { in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING] } },
-      })
-      .catch(() => 0),
+    db.safetyIncident?.count
+      ? db.safetyIncident
+          .count({
+            where: { status: { in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING] } },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
     // Open support tickets
-    db.supportTicket
-      .count({
-        where: { status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] } },
-      })
-      .catch(() => 0),
+    db.supportTicket?.count
+      ? db.supportTicket
+          .count({
+            where: { status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] } },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
     // High-priority support tickets
-    db.supportTicket
-      .count({
-        where: {
-          priority: 'HIGH',
-          status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
-        },
-      })
-      .catch(() => 0),
+    db.supportTicket?.count
+      ? db.supportTicket
+          .count({
+            where: {
+              priority: 'HIGH',
+              status: { in: [SupportTicketStatus.OPEN, SupportTicketStatus.IN_PROGRESS] },
+            },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
     // Upcoming unassigned scheduled rides (next 60m)
-    db.scheduledRide
+    db.scheduledRide?.count
       ? db.scheduledRide
           .count({
             where: {

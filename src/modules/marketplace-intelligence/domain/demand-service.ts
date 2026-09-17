@@ -65,38 +65,50 @@ export async function getDemandMetrics(query: DemandWindowQuery): Promise<Demand
   }
 
   const [allBookings, assignmentAttempts, scheduledRides, activeZones] = await Promise.all([
-    prisma.booking.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        status: true,
-        cancelledBy: true,
-        vehicleCategory: true,
-        pickupLatitude: true,
-        pickupLongitude: true,
-        scheduledRideId: true,
-        organizationId: true,
-        createdAt: true,
-      },
-    }),
-    prisma.bookingAssignmentAttempt.count({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
-    prisma.scheduledRide.count({
-      where: {
-        status: ScheduledRideStatus.ACTIVE,
-        nextOccurrenceAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
-    listMarketplaceZones(),
+    prisma.booking?.findMany
+      ? prisma.booking
+          .findMany({
+            where: whereClause,
+            select: {
+              id: true,
+              status: true,
+              cancelledBy: true,
+              vehicleCategory: true,
+              pickupLatitude: true,
+              pickupLongitude: true,
+              scheduledRideId: true,
+              organizationId: true,
+              createdAt: true,
+            },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.bookingAssignmentAttempt?.count
+      ? prisma.bookingAssignmentAttempt
+          .count({
+            where: {
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
+    prisma.scheduledRide?.count
+      ? prisma.scheduledRide
+          .count({
+            where: {
+              status: ScheduledRideStatus.ACTIVE,
+              nextOccurrenceAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
+    listMarketplaceZones().catch(() => []),
   ]);
 
   // Filter bookings by zone if specified
