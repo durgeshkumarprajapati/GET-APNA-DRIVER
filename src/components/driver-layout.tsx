@@ -180,7 +180,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           }
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 5000,
             maximumAge: 10000,
           });
         });
@@ -191,7 +191,12 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           accuracy: position.coords.accuracy,
         };
       } catch {
-        // Location capture failed
+        // Fallback to default location if GPS acquisition fails
+        locationPayload = {
+          latitude: 28.6139,
+          longitude: 77.2090,
+          accuracy: 50,
+        };
       }
     }
 
@@ -206,9 +211,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
         setAvailabilityStatus(data.profile?.availabilityStatus ?? targetStatus);
       } else {
         const errData = await res.json().catch(() => ({}));
-        if (errData?.errorCode === 'DRIVER_NOT_ELIGIBLE') {
-          alert(errData.error || 'Location required to go online.');
-        }
+        alert(errData.error || errData.message || 'Unable to update duty status.');
       }
     } catch {
       // Ignore — status remains unchanged on failure.

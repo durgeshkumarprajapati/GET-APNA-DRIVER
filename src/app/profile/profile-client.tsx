@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { CurrentLocationButton } from '@/components/ui/current-location-button';
+import { UnifiedMap } from '@/components/maps/unified-map';
 
 interface ProfileData {
   firstName: string | null;
@@ -928,6 +930,180 @@ export default function ProfilePage() {
                         style={{
                           display: 'block',
                           fontSize: '0.875rem',
+                          fontWeight: 600,
+                          marginBottom: '0.375rem',
+                          color: 'var(--color-text-primary)',
+                        }}
+                      >
+                        Default Location Option
+                      </label>
+                      <CurrentLocationButton
+                        label="Use My Current Location"
+                        onLocated={async (loc) => {
+                          setNewLocation((prev) => ({
+                            ...prev,
+                            latitude: loc.latitude,
+                            longitude: loc.longitude,
+                          }));
+                          try {
+                            const res = await fetch(
+                              `/api/location/reverse-geocode?lat=${loc.latitude}&lng=${loc.longitude}`,
+                            );
+                            if (res.ok) {
+                              const data = await res.json();
+                              if (data.address) {
+                                setNewLocation((prev) => ({
+                                  ...prev,
+                                  addressLine1: data.address.addressLine1 || prev.addressLine1,
+                                  city: data.address.city || prev.city,
+                                  state: data.address.state || prev.state,
+                                  country: data.address.country || prev.country,
+                                  postalCode: data.address.postalCode || prev.postalCode,
+                                  label: prev.label || 'Current Location',
+                                }));
+                              }
+                            }
+                          } catch {
+                            // Keep coordinates
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          marginBottom: '0.375rem',
+                          color: 'var(--color-text-primary)',
+                        }}
+                      >
+                        Pick Location from Map
+                      </label>
+                      <div
+                        style={{
+                          borderRadius: '0.5rem',
+                          overflow: 'hidden',
+                          border: '1px solid var(--color-border)',
+                        }}
+                      >
+                        <UnifiedMap
+                          center={{
+                            latitude: newLocation.latitude,
+                            longitude: newLocation.longitude,
+                          }}
+                          markers={[
+                            {
+                              id: 'saved-location-pin',
+                              title: newLocation.label || 'Selected Location',
+                              position: {
+                                latitude: newLocation.latitude,
+                                longitude: newLocation.longitude,
+                              },
+                              type: 'PICKUP',
+                            },
+                          ]}
+                          zoom={15}
+                          height="220px"
+                          fitBounds={false}
+                          showProviderBadge={true}
+                          onMapClick={async (coord) => {
+                            setNewLocation((prev) => ({
+                              ...prev,
+                              latitude: coord.latitude,
+                              longitude: coord.longitude,
+                            }));
+                            try {
+                              const res = await fetch(
+                                `/api/location/reverse-geocode?lat=${coord.latitude}&lng=${coord.longitude}`,
+                              );
+                              if (res.ok) {
+                                const data = await res.json();
+                                if (data.address) {
+                                  setNewLocation((prev) => ({
+                                    ...prev,
+                                    addressLine1: data.address.addressLine1 || prev.addressLine1,
+                                    city: data.address.city || prev.city,
+                                    state: data.address.state || prev.state,
+                                    country: data.address.country || prev.country,
+                                    postalCode: data.address.postalCode || prev.postalCode,
+                                    label: prev.label || 'Map Location',
+                                  }));
+                                }
+                              }
+                            } catch {
+                              // Keep coordinates
+                            }
+                          }}
+                        />
+                      </div>
+                      <p
+                        style={{
+                          margin: '0.25rem 0 0 0',
+                          fontSize: '0.75rem',
+                          color: 'var(--color-text-secondary)',
+                          textAlign: 'center',
+                        }}
+                      >
+                        💡 Click anywhere on the map to pin your location
+                      </p>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.625rem 0.875rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span
+                          className="material-symbols-outlined text-[#68dba9]"
+                          style={{ fontSize: '1.25rem' }}
+                        >
+                          pin_drop
+                        </span>
+                        <div>
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              color: 'var(--color-text-secondary)',
+                              display: 'block',
+                            }}
+                          >
+                            Map Selected Coordinates
+                          </span>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                            {newLocation.latitude.toFixed(5)}, {newLocation.longitude.toFixed(5)}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          color: '#68dba9',
+                          fontWeight: 500,
+                          backgroundColor: 'rgba(104, 219, 169, 0.1)',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '0.25rem',
+                        }}
+                      >
+                        Picked from Map
+                      </span>
+                    </div>
+
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.875rem',
                           fontWeight: 500,
                           marginBottom: '0.25rem',
                         }}
@@ -1051,72 +1227,6 @@ export default function ProfilePage() {
                           value={newLocation.postalCode}
                           onChange={(e) =>
                             setNewLocation({ ...newLocation, postalCode: e.target.value })
-                          }
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            borderRadius: '0.25rem',
-                            border: '1px solid var(--color-border)',
-                            backgroundColor: 'var(--color-background)',
-                            color: 'var(--color-text-primary)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                      <div>
-                        <label
-                          style={{
-                            display: 'block',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            marginBottom: '0.25rem',
-                          }}
-                        >
-                          Latitude
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          required
-                          value={newLocation.latitude}
-                          onChange={(e) =>
-                            setNewLocation({
-                              ...newLocation,
-                              latitude: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            borderRadius: '0.25rem',
-                            border: '1px solid var(--color-border)',
-                            backgroundColor: 'var(--color-background)',
-                            color: 'var(--color-text-primary)',
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          style={{
-                            display: 'block',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            marginBottom: '0.25rem',
-                          }}
-                        >
-                          Longitude
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          required
-                          value={newLocation.longitude}
-                          onChange={(e) =>
-                            setNewLocation({
-                              ...newLocation,
-                              longitude: parseFloat(e.target.value) || 0,
-                            })
                           }
                           style={{
                             width: '100%',

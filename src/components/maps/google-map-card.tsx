@@ -14,6 +14,7 @@ export interface GoogleMapCardProps {
   showControls?: boolean;
   mapId?: string;
   onMarkerClick?: (markerId: string) => void;
+  onMapClick?: (coord: MapCoordinate) => void;
   onLoadError?: (error: string) => void;
   ariaLabel?: string;
 }
@@ -35,6 +36,7 @@ export function GoogleMapCard({
   showControls = true,
   mapId,
   onMarkerClick,
+  onMapClick,
   onLoadError,
   ariaLabel = 'Interactive Google Map',
 }: GoogleMapCardProps) {
@@ -132,24 +134,46 @@ export function GoogleMapCard({
   // Initialize map instance once
   useEffect(() => {
     let isMounted = true;
+    let observer: MutationObserver | null = null;
 
-    // Register Google Maps auth/billing error handler (e.g. BillingNotEnabledMapError)
-    const existingAuthFailure = (window as unknown as Record<string, unknown>).gm_authFailure;
-    (window as unknown as Record<string, unknown>).gm_authFailure = () => {
-      const errMsg =
-        'Google Maps API error: BillingNotEnabledMapError or authentication failed. Switching to Mapbox GL JS.';
-      console.warn(`[GoogleMapCard] ${errMsg}`);
+    // Trigger failure callback to parent (UnifiedMap -> Mapbox fallback)
+    const triggerError = (errMsg: string) => {
       if (isMounted) {
         setLoading(false);
         setLoadError(errMsg);
         if (onLoadError) onLoadError(errMsg);
       }
+    };
+
+    // 1. Intercept console.error calls from Google Maps library
+    const originalConsoleError = console.error;
+    console.error = (...args: unknown[]) => {
+      const msg = args
+        .map((a) => (typeof a === 'object' && a !== null ? JSON.stringify(a) : String(a)))
+        .join(' ');
+      if (
+        msg.includes('BillingNotEnabledMapError') ||
+        msg.includes('ApiNotActivatedMapError') ||
+        msg.includes('InvalidKeyMapError') ||
+        msg.includes('Google Maps JavaScript API error')
+      ) {
+        triggerError(`Google Maps API error: ${msg}. Switching to Mapbox GL JS.`);
+      }
+      originalConsoleError.apply(console, args);
+    };
+
+    // 2. Register Google Maps auth/billing error handler window.gm_authFailure
+    const existingAuthFailure = (window as unknown as Record<string, unknown>).gm_authFailure;
+    (window as unknown as Record<string, unknown>).gm_authFailure = () => {
+      triggerError(
+        'Google Maps API error: BillingNotEnabledMapError or authentication failed. Switching to Mapbox GL JS.',
+      );
       if (typeof existingAuthFailure === 'function') {
         (existingAuthFailure as () => void)();
       }
     };
 
-    // Capture global unhandled Google Maps console/script errors (e.g. BillingNotEnabledMapError)
+    // 3. Capture global unhandled Google Maps console/script errors
     const handleGlobalError = (event: ErrorEvent) => {
       const msg = String(event.message || event.error?.message || '');
       if (
@@ -158,25 +182,32 @@ export function GoogleMapCard({
         msg.includes('InvalidKeyMapError') ||
         msg.includes('Google Maps JavaScript API error')
       ) {
-        const errMsg = `Google Maps API error: ${msg}. Switching to Mapbox GL JS.`;
-        console.warn(`[GoogleMapCard] ${errMsg}`);
-        if (isMounted) {
-          setLoading(false);
-          setLoadError(errMsg);
-          if (onLoadError) onLoadError(errMsg);
-        }
+        triggerError(`Google Maps API error: ${msg}. Switching to Mapbox GL JS.`);
       }
     };
     window.addEventListener('error', handleGlobalError);
 
+    // 4. Observe DOM mutations inside map container for Google error popup overlay
+    if (containerRef.current) {
+      observer = new MutationObserver(() => {
+        const container = containerRef.current;
+        if (!container) return;
+        const hasErrorEl = container.querySelector('.gm-err-container, .gm-err-content');
+        const hasTextErr = container.innerText?.includes(
+          "This page can't load Google Maps correctly",
+        );
+        if (hasErrorEl || hasTextErr) {
+          triggerError(
+            'Google Maps BillingNotEnabledMapError detected via DOM observer. Switching to Mapbox GL JS.',
+          );
+        }
+      });
+      observer.observe(containerRef.current, { childList: true, subtree: true });
+    }
+
     const initMap = async () => {
       if (!apiKey) {
-        const errMsg = 'Google Maps API key is missing.';
-        if (isMounted) {
-          setLoading(false);
-          setLoadError(errMsg);
-          if (onLoadError) onLoadError(errMsg);
-        }
+        triggerError('Google Maps API key is missing.');
         return;
       }
 
@@ -210,11 +241,7 @@ export function GoogleMapCard({
         }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : 'Failed to initialize Google Map';
-        if (isMounted) {
-          setLoading(false);
-          setLoadError(errMsg);
-          if (onLoadError) onLoadError(errMsg);
-        }
+        triggerError(errMsg);
       }
     };
 
@@ -222,10 +249,38 @@ export function GoogleMapCard({
 
     return () => {
       isMounted = false;
+      console.error = originalConsoleError;
+      if (observer) {
+        observer.disconnect();
+      }
       window.removeEventListener('error', handleGlobalError);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, activeMapId]);
+
+  // Handle map click listener for selecting coordinates
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !onMapClick || loading || loadError) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const listener = map.addListener('click', (e: any) => {
+      if (e?.latLng) {
+        const lat = typeof e.latLng.lat === 'function' ? e.latLng.lat() : e.latLng.lat;
+        const lng = typeof e.latLng.lng === 'function' ? e.latLng.lng() : e.latLng.lng;
+        onMapClick({
+          latitude: lat,
+          longitude: lng,
+        });
+      }
+    });
+
+    return () => {
+      if (listener && typeof listener.remove === 'function') {
+        listener.remove();
+      }
+    };
+  }, [onMapClick, loading, loadError]);
 
   // Handle marker updates when props change
   useEffect(() => {

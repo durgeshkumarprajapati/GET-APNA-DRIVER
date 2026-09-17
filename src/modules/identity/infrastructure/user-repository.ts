@@ -133,10 +133,12 @@ export async function getContactInfoForUsers(
     return result;
   }
 
-  const identities = await db.userIdentity.findMany({
-    where: { userId: { in: userIds }, providerName: { in: ['email', 'phone'] } },
-    select: { userId: true, providerName: true, email: true, phoneNumber: true },
-  });
+  const identities = db.userIdentity
+    ? await db.userIdentity.findMany({
+        where: { userId: { in: userIds }, providerName: { in: ['email', 'phone'] } },
+        select: { userId: true, providerName: true, email: true, phoneNumber: true },
+      })
+    : [];
 
   for (const identity of identities) {
     const existing = result.get(identity.userId) ?? { email: null, phoneNumber: null };
