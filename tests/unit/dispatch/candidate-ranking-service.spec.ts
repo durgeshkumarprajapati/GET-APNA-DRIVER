@@ -103,6 +103,7 @@ describe('Phase 55 — Candidate Ranking Service Unit Tests', () => {
           pickupLongitude: 72.8777,
         },
         mockDb,
+        now,
       );
 
       expect(ranked.length).toBeGreaterThan(0);
@@ -140,6 +141,7 @@ describe('Phase 55 — Candidate Ranking Service Unit Tests', () => {
           preferredDriverProfileId: 'driver-pref',
         },
         mockDb,
+        now,
       );
 
       expect(ranked[0].driverProfileId).toBe('driver-pref');

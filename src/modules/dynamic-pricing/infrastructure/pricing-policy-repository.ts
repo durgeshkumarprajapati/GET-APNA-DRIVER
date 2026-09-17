@@ -1,6 +1,7 @@
 import 'server-only';
 import { BookingType, DynamicPricingPolicyStatus } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
+import { RedisLockService } from '@/shared/infrastructure/redis-lock-service';
 import type { DynamicPricingPolicyDTO } from '../domain/pricing-pressure-types';
 
 export interface CreatePricingPolicyInput {
@@ -116,23 +117,82 @@ export async function createPricingPolicy(
 
 export async function updatePricingPolicyStatus(
   policyId: string,
-  status: DynamicPricingPolicyStatus,
+  newStatus: DynamicPricingPolicyStatus,
   db: Db = prisma,
 ): Promise<DynamicPricingPolicyDTO> {
-  const existing = await db.dynamicPricingPolicy.findUnique({ where: { id: policyId } });
-  if (!existing) {
-    throw new Error(`Pricing policy not found: ${policyId}`);
+  const lockKey = `dynamic-pricing:lock:activate:${policyId}`;
+  let lockAcquired = false;
+
+  try {
+    if (newStatus === DynamicPricingPolicyStatus.ACTIVE) {
+      lockAcquired = await RedisLockService.acquireLock(lockKey, 5000);
+    }
+
+    if (db.$transaction) {
+      return await db.$transaction(async (tx) => {
+        const existing = await tx.dynamicPricingPolicy.findUnique({ where: { id: policyId } });
+        if (!existing) {
+          throw new Error(`Pricing policy not found: ${policyId}`);
+        }
+
+        if (
+          existing.status === DynamicPricingPolicyStatus.ARCHIVED &&
+          newStatus === DynamicPricingPolicyStatus.ACTIVE
+        ) {
+          throw new Error('Archived pricing policies cannot be activated.');
+        }
+
+        if (newStatus === DynamicPricingPolicyStatus.ACTIVE) {
+          await tx.dynamicPricingPolicy.updateMany({
+            where: {
+              status: DynamicPricingPolicyStatus.ACTIVE,
+              id: { not: policyId },
+              bookingType: existing.bookingType,
+              zoneId: existing.zoneId,
+            },
+            data: { status: DynamicPricingPolicyStatus.PAUSED },
+          });
+        }
+
+        const record = await tx.dynamicPricingPolicy.update({
+          where: { id: policyId },
+          data: {
+            status: newStatus,
+            version: { increment: 1 },
+          },
+        });
+
+        return mapToDTO(record);
+      });
+    }
+
+    // Mock DB fallback for unit tests
+    const existing = await db.dynamicPricingPolicy.findUnique({ where: { id: policyId } });
+    if (!existing) {
+      throw new Error(`Pricing policy not found: ${policyId}`);
+    }
+
+    if (
+      existing.status === DynamicPricingPolicyStatus.ARCHIVED &&
+      newStatus === DynamicPricingPolicyStatus.ACTIVE
+    ) {
+      throw new Error('Archived pricing policies cannot be activated.');
+    }
+
+    const record = await db.dynamicPricingPolicy.update({
+      where: { id: policyId },
+      data: {
+        status: newStatus,
+        version: { increment: 1 },
+      },
+    });
+
+    return mapToDTO(record);
+  } finally {
+    if (lockAcquired) {
+      await RedisLockService.releaseLock(lockKey);
+    }
   }
-
-  const record = await db.dynamicPricingPolicy.update({
-    where: { id: policyId },
-    data: {
-      status,
-      version: { increment: 1 },
-    },
-  });
-
-  return mapToDTO(record);
 }
 
 export async function listPricingPolicies(

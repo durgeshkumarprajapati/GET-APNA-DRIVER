@@ -3,6 +3,7 @@ import {
   getDriverStatusForDriver,
   getDriverStatusForCustomer,
 } from '@/modules/driver/application/services/driver-operational-status-service';
+import type { Db } from '@/shared/database/prisma';
 import {
   DriverApprovalStatus,
   DriverAvailabilityStatus,
@@ -50,7 +51,7 @@ const mockDb = {
   driverProfile: {
     findUnique: jest.fn(),
   },
-} as any;
+} as unknown as Db;
 
 jest.mock('@/modules/driver/application/services/driver-eligibility-service', () => ({
   evaluateDriverEligibility: jest.fn().mockResolvedValue({
@@ -65,7 +66,7 @@ describe('Driver Operational Status Service', () => {
   });
 
   it('evaluates complete operational status for an approved driver', async () => {
-    mockDb.driverProfile.findUnique.mockResolvedValue(mockProfile);
+    (mockDb.driverProfile.findUnique as jest.Mock).mockResolvedValue(mockProfile);
 
     const result = await evaluateDriverOperationalStatus('driver-prof-1', mockDb);
 
@@ -78,7 +79,7 @@ describe('Driver Operational Status Service', () => {
   });
 
   it('returns driver-facing DTO with actionable next steps', async () => {
-    mockDb.driverProfile.findUnique.mockResolvedValue(mockProfile);
+    (mockDb.driverProfile.findUnique as jest.Mock).mockResolvedValue(mockProfile);
 
     const dto = await getDriverStatusForDriver('driver-prof-1', mockDb);
 
@@ -87,15 +88,15 @@ describe('Driver Operational Status Service', () => {
   });
 
   it('sanitizes private compliance info for customer view', async () => {
-    mockDb.driverProfile.findUnique.mockResolvedValue(mockProfile);
+    (mockDb.driverProfile.findUnique as jest.Mock).mockResolvedValue(mockProfile);
 
     const dto = await getDriverStatusForCustomer('driver-prof-1', mockDb);
 
     expect(dto.driverProfileId).toBe('driver-prof-1');
     expect(dto.isVerifiedDriver).toBe(true);
     expect(dto.verificationBadgeLabel).toBe('Verified Driver');
-    expect((dto as any).documents).toBeUndefined();
-    expect((dto as any).rejectionReason).toBeUndefined();
-    expect((dto as any).approvedBy).toBeUndefined();
+    expect(dto).not.toHaveProperty('documents');
+    expect(dto).not.toHaveProperty('rejectionReason');
+    expect(dto).not.toHaveProperty('approvedBy');
   });
 });

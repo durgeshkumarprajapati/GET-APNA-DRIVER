@@ -78,8 +78,26 @@ export default function AdminDynamicPricingPage() {
   }, []);
 
   useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/admin/dynamic-pricing');
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          setPolicies(data.policies ?? []);
+          setPressure(data.currentPressure ?? null);
+        }
+      } catch {
+        // Ignore network errors
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleCreatePolicy = async (e: React.FormEvent) => {
     e.preventDefault();

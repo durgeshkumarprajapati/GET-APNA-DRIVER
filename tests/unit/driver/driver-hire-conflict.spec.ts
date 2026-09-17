@@ -5,12 +5,14 @@ import {
 } from '@/modules/driver/application/services/driver-hire-conflict-service';
 import { BookingType, BookingStatus } from '@prisma/client';
 
+import type { Db } from '@/shared/database/prisma';
+
 describe('Driver Hire Conflict Service', () => {
   const mockDb = {
     booking: {
       findMany: jest.fn(),
     },
-  } as any;
+  } as unknown as Db;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -20,7 +22,7 @@ describe('Driver Hire Conflict Service', () => {
     const existingStart = new Date('2026-09-17T10:00:00Z');
     const existingEnd = new Date('2026-09-17T18:00:00Z');
 
-    mockDb.booking.findMany.mockResolvedValue([
+    (mockDb.booking.findMany as jest.Mock).mockResolvedValue([
       {
         id: 'existing-booking-1',
         bookingType: BookingType.DAILY,
@@ -48,7 +50,7 @@ describe('Driver Hire Conflict Service', () => {
     const existingStart = new Date('2026-09-17T10:00:00Z');
     const existingEnd = new Date('2026-09-17T14:00:00Z');
 
-    mockDb.booking.findMany.mockResolvedValue([
+    (mockDb.booking.findMany as jest.Mock).mockResolvedValue([
       {
         id: 'existing-booking-1',
         bookingType: BookingType.HOURLY,
@@ -72,7 +74,7 @@ describe('Driver Hire Conflict Service', () => {
   });
 
   it('throws DriverHireConflictError when assertNoDriverHireConflict finds overlap', async () => {
-    mockDb.booking.findMany.mockResolvedValue([
+    (mockDb.booking.findMany as jest.Mock).mockResolvedValue([
       {
         id: 'existing-booking-1',
         bookingType: BookingType.WEEKLY,
