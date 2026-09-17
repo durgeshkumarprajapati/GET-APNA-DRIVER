@@ -42,6 +42,7 @@ import { SmartPickupAssistant } from '@/components/trip-intelligence/SmartPickup
 import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-intelligence-types';
 import { DriverPickupReliabilityCard } from '@/components/trip-reliability/DriverPickupReliabilityCard';
 import type { DriverReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
+import { LocationETACard } from '@/components/location-intelligence/LocationETACard';
 
 export default function DriverJourneyControlPage({
   params,
@@ -59,6 +60,7 @@ export default function DriverJourneyControlPage({
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
   const [reliability, setReliability] = useState<DriverReliabilityView | null>(null);
+  const [locationIntel, setLocationIntel] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     if (!bookingId) return;
@@ -73,6 +75,13 @@ export default function DriverJourneyControlPage({
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.data) setReliability(data.data);
+      })
+      .catch(() => {});
+
+    fetch(`/api/driver/bookings/${bookingId}/location-intelligence`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.locationIntelligence) setLocationIntel(data.locationIntelligence);
       })
       .catch(() => {});
   }, [bookingId]);
@@ -221,6 +230,7 @@ export default function DriverJourneyControlPage({
   return (
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
+        {locationIntel && <LocationETACard locationIntelligence={locationIntel} variant="driver" />}
         {intelligence && <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />}
         {reliability && <DriverPickupReliabilityCard reliability={reliability} />}
         {/* Header */}
