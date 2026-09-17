@@ -151,8 +151,8 @@ export async function rankCandidateDrivers(
     // - Confidence score: HIGH = 10, MEDIUM = 7, LOW = 4
     const confidenceScore = confidenceLevel === 'HIGH' ? 10 : confidenceLevel === 'MEDIUM' ? 7 : 4;
 
-    // - Preferred driver bonus: 10 pts
-    const preferredBonus = isPreferred ? 10 : 0;
+    // - Preferred driver bonus: 100 pts (Customer preferred driver gets top priority when eligible)
+    const preferredBonus = isPreferred ? 100 : 0;
 
     // - Fairness / Starvation prevention: drivers with fewer recent offers get up to 10 pts
     const fairnessScore = Math.max(0, 10 - recentAssignmentCount * 2);

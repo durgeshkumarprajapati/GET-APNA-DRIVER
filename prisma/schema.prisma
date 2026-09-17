@@ -757,6 +757,10 @@ enum BookingType {
   HOURLY
   FULL_DAY
   MULTI_DAY
+  POINT_TO_POINT
+  DAILY
+  WEEKLY
+  MONTHLY
 
   @@map("booking_type")
 }
@@ -811,6 +815,11 @@ model Booking {
   numberOfDays       Int?      @map("number_of_days")
   hourlyPackageHours Int?      @map("hourly_package_hours")
   returnDate         DateTime? @map("return_date") @db.Timestamptz(6)
+
+  // Duration-based driver hire parameters
+  hireDurationMinutes Int?      @map("hire_duration_minutes")
+  hireStartAt         DateTime? @map("hire_start_at") @db.Timestamptz(6)
+  hireEndAt           DateTime? @map("hire_end_at") @db.Timestamptz(6)
 
   // Fare calculation and route snapshot
   estimatedDistanceKm   Float?   @map("estimated_distance_km")

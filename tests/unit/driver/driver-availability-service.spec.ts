@@ -12,6 +12,7 @@ const mockTx = {
   },
   driverCurrentLocation: {
     findUnique: jest.fn(),
+    upsert: jest.fn(),
   },
 };
 
@@ -24,6 +25,7 @@ jest.mock('@/shared/database/prisma', () => ({
     },
     driverCurrentLocation: {
       findUnique: jest.fn(),
+      upsert: jest.fn(),
     },
   },
 }));

@@ -17,7 +17,10 @@ export interface FareCalculationInput {
   estimatedDurationMinutes?: number | null;
   actualDurationMinutes?: number | null;
   numberOfDays?: number | null;
+  numberOfWeeks?: number | null;
+  numberOfMonths?: number | null;
   hourlyPackageHours?: number | null;
+  hireDurationMinutes?: number | null;
 }
 
 export interface FareCalculationResult {
@@ -40,6 +43,8 @@ export async function getActivePricingRules(db: Db = prisma): Promise<PricingRul
     platformFee,
     hourlyRate,
     dailyRate,
+    weeklyRate,
+    monthlyRate,
   ] = await Promise.all([
     getString('pricing.base_fare', '100.0000', db),
     getString('pricing.per_kilometer_rate', '15.0000', db),
@@ -48,6 +53,8 @@ export async function getActivePricingRules(db: Db = prisma): Promise<PricingRul
     getString('pricing.platform_fee', '25.0000', db),
     getString('pricing.hourly_rate', '250.0000', db),
     getString('pricing.daily_rate', '1800.0000', db),
+    getString('pricing.weekly_rate', '10000.0000', db),
+    getString('pricing.monthly_rate', '35000.0000', db),
   ]);
 
   return {
@@ -58,6 +65,8 @@ export async function getActivePricingRules(db: Db = prisma): Promise<PricingRul
     platformFee,
     hourlyRate,
     dailyRate,
+    weeklyRate,
+    monthlyRate,
   };
 }
 
@@ -82,7 +91,10 @@ export async function calculateEstimatedFare(
     estimatedDistanceKm: route.distanceKm,
     estimatedDurationMinutes: durationMinutes,
     numberOfDays: input.numberOfDays,
+    numberOfWeeks: input.numberOfWeeks,
+    numberOfMonths: input.numberOfMonths,
     hourlyPackageHours: input.hourlyPackageHours,
+    hireDurationMinutes: input.hireDurationMinutes,
     config: rates,
   });
 
@@ -117,7 +129,10 @@ export async function calculateFinalFare(
     estimatedDistanceKm: route.distanceKm,
     actualDurationMinutes: finalDurationMinutes,
     numberOfDays: input.numberOfDays,
+    numberOfWeeks: input.numberOfWeeks,
+    numberOfMonths: input.numberOfMonths,
     hourlyPackageHours: input.hourlyPackageHours,
+    hireDurationMinutes: input.hireDurationMinutes,
     config: rates,
   });
 

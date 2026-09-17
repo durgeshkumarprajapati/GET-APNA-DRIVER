@@ -124,8 +124,8 @@ export async function findAndOfferNextDriver(
     unattempted.map((c) => ({
       driverProfileId: c.driverId,
       displayName: c.displayName,
-      latitude: c.location.latitude,
-      longitude: c.location.longitude,
+      latitude: (c as { location?: { latitude: number }; latitude?: number }).location?.latitude ?? (c as { latitude?: number }).latitude ?? booking.pickupLatitude,
+      longitude: (c as { location?: { longitude: number }; longitude?: number }).location?.longitude ?? (c as { longitude?: number }).longitude ?? booking.pickupLongitude,
       accuracy: null,
       capturedAt: now,
       availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
@@ -139,10 +139,25 @@ export async function findAndOfferNextDriver(
     db,
   );
 
-  const topRankedCandidate = ranked.length > 0 ? ranked[0] : null;
-  const targetDriver = topRankedCandidate
-    ? unattempted.find((c) => c.driverId === topRankedCandidate.driverProfileId) || unattempted[0]
-    : unattempted[0];
+  let targetDriver = null;
+  if (
+    booking.preferredDriverProfileId &&
+    !attemptedDriverIds.has(booking.preferredDriverProfileId)
+  ) {
+    const preferredCandidate = unattempted.find(
+      (c) => c.driverId === booking.preferredDriverProfileId,
+    );
+    if (preferredCandidate) {
+      targetDriver = preferredCandidate;
+    }
+  }
+
+  if (!targetDriver) {
+    const topRankedCandidate = ranked.length > 0 ? ranked[0] : null;
+    targetDriver = topRankedCandidate
+      ? unattempted.find((c) => c.driverId === topRankedCandidate.driverProfileId) || unattempted[0]
+      : unattempted[0];
+  }
 
   const offerExpiresAt = new Date(now.getTime() + responseTimeoutSeconds * 1000);
   const nextAttemptNumber = booking.assignmentAttempts.length + 1;

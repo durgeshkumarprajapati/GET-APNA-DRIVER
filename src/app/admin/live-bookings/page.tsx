@@ -64,6 +64,7 @@ export default function AdminLiveBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<(typeof STATUS_FILTERS)[number]>('ALL');
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<string>('ALL');
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function AdminLiveBookingsPage() {
     const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
     if (search.trim()) params.set('search', search.trim());
     if (status !== 'ALL') params.set('status', status);
+    if (bookingTypeFilter !== 'ALL') params.set('bookingType', bookingTypeFilter);
 
     fetch(`/api/admin/bookings?${params.toString()}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
@@ -87,7 +89,7 @@ export default function AdminLiveBookingsPage() {
     return () => {
       isMounted = false;
     };
-  }, [search, status, page]);
+  }, [search, status, bookingTypeFilter, page]);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
@@ -119,6 +121,25 @@ export default function AdminLiveBookingsPage() {
               placeholder="Search customer email/phone..."
               className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
             />
+            <select
+              value={bookingTypeFilter}
+              onChange={(e) => {
+                setBookingTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            >
+              <option value="ALL">All Hire Types</option>
+              <option value="POINT_TO_POINT">Point to Point</option>
+              <option value="HOURLY">Hourly Hire</option>
+              <option value="DAILY">Daily Hire</option>
+              <option value="WEEKLY">Weekly Hire</option>
+              <option value="MONTHLY">Monthly Hire</option>
+              <option value="ONE_WAY">One Way (Legacy)</option>
+              <option value="ROUND_TRIP">Round Trip (Legacy)</option>
+              <option value="FULL_DAY">Full Day (Legacy)</option>
+              <option value="MULTI_DAY">Multi Day (Legacy)</option>
+            </select>
             <select
               value={status}
               onChange={(e) => {

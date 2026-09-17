@@ -15,6 +15,8 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
   const platformFee = toDecimal(config.platformFee);
   const hourlyRate = toDecimal(config.hourlyRate);
   const dailyRate = toDecimal(config.dailyRate);
+  const weeklyRate = toDecimal(config.weeklyRate);
+  const monthlyRate = toDecimal(config.monthlyRate);
 
   const distanceKm = toDecimal(input.estimatedDistanceKm ?? 0);
   const durationMins = toDecimal(
@@ -34,18 +36,47 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
     }
 
     case BookingType.HOURLY: {
-      const calculatedHours = Math.ceil(durationMins.toNumber() / 60) || 2;
+      const mins = input.hireDurationMinutes ?? durationMins.toNumber();
+      const calculatedHours = Math.ceil((mins || 120) / 60);
       const hours = Math.max(1, input.hourlyPackageHours ?? calculatedHours);
       packageAdjustment = hourlyRate.mul(hours);
       calculatedBase = toDecimal(0); // Package replaces base fare
       durationFare = toDecimal(0); // Package includes duration
+      distanceFare = toDecimal(0); // Driver hire includes base distance
       break;
     }
 
+    case BookingType.DAILY:
     case BookingType.FULL_DAY: {
-      packageAdjustment = dailyRate;
+      const mins = input.hireDurationMinutes ?? durationMins.toNumber();
+      const calculatedDays = Math.ceil((mins || 1440) / 1440);
+      const days = Math.max(1, input.numberOfDays ?? calculatedDays);
+      packageAdjustment = dailyRate.mul(days);
       calculatedBase = toDecimal(0);
       durationFare = toDecimal(0);
+      distanceFare = toDecimal(0);
+      break;
+    }
+
+    case BookingType.WEEKLY: {
+      const mins = input.hireDurationMinutes ?? durationMins.toNumber();
+      const calculatedWeeks = Math.ceil((mins || 10080) / 10080);
+      const weeks = Math.max(1, input.numberOfWeeks ?? calculatedWeeks);
+      packageAdjustment = weeklyRate.mul(weeks);
+      calculatedBase = toDecimal(0);
+      durationFare = toDecimal(0);
+      distanceFare = toDecimal(0);
+      break;
+    }
+
+    case BookingType.MONTHLY: {
+      const mins = input.hireDurationMinutes ?? durationMins.toNumber();
+      const calculatedMonths = Math.ceil((mins || 43200) / 43200);
+      const months = Math.max(1, input.numberOfMonths ?? calculatedMonths);
+      packageAdjustment = monthlyRate.mul(months);
+      calculatedBase = toDecimal(0);
+      durationFare = toDecimal(0);
+      distanceFare = toDecimal(0);
       break;
     }
 
@@ -57,6 +88,7 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       break;
     }
 
+    case BookingType.POINT_TO_POINT:
     case BookingType.ONE_WAY:
     default: {
       break;

@@ -13,9 +13,25 @@ export const bookingGu = {
   types: {
     ONE_WAY: 'એક તરફી',
     ROUND_TRIP: 'આવવા-જવાનું',
-    HOURLY: 'કલાકના હિસાબે ભાડે',
+    HOURLY: 'કલાકના હિસાબે',
     FULL_DAY: 'આખા દિવસનો ડ્રાઇવર',
     MULTI_DAY: 'આઉટસ્ટેશન બહુ-દિવસીય',
+    POINT_TO_POINT: 'પોઇન્ટ ટુ પોઇન્ટ',
+    DAILY: 'દૈનિક ભાડું',
+    WEEKLY: 'સાપ્તાહિક ભાડું',
+    MONTHLY: 'માસિક ભાડું',
+  },
+  selectHireType: 'ભાડા મોડ પસંદ કરો',
+  hireDurationTitle: 'ભાડા સમયગાળો',
+  requestedStart: 'વિનંતી કરેલ શરૂઆતનો સમય (વૈકલ્પિક)',
+  noDropoffRequiredHire: 'ડ્રાઇવર ભાડે લેવા માટે ડ્રોપ સ્થાન જરૂરી નથી.',
+  addDropoffOptional: 'ડ્રોપ સ્થાન સ્પષ્ટ કરો (વૈકલ્પિક)',
+  destinationLocation: 'ડ્રોપ સ્થાન',
+  units: {
+    hours: 'કલાક',
+    days: 'દિવસ',
+    weeks: 'અઠવાડિયા',
+    months: 'મહિના',
   },
   cancelModal: {
     title: 'બુકિંગ રદ કરો',
@@ -29,4 +45,6 @@ export const bookingGu = {
     subtitle: 'મુસાફરી શરૂ કરતા પહેલા ગ્રાહક પાસેથી 6-અંકનો પિન મેળવો',
     submit: 'પિન ચકાસો',
   },
+  noActiveDriverNearby: 'તમારી નજીક કોઈ સક્રિય ડ્રાઇવર મળ્યો નથી.',
+  searchingNearbyDrivers: 'નજીકના ડ્રાઇવરો શોધી રહ્યા છીએ…',
 };

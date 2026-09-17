@@ -8,6 +8,10 @@ import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
 import { useTranslation } from '@/i18n/context';
+import { BookingType } from '@prisma/client';
+import { BookingTypeSelector } from '@/components/booking/BookingTypeSelector';
+import { DriverHireDurationSelector } from '@/components/booking/DriverHireDurationSelector';
+import { isDriverHireBooking } from '@/modules/booking/domain/booking-policy';
 
 interface FareEstimateData {
   estimatedDistanceKm: number;
@@ -97,12 +101,24 @@ function BookDriverPageInner() {
     latitude: 28.6315,
     longitude: 77.2167,
   });
+  const [selectedBookingType, setSelectedBookingType] = useState<BookingType>(BookingType.POINT_TO_POINT);
+  const [includeDropoff, setIncludeDropoff] = useState<boolean>(true);
+  const [hireDurationValue, setHireDurationValue] = useState<number>(4);
+  const [hireStartTime, setHireStartTime] = useState<string>('');
   const [selectedTab, setSelectedTab] = useState<BookingTypeTab>('hourly');
   const [vehicleClass, setVehicleClass] = useState<'luxury' | 'sedan' | 'hatchback'>('luxury');
   const [transmission, setTransmission] = useState<'auto' | 'manual'>('auto');
   const [preferredDriverProfileId, setPreferredDriverProfileId] = useState<string | null>(null);
   const [radiusKm, setRadiusKm] = useState(5);
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
+
+  const getHireDurationMinutes = (type: BookingType, val: number): number | null => {
+    if (type === BookingType.HOURLY) return val * 60;
+    if (type === BookingType.DAILY || type === BookingType.FULL_DAY) return val * 1440;
+    if (type === BookingType.WEEKLY) return val * 10080;
+    if (type === BookingType.MONTHLY) return val * 43200;
+    return null;
+  };
 
   const [bookingMode, setBookingMode] = useState<'NOW' | 'SCHEDULE'>(
     searchParams.get('mode') === 'schedule' ? 'SCHEDULE' : 'NOW',
@@ -243,12 +259,10 @@ function BookDriverPageInner() {
   useEffect(() => {
     async function fetchEstimate() {
       try {
-        const bookingType =
-          selectedTab === 'hourly'
-            ? 'HOURLY'
-            : selectedTab === 'outstation'
-              ? 'MULTI_DAY'
-              : 'ONE_WAY';
+        const isHire = isDriverHireBooking(selectedBookingType);
+        const activeDropoff = (!isHire && includeDropoff) ? dropoff : null;
+        const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
+
         const res = await fetch('/api/pricing/estimate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -258,13 +272,19 @@ function BookDriverPageInner() {
               longitude: pickup.longitude,
               address: pickup.address,
             },
-            dropoff: {
-              latitude: dropoff.latitude,
-              longitude: dropoff.longitude,
-              address: dropoff.address,
-            },
-            bookingType,
-            estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
+            dropoff: activeDropoff
+              ? {
+                  latitude: activeDropoff.latitude,
+                  longitude: activeDropoff.longitude,
+                  address: activeDropoff.address,
+                }
+              : null,
+            bookingType: selectedBookingType,
+            hireDurationMinutes: hireMins,
+            numberOfDays: selectedBookingType === BookingType.DAILY ? hireDurationValue : null,
+            numberOfWeeks: selectedBookingType === BookingType.WEEKLY ? hireDurationValue : null,
+            numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
+            hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
           }),
         });
         if (res.ok) {
@@ -276,7 +296,7 @@ function BookDriverPageInner() {
       }
     }
     fetchEstimate();
-  }, [selectedTab, pickup, dropoff]);
+  }, [selectedBookingType, hireDurationValue, includeDropoff, pickup, dropoff]);
 
   const handleEditPickup = useCallback(() => {
     const next = prompt(t('customer.booking.promptPickup'), pickup.address);
@@ -293,6 +313,9 @@ function BookDriverPageInner() {
     setError(null);
 
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const isHire = isDriverHireBooking(selectedBookingType);
+    const activeDropoff = (!isHire && includeDropoff) ? dropoff : null;
+    const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
     try {
       if (bookingMode === 'SCHEDULE') {
@@ -318,18 +341,15 @@ function BookDriverPageInner() {
               address: pickup.address,
               label: pickup.label,
             },
-            dropoffLocation: {
-              latitude: dropoff.latitude,
-              longitude: dropoff.longitude,
-              address: dropoff.address,
-              label: dropoff.label,
-            },
-            bookingType:
-              selectedTab === 'hourly'
-                ? 'HOURLY'
-                : selectedTab === 'outstation'
-                  ? 'MULTI_DAY'
-                  : 'ONE_WAY',
+            dropoffLocation: activeDropoff
+              ? {
+                  latitude: activeDropoff.latitude,
+                  longitude: activeDropoff.longitude,
+                  address: activeDropoff.address,
+                  label: activeDropoff.label,
+                }
+              : null,
+            bookingType: selectedBookingType,
             preferredDriverProfileId,
           }),
         });
@@ -357,19 +377,21 @@ function BookDriverPageInner() {
               address: pickup.address,
               label: pickup.label,
             },
-            dropoffLocation: {
-              latitude: dropoff.latitude,
-              longitude: dropoff.longitude,
-              address: dropoff.address,
-              label: dropoff.label,
-            },
-            bookingType:
-              selectedTab === 'hourly'
-                ? 'HOURLY'
-                : selectedTab === 'outstation'
-                  ? 'MULTI_DAY'
-                  : 'ONE_WAY',
-            estimatedDurationMinutes: selectedTab === 'hourly' ? 240 : 60,
+            dropoffLocation: activeDropoff
+              ? {
+                  latitude: activeDropoff.latitude,
+                  longitude: activeDropoff.longitude,
+                  address: activeDropoff.address,
+                  label: activeDropoff.label,
+                }
+              : null,
+            bookingType: selectedBookingType,
+            hireDurationMinutes: hireMins,
+            hireStartAt: hireStartTime ? new Date(hireStartTime).toISOString() : undefined,
+            numberOfDays: selectedBookingType === BookingType.DAILY ? hireDurationValue : null,
+            numberOfWeeks: selectedBookingType === BookingType.WEEKLY ? hireDurationValue : null,
+            numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
+            hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
             preferredDriverProfileId,
           }),
         });
@@ -432,6 +454,21 @@ function BookDriverPageInner() {
                 {error}
               </div>
             )}
+
+            {/* Phase 56 Flexible Driver Hire Mode Selector */}
+            <BookingTypeSelector
+              selectedType={selectedBookingType}
+              onSelectType={setSelectedBookingType}
+            />
+
+            {/* Duration Selector for Driver Hire Modes */}
+            <DriverHireDurationSelector
+              bookingType={selectedBookingType}
+              durationValue={hireDurationValue}
+              onChangeDurationValue={setHireDurationValue}
+              startTime={hireStartTime}
+              onChangeStartTime={setHireStartTime}
+            />
 
             {/* Booking Mode Selector (Ride Now vs Schedule Ride) */}
             <div className="bg-[#181c24] rounded-xl p-3 shadow-sm border border-[#262a33] flex flex-col gap-3">
@@ -636,52 +673,85 @@ function BookDriverPageInner() {
                 </div>
               )}
 
-              <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center shrink-0 text-[#60a5fa]">
-                    <span className="material-symbols-outlined text-base">location_on</span>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
-                      {t('customer.booking.destinationZoneLabel')}
-                    </span>
-                    <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
-                      {dropoff.label ?? dropoff.address}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleEditDropoff}
-                  className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42]"
-                >
-                  <span className="material-symbols-outlined text-xs">edit_location</span>
-                  <span>{t('customer.booking.changeBtn')}</span>
-                </button>
-              </div>
-
-              {savedLocations.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-mono text-[9px] text-[#87948b]">
-                    {t('customer.booking.quickSelectLabel')}
+              {/* Flexible Dropoff Location Section */}
+              {isDriverHireBooking(selectedBookingType) ? (
+                <div className="bg-[#1c2028] rounded-lg p-3.5 border border-[#262a33] text-xs text-[#87948b] flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[#25a475] text-lg shrink-0">info</span>
+                  <span>
+                    {t('booking.noDropoffRequiredHire', {
+                      defaultValue:
+                        'No drop location required for driver hire. Your driver will stay with you throughout your hire period.',
+                    })}
                   </span>
-                  {savedLocations.map((loc) => (
-                    <button
-                      key={loc.id}
-                      type="button"
-                      onClick={() =>
-                        setDropoff({
-                          address: savedLocationAddress(loc),
-                          label: loc.label,
-                          latitude: loc.latitude,
-                          longitude: loc.longitude,
-                        })
-                      }
-                      className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors"
-                    >
-                      {loc.label}
-                    </button>
-                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5 pt-2 border-t border-[#262a33]/60">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#dfe2ee]">
+                    <input
+                      type="checkbox"
+                      checked={includeDropoff}
+                      onChange={(e) => setIncludeDropoff(e.target.checked)}
+                      className="w-4 h-4 rounded border-[#262a33] bg-[#0a0e16] accent-[#25a475]"
+                    />
+                    <span>
+                      {t('booking.addDropoffOptional', {
+                        defaultValue: 'Specify Drop Location (Optional)',
+                      })}
+                    </span>
+                  </label>
+
+                  {includeDropoff && (
+                    <>
+                      <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center shrink-0 text-[#60a5fa]">
+                            <span className="material-symbols-outlined text-base">location_on</span>
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
+                              {t('customer.booking.destinationZoneLabel')}
+                            </span>
+                            <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
+                              {dropoff.label ?? dropoff.address}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleEditDropoff}
+                          className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42]"
+                        >
+                          <span className="material-symbols-outlined text-xs">edit_location</span>
+                          <span>{t('customer.booking.changeBtn')}</span>
+                        </button>
+                      </div>
+
+                      {savedLocations.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-[9px] text-[#87948b]">
+                            {t('customer.booking.quickSelectLabel')}
+                          </span>
+                          {savedLocations.map((loc) => (
+                            <button
+                              key={loc.id}
+                              type="button"
+                              onClick={() =>
+                                setDropoff({
+                                  address: savedLocationAddress(loc),
+                                  label: loc.label,
+                                  latitude: loc.latitude,
+                                  longitude: loc.longitude,
+                                })
+                              }
+                              className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors"
+                            >
+                              {loc.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
@@ -704,7 +774,7 @@ function BookDriverPageInner() {
                       snippet: pickup.address,
                     },
                   ];
-                  if (dropoff) {
+                  if (dropoff && !isDriverHireBooking(selectedBookingType) && includeDropoff) {
                     markers.push({
                       id: 'dropoff',
                       position: { latitude: dropoff.latitude, longitude: dropoff.longitude },

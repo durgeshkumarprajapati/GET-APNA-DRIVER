@@ -28,13 +28,22 @@ export class DeterministicRouteProvider implements RouteProvider {
       !dropoff ||
       (dropoff.latitude === pickup.latitude && dropoff.longitude === pickup.longitude)
     ) {
-      // Default fallback for driver-only local booking without explicit dropoff
-      const defaultDistanceMeters = 10000; // 10 km
-      const defaultDurationSeconds = 1800; // 30 mins
+      if (input.bookingType === 'POINT_TO_POINT' || input.bookingType === 'ONE_WAY') {
+        return {
+          distanceMeters: 0,
+          distanceKm: 0,
+          durationSeconds: 0,
+          durationMinutes: 0,
+          provider: 'DETERMINISTIC_DEVELOPMENT',
+          isEstimate: true,
+        };
+      }
+
+      // Default fallback for driver-only local booking or general estimate without explicit dropoff
       return {
-        distanceMeters: defaultDistanceMeters,
+        distanceMeters: 10000,
         distanceKm: 10.0,
-        durationSeconds: defaultDurationSeconds,
+        durationSeconds: 1800,
         durationMinutes: 30,
         provider: 'DETERMINISTIC_DEVELOPMENT',
         isEstimate: true,
