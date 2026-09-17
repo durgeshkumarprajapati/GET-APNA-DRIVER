@@ -1,5 +1,8 @@
 import { rankAndLimitRecommendations } from '@/modules/experience/application/experience-ranking-service';
-import { buildRecommendation, createExperienceFingerprint } from '@/modules/experience/domain/experience-recommendation';
+import {
+  buildRecommendation,
+  createExperienceFingerprint,
+} from '@/modules/experience/domain/experience-recommendation';
 
 describe('Experience Orchestration Engine', () => {
   it('should rank mandatory recommendations above non-mandatory items regardless of priority score', () => {

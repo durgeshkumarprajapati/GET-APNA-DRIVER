@@ -4,9 +4,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { ExperienceOrchestrationService } from '@/modules/experience/application/experience-orchestration-service';
 
-export const GET = withPermission(
-  PERMISSIONS.USERS_PROFILE_READ,
-  async (_req, { principal }) => {
+export const GET = withPermission(PERMISSIONS.USERS_PROFILE_READ, async (_req, { principal }) => {
   try {
     const experiences = await ExperienceOrchestrationService.generateDriverExperiences(
       principal.userId,

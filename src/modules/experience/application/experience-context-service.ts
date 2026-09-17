@@ -15,32 +15,29 @@ export async function getCustomerExperienceContext(
     scheduledRides,
     loyaltyAccount,
     promotions,
-    referralCode,
+    userRefCode,
     safetyIncidents,
   ] = await Promise.all([
     // Completed Bookings (Last 5)
     prisma.booking.findMany({
       where: { customerId: userId, status: 'TRIP_COMPLETED' },
-      orderBy: { completedAt: 'desc' },
+      orderBy: { tripCompletedAt: 'desc' },
       take: 5,
       select: {
         id: true,
         pickupAddress: true,
         dropoffAddress: true,
-        pickupLat: true,
-        pickupLng: true,
-        dropoffLat: true,
-        dropoffLng: true,
-        vehicleCategory: true,
-        completedAt: true,
-        assignedDriverId: true,
-        assignedDriver: {
+        pickupLatitude: true,
+        pickupLongitude: true,
+        dropoffLatitude: true,
+        dropoffLongitude: true,
+        bookingType: true,
+        tripCompletedAt: true,
+        driverProfileId: true,
+        driverProfile: {
           select: {
-            user: {
-              select: {
-                credentials: { select: { email: true } },
-              },
-            },
+            firstName: true,
+            displayName: true,
           },
         },
       },
@@ -50,27 +47,36 @@ export async function getCustomerExperienceContext(
     prisma.booking.findFirst({
       where: {
         customerId: userId,
-        status: { in: ['ASSIGNED', 'DRIVER_EN_ROUTE', 'ARRIVED_AT_PICKUP', 'TRIP_IN_PROGRESS'] },
+        status: {
+          in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'],
+        },
       },
       select: {
         id: true,
         status: true,
         pickupAddress: true,
         dropoffAddress: true,
-        assignedDriverId: true,
+        driverProfileId: true,
+        driverProfile: {
+          select: {
+            firstName: true,
+            displayName: true,
+          },
+        },
       },
     }),
 
     // Saved Locations
     prisma.savedLocation.findMany({
-      where: { customerId: userId },
+      where: { userId: userId },
       take: 5,
       select: {
         id: true,
         label: true,
-        address: true,
-        lat: true,
-        lng: true,
+        addressLine1: true,
+        city: true,
+        latitude: true,
+        longitude: true,
       },
     }),
 
@@ -84,9 +90,10 @@ export async function getCustomerExperienceContext(
         driverProfile: {
           select: {
             id: true,
-            isOnline: true,
+            availabilityStatus: true,
+            firstName: true,
+            displayName: true,
             ratingSummary: { select: { averageRating: true } },
-            user: { select: { credentials: { select: { email: true } } } },
           },
         },
       },
@@ -94,7 +101,7 @@ export async function getCustomerExperienceContext(
 
     // Scheduled Rides
     prisma.scheduledRide.findMany({
-      where: { customerId: userId, status: { in: ['ACTIVE', 'PENDING'] } },
+      where: { customerId: userId, status: 'ACTIVE' },
       orderBy: { scheduledTime: 'asc' },
       take: 3,
       select: {
@@ -110,22 +117,21 @@ export async function getCustomerExperienceContext(
     prisma.customerLoyaltyAccount.findUnique({
       where: { customerId: userId },
       select: {
-        pointsBalance: true,
-        tier: true,
-        redemptions: { select: { id: true } },
+        currentPoints: true,
+        currentTier: { select: { name: true } },
       },
     }),
 
     // Eligible Active Promotions
     prisma.promotion.findMany({
-      where: { isActive: true },
+      where: { status: 'ACTIVE' },
       take: 5,
       select: {
         code: true,
-        title: true,
+        name: true,
         discountType: true,
         discountValue: true,
-        validUntil: true,
+        endsAt: true,
       },
     }),
 
@@ -134,7 +140,6 @@ export async function getCustomerExperienceContext(
       where: { userId },
       select: {
         code: true,
-        givenReferrals: { where: { status: 'COMPLETED' }, select: { id: true } },
       },
     }),
 
@@ -144,12 +149,19 @@ export async function getCustomerExperienceContext(
       take: 2,
       select: {
         id: true,
-        incidentType: true,
+        type: true,
         severity: true,
-        description: true,
       },
     }),
   ]);
+
+  // Fetch referrals completed count if referral code exists
+  let referralsCompleted = 0;
+  if (userRefCode) {
+    referralsCompleted = await prisma.referral.count({
+      where: { referrerUserId: userId, status: { in: ['QUALIFIED', 'REWARDED'] } },
+    });
+  }
 
   return {
     userId,
@@ -157,75 +169,79 @@ export async function getCustomerExperienceContext(
     completedBookings: completedBookings.map((b) => ({
       id: b.id,
       pickupAddress: b.pickupAddress,
-      dropoffAddress: b.dropoffAddress,
-      pickupLat: Number(b.pickupLat),
-      pickupLng: Number(b.pickupLng),
-      dropoffLat: Number(b.dropoffLat),
-      dropoffLng: Number(b.dropoffLng),
-      vehicleCategory: b.vehicleCategory,
-      completedAt: b.completedAt || new Date(),
-      driverProfileId: b.assignedDriverId || undefined,
-      driverName: b.assignedDriver?.user?.credentials?.email?.split('@')[0] || 'Chauffeur',
+      dropoffAddress: b.dropoffAddress || '',
+      pickupLat: Number(b.pickupLatitude),
+      pickupLng: Number(b.pickupLongitude),
+      dropoffLat: Number(b.dropoffLatitude || 0),
+      dropoffLng: Number(b.dropoffLongitude || 0),
+      vehicleCategory: b.bookingType,
+      completedAt: b.tripCompletedAt || new Date(),
+      driverProfileId: b.driverProfileId || undefined,
+      driverName: b.driverProfile?.displayName || b.driverProfile?.firstName || 'Chauffeur',
     })),
     activeBooking: activeBooking
       ? {
           id: activeBooking.id,
           status: activeBooking.status,
           pickupAddress: activeBooking.pickupAddress,
-          dropoffAddress: activeBooking.dropoffAddress,
-          driverProfileId: activeBooking.assignedDriverId || undefined,
+          dropoffAddress: activeBooking.dropoffAddress || '',
+          driverProfileId: activeBooking.driverProfileId || undefined,
+          driverName:
+            activeBooking.driverProfile?.displayName ||
+            activeBooking.driverProfile?.firstName ||
+            undefined,
         }
       : null,
     savedLocations: savedLocations.map((loc) => ({
       id: loc.id,
       label: loc.label,
-      address: loc.address,
-      lat: Number(loc.lat),
-      lng: Number(loc.lng),
+      address: loc.city ? `${loc.addressLine1}, ${loc.city}` : loc.addressLine1,
+      lat: Number(loc.latitude),
+      lng: Number(loc.longitude),
     })),
     favoriteDrivers: favoriteDrivers.map((fd) => ({
       id: fd.id,
       driverProfileId: fd.driverProfileId,
-      driverName: fd.driverProfile.user?.credentials?.email?.split('@')[0] || 'Driver Partner',
-      isAvailable: fd.driverProfile.isOnline,
+      driverName: fd.driverProfile.displayName || fd.driverProfile.firstName || 'Driver Partner',
+      isAvailable: fd.driverProfile.availabilityStatus === 'AVAILABLE',
       rating: Number(fd.driverProfile.ratingSummary?.averageRating || 4.9),
     })),
     scheduledRides: scheduledRides.map((sr) => ({
       id: sr.id,
       pickupAddress: sr.pickupAddress,
-      dropoffAddress: sr.dropoffAddress,
-      scheduledTime: sr.scheduledTime,
-      status: sr.status,
+      dropoffAddress: sr.dropoffAddress || '',
+      scheduledTime: new Date(sr.scheduledTime),
+      status: String(sr.status),
     })),
     loyaltyAccount: loyaltyAccount
       ? {
-          pointsBalance: loyaltyAccount.pointsBalance,
-          tier: loyaltyAccount.tier,
-          pointsToNextTier: Math.max(0, 1000 - (loyaltyAccount.pointsBalance % 1000)),
-          availableRewardsCount: Math.floor(loyaltyAccount.pointsBalance / 250),
+          pointsBalance: loyaltyAccount.currentPoints,
+          tier: loyaltyAccount.currentTier?.name || 'Silver',
+          pointsToNextTier: Math.max(0, 1000 - (loyaltyAccount.currentPoints % 1000)),
+          availableRewardsCount: Math.floor(loyaltyAccount.currentPoints / 250),
         }
       : null,
     eligiblePromotions: promotions.map((p) => ({
-      code: p.code,
-      title: p.title,
+      code: p.code || 'PROMO',
+      title: p.name,
       discountValue:
         p.discountType === 'PERCENTAGE'
           ? `${Number(p.discountValue)}% OFF`
           : `₹${Number(p.discountValue)} OFF`,
-      expiresAt: p.validUntil,
+      expiresAt: p.endsAt,
     })),
-    referralCode: referralCode
+    referralCode: userRefCode
       ? {
-          code: referralCode.code,
-          referralsCompleted: referralCode.givenReferrals.length,
-          totalEarned: `₹${referralCode.givenReferrals.length * 250}`,
+          code: userRefCode.code,
+          referralsCompleted,
+          totalEarned: `₹${referralsCompleted * 250}`,
         }
       : null,
     safetyAlerts: safetyIncidents.map((si) => ({
       id: si.id,
-      type: si.incidentType,
-      severity: si.severity,
-      title: si.incidentType.replace('_', ' '),
+      type: String(si.type),
+      severity: String(si.severity),
+      title: String(si.type).replace(/_/g, ' '),
     })),
   };
 }
@@ -237,24 +253,10 @@ export async function getDriverExperienceContext(
     where: { userId },
     select: {
       id: true,
-      isOnline: true,
       approvalStatus: true,
-      documents: { select: { id: true, isVerified: true } },
-      assignedBookings: {
-        where: {
-          status: { in: ['ASSIGNED', 'DRIVER_EN_ROUTE', 'ARRIVED_AT_PICKUP', 'TRIP_IN_PROGRESS'] },
-        },
-        take: 1,
-        select: {
-          id: true,
-          status: true,
-          pickupAddress: true,
-          dropoffAddress: true,
-          customer: {
-            select: { credentials: { select: { email: true } } },
-          },
-        },
-      },
+      availabilityStatus: true,
+      firstName: true,
+      displayName: true,
     },
   });
 
@@ -262,30 +264,53 @@ export async function getDriverExperienceContext(
     return null;
   }
 
-  const completedTodayCount = await prisma.booking.count({
-    where: {
-      assignedDriverId: driverProfile.id,
-      status: 'TRIP_COMPLETED',
-      completedAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-    },
-  });
+  const [completedTodayCount, activeBooking, pendingDocsCount] = await Promise.all([
+    prisma.booking.count({
+      where: {
+        driverProfileId: driverProfile.id,
+        status: 'TRIP_COMPLETED',
+        tripCompletedAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+      },
+    }),
+    prisma.booking.findFirst({
+      where: {
+        driverProfileId: driverProfile.id,
+        status: {
+          in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'TRIP_IN_PROGRESS'],
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        customer: {
+          select: { id: true },
+        },
+      },
+    }),
+    prisma.driverDocument.count({
+      where: {
+        driverProfileId: driverProfile.id,
+        status: { notIn: ['VERIFIED'] },
+      },
+    }),
+  ]);
 
-  const activeBooking = driverProfile.assignedBookings[0] || null;
   const isFullyVerified = driverProfile.approvalStatus === 'APPROVED';
-  const pendingDocsCount = driverProfile.documents.filter((d) => !d.isVerified).length;
 
   return {
     userId,
     driverProfileId: driverProfile.id,
     category: 'DRIVER',
-    isOnDuty: driverProfile.isOnline,
+    isOnDuty: driverProfile.availabilityStatus === 'AVAILABLE',
     activeBooking: activeBooking
       ? {
           id: activeBooking.id,
           status: activeBooking.status,
           pickupAddress: activeBooking.pickupAddress,
-          dropoffAddress: activeBooking.dropoffAddress,
-          customerName: activeBooking.customer?.credentials?.email?.split('@')[0] || 'Customer',
+          dropoffAddress: activeBooking.dropoffAddress || '',
+          customerName: 'Customer',
         }
       : null,
     todaysSchedule: {
