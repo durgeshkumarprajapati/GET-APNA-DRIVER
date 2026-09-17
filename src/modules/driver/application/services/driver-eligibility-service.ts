@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getJson } from '@/shared/config/configuration-service';
+import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 import { driverScheduleService } from './driver-schedule-service';
 
 export interface DriverEligibilityEvaluation {
@@ -60,6 +61,24 @@ export async function evaluateDriverEligibilityFromProfile(
   db: Db = prisma,
 ): Promise<DriverEligibilityEvaluation> {
   const reasons: string[] = [];
+
+  // Auto-healing: If driver is APPROVED by admin and user account is PENDING, activate account & qualify referral
+  if (profile.approvalStatus === DriverApprovalStatus.APPROVED && profile.user.accountStatus === 'PENDING') {
+    if (db.user?.update) {
+      await db.user.update({
+        where: { id: profile.userId },
+        data: { accountStatus: 'ACTIVE' },
+      });
+    }
+    profile.user.accountStatus = 'ACTIVE';
+    await evaluateAndQualifyReferral(
+      {
+        userId: profile.userId,
+        trigger: 'DRIVER_APPROVED_ONBOARDING',
+      },
+      db,
+    );
+  }
 
   // 1. Check User Account Status
   if (profile.user.accountStatus !== 'ACTIVE') {

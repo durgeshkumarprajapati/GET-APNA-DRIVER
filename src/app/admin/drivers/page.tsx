@@ -151,7 +151,8 @@ export default function AdminDriverDirectoryPage() {
                     <th className="py-3 px-4">Rating</th>
                     <th className="py-3 px-4">Onboarding</th>
                     <th className="py-3 px-4">Approval</th>
-                    <th className="py-3 px-4 text-right">Availability</th>
+                    <th className="py-3 px-4">Availability</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#262a33] font-mono">
@@ -160,9 +161,12 @@ export default function AdminDriverDirectoryPage() {
                       <td className="py-3 px-4">
                         <Link
                           href={`/admin/drivers/${driver.id}`}
-                          className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors"
+                          className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors flex items-center gap-1.5 group"
                         >
-                          {driverDisplayName(driver)}
+                          <span>{driverDisplayName(driver)}</span>
+                          <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity text-[#68dba9]">
+                            open_in_new
+                          </span>
                         </Link>
                       </td>
                       <td className="py-3 px-4 text-[#bccac0]">
@@ -203,12 +207,57 @@ export default function AdminDriverDirectoryPage() {
                           {driver.approvalStatus}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.availabilityStatus)}`}
                         >
                           {driver.availabilityStatus}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/drivers/${driver.id}`}
+                            className="px-2.5 py-1 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] hover:border-[#68dba9] hover:text-[#68dba9] transition-all text-[11px] font-mono flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-xs">visibility</span>
+                            <span>Review</span>
+                          </Link>
+                          {driver.approvalStatus !== 'APPROVED' && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/drivers/${driver.id}/approve`, {
+                                    method: 'POST',
+                                  });
+                                  if (res.ok) {
+                                    // Refresh directory data
+                                    const params = new URLSearchParams({
+                                      page: String(page),
+                                      pageSize: String(PAGE_SIZE),
+                                    });
+                                    if (search.trim()) params.set('search', search.trim());
+                                    if (approvalStatus !== 'ALL') params.set('approvalStatus', approvalStatus);
+                                    const refreshRes = await fetch(`/api/admin/drivers?${params.toString()}`);
+                                    if (refreshRes.ok) {
+                                      setData(await refreshRes.json());
+                                    }
+                                  } else {
+                                    const errData = await res.json();
+                                    alert(errData.message || 'Driver approval failed. Ensure documents are uploaded and verified.');
+                                  }
+                                } catch {
+                                  alert('Approval failed. Please check driver documents.');
+                                }
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-[#25a475] text-[#00311f] font-bold hover:bg-[#208b63] transition-all text-[11px] font-mono flex items-center gap-1 shadow-sm"
+                            >
+                              <span className="material-symbols-outlined text-xs">check_circle</span>
+                              <span>Approve</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

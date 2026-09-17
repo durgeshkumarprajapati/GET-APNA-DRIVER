@@ -290,6 +290,14 @@ export async function approveDriver(
       },
     });
 
+    // Synchronize User.accountStatus to ACTIVE so the driver becomes eligible to go online immediately
+    if (tx.user?.update) {
+      await tx.user.update({
+        where: { id: profile.userId },
+        data: { accountStatus: 'ACTIVE' },
+      });
+    }
+
     await tx.driverOnboardingLog.create({
       data: {
         driverProfileId,
