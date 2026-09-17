@@ -19,6 +19,7 @@ import * as sessionRepository from '../../infrastructure/session-repository';
 import { createSessionForUser } from './session-service';
 import { generateReferralCodeForUser, applyReferralCode } from './referral-service';
 import { SYSTEM_ROLE_CODES } from '../../domain/role-catalog';
+import { notifyAdminsOfDriverRegistration } from '@/modules/notification/application/notification-service';
 import {
   AccountNotActiveError,
   DuplicateIdentityError,
@@ -77,136 +78,152 @@ export async function registerWithEmailPassword(
 
   const hashedPassword = await hashPassword(input.password);
 
-  const { user, identity } = await prisma.$transaction(async (tx: Db) => {
-    const existing = await userRepository.findIdentityByEmail(tx, normalizedEmail);
-    if (existing) {
-      throw new DuplicateIdentityError('email');
-    }
+  const { user, identity, createdDriverProfileId, driverDisplayNameText } =
+    await prisma.$transaction(async (tx: Db) => {
+      const existing = await userRepository.findIdentityByEmail(tx, normalizedEmail);
+      if (existing) {
+        throw new DuplicateIdentityError('email');
+      }
 
-    const { user: newUser, identity: newIdentity } = await userRepository.createUserWithIdentity(
-      tx,
-      {
-        providerType: 'EMAIL',
-        providerName: 'email',
-        providerSubject: normalizedEmail,
-        email: normalizedEmail,
-        phoneNumber: input.phoneNumber?.trim() || null,
-      },
-    );
+      const { user: newUser, identity: newIdentity } =
+        await userRepository.createUserWithIdentity(tx, {
+          providerType: 'EMAIL',
+          providerName: 'email',
+          providerSubject: normalizedEmail,
+          email: normalizedEmail,
+          phoneNumber: input.phoneNumber?.trim() || null,
+        });
 
-    await credentialRepository.createUserCredential(tx, newUser.id, hashedPassword);
+      await credentialRepository.createUserCredential(tx, newUser.id, hashedPassword);
 
-    // Assign validated system role (CUSTOMER or DRIVER)
-    const targetRole = await rbacRepository.findRoleByCode(tx, roleCodeToAssign);
-    if (targetRole) {
-      await rbacRepository.upsertRoleAssignment(tx, {
-        userId: newUser.id,
-        roleId: targetRole.id,
-        assignedBy: null,
-      });
-    }
-
-    // Split name if provided
-    let firstName: string | null = null;
-    let lastName: string | null = null;
-    if (input.fullName?.trim()) {
-      const parts = input.fullName.trim().split(/\s+/);
-      firstName = parts[0] || null;
-      lastName = parts.slice(1).join(' ') || null;
-    }
-
-    // Initialize domain profile based on role
-    if (targetAccountType === 'DRIVER') {
-      await tx.driverProfile.create({
-        data: {
+      // Assign validated system role (CUSTOMER or DRIVER)
+      const targetRole = await rbacRepository.findRoleByCode(tx, roleCodeToAssign);
+      if (targetRole) {
+        await rbacRepository.upsertRoleAssignment(tx, {
           userId: newUser.id,
-          firstName,
-          lastName,
-          displayName: input.fullName?.trim() || null,
-          onboardingStatus: 'NOT_STARTED',
-          verificationStatus: 'NOT_VERIFIED',
-          approvalStatus: 'PENDING',
-          availabilityStatus: 'OFFLINE',
-        },
-      });
-    } else {
-      const initialPin = Math.floor(100000 + Math.random() * 900000).toString();
-      const initialPinHash = await hashPassword(initialPin);
-      const now = new Date();
+          roleId: targetRole.id,
+          assignedBy: null,
+        });
+      }
 
-      await tx.customerProfile.create({
-        data: {
-          userId: newUser.id,
-          firstName,
-          lastName,
-          displayName: input.fullName?.trim() || null,
-          customerRidePinHash: initialPinHash,
-          customerRidePinCreatedAt: now,
-          customerRidePinUpdatedAt: now,
-        },
-      });
-    }
+      // Split name if provided
+      let firstName: string | null = null;
+      let lastName: string | null = null;
+      if (input.fullName?.trim()) {
+        const parts = input.fullName.trim().split(/\s+/);
+        firstName = parts[0] || null;
+        lastName = parts.slice(1).join(' ') || null;
+      }
 
-    // Generate unique referral code for the new user
-    await generateReferralCodeForUser(newUser.id, tx);
+      // Initialize domain profile based on role
+      let createdDriverProfileId: string | null = null;
+      let driverDisplayNameText: string = input.fullName?.trim() || 'New Driver';
 
-    // If referral code was supplied during registration, apply it
-    if (input.referralCode?.trim()) {
-      await applyReferralCode(
-        {
-          referredUserId: newUser.id,
-          code: input.referralCode.trim(),
-        },
-        tx,
-      );
-    }
+      if (targetAccountType === 'DRIVER') {
+        const driverProf = await tx.driverProfile.create({
+          data: {
+            userId: newUser.id,
+            firstName,
+            lastName,
+            displayName: input.fullName?.trim() || null,
+            onboardingStatus: 'NOT_STARTED',
+            verificationStatus: 'NOT_VERIFIED',
+            approvalStatus: 'PENDING',
+            availabilityStatus: 'OFFLINE',
+          },
+        });
+        createdDriverProfileId = driverProf?.id ?? null;
+      } else {
+        const initialPin = Math.floor(100000 + Math.random() * 900000).toString();
+        const initialPinHash = await hashPassword(initialPin);
+        const now = new Date();
 
-    // Generate email verification token (valid 24h)
-    const verificationRawToken = generateRandomToken(32);
-    const verificationTokenHash = hashToken(verificationRawToken);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await tx.customerProfile.create({
+          data: {
+            userId: newUser.id,
+            firstName,
+            lastName,
+            displayName: input.fullName?.trim() || null,
+            customerRidePinHash: initialPinHash,
+            customerRidePinCreatedAt: now,
+            customerRidePinUpdatedAt: now,
+          },
+        });
+      }
 
-    await tokenRepository.createEmailVerificationToken(tx, {
-      userId: newUser.id,
-      identityId: newIdentity.id,
-      tokenHash: verificationTokenHash,
-      expiresAt,
-    });
+      // Generate unique referral code for the new user
+      await generateReferralCodeForUser(newUser.id, tx);
 
-    await recordAuditLog(tx, {
-      actorUserId: null,
-      action: 'identity.user_registered',
-      entityType: 'User',
-      entityId: newUser.id,
-      beforeState: null,
-      afterState: {
-        email: normalizedEmail,
-        providerName: 'email',
-        accountType: targetAccountType,
-      },
-      requestMetadata: requestMetadata ? { ...requestMetadata } : null,
-    });
+      // If referral code was supplied during registration, apply it
+      if (input.referralCode?.trim()) {
+        await applyReferralCode(
+          {
+            referredUserId: newUser.id,
+            code: input.referralCode.trim(),
+          },
+          tx,
+        );
+      }
 
-    await insertOutboxEvent(tx, {
-      eventType: 'identity.user_registered',
-      aggregateType: 'User',
-      aggregateId: newUser.id,
-      payload: {
+      // Generate email verification token (valid 24h)
+      const verificationRawToken = generateRandomToken(32);
+      const verificationTokenHash = hashToken(verificationRawToken);
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await tokenRepository.createEmailVerificationToken(tx, {
         userId: newUser.id,
-        email: normalizedEmail,
-        accountType: targetAccountType,
-      },
+        identityId: newIdentity.id,
+        tokenHash: verificationTokenHash,
+        expiresAt,
+      });
+
+      await recordAuditLog(tx, {
+        actorUserId: null,
+        action: 'identity.user_registered',
+        entityType: 'User',
+        entityId: newUser.id,
+        beforeState: null,
+        afterState: {
+          email: normalizedEmail,
+          providerName: 'email',
+          accountType: targetAccountType,
+        },
+        requestMetadata: requestMetadata ? { ...requestMetadata } : null,
+      });
+
+      await insertOutboxEvent(tx, {
+        eventType: 'identity.user_registered',
+        aggregateType: 'User',
+        aggregateId: newUser.id,
+        payload: {
+          userId: newUser.id,
+          email: normalizedEmail,
+          accountType: targetAccountType,
+        },
+      });
+
+      // Deliver email asynchronously
+      void emailDeliveryProvider
+        .sendVerificationEmail(normalizedEmail, verificationRawToken)
+        .catch(() => {});
+
+      return {
+        user: newUser,
+        identity: newIdentity,
+        createdDriverProfileId,
+        driverDisplayNameText,
+      };
     });
-
-    // Deliver email asynchronously
-    void emailDeliveryProvider
-      .sendVerificationEmail(normalizedEmail, verificationRawToken)
-      .catch(() => {});
-
-    return { user: newUser, identity: newIdentity };
-  });
 
   const sessionResult = await createSessionForUser(user.id, requestMetadata);
+
+  if (targetAccountType === 'DRIVER' && createdDriverProfileId) {
+    void notifyAdminsOfDriverRegistration(
+      createdDriverProfileId,
+      driverDisplayNameText,
+      normalizedEmail,
+    );
+  }
 
   return {
     user,

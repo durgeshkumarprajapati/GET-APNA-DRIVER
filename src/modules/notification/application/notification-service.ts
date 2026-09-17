@@ -220,3 +220,56 @@ export async function markAllNotificationsAsRead(userId: string, db: Db = prisma
 
   return result.count;
 }
+
+/**
+ * System notification service to alert all platform Administrators when a new driver registers.
+ */
+export async function notifyAdminsOfDriverRegistration(
+  driverProfileId: string,
+  driverName: string,
+  driverEmail?: string | null,
+  db: Db = prisma,
+): Promise<void> {
+  try {
+    const adminRoles = await db.userRole.findMany({
+      where: {
+        revokedAt: null,
+        role: { code: 'ADMINISTRATOR' },
+      },
+      select: { userId: true },
+    });
+
+    let adminUserIds = Array.from(new Set(adminRoles.map((r) => r.userId)));
+
+    if (adminUserIds.length === 0) {
+      const fallbackAdmins = await db.user.findMany({
+        where: { accountStatus: 'ACTIVE' },
+        take: 5,
+        select: { id: true },
+      });
+      adminUserIds = fallbackAdmins.map((a) => a.id);
+    }
+
+    const title = `🚨 New Driver Registration: ${driverName}`;
+    const body = `Driver ${driverName}${driverEmail ? ` (${driverEmail})` : ''} has registered and is pending admin approval.`;
+
+    for (const adminUserId of adminUserIds) {
+      await createNotification(
+        {
+          userId: adminUserId,
+          type: 'SYSTEM_ANNOUNCEMENT',
+          category: 'SYSTEM',
+          title,
+          body,
+          actionUrl: '/admin/drivers',
+          priority: 'HIGH',
+          data: { driverProfileId, driverName, driverEmail },
+          idempotencyKey: `new-driver-${driverProfileId}-${adminUserId}`,
+        },
+        db,
+      );
+    }
+  } catch (err) {
+    logger.error({ err, driverProfileId }, 'Failed to notify admins of driver registration');
+  }
+}

@@ -12,6 +12,8 @@ import {
 } from '@/modules/driver/application/services/driver-profile-service';
 import * as rbacRepository from '../../infrastructure/rbac-repository';
 import { SYSTEM_ROLE_CODES } from '../../domain/role-catalog';
+import { notifyAdminsOfDriverRegistration } from '@/modules/notification/application/notification-service';
+import { getContactInfoForUsers } from '../../infrastructure/user-repository';
 import { InvalidRoleSelectionError, RoleAlreadyAssignedError } from '../../domain/errors';
 import {
   evaluateProfileCompletion,
@@ -89,7 +91,16 @@ export async function selectRoleForUser(
     });
 
     if (selectedRole === SYSTEM_ROLE_CODES.DRIVER) {
-      await getOrCreateDriverProfile(userId, tx);
+      const dp = await getOrCreateDriverProfile(userId, tx);
+      if (dp?.id) {
+        const contactMap = await getContactInfoForUsers(tx, [userId]);
+        const userContact = contactMap.get(userId);
+        void notifyAdminsOfDriverRegistration(
+          dp.id,
+          dp.displayName || dp.firstName || userContact?.email || 'New Driver',
+          userContact?.email ?? undefined,
+        );
+      }
     } else {
       await getOrCreateCustomerProfile(userId, tx);
     }

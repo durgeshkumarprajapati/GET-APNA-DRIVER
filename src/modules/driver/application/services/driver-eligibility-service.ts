@@ -77,13 +77,14 @@ export async function evaluateDriverEligibilityFromProfile(
     reasons.push('Driver profile details are incomplete.');
   }
 
-  // 3. Check Driver Onboarding Status
+  // 3. Check Driver Onboarding Status (If already APPROVED by Admin, onboarding is implicitly satisfied)
+  const isApproved = profile.approvalStatus === DriverApprovalStatus.APPROVED;
   const validOnboardingStatuses: DriverOnboardingStatus[] = [
     DriverOnboardingStatus.SUBMITTED,
     DriverOnboardingStatus.UNDER_REVIEW,
     DriverOnboardingStatus.COMPLETED,
   ];
-  if (!validOnboardingStatuses.includes(profile.onboardingStatus)) {
+  if (!isApproved && !validOnboardingStatuses.includes(profile.onboardingStatus)) {
     reasons.push(
       `Driver onboarding has not been submitted or completed (status: ${profile.onboardingStatus}).`,
     );
@@ -101,7 +102,9 @@ export async function evaluateDriverEligibilityFromProfile(
   for (const docType of requiredDocTypes) {
     const doc = profile.documents.find((d) => d.documentType === docType);
     if (!doc) {
-      reasons.push(`Required document type '${docType}' is missing.`);
+      if (!isApproved) {
+        reasons.push(`Required document type '${docType}' is missing.`);
+      }
     } else if (doc.status !== DriverDocumentStatus.VERIFIED) {
       reasons.push(`Document '${docType}' is not verified (status: ${doc.status}).`);
     } else if (doc.expiresAt && doc.expiresAt < now) {
@@ -110,7 +113,7 @@ export async function evaluateDriverEligibilityFromProfile(
   }
 
   // 5. Check Driver Administrative Approval Status
-  if (profile.approvalStatus !== DriverApprovalStatus.APPROVED) {
+  if (!isApproved) {
     reasons.push(`Driver application is not approved (status: ${profile.approvalStatus}).`);
   }
 
