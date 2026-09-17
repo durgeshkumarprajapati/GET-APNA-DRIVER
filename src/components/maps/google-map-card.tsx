@@ -14,6 +14,7 @@ export interface GoogleMapCardProps {
   showControls?: boolean;
   mapId?: string;
   onMarkerClick?: (markerId: string) => void;
+  onLoadError?: (error: string) => void;
   ariaLabel?: string;
 }
 
@@ -34,6 +35,7 @@ export function GoogleMapCard({
   showControls = true,
   mapId,
   onMarkerClick,
+  onLoadError,
   ariaLabel = 'Interactive Google Map',
 }: GoogleMapCardProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -133,9 +135,11 @@ export function GoogleMapCard({
 
     const initMap = async () => {
       if (!apiKey) {
+        const errMsg = 'Google Maps API key is missing.';
         if (isMounted) {
           setLoading(false);
-          setLoadError('Google Maps API key is missing.');
+          setLoadError(errMsg);
+          if (onLoadError) onLoadError(errMsg);
         }
         return;
       }
@@ -169,9 +173,11 @@ export function GoogleMapCard({
           updateMarkers();
         }
       } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Failed to initialize Google Map';
         if (isMounted) {
           setLoading(false);
-          setLoadError(err instanceof Error ? err.message : 'Failed to initialize Google Map');
+          setLoadError(errMsg);
+          if (onLoadError) onLoadError(errMsg);
         }
       }
     };

@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
-import { GoogleMapCard } from '@/components/maps/google-map-card';
+import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { useActiveBooking } from '@/components/use-active-booking';
 import { useBookingTracking, type TrackedBooking } from '@/components/use-booking-tracking';
@@ -220,7 +220,7 @@ export default function CustomerActiveTrackingPage() {
                 }
 
                 return (
-                  <GoogleMapCard
+                  <UnifiedMap
                     markers={markers}
                     height="380px"
                     fitBounds={true}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { GoogleMapCard } from './google-map-card';
+import { UnifiedMap } from './unified-map';
 import type { MapCoordinate, MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 
 export interface LocationMapDrawerProps {
@@ -70,7 +70,7 @@ export function LocationMapDrawer({
           </button>
         </div>
 
-        <GoogleMapCard
+        <UnifiedMap
           markers={markers}
           center={center}
           height={height}
