@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
-import { GoogleMapCard } from '@/components/maps/google-map-card';
+import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
 import { useTranslation } from '@/i18n/context';
@@ -714,7 +714,7 @@ function BookDriverPageInner() {
                     });
                   }
                   return (
-                    <GoogleMapCard
+                    <UnifiedMap
                       markers={markers}
                       height="200px"
                       fitBounds={true}

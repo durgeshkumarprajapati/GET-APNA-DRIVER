@@ -6,7 +6,7 @@ import { DriverLayout } from '@/components/driver-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { RidePinModal } from '@/components/driver/ride-pin-modal';
-import { GoogleMapCard } from '@/components/maps/google-map-card';
+import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { DirectCallResponse } from '@/modules/calling/domain/types';
 
@@ -409,7 +409,7 @@ export default function DriverJourneyControlPage({
                     },
                   ];
                   return (
-                    <GoogleMapCard
+                    <UnifiedMap
                       markers={markers}
                       height="260px"
                       fitBounds={true}

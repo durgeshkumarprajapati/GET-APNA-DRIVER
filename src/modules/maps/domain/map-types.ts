@@ -17,7 +17,19 @@ declare global {
   }
   interface Window {
     google?: any;
+    mapboxgl?: any;
   }
+}
+
+export type MapProviderType = 'google' | 'mapbox' | 'fallback';
+
+export type MapProviderStatus = 'available' | 'loading' | 'unavailable' | 'failed';
+
+export interface MapCapabilities {
+  supportsAdvancedMarkers: boolean;
+  supportsCustomStyles: boolean;
+  supportsSmoothHeading: boolean;
+  supportsTileClustering: boolean;
 }
 
 export interface MapCoordinate {
@@ -25,7 +37,8 @@ export interface MapCoordinate {
   longitude: number;
 }
 
-export type MapMarkerType = 'CUSTOMER' | 'DRIVER' | 'PICKUP' | 'DROPOFF';
+export type MapMarkerType =
+  'CUSTOMER' | 'DRIVER' | 'PICKUP' | 'DROPOFF' | 'CURRENT_LOCATION' | 'WAYPOINT';
 
 export interface MapMarkerDefinition {
   id: string;
@@ -50,4 +63,13 @@ export type MapLoaderStatus = 'IDLE' | 'LOADING' | 'READY' | 'NO_KEY' | 'ERROR';
 export interface MapLoaderState {
   status: MapLoaderStatus;
   errorMessage: string | null;
+}
+
+export interface MapTelemetryEvent {
+  provider: MapProviderType;
+  status: MapProviderStatus;
+  latencyMs?: number;
+  errorCategory?: string;
+  timestamp: string;
+  routeContext?: string;
 }
