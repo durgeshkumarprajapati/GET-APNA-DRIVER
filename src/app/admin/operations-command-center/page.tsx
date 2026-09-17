@@ -201,6 +201,13 @@ export default function OperationsCommandCenterPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link
+              href="/admin/experience-orchestration"
+              className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
+            >
+              <span className="material-symbols-outlined text-sm">psychology</span>
+              Experience Engine
+            </Link>
+            <Link
               href="/admin/risk-and-trust"
               className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
             >

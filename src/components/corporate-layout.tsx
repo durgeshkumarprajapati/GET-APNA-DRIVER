@@ -234,9 +234,7 @@ export function CorporateLayout({ children, userEmail = null }: CorporateLayoutP
 
       {/* MAIN CONTENT */}
       <div className="md:pl-52">
-        <main className="w-full pt-14 pb-8 px-3 sm:px-4 min-h-screen bg-[#0f131c]">
-          {children}
-        </main>
+        <main className="w-full pt-14 pb-8 px-3 sm:px-4 min-h-screen bg-[#0f131c]">{children}</main>
       </div>
 
       {/* FOOTER BAR */}

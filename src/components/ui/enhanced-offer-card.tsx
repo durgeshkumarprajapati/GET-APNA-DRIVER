@@ -69,7 +69,9 @@ export function EnhancedOfferCard({ offer }: EnhancedOfferCardProps) {
             {offer.name}
           </h3>
           <p className="text-[10px] font-semibold text-[#68dba9]">{offer.tagline}</p>
-          <p className="text-[10px] text-[#bccac0] leading-snug line-clamp-2">{offer.description}</p>
+          <p className="text-[10px] text-[#bccac0] leading-snug line-clamp-2">
+            {offer.description}
+          </p>
         </div>
 
         {/* Lock Unlock Requirement Progress Bar */}
@@ -89,7 +91,9 @@ export function EnhancedOfferCard({ offer }: EnhancedOfferCardProps) {
                 style={{ width: `${Math.min(offer.unlockProgressPercent, 100)}%` }}
               />
             </div>
-            <p className="text-[8.5px] text-[#87948b] font-mono leading-tight">{offer.lockReason}</p>
+            <p className="text-[8.5px] text-[#87948b] font-mono leading-tight">
+              {offer.lockReason}
+            </p>
           </div>
         )}
 
@@ -139,7 +143,10 @@ export function EnhancedOfferCard({ offer }: EnhancedOfferCardProps) {
             </p>
             <ul className="space-y-0.5 pl-1">
               {offer.termsAndConditions.map((tc, idx) => (
-                <li key={idx} className="flex items-start gap-1 text-[9.5px] text-slate-300 leading-tight">
+                <li
+                  key={idx}
+                  className="flex items-start gap-1 text-[9.5px] text-slate-300 leading-tight"
+                >
                   <span className="text-emerald-400 font-bold">•</span>
                   <span>{tc}</span>
                 </li>

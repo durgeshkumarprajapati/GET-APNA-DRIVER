@@ -5,6 +5,7 @@ import { driverEn } from './en/driver';
 import { adminEn } from './en/admin';
 import { bookingEn } from './en/booking';
 import { errorsEn } from './en/errors';
+import { experienceEn } from './en/experience';
 
 import { commonHi } from './hi/common';
 import { authHi } from './hi/auth';
@@ -13,6 +14,7 @@ import { driverHi } from './hi/driver';
 import { adminHi } from './hi/admin';
 import { bookingHi } from './hi/booking';
 import { errorsHi } from './hi/errors';
+import { experienceHi } from './hi/experience';
 
 import { commonGu } from './gu/common';
 import { authGu } from './gu/auth';
@@ -21,6 +23,7 @@ import { driverGu } from './gu/driver';
 import { adminGu } from './gu/admin';
 import { bookingGu } from './gu/booking';
 import { errorsGu } from './gu/errors';
+import { experienceGu } from './gu/experience';
 
 import { commonMr } from './mr/common';
 import { authMr } from './mr/auth';
@@ -29,6 +32,7 @@ import { driverMr } from './mr/driver';
 import { adminMr } from './mr/admin';
 import { bookingMr } from './mr/booking';
 import { errorsMr } from './mr/errors';
+import { experienceMr } from './mr/experience';
 
 import { commonTa } from './ta/common';
 import { authTa } from './ta/auth';
@@ -37,6 +41,7 @@ import { driverTa } from './ta/driver';
 import { adminTa } from './ta/admin';
 import { bookingTa } from './ta/booking';
 import { errorsTa } from './ta/errors';
+import { experienceTa } from './ta/experience';
 
 import { commonTe } from './te/common';
 import { authTe } from './te/auth';
@@ -45,6 +50,7 @@ import { driverTe } from './te/driver';
 import { adminTe } from './te/admin';
 import { bookingTe } from './te/booking';
 import { errorsTe } from './te/errors';
+import { experienceTe } from './te/experience';
 
 import { commonKn } from './kn/common';
 import { authKn } from './kn/auth';
@@ -53,6 +59,7 @@ import { driverKn } from './kn/driver';
 import { adminKn } from './kn/admin';
 import { bookingKn } from './kn/booking';
 import { errorsKn } from './kn/errors';
+import { experienceKn } from './kn/experience';
 
 import { commonMl } from './ml/common';
 import { authMl } from './ml/auth';
@@ -61,6 +68,7 @@ import { driverMl } from './ml/driver';
 import { adminMl } from './ml/admin';
 import { bookingMl } from './ml/booking';
 import { errorsMl } from './ml/errors';
+import { experienceMl } from './ml/experience';
 
 import { commonPa } from './pa/common';
 import { authPa } from './pa/auth';
@@ -69,6 +77,7 @@ import { driverPa } from './pa/driver';
 import { adminPa } from './pa/admin';
 import { bookingPa } from './pa/booking';
 import { errorsPa } from './pa/errors';
+import { experiencePa } from './pa/experience';
 
 import { commonBn } from './bn/common';
 import { authBn } from './bn/auth';
@@ -77,6 +86,7 @@ import { driverBn } from './bn/driver';
 import { adminBn } from './bn/admin';
 import { bookingBn } from './bn/booking';
 import { errorsBn } from './bn/errors';
+import { experienceBn } from './bn/experience';
 
 export const dictionaries = {
   en: {
@@ -87,6 +97,7 @@ export const dictionaries = {
     admin: adminEn,
     booking: bookingEn,
     errors: errorsEn,
+    experience: experienceEn,
   },
   hi: {
     common: commonHi,
@@ -96,6 +107,7 @@ export const dictionaries = {
     admin: adminHi,
     booking: bookingHi,
     errors: errorsHi,
+    experience: experienceHi,
   },
   gu: {
     common: commonGu,
@@ -105,6 +117,7 @@ export const dictionaries = {
     admin: adminGu,
     booking: bookingGu,
     errors: errorsGu,
+    experience: experienceGu,
   },
   mr: {
     common: commonMr,
@@ -114,6 +127,7 @@ export const dictionaries = {
     admin: adminMr,
     booking: bookingMr,
     errors: errorsMr,
+    experience: experienceMr,
   },
   ta: {
     common: commonTa,
@@ -123,6 +137,7 @@ export const dictionaries = {
     admin: adminTa,
     booking: bookingTa,
     errors: errorsTa,
+    experience: experienceTa,
   },
   te: {
     common: commonTe,
@@ -132,6 +147,7 @@ export const dictionaries = {
     admin: adminTe,
     booking: bookingTe,
     errors: errorsTe,
+    experience: experienceTe,
   },
   kn: {
     common: commonKn,
@@ -141,6 +157,7 @@ export const dictionaries = {
     admin: adminKn,
     booking: bookingKn,
     errors: errorsKn,
+    experience: experienceKn,
   },
   ml: {
     common: commonMl,
@@ -150,6 +167,7 @@ export const dictionaries = {
     admin: adminMl,
     booking: bookingMl,
     errors: errorsMl,
+    experience: experienceMl,
   },
   pa: {
     common: commonPa,
@@ -159,6 +177,7 @@ export const dictionaries = {
     admin: adminPa,
     booking: bookingPa,
     errors: errorsPa,
+    experience: experiencePa,
   },
   bn: {
     common: commonBn,
@@ -168,6 +187,7 @@ export const dictionaries = {
     admin: adminBn,
     booking: bookingBn,
     errors: errorsBn,
+    experience: experienceBn,
   },
 } as const;
 
