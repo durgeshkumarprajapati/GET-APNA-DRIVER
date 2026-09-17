@@ -158,32 +158,49 @@ export async function findAndOfferNextDriver(
     };
   }
 
-  // 6. Intelligent Candidate Ranking
+  // 6. Intelligent Candidate Ranking — fetch actual telemetry for accuracy & capturedAt
+  const unattemptedIds = unattempted.map((c) => c.driverId);
+  const locationTelemetries = db.driverCurrentLocation?.findMany
+    ? await db.driverCurrentLocation.findMany({
+        where: { driverProfileId: { in: unattemptedIds } },
+        select: { driverProfileId: true, accuracy: true, capturedAt: true },
+      })
+    : [];
+  const telemetryMap = new Map<string, { accuracy: number | null; capturedAt: Date }>();
+  for (const t of locationTelemetries) {
+    telemetryMap.set(t.driverProfileId, { accuracy: t.accuracy, capturedAt: t.capturedAt });
+  }
+
   const ranked = await rankCandidateDrivers(
-    unattempted.map((c) => ({
-      driverProfileId: c.driverId,
-      displayName: c.displayName,
-      latitude:
-        (c as { location?: { latitude: number }; latitude?: number }).location?.latitude ??
-        (c as { latitude?: number }).latitude ??
-        booking.pickupLatitude,
-      longitude:
-        (c as { location?: { longitude: number }; longitude?: number }).location?.longitude ??
-        (c as { longitude?: number }).longitude ??
-        booking.pickupLongitude,
-      accuracy: null,
-      capturedAt: now,
-      availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
-    })),
+    unattempted.map((c) => {
+      const tel = telemetryMap.get(c.driverId);
+      return {
+        driverProfileId: c.driverId,
+        displayName: c.displayName,
+        latitude:
+          (c as { location?: { latitude: number }; latitude?: number }).location?.latitude ??
+          (c as { latitude?: number }).latitude ??
+          booking.pickupLatitude,
+        longitude:
+          (c as { location?: { longitude: number }; longitude?: number }).location?.longitude ??
+          (c as { longitude?: number }).longitude ??
+          booking.pickupLongitude,
+        accuracy: tel?.accuracy ?? null,
+        capturedAt: tel?.capturedAt ?? now,
+        availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
+      };
+    }),
     {
       pickupLatitude: booking.pickupLatitude,
       pickupLongitude: booking.pickupLongitude,
       preferredDriverProfileId: booking.preferredDriverProfileId,
       customerId: booking.customerId,
+      bookingType: booking.bookingType,
     },
     db,
   );
 
+  // Authoritative selection: prioritize explicitly requested preferred driver if in unattempted pool, else top-ranked candidate
   let targetDriver = null;
   if (
     booking.preferredDriverProfileId &&
