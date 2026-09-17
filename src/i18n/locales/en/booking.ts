@@ -29,4 +29,6 @@ export const bookingEn = {
     subtitle: 'Ask customer for 6-digit PIN before starting trip',
     submit: 'Verify PIN',
   },
+  noActiveDriverNearby: 'No active driver found near you.',
+  searchingNearbyDrivers: 'Searching for nearby drivers…',
 };
