@@ -43,36 +43,54 @@ export function useGeolocationCapture(): UseGeolocationCaptureResult {
     setErrorMessage(null);
 
     return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const captured: CapturedLocation = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy ?? null,
-            capturedAt: new Date().toISOString(),
-          };
-          setLocation(captured);
-          setStatus('SUCCESS');
-          resolve(captured);
-        },
-        (error) => {
-          if (error.code === error.PERMISSION_DENIED) {
-            setStatus('DENIED');
-            setErrorMessage('Location permission denied.');
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            setStatus('UNAVAILABLE');
-            setErrorMessage('Current position is unavailable.');
-          } else if (error.code === error.TIMEOUT) {
-            setStatus('TIMEOUT');
-            setErrorMessage('Location acquisition timed out.');
-          } else {
-            setStatus('UNAVAILABLE');
-            setErrorMessage('Failed to acquire your location.');
-          }
+      const handleSuccess = (position: GeolocationPosition) => {
+        const captured: CapturedLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy ?? null,
+          capturedAt: new Date().toISOString(),
+        };
+        setLocation(captured);
+        setStatus('SUCCESS');
+        resolve(captured);
+      };
+
+      const handlePrimaryError = (error: GeolocationPositionError) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setStatus('DENIED');
+          setErrorMessage('Location permission denied.');
           resolve(null);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-      );
+          return;
+        }
+
+        // Retry with standard/network accuracy on timeout or position unavailable
+        navigator.geolocation.getCurrentPosition(
+          handleSuccess,
+          (fallbackError) => {
+            if (fallbackError.code === fallbackError.PERMISSION_DENIED) {
+              setStatus('DENIED');
+              setErrorMessage('Location permission denied.');
+            } else if (fallbackError.code === fallbackError.POSITION_UNAVAILABLE) {
+              setStatus('UNAVAILABLE');
+              setErrorMessage('Current position is unavailable.');
+            } else if (fallbackError.code === fallbackError.TIMEOUT) {
+              setStatus('TIMEOUT');
+              setErrorMessage('Location acquisition timed out.');
+            } else {
+              setStatus('UNAVAILABLE');
+              setErrorMessage('Failed to acquire your location.');
+            }
+            resolve(null);
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+        );
+      };
+
+      navigator.geolocation.getCurrentPosition(handleSuccess, handlePrimaryError, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      });
     });
   }, []);
 
