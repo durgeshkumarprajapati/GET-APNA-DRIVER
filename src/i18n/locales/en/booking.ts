@@ -13,9 +13,25 @@ export const bookingEn = {
   types: {
     ONE_WAY: 'One Way',
     ROUND_TRIP: 'Round Trip',
-    HOURLY: 'Hourly Rental',
+    HOURLY: 'Hourly Hire',
     FULL_DAY: 'Full Day Chauffeur',
     MULTI_DAY: 'Outstation Multi-Day',
+    POINT_TO_POINT: 'Point to Point',
+    DAILY: 'Daily Hire',
+    WEEKLY: 'Weekly Hire',
+    MONTHLY: 'Monthly Hire',
+  },
+  selectHireType: 'Select Hire Mode',
+  hireDurationTitle: 'Hire Duration',
+  requestedStart: 'Requested Start Time (Optional)',
+  noDropoffRequiredHire: 'No drop location required for driver hire. Your driver will stay with you throughout your hire period.',
+  addDropoffOptional: 'Specify Drop Location (Optional)',
+  destinationLocation: 'Drop Location',
+  units: {
+    hours: 'Hours',
+    days: 'Days',
+    weeks: 'Weeks',
+    months: 'Months',
   },
   cancelModal: {
     title: 'Cancel Booking',
@@ -29,4 +45,6 @@ export const bookingEn = {
     subtitle: 'Ask customer for 6-digit PIN before starting trip',
     submit: 'Verify PIN',
   },
+  noActiveDriverNearby: 'No active driver found near you.',
+  searchingNearbyDrivers: 'Searching for nearby drivers…',
 };

@@ -18,6 +18,8 @@ describe('Pricing Module - Pricing Quote Snapshot', () => {
         platformFee: '25.0000',
         hourlyRate: '250.0000',
         dailyRate: '1800.0000',
+        weeklyRate: '10000.0000',
+        monthlyRate: '35000.0000',
       },
       breakdown: {
         baseFareAmount: '100.0000',

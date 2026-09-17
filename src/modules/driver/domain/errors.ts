@@ -17,12 +17,15 @@ export class InvalidDriverStatusTransitionError extends AppError {
 }
 
 export class DriverNotEligibleError extends AppError {
+  readonly reasons: string[];
+
   constructor(reasons: string[]) {
     super(
       `Driver is not eligible to go available: ${reasons.join('; ')}`,
       403,
       'DRIVER_NOT_ELIGIBLE',
     );
+    this.reasons = reasons;
   }
 }
 

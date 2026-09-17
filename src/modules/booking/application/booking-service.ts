@@ -13,6 +13,7 @@ import {
   isBookingCancellable,
   validateBookingStatusTransition,
 } from '../domain/booking-state-machine';
+import { isDriverHireBooking, calculateHireEndTimestamp } from '../domain/booking-policy';
 import { findAndOfferNextDriver } from './matching-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
@@ -56,7 +57,12 @@ export interface BookingDetail {
     label: string | null;
   } | null;
   numberOfDays?: number | null;
+  numberOfWeeks?: number | null;
+  numberOfMonths?: number | null;
   hourlyPackageHours?: number | null;
+  hireDurationMinutes?: number | null;
+  hireStartAt?: Date | null;
+  hireEndAt?: Date | null;
   returnDate?: Date | null;
   estimatedDistanceKm?: number | null;
   estimatedFareAmount?: string | null;
@@ -159,14 +165,30 @@ export async function createBooking(
   );
 
   // 3. Calculate Estimated Fare and Route
-  const bookingType = input.bookingType || BookingType.ONE_WAY;
+  const bookingType = input.bookingType || BookingType.POINT_TO_POINT;
+  const hireDurationMinutes = input.hireDurationMinutes ?? null;
+
+  let hireStartAt: Date | null = input.hireStartAt ? new Date(input.hireStartAt) : null;
+  let hireEndAt: Date | null = input.hireEndAt ? new Date(input.hireEndAt) : null;
+
+  if (isDriverHireBooking(bookingType)) {
+    const start = hireStartAt || (input.requestedStartTime ? new Date(input.requestedStartTime) : new Date());
+    hireStartAt = start;
+    if (hireDurationMinutes && !hireEndAt) {
+      hireEndAt = calculateHireEndTimestamp(bookingType, hireDurationMinutes, start);
+    }
+  }
+
   const fareResult = await calculateEstimatedFare(
     {
       bookingType,
       pickup: input.pickupLocation,
       dropoff: input.dropoffLocation,
       estimatedDurationMinutes: input.estimatedDurationMinutes,
+      hireDurationMinutes,
       numberOfDays: input.numberOfDays,
+      numberOfWeeks: input.numberOfWeeks,
+      numberOfMonths: input.numberOfMonths,
       hourlyPackageHours: input.hourlyPackageHours,
     },
     db,
@@ -196,6 +218,9 @@ export async function createBooking(
         dropoffLabel: input.dropoffLocation?.label ?? null,
         numberOfDays: input.numberOfDays ?? null,
         hourlyPackageHours: input.hourlyPackageHours ?? null,
+        hireDurationMinutes,
+        hireStartAt,
+        hireEndAt,
         returnDate: input.returnDate ? new Date(input.returnDate) : null,
         estimatedDistanceKm: fareResult.estimatedDistanceKm,
         estimatedFareAmount: fareResult.breakdown.totalFareAmount,
@@ -549,6 +574,9 @@ function mapBookingToDetail(
         : null,
     numberOfDays: booking.numberOfDays,
     hourlyPackageHours: booking.hourlyPackageHours,
+    hireDurationMinutes: booking.hireDurationMinutes,
+    hireStartAt: booking.hireStartAt,
+    hireEndAt: booking.hireEndAt,
     returnDate: booking.returnDate,
     estimatedDistanceKm: booking.estimatedDistanceKm,
     estimatedFareAmount: booking.estimatedFareAmount

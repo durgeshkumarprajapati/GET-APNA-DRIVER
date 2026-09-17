@@ -9,6 +9,21 @@ import type {
   OperationsActionDefinition,
 } from '@/modules/operations';
 
+const DEFAULT_SUMMARY: OperationsCommandSummary = {
+  activeDecisionsCount: 0,
+  criticalCount: 0,
+  highCount: 0,
+  searchingBookingsCount: 0,
+  availableDriversCount: 0,
+  activeTripsCount: 0,
+  activeSafetyIncidentsCount: 0,
+  openSupportTicketsCount: 0,
+  platformHealthScore: 100,
+  systemStatus: 'HEALTHY',
+  decisions: [],
+  updatedSecondsAgo: 0,
+};
+
 export default function OperationsCommandCenterPage() {
   const [summary, setSummary] = useState<OperationsCommandSummary | null>(null);
   const [decisions, setDecisions] = useState<OperationsDecision[]>([]);
@@ -39,13 +54,16 @@ export default function OperationsCommandCenterPage() {
       ]);
 
       if (!summaryRes.ok || !decisionsRes.ok) {
-        throw new Error('Failed to load operational command data');
+        const sumErr = !summaryRes.ok ? await summaryRes.json().catch(() => null) : null;
+        const decErr = !decisionsRes.ok ? await decisionsRes.json().catch(() => null) : null;
+        const msg = sumErr?.error || decErr?.error || 'Failed to load operational command data';
+        throw new Error(msg);
       }
 
       const summaryData = await summaryRes.json();
       const decisionsData = await decisionsRes.json();
 
-      setSummary(summaryData.data ?? summaryData.summary);
+      setSummary(summaryData.data ?? summaryData.summary ?? DEFAULT_SUMMARY);
       setDecisions(decisionsData.data ?? decisionsData.decisions ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error loading operations command center');
@@ -66,14 +84,17 @@ export default function OperationsCommandCenterPage() {
         ]);
 
         if (!summaryRes.ok || !decisionsRes.ok) {
-          throw new Error('Failed to load operational command data');
+          const sumErr = !summaryRes.ok ? await summaryRes.json().catch(() => null) : null;
+          const decErr = !decisionsRes.ok ? await decisionsRes.json().catch(() => null) : null;
+          const msg = sumErr?.error || decErr?.error || 'Failed to load operational command data';
+          throw new Error(msg);
         }
 
         const summaryData = await summaryRes.json();
         const decisionsData = await decisionsRes.json();
 
         if (active) {
-          setSummary(summaryData.data ?? summaryData.summary);
+          setSummary(summaryData.data ?? summaryData.summary ?? DEFAULT_SUMMARY);
           setDecisions(decisionsData.data ?? decisionsData.decisions ?? []);
           setError(null);
           setLoading(false);
@@ -182,6 +203,8 @@ export default function OperationsCommandCenterPage() {
     }
   };
 
+  const activeSummary = summary ?? DEFAULT_SUMMARY;
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -238,75 +261,73 @@ export default function OperationsCommandCenterPage() {
         )}
 
         {/* Top Metrics Cards */}
-        {summary && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-                System Status
-              </span>
-              <div className="text-sm font-bold font-mono text-[#68dba9] mt-2">
-                {summary.systemStatus}
-              </div>
-              <span className="text-[10px] text-[#87948b] mt-1">
-                Health Score: {summary.platformHealthScore}/100
-              </span>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+              System Status
+            </span>
+            <div className="text-sm font-bold font-mono text-[#68dba9] mt-2">
+              {activeSummary.systemStatus}
             </div>
-
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-                Active Decisions
-              </span>
-              <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1">
-                {summary.activeDecisionsCount}
-              </div>
-              <span className="text-[10px] text-[#87948b] mt-1">Evaluated Real-Time</span>
-            </div>
-
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-                Critical / High
-              </span>
-              <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ff8e8e] mt-1">
-                {summary.criticalCount + summary.highCount}
-              </div>
-              <span className="text-[10px] text-[#87948b] mt-1">Requires Operator Action</span>
-            </div>
-
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-                Searching Bookings
-              </span>
-              <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1">
-                {summary.searchingBookingsCount}
-              </div>
-              <span className="text-[10px] text-[#87948b] mt-1">
-                Available Drivers: {summary.availableDriversCount}
-              </span>
-            </div>
-
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-                Active Trips
-              </span>
-              <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#70d2ff] mt-1">
-                {summary.activeTripsCount}
-              </div>
-              <span className="text-[10px] text-[#87948b] mt-1">On-trip fleet</span>
-            </div>
-
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-                Safety Incidents
-              </span>
-              <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffb957] mt-1">
-                {summary.activeSafetyIncidentsCount}
-              </div>
-              <span className="text-[10px] text-[#87948b] mt-1">
-                Open Support: {summary.openSupportTicketsCount}
-              </span>
-            </div>
+            <span className="text-[10px] text-[#87948b] mt-1">
+              Health Score: {activeSummary.platformHealthScore}/100
+            </span>
           </div>
-        )}
+
+          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+              Active Decisions
+            </span>
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1">
+              {activeSummary.activeDecisionsCount}
+            </div>
+            <span className="text-[10px] text-[#87948b] mt-1">Evaluated Real-Time</span>
+          </div>
+
+          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+              Critical / High
+            </span>
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ff8e8e] mt-1">
+              {activeSummary.criticalCount + activeSummary.highCount}
+            </div>
+            <span className="text-[10px] text-[#87948b] mt-1">Requires Operator Action</span>
+          </div>
+
+          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+              Searching Bookings
+            </span>
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1">
+              {activeSummary.searchingBookingsCount}
+            </div>
+            <span className="text-[10px] text-[#87948b] mt-1">
+              Available Drivers: {activeSummary.availableDriversCount}
+            </span>
+          </div>
+
+          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+              Active Trips
+            </span>
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#70d2ff] mt-1">
+              {activeSummary.activeTripsCount}
+            </div>
+            <span className="text-[10px] text-[#87948b] mt-1">On-trip fleet</span>
+          </div>
+
+          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+              Safety Incidents
+            </span>
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffb957] mt-1">
+              {activeSummary.activeSafetyIncidentsCount}
+            </div>
+            <span className="text-[10px] text-[#87948b] mt-1">
+              Open Support: {activeSummary.openSupportTicketsCount}
+            </span>
+          </div>
+        </div>
 
         {/* Filter Controls Bar */}
         <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-wrap items-center gap-4">

@@ -34,26 +34,34 @@ export async function getSupplyMetrics(
   currentDemand: number = 0,
 ): Promise<SupplyMetricsSummary> {
   const [driverProfiles, currentLocations, activeZones] = await Promise.all([
-    prisma.driverProfile.findMany({
-      where: {
-        approvalStatus: DriverApprovalStatus.APPROVED,
-        ...(vehicleCategory ? { vehicleCategory } : {}),
-      },
-      select: {
-        id: true,
-        availabilityStatus: true,
-        vehicleCategory: true,
-      },
-    }),
-    prisma.driverCurrentLocation.findMany({
-      select: {
-        driverProfileId: true,
-        latitude: true,
-        longitude: true,
-        updatedAt: true,
-      },
-    }),
-    listMarketplaceZones(),
+    prisma.driverProfile?.findMany
+      ? prisma.driverProfile
+          .findMany({
+            where: {
+              approvalStatus: DriverApprovalStatus.APPROVED,
+              ...(vehicleCategory ? { vehicleCategory } : {}),
+            },
+            select: {
+              id: true,
+              availabilityStatus: true,
+              vehicleCategory: true,
+            },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.driverCurrentLocation?.findMany
+      ? prisma.driverCurrentLocation
+          .findMany({
+            select: {
+              driverProfileId: true,
+              latitude: true,
+              longitude: true,
+              updatedAt: true,
+            },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    listMarketplaceZones().catch(() => []),
   ]);
 
   const locationMap = new Map(

@@ -20,8 +20,13 @@ export interface CreateBookingInput {
   bookingType?: BookingType;
   requestedStartTime?: string | null;
   estimatedDurationMinutes?: number | null;
+  hireDurationMinutes?: number | null;
+  hireStartAt?: string | null;
+  hireEndAt?: string | null;
   customerNotes?: string | null;
   numberOfDays?: number | null;
+  numberOfWeeks?: number | null;
+  numberOfMonths?: number | null;
   hourlyPackageHours?: number | null;
   returnDate?: string | null;
   /** Optional promotion code the customer entered/selected. Always re-validated server-side — see promotion-eligibility-service.ts. */

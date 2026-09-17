@@ -18,8 +18,17 @@ interface BookingDetail {
     address: string;
     label: string | null;
   };
+  dropoffLocation?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    label: string | null;
+  } | null;
   requestedStartTime: string | null;
   estimatedDurationMinutes: number | null;
+  hireDurationMinutes?: number | null;
+  hireStartAt?: string | null;
+  hireEndAt?: string | null;
   customerNotes: string | null;
   requestedAt: string;
   assignedAt: string | null;
@@ -619,7 +628,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             </div>
           </div>
 
-          {/* Pickup & Trip Details */}
+          {/* Pickup, Dropoff & Trip Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             <div className="space-y-1">
               <span className="text-xs font-medium text-slate-400 uppercase">
@@ -634,19 +643,41 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
               </p>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-slate-400 uppercase">
-                {t('customer.tracking.bookingTypeDurationLabel')}
-              </span>
-              <p className="text-sm font-semibold text-white">
-                {t(`booking.types.${booking.bookingType}`)}
-              </p>
-              <p className="text-xs text-slate-400">
-                {t('customer.tracking.estDurationLabel', {
-                  minutes: booking.estimatedDurationMinutes || 60,
-                })}
-              </p>
-            </div>
+            {booking.dropoffLocation ? (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-slate-400 uppercase">
+                  {t('customer.booking.destinationLocation', { defaultValue: 'Drop Location' })}
+                </span>
+                <p className="text-sm font-semibold text-white">{booking.dropoffLocation.address}</p>
+                <p className="text-xs text-slate-400">
+                  {t('customer.tracking.coordsLabel', {
+                    lat: booking.dropoffLocation.latitude.toFixed(4),
+                    lng: booking.dropoffLocation.longitude.toFixed(4),
+                  })}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-slate-400 uppercase">
+                  {t('customer.tracking.bookingTypeDurationLabel')}
+                </span>
+                <p className="text-sm font-semibold text-white font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30 text-xs">
+                    {booking.bookingType}
+                  </span>
+                  {booking.hireDurationMinutes && (
+                    <span>
+                      ({Math.round(booking.hireDurationMinutes / 60)} Hours Hire)
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {booking.hireStartAt
+                    ? `Starts: ${formatDate(booking.hireStartAt)}`
+                    : 'No drop location required for driver hire'}
+                </p>
+              </div>
+            )}
           </div>
 
           {booking.customerNotes && (

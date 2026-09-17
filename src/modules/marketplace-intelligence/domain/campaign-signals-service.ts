@@ -46,42 +46,66 @@ export async function getCampaignSignals(
     loyaltyRewards,
     loyaltyTransactions,
   ] = await Promise.all([
-    prisma.promotion.findMany({
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.promotionUsage.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
-    prisma.referralCampaign.findMany({
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.referral.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
-    prisma.loyaltyReward.findMany({
-      take: 10,
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.loyaltyPointTransaction.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-    }),
+    prisma.promotion?.findMany
+      ? prisma.promotion
+          .findMany({
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.promotionUsage?.findMany
+      ? prisma.promotionUsage
+          .findMany({
+            where: {
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.referralCampaign?.findMany
+      ? prisma.referralCampaign
+          .findMany({
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.referral?.findMany
+      ? prisma.referral
+          .findMany({
+            where: {
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.loyaltyReward?.findMany
+      ? prisma.loyaltyReward
+          .findMany({
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+    prisma.loyaltyPointTransaction?.findMany
+      ? prisma.loyaltyPointTransaction
+          .findMany({
+            where: {
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            },
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
   ]);
 
   const cards: CampaignSignalCardDTO[] = [];

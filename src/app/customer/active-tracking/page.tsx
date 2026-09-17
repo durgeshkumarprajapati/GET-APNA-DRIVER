@@ -17,6 +17,7 @@ import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-in
 import { SmartTripReliabilityCard } from '@/components/trip-reliability/SmartTripReliabilityCard';
 import type { CustomerReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
 import { LocationETACard } from '@/components/location-intelligence/LocationETACard';
+import { DispatchSearchCountdownCard } from '@/components/dispatch/DispatchSearchCountdownCard';
 
 const STATUS_TONE: Record<string, StatusBadgeTone> = {
   SEARCHING_DRIVER: 'warning',
@@ -110,6 +111,8 @@ export default function CustomerActiveTrackingPage() {
           </EmptyState>
         ) : (
           <>
+            <DispatchSearchCountdownCard bookingId={displayBooking.id} />
+
             {locationIntel && <LocationETACard locationIntelligence={locationIntel} />}
 
             {intelligence && (

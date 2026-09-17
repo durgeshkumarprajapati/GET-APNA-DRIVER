@@ -27,6 +27,18 @@ jest.mock('@/shared/database/prisma', () => ({
     bookingAssignmentAttempt: {
       updateMany: jest.fn(),
     },
+    driverProfile: {
+      findUnique: jest.fn().mockImplementation(({ where }) =>
+        Promise.resolve({
+          id: where.id,
+          user: { id: 'u-1', accountStatus: 'ACTIVE' },
+          approvalStatus: 'APPROVED',
+          verificationStatus: 'VERIFIED',
+          onboardingStatus: 'COMPLETED',
+          documents: [],
+        }),
+      ),
+    },
   },
 }));
 
@@ -40,6 +52,7 @@ jest.mock('@/shared/config/configuration-service', () => ({
     if (key === 'booking.matching.search_timeout_seconds') return Promise.resolve(300);
     return Promise.resolve(defaultValue);
   }),
+  getJson: jest.fn().mockImplementation((_key: string, defaultValue: unknown) => Promise.resolve(defaultValue)),
 }));
 
 jest.mock('@/modules/location/application/nearby-driver-service', () => ({
