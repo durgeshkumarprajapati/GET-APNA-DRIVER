@@ -149,6 +149,26 @@ export function GoogleMapCard({
       }
     };
 
+    // Capture global unhandled Google Maps console/script errors (e.g. BillingNotEnabledMapError)
+    const handleGlobalError = (event: ErrorEvent) => {
+      const msg = String(event.message || event.error?.message || '');
+      if (
+        msg.includes('BillingNotEnabledMapError') ||
+        msg.includes('ApiNotActivatedMapError') ||
+        msg.includes('InvalidKeyMapError') ||
+        msg.includes('Google Maps JavaScript API error')
+      ) {
+        const errMsg = `Google Maps API error: ${msg}. Switching to Mapbox GL JS.`;
+        console.warn(`[GoogleMapCard] ${errMsg}`);
+        if (isMounted) {
+          setLoading(false);
+          setLoadError(errMsg);
+          if (onLoadError) onLoadError(errMsg);
+        }
+      }
+    };
+    window.addEventListener('error', handleGlobalError);
+
     const initMap = async () => {
       if (!apiKey) {
         const errMsg = 'Google Maps API key is missing.';
@@ -202,6 +222,7 @@ export function GoogleMapCard({
 
     return () => {
       isMounted = false;
+      window.removeEventListener('error', handleGlobalError);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, activeMapId]);
