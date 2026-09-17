@@ -56,8 +56,9 @@ export async function rankCandidateDrivers(
   candidates: CandidateDriverSignalInput[],
   options: RankCandidatesOptions,
   db: Db = prisma,
+  referenceTime: Date = new Date(),
 ): Promise<RankedCandidate[]> {
-  const now = new Date();
+  const now = referenceTime;
   const eligibleCandidates: { candidate: CandidateDriverSignalInput; distanceKm: number; freshnessClass: LocationFreshnessClass; confidenceLevel: LocationConfidenceLevel }[] = [];
 
   // 1. Filter out ineligible candidates and stale locations

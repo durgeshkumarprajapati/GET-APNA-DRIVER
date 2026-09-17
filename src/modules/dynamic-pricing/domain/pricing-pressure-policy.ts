@@ -112,10 +112,20 @@ export function calculatePolicyAdjustment(
   const percentageAdj = (baseFareAmount * policy.adjustmentPercentage) / 100;
   const rawAdjustment = percentageAdj + policy.flatSurgeAmount;
 
-  // Enforce server-side maxAdjustmentPercentage hard cap
-  const maxAllowedAdjustment = (baseFareAmount * policy.maxAdjustmentPercentage) / 100;
-  const wasCapped = rawAdjustment > maxAllowedAdjustment;
-  const dynamicAdjustmentAmount = Math.min(rawAdjustment, maxAllowedAdjustment);
+  // Enforce server-side maxAdjustmentPercentage policy cap
+  const policyCappedAdjustment = Math.min(rawAdjustment, (baseFareAmount * policy.maxAdjustmentPercentage) / 100);
+
+  // Enforce ABSOLUTE SERVER-SIDE HARD SAFETY BOUNDS: MIN 0.5x, MAX 3.0x
+  // 0.5x minimum multiplier => dynamicAdjustment >= -0.5 * baseFare
+  // 3.0x maximum multiplier => dynamicAdjustment <= +2.0 * baseFare
+  const minAllowedAdjustment = -0.5 * baseFareAmount;
+  const maxAllowedAdjustment = 2.0 * baseFareAmount;
+
+  const dynamicAdjustmentAmount = Math.max(
+    minAllowedAdjustment,
+    Math.min(policyCappedAdjustment, maxAllowedAdjustment),
+  );
+  const wasCapped = rawAdjustment > dynamicAdjustmentAmount;
   const finalGrossFareAmount = baseFareAmount + dynamicAdjustmentAmount;
 
   return {
@@ -130,7 +140,7 @@ export function calculatePolicyAdjustment(
     flatSurgeAmount: policy.flatSurgeAmount,
     wasCapped,
     capReason: wasCapped
-      ? `Adjustment capped at maximum policy limit of ${policy.maxAdjustmentPercentage}% (+₹${maxAllowedAdjustment.toFixed(2)}).`
+      ? `Adjustment clamped within server-side policy and safety limits (0.5x–3.0x max).`
       : undefined,
   };
 }

@@ -125,7 +125,7 @@ export async function registerWithEmailPassword(
 
       // Initialize domain profile based on role
       let createdDriverProfileId: string | null = null;
-      let driverDisplayNameText: string = input.fullName?.trim() || 'New Driver';
+      const driverDisplayNameText: string = input.fullName?.trim() || 'New Driver';
 
       if (targetAccountType === 'DRIVER') {
         const driverProf = await tx.driverProfile.create({
