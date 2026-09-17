@@ -215,6 +215,21 @@ export function MapboxMapCard({
     };
   }, [onMapClick, loading, loadError]);
 
+  // Re-center the map whenever the `center` prop changes after the map is
+  // already mounted (e.g. a fresh device-GPS reading arriving from "Use My
+  // Current Location"). fitBounds/updateMarkers only ever move the camera
+  // when markers change AND fitBounds is true, so a caller that renders with
+  // fitBounds={false} (an explicit, caller-chosen center is authoritative)
+  // previously had the marker pin jump to the real location while the map
+  // viewport stayed wherever it first loaded — this keeps them in sync for
+  // every consumer, independent of fitBounds/markers.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !center || loading || loadError) return;
+    map.setCenter([center.longitude, center.latitude]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center?.latitude, center?.longitude, loading, loadError]);
+
   // Recenter helper button
   const handleRecenter = () => {
     const map = mapInstanceRef.current;
