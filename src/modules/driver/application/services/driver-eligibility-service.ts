@@ -102,9 +102,12 @@ export async function evaluateDriverEligibilityFromProfile(
   for (const docType of requiredDocTypes) {
     const doc = profile.documents.find((d) => d.documentType === docType);
     if (!doc) {
-      if (!isApproved) {
-        reasons.push(`Required document type '${docType}' is missing.`);
-      }
+      // Never bypassed by approvalStatus — a missing document must always
+      // block eligibility, even for a driver already marked APPROVED (e.g.
+      // if a document row was later removed). approveDriver only ever
+      // transitions a driver to APPROVED once every required document is
+      // already VERIFIED, so this never fires for a validly-approved driver.
+      reasons.push(`Required document type '${docType}' is missing.`);
     } else if (doc.status !== DriverDocumentStatus.VERIFIED) {
       reasons.push(`Document '${docType}' is not verified (status: ${doc.status}).`);
     } else if (doc.expiresAt && doc.expiresAt < now) {

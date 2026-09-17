@@ -122,6 +122,34 @@ describe('DriverEligibilityService', () => {
     expect(result.reasons).toContain("Document 'AADHAAR_CARD' is not verified (status: UPLOADED).");
   });
 
+  it('returns false when a required document is entirely missing, even for an already-APPROVED driver', async () => {
+    // Regression guard: approvalStatus must never bypass the "document
+    // exists" check. Real-world approveDriver only ever sets APPROVED once
+    // every required document is genuinely verified, so this profile shape
+    // (APPROVED with a required document missing) should not normally
+    // occur from that path — but if it ever does (e.g. a document row is
+    // later removed), eligibility must still catch it rather than trusting
+    // the stale approval.
+    mockFindUnique.mockResolvedValue({
+      ...validBaseProfile,
+      approvalStatus: DriverApprovalStatus.APPROVED,
+      documents: [
+        {
+          documentType: DriverDocumentType.DRIVING_LICENSE,
+          status: DriverDocumentStatus.VERIFIED,
+          isCurrent: true,
+          expiresAt: null,
+        },
+        // AADHAAR_CARD document is entirely absent.
+      ],
+    });
+
+    const result = await evaluateDriverEligibility('driver-1');
+
+    expect(result.isEligible).toBe(false);
+    expect(result.reasons).toContain("Required document type 'AADHAAR_CARD' is missing.");
+  });
+
   it('returns true when all eligibility criteria are met', async () => {
     mockFindUnique.mockResolvedValue(validBaseProfile);
 

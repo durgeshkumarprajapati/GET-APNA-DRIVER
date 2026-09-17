@@ -5,6 +5,7 @@ import {
   suspendDriver,
   listDriverApplications,
 } from '@/modules/driver/application/services/driver-onboarding-service';
+import { DriverDocumentsNotVerifiedError } from '@/modules/driver/domain/errors';
 import {
   DriverApprovalStatus,
   DriverOnboardingStatus,
@@ -50,15 +51,10 @@ jest.mock('@/shared/config/configuration-service', () => ({
   getJson: jest.fn().mockResolvedValue(['DRIVING_LICENSE', 'AADHAAR_CARD']),
 }));
 
-jest.mock('@/modules/driver/application/services/driver-eligibility-service', () => ({
-  evaluateDriverEligibility: jest.fn(),
-}));
-
 jest.mock('@/modules/identity/infrastructure/user-repository', () => ({
   getContactInfoForUsers: jest.fn(),
 }));
 
-import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
 import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
 import { prisma } from '@/shared/database/prisma';
 
@@ -120,12 +116,7 @@ describe('DriverOnboardingService', () => {
   });
 
   describe('approveDriver', () => {
-    it('approves driver application if driver is eligible', async () => {
-      (evaluateDriverEligibility as jest.Mock).mockResolvedValue({
-        isEligible: true,
-        reasons: [],
-      });
-
+    it('approves driver application when every required document is genuinely verified and unexpired', async () => {
       mockTx.driverProfile.findUnique.mockResolvedValue({
         id: 'dp-1',
         userId: 'user-1',
@@ -136,8 +127,13 @@ describe('DriverOnboardingService', () => {
           {
             documentType: DriverDocumentType.DRIVING_LICENSE,
             status: DriverDocumentStatus.VERIFIED,
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           },
-          { documentType: DriverDocumentType.AADHAAR_CARD, status: DriverDocumentStatus.VERIFIED },
+          {
+            documentType: DriverDocumentType.AADHAAR_CARD,
+            status: DriverDocumentStatus.VERIFIED,
+            expiresAt: null,
+          },
         ],
       });
 
@@ -153,22 +149,76 @@ describe('DriverOnboardingService', () => {
       expect(mockTx.driverProfile.update).toHaveBeenCalled();
     });
 
-    it('throws DriverNotEligibleError if driver eligibility checks fail during approval', async () => {
-      (evaluateDriverEligibility as jest.Mock).mockResolvedValue({
-        isEligible: false,
-        reasons: ['Required document AADHAAR_CARD is missing.'],
+    it('never fabricates or force-verifies a document — rejects approval with zero documents uploaded', async () => {
+      mockTx.driverProfile.findUnique.mockResolvedValue({
+        id: 'dp-1',
+        userId: 'user-1',
+        approvalStatus: DriverApprovalStatus.PENDING,
+        onboardingStatus: DriverOnboardingStatus.SUBMITTED,
+        verificationStatus: DriverVerificationStatus.NOT_VERIFIED,
+        documents: [],
       });
 
+      await expect(approveDriver('admin-1', 'dp-1')).rejects.toBeInstanceOf(
+        DriverDocumentsNotVerifiedError,
+      );
+      expect(mockTx.driverProfile.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects approval when a required document exists but was never verified by an admin', async () => {
       mockTx.driverProfile.findUnique.mockResolvedValue({
         id: 'dp-1',
         userId: 'user-1',
         approvalStatus: DriverApprovalStatus.PENDING,
         onboardingStatus: DriverOnboardingStatus.SUBMITTED,
         verificationStatus: DriverVerificationStatus.PENDING_VERIFICATION,
-        documents: [],
+        documents: [
+          {
+            documentType: DriverDocumentType.DRIVING_LICENSE,
+            status: DriverDocumentStatus.VERIFIED,
+            expiresAt: null,
+          },
+          {
+            documentType: DriverDocumentType.AADHAAR_CARD,
+            status: DriverDocumentStatus.UPLOADED,
+            expiresAt: null,
+          },
+        ],
       });
 
-      await expect(approveDriver('admin-1', 'dp-1')).rejects.toThrow();
+      await expect(approveDriver('admin-1', 'dp-1')).rejects.toMatchObject({
+        code: 'DRIVER_DOCUMENTS_NOT_VERIFIED',
+        missingOrUnverifiedTypes: [DriverDocumentType.AADHAAR_CARD],
+      });
+      expect(mockTx.driverProfile.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects approval when a required document is verified but has since expired', async () => {
+      mockTx.driverProfile.findUnique.mockResolvedValue({
+        id: 'dp-1',
+        userId: 'user-1',
+        approvalStatus: DriverApprovalStatus.PENDING,
+        onboardingStatus: DriverOnboardingStatus.SUBMITTED,
+        verificationStatus: DriverVerificationStatus.VERIFIED,
+        documents: [
+          {
+            documentType: DriverDocumentType.DRIVING_LICENSE,
+            status: DriverDocumentStatus.VERIFIED,
+            expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          },
+          {
+            documentType: DriverDocumentType.AADHAAR_CARD,
+            status: DriverDocumentStatus.VERIFIED,
+            expiresAt: null,
+          },
+        ],
+      });
+
+      await expect(approveDriver('admin-1', 'dp-1')).rejects.toMatchObject({
+        code: 'DRIVER_DOCUMENTS_NOT_VERIFIED',
+        missingOrUnverifiedTypes: [DriverDocumentType.DRIVING_LICENSE],
+      });
+      expect(mockTx.driverProfile.update).not.toHaveBeenCalled();
     });
   });
 

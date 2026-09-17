@@ -223,7 +223,7 @@ export async function applyReferralCode(
   });
 
   // 6. Create pending referral relationship
-  return await db.referral.create({
+  const created = await db.referral.create({
     data: {
       referrerUserId,
       referredUserId,
@@ -233,6 +233,23 @@ export async function applyReferralCode(
       status: ReferralStatus.PENDING,
     },
   });
+
+  // Informational only — the referrer is told someone registered with their
+  // code, never that a reward has been credited. The actual reward still
+  // requires evaluateAndQualifyReferral to run and post to the ledger; this
+  // event and its notification never touch financial state themselves.
+  await insertOutboxEvent(db, {
+    eventType: 'referral.created',
+    aggregateType: 'Referral',
+    aggregateId: created.id,
+    payload: {
+      referralId: created.id,
+      referrerUserId: created.referrerUserId,
+      referredUserId: created.referredUserId,
+    },
+  });
+
+  return created;
 }
 
 export interface QualifyReferralInput {
@@ -409,7 +426,7 @@ export async function evaluateAndQualifyReferral(
     });
 
     await insertOutboxEvent(tx, {
-      eventType: 'identity.referral_rewarded',
+      eventType: 'referral.rewarded',
       aggregateType: 'Referral',
       aggregateId: referral.id,
       payload: {

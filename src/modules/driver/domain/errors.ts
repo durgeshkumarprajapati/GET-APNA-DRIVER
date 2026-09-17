@@ -29,6 +29,26 @@ export class DriverNotEligibleError extends AppError {
   }
 }
 
+/**
+ * Thrown when an admin attempts to approve a driver who has required
+ * documents missing or not yet independently verified via verifyDocument.
+ * Approval must never itself fabricate or force-verify a document — that
+ * would let a driver go dispatch-eligible without any real document review
+ * ever having occurred.
+ */
+export class DriverDocumentsNotVerifiedError extends AppError {
+  readonly missingOrUnverifiedTypes: string[];
+
+  constructor(missingOrUnverifiedTypes: string[]) {
+    super(
+      `Cannot approve driver: required document(s) missing or not verified: ${missingOrUnverifiedTypes.join(', ')}`,
+      409,
+      'DRIVER_DOCUMENTS_NOT_VERIFIED',
+    );
+    this.missingOrUnverifiedTypes = missingOrUnverifiedTypes;
+  }
+}
+
 export class DocumentNotFoundError extends AppError {
   constructor(documentId: string) {
     super(`Driver document not found: ${documentId}`, 404, 'DRIVER_DOCUMENT_NOT_FOUND');

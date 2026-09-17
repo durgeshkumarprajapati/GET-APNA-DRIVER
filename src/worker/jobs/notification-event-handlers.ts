@@ -824,12 +824,16 @@ export function registerNotificationEventHandlers(): void {
       if (!referrerUserId) return;
       const client = db ?? prisma;
 
+      // Informational only — registering with a code never itself credits a
+      // reward. The actual reward still depends on evaluateAndQualifyReferral
+      // running later and posting to the ledger (see the 'referral.rewarded'
+      // handler below), so the copy here must not promise one.
       await createNotification(
         {
           userId: referrerUserId,
           type: NotificationType.REFERRAL_INVITED,
-          title: 'Referral Invite Sent!',
-          body: 'Your referral invitation link has been shared. Earn rewards when your friend completes their first ride.',
+          title: 'New Referral Registration',
+          body: 'Someone registered using your referral code. Your referral reward will be credited after the required qualification steps are completed.',
           actionUrl: '/customer/referral',
           imageAsset: '/GiftBox.png',
           idempotencyKey: `${event.id}-referral-invited`,
@@ -865,10 +869,16 @@ export function registerNotificationEventHandlers(): void {
     'referral.rewarded',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const referrerUserId = payload.referrerUserId as string;
-      const refereeUserId = payload.refereeUserId as string;
       const rewardAmount = payload.rewardAmount as number | string;
       const client = db ?? prisma;
 
+      // Referrer-only: evaluateAndQualifyReferral actually posts the reward
+      // to the referrer's ledger/wallet, so "credited" is true for them.
+      // There is no corresponding referee-side ledger posting today (the
+      // emitted payload doesn't even carry a referee reward amount) — a
+      // referee-facing "reward credited" notification here would claim a
+      // credit that never happened, so none is sent until that financial
+      // path actually exists.
       if (referrerUserId) {
         await createNotification(
           {
@@ -879,21 +889,6 @@ export function registerNotificationEventHandlers(): void {
             actionUrl: '/customer/referral',
             imageAsset: '/GiftBox.png',
             idempotencyKey: `${event.id}-referral-rewarded-referrer`,
-          },
-          client,
-        );
-      }
-
-      if (refereeUserId) {
-        await createNotification(
-          {
-            userId: refereeUserId,
-            type: NotificationType.REFERRAL_REWARDED,
-            title: 'Welcome Referral Reward!',
-            body: `Welcome bonus of ₹${rewardAmount} has been credited to your wallet!`,
-            actionUrl: '/customer/wallet',
-            imageAsset: '/GiftBox1.png',
-            idempotencyKey: `${event.id}-referral-rewarded-referee`,
           },
           client,
         );

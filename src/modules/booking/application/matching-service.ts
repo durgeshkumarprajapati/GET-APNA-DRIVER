@@ -8,7 +8,11 @@ import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { BookingNotFoundError } from '../domain/errors';
 import { rankCandidateDrivers } from '@/modules/dispatch/application/candidate-ranking-service';
-import { cancelBookingNoDriverFound, SEARCH_DEADLINE_SECONDS } from '@/modules/dispatch/application/dispatch-search-service';
+import {
+  cancelBookingNoDriverFound,
+  SEARCH_DEADLINE_SECONDS,
+} from '@/modules/dispatch/application/dispatch-search-service';
+import { isDriverHireBooking } from '../domain/booking-policy';
 
 export interface MatchingResult {
   attemptId: string | null;
@@ -44,7 +48,11 @@ export async function findAndOfferNextDriver(
   const now = new Date();
 
   // 1. Check Overall Search Expiration (Server-authoritative 2-minute limit)
-  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', SEARCH_DEADLINE_SECONDS, db);
+  const searchTimeoutSeconds = await getInteger(
+    'booking.matching.search_timeout_seconds',
+    SEARCH_DEADLINE_SECONDS,
+    db,
+  );
   const searchStarted = booking.searchStartedAt || booking.requestedAt;
   const effectiveExpiresAt =
     booking.expiresAt || new Date(searchStarted.getTime() + searchTimeoutSeconds * 1000);
@@ -99,7 +107,38 @@ export async function findAndOfferNextDriver(
   );
 
   // Filter out drivers already attempted
-  const unattempted = candidates.filter((c) => !attemptedDriverIds.has(c.driverId));
+  let unattempted = candidates.filter((c) => !attemptedDriverIds.has(c.driverId));
+
+  // For duration-based driver hire (HOURLY/DAILY/WEEKLY/MONTHLY/etc.), also
+  // exclude any candidate already committed to another hire whose window
+  // overlaps this booking's [hireStartAt, hireEndAt] — a driver assigned
+  // 10:00-18:00 today must never be offered a second hire for 12:00-14:00.
+  // This is additive: it narrows the candidate pool further, it never
+  // widens isDriverDispatchEligible's existing (broader) active-booking
+  // gate, so no previously-blocked driver becomes eligible here.
+  if (isDriverHireBooking(booking.bookingType) && booking.hireStartAt && booking.hireEndAt) {
+    const candidateIds = unattempted.map((c) => c.driverId);
+    const conflicts = await db.booking.findMany({
+      where: {
+        driverProfileId: { in: candidateIds },
+        status: {
+          in: [
+            BookingStatus.DRIVER_ASSIGNED,
+            BookingStatus.DRIVER_EN_ROUTE,
+            BookingStatus.DRIVER_ARRIVED,
+            BookingStatus.TRIP_IN_PROGRESS,
+          ],
+        },
+        hireStartAt: { lt: booking.hireEndAt },
+        hireEndAt: { gt: booking.hireStartAt },
+      },
+      select: { driverProfileId: true },
+    });
+    const conflictingDriverIds = new Set(
+      conflicts.map((c) => c.driverProfileId).filter((id): id is string => id !== null),
+    );
+    unattempted = unattempted.filter((c) => !conflictingDriverIds.has(c.driverId));
+  }
 
   if (unattempted.length === 0) {
     // If maximum radius reached and no candidate found, trigger no-driver check
@@ -124,8 +163,14 @@ export async function findAndOfferNextDriver(
     unattempted.map((c) => ({
       driverProfileId: c.driverId,
       displayName: c.displayName,
-      latitude: (c as { location?: { latitude: number }; latitude?: number }).location?.latitude ?? (c as { latitude?: number }).latitude ?? booking.pickupLatitude,
-      longitude: (c as { location?: { longitude: number }; longitude?: number }).location?.longitude ?? (c as { longitude?: number }).longitude ?? booking.pickupLongitude,
+      latitude:
+        (c as { location?: { latitude: number }; latitude?: number }).location?.latitude ??
+        (c as { latitude?: number }).latitude ??
+        booking.pickupLatitude,
+      longitude:
+        (c as { location?: { longitude: number }; longitude?: number }).location?.longitude ??
+        (c as { longitude?: number }).longitude ??
+        booking.pickupLongitude,
       accuracy: null,
       capturedAt: now,
       availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
