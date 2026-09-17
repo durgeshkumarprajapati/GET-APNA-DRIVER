@@ -11,6 +11,20 @@ export interface CandidateDriverSignalInput {
   accuracy: number | null;
   capturedAt: Date;
   availabilityStatus: DriverAvailabilityStatus;
+  vehicleCategory?: string | null;
+  vehicleType?: string | null;
+}
+
+export interface CandidateScoreBreakdown {
+  etaScore: number;
+  distanceScore: number;
+  freshnessScore: number;
+  confidenceScore: number;
+  preferredBonusScore: number;
+  ratingScore: number;
+  reliabilityScore: number;
+  fairnessScore: number;
+  vehicleMatchScore: number;
 }
 
 export interface CandidateRankingFactors {
@@ -22,6 +36,18 @@ export interface CandidateRankingFactors {
   isScheduleCompatible: boolean;
   recentAssignmentCount: number;
   riskRestriction: boolean;
+  averageRating: number | null;
+  totalReviews: number;
+  ratingScore: number;
+  reliabilityScore: number;
+  vehicleCategoryMatch: boolean;
+  vehicleMatchScore: number;
+  fairnessScore: number;
+  etaScore: number;
+  distanceScore: number;
+  freshnessScore: number;
+  confidenceScore: number;
+  preferredBonusScore: number;
 }
 
 export interface RankedCandidate {
@@ -31,6 +57,7 @@ export interface RankedCandidate {
   longitude: number;
   score: number;
   factors: CandidateRankingFactors;
+  scoreBreakdown: CandidateScoreBreakdown;
   explanation: string;
 }
 
