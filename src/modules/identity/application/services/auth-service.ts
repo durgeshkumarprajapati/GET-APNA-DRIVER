@@ -80,9 +80,17 @@ export async function registerWithEmailPassword(
 
   const { user, identity, createdDriverProfileId, driverDisplayNameText } =
     await prisma.$transaction(async (tx: Db) => {
-      const existing = await userRepository.findIdentityByEmail(tx, normalizedEmail);
-      if (existing) {
-        throw new DuplicateIdentityError('email');
+      const existingEmail = await userRepository.findIdentityByEmail(tx, normalizedEmail);
+      if (existingEmail) {
+        throw new DuplicateIdentityError('email address');
+      }
+
+      if (input.phoneNumber?.trim()) {
+        const cleanPhone = input.phoneNumber.trim();
+        const existingPhone = await userRepository.findIdentityByPhone(tx, cleanPhone);
+        if (existingPhone) {
+          throw new DuplicateIdentityError('mobile number');
+        }
       }
 
       const { user: newUser, identity: newIdentity } =

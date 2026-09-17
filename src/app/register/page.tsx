@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
 import { validateRegistrationForm } from '@/shared/validation/auth-form-validation';
 import { LanguageSelector } from '@/components/ui/language-selector';
+import { useToast } from '@/components/ui/toast';
 
 function RegisterFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
+  const { showError, showSuccess } = useToast();
 
   // Role Selection ('customer' | 'driver')
   const roleParam = searchParams.get('role');
@@ -67,6 +69,7 @@ function RegisterFormContent() {
     });
     if (validationError) {
       setError(validationError);
+      showError(validationError, 'Validation Error');
       return;
     }
 
@@ -102,19 +105,24 @@ function RegisterFormContent() {
       };
 
       if (!res.ok) {
-        throw new Error(
-          data.error || data.message || 'Registration failed. Please check your details.',
-        );
+        const errMsg =
+          data.message || data.error || 'Registration failed. Please check your details.';
+        showError(errMsg, 'Registration Error');
+        throw new Error(errMsg);
       }
 
+      showSuccess(
+        'Account created successfully! Welcome to Get Apna Driver.',
+        'Registration Complete',
+      );
       const targetRedirect =
         data.redirectRoute || (accountType === 'DRIVER' ? '/driver/onboarding' : '/customer');
       setRedirectPath(targetRedirect);
       setShowCompletionModal(true);
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : 'An unexpected error occurred during registration.',
-      );
+      const msg =
+        err instanceof Error ? err.message : 'An unexpected error occurred during registration.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

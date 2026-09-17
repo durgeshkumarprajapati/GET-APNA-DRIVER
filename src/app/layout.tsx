@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 
 import { cookies } from 'next/headers';
 import { I18nProvider } from '@/i18n/context';
+import { ToastProvider } from '@/components/ui/toast';
 import { LOCALE_COOKIE_NAME, isValidLocale, DEFAULT_LOCALE, SupportedLocale } from '@/i18n/config';
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -33,7 +34,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         />
       </head>
       <body className="bg-surface text-on-surface font-body-md antialiased min-h-screen">
-        <I18nProvider initialLocale={initialLocale}>{children}</I18nProvider>
+        <I18nProvider initialLocale={initialLocale}>
+          <ToastProvider>{children}</ToastProvider>
+        </I18nProvider>
       </body>
     </html>
   );
