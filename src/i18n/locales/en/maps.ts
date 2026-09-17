@@ -11,4 +11,23 @@ export const mapsEn = {
   dropoffLocation: 'Dropoff Location',
   driverLocation: 'Driver Location',
   customerLocation: 'Customer Location',
+
+  // Location Intelligence & ETA keys
+  etaTitle: 'Estimated Arrival',
+  etaLive: 'LIVE ETA',
+  etaEstimated: 'ESTIMATED ETA',
+  etaUnavailable: 'ETA UNAVAILABLE',
+  locationFreshness: 'Location Freshness',
+  freshnessLive: 'LIVE',
+  freshnessRecent: 'RECENT',
+  freshnessStale: 'STALE',
+  freshnessUnavailable: 'UNAVAILABLE',
+  confidenceHigh: 'HIGH CONFIDENCE',
+  confidenceMedium: 'MEDIUM CONFIDENCE',
+  confidenceLow: 'LOW CONFIDENCE',
+  pickupGuidanceTitle: 'Pickup Intelligence & Guidance',
+  driverNearby: 'Driver Nearby',
+  driverArrived: 'Driver Arrived at Pickup',
+  pickupZone: 'Pickup Zone',
+  routingProvider: 'Routing Provider',
 };
