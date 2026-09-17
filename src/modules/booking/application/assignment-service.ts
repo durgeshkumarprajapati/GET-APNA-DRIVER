@@ -15,6 +15,7 @@ import {
   BookingAlreadyAssignedError,
 } from '../domain/errors';
 import { DriverNotEligibleError } from '@/modules/driver/domain/errors';
+import { assertNoDriverHireConflict } from '@/modules/driver/application/services/driver-hire-conflict-service';
 
 export interface AssignmentAttemptDetail {
   id: string;
@@ -120,6 +121,21 @@ export async function acceptAssignmentOffer(
     if (booking.status !== BookingStatus.SEARCHING_DRIVER) {
       throw new BookingAlreadyAssignedError(booking.id);
     }
+
+    // Check hire/schedule window overlap conflict for driver
+    const hireStart = booking.hireStartAt ?? booking.requestedStartTime ?? booking.requestedAt ?? new Date();
+    const hireMins = booking.hireDurationMinutes ?? booking.estimatedDurationMinutes ?? 60;
+    const hireEnd = booking.hireEndAt ?? new Date(hireStart.getTime() + hireMins * 60 * 1000);
+
+    await assertNoDriverHireConflict(
+      {
+        driverProfileId: profile.id,
+        hireStartAt: hireStart,
+        hireEndAt: hireEnd,
+        excludeBookingId: booking.id,
+      },
+      tx,
+    );
 
     validateBookingStatusTransition(booking.status, BookingStatus.DRIVER_ASSIGNED);
 

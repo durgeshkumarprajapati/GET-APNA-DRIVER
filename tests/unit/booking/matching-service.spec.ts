@@ -1,5 +1,5 @@
 import { findAndOfferNextDriver } from '@/modules/booking/application/matching-service';
-import { BookingStatus, AssignmentAttemptStatus } from '@prisma/client';
+import { BookingStatus, AssignmentAttemptStatus, BookingType } from '@prisma/client';
 
 const mockTx = {
   bookingAssignmentAttempt: {
@@ -23,6 +23,7 @@ jest.mock('@/shared/database/prisma', () => ({
     booking: {
       findUnique: jest.fn(),
       update: jest.fn(),
+      findMany: jest.fn().mockResolvedValue([]),
     },
     bookingAssignmentAttempt: {
       updateMany: jest.fn(),
@@ -52,7 +53,9 @@ jest.mock('@/shared/config/configuration-service', () => ({
     if (key === 'booking.matching.search_timeout_seconds') return Promise.resolve(300);
     return Promise.resolve(defaultValue);
   }),
-  getJson: jest.fn().mockImplementation((_key: string, defaultValue: unknown) => Promise.resolve(defaultValue)),
+  getJson: jest
+    .fn()
+    .mockImplementation((_key: string, defaultValue: unknown) => Promise.resolve(defaultValue)),
 }));
 
 jest.mock('@/modules/location/application/nearby-driver-service', () => ({
@@ -72,10 +75,12 @@ import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-
 
 describe('MatchingService', () => {
   const mockFindUniqueBooking = prisma.booking.findUnique as jest.Mock;
+  const mockFindManyBooking = prisma.booking.findMany as jest.Mock;
   const mockFindNearby = findNearbyDrivers as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFindManyBooking.mockResolvedValue([]);
   });
 
   it('discovers candidate driver and creates assignment attempt offer', async () => {
@@ -209,6 +214,113 @@ describe('MatchingService', () => {
           data: expect.objectContaining({ driverProfileId: 'dp-nearest' }),
         }),
       );
+    });
+  });
+
+  describe('driver-hire overlap conflict', () => {
+    const hireCandidates = [
+      {
+        driverId: 'dp-committed',
+        displayName: 'Committed Driver',
+        distanceMeters: 500,
+        distanceFormatted: '0.5 km',
+      },
+      {
+        driverId: 'dp-free',
+        displayName: 'Free Driver',
+        distanceMeters: 900,
+        distanceFormatted: '0.9 km',
+      },
+    ];
+
+    it('excludes a candidate already committed to an overlapping hire window for a new WEEKLY hire booking', async () => {
+      const hireStartAt = new Date('2026-10-01T10:00:00Z');
+      const hireEndAt = new Date('2026-10-08T10:00:00Z');
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.WEEKLY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt,
+        hireEndAt,
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue(hireCandidates);
+      // dp-committed already has an overlapping assigned hire.
+      mockFindManyBooking.mockResolvedValue([{ driverProfileId: 'dp-committed' }]);
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-1',
+        driverProfileId: 'dp-free',
+        attemptNumber: 1,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(mockFindManyBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            driverProfileId: { in: ['dp-committed', 'dp-free'] },
+            hireStartAt: { lt: hireEndAt },
+            hireEndAt: { gt: hireStartAt },
+          }),
+        }),
+      );
+      expect(result.status).toBe('OFFERED');
+      expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ driverProfileId: 'dp-free' }) }),
+      );
+    });
+
+    it('reports NO_DRIVERS_FOUND when every nearby candidate has an overlapping hire commitment', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.DAILY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt: new Date('2026-10-01T10:00:00Z'),
+        hireEndAt: new Date('2026-10-02T10:00:00Z'),
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue(hireCandidates);
+      mockFindManyBooking.mockResolvedValue([
+        { driverProfileId: 'dp-committed' },
+        { driverProfileId: 'dp-free' },
+      ]);
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('NO_DRIVERS_FOUND');
+      expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
+    });
+
+    it('does not run the hire-conflict query for a point-to-point booking', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.POINT_TO_POINT,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt: null,
+        hireEndAt: null,
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue(hireCandidates);
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-1',
+        driverProfileId: 'dp-committed',
+        attemptNumber: 1,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      await findAndOfferNextDriver('bk-1');
+
+      expect(mockFindManyBooking).not.toHaveBeenCalled();
     });
   });
 

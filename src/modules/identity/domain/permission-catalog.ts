@@ -57,6 +57,7 @@ export const PERMISSIONS = {
   FINANCE_WALLET_READ: 'finance.wallet.read',
   FINANCE_SETTLEMENT_MANAGE: 'finance.settlement.manage',
   FINANCE_COMMISSION_MANAGE: 'finance.commission.manage',
+  ADMIN_PRICING_MANAGE: 'admin.pricing.manage',
 
   // Promotions & Growth (Phase 20 domain)
   PROMOTIONS_READ: 'promotions.read',

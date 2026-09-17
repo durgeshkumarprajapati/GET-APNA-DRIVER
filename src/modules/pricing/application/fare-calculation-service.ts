@@ -10,6 +10,8 @@ import type {
 import { calculateFareBreakdown } from '../domain/pricing-rules';
 import { estimateRoute } from './route-estimation-service';
 
+import { evaluateDynamicPricing } from '@/modules/dynamic-pricing/application/dynamic-pricing-service';
+
 export interface FareCalculationInput {
   bookingType: BookingType;
   pickup: LocationCoordinates;
@@ -21,6 +23,7 @@ export interface FareCalculationInput {
   numberOfMonths?: number | null;
   hourlyPackageHours?: number | null;
   hireDurationMinutes?: number | null;
+  zoneId?: string | null;
 }
 
 export interface FareCalculationResult {
@@ -86,7 +89,7 @@ export async function calculateEstimatedFare(
 
   const durationMinutes = input.estimatedDurationMinutes ?? route.durationMinutes;
 
-  const breakdown = calculateFareBreakdown({
+  const rawBreakdown = calculateFareBreakdown({
     bookingType: input.bookingType,
     estimatedDistanceKm: route.distanceKm,
     estimatedDurationMinutes: durationMinutes,
@@ -97,6 +100,25 @@ export async function calculateEstimatedFare(
     hireDurationMinutes: input.hireDurationMinutes,
     config: rates,
   });
+
+  // Evaluate Controlled Dynamic Pricing adjustment
+  const dynamicResult = await evaluateDynamicPricing(
+    {
+      baseFareAmount: Number(rawBreakdown.totalFareAmount),
+      bookingType: input.bookingType,
+      zoneId: input.zoneId,
+    },
+    db,
+  );
+
+  const breakdown: FareBreakdown = {
+    ...rawBreakdown,
+    dynamicAdjustmentAmount: dynamicResult.dynamicAdjustmentAmount.toFixed(4),
+    dynamicPricingPolicyId: dynamicResult.appliedPolicyId,
+    dynamicPricingPolicyVersion: dynamicResult.appliedPolicyVersion,
+    pressureState: dynamicResult.pressureState,
+    totalFareAmount: dynamicResult.finalGrossFareAmount.toFixed(4),
+  };
 
   return {
     estimatedDistanceKm: route.distanceKm,
@@ -124,7 +146,7 @@ export async function calculateFinalFare(
   const finalDurationMinutes =
     input.actualDurationMinutes ?? input.estimatedDurationMinutes ?? route.durationMinutes;
 
-  const breakdown = calculateFareBreakdown({
+  const rawBreakdown = calculateFareBreakdown({
     bookingType: input.bookingType,
     estimatedDistanceKm: route.distanceKm,
     actualDurationMinutes: finalDurationMinutes,
@@ -135,6 +157,25 @@ export async function calculateFinalFare(
     hireDurationMinutes: input.hireDurationMinutes,
     config: rates,
   });
+
+  // Evaluate Controlled Dynamic Pricing adjustment
+  const dynamicResult = await evaluateDynamicPricing(
+    {
+      baseFareAmount: Number(rawBreakdown.totalFareAmount),
+      bookingType: input.bookingType,
+      zoneId: input.zoneId,
+    },
+    db,
+  );
+
+  const breakdown: FareBreakdown = {
+    ...rawBreakdown,
+    dynamicAdjustmentAmount: dynamicResult.dynamicAdjustmentAmount.toFixed(4),
+    dynamicPricingPolicyId: dynamicResult.appliedPolicyId,
+    dynamicPricingPolicyVersion: dynamicResult.appliedPolicyVersion,
+    pressureState: dynamicResult.pressureState,
+    totalFareAmount: dynamicResult.finalGrossFareAmount.toFixed(4),
+  };
 
   return {
     estimatedDistanceKm: route.distanceKm,

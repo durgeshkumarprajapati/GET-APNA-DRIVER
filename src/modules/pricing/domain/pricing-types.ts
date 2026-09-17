@@ -55,6 +55,10 @@ export interface FareBreakdown {
   minimumFareAmount: string;
   platformFeeAmount: string;
   subtotalAmount: string;
+  dynamicAdjustmentAmount?: string;
+  dynamicPricingPolicyId?: string | null;
+  dynamicPricingPolicyVersion?: number | null;
+  pressureState?: string;
   totalFareAmount: string;
 }
 
@@ -63,5 +67,11 @@ export interface PricingQuoteSnapshot {
   rates: PricingRulesConfig;
   route: RouteEstimate;
   breakdown: FareBreakdown;
+  dynamicPricing?: {
+    dynamicAdjustmentAmount: string;
+    dynamicPricingPolicyId: string | null;
+    dynamicPricingPolicyVersion: number | null;
+    pressureState: string;
+  };
   calculatedAt: string;
 }

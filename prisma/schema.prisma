@@ -891,8 +891,15 @@ model Booking {
   approvalRequestId String?                   @map("approval_request_id") @db.Uuid
   approvalRequest   CorporateApprovalRequest? @relation(fields: [approvalRequestId], references: [id], onDelete: SetNull)
 
+  // Controlled Dynamic Pricing snapshot fields
+  dynamicAdjustmentAmount   Decimal? @map("dynamic_adjustment_amount") @db.Decimal(12, 4)
+  dynamicPricingPolicyId    String?  @map("dynamic_pricing_policy_id") @db.Uuid
+  dynamicPricingPolicyVersion Int?   @map("dynamic_pricing_policy_version")
+  pressureState             String?  @map("pressure_state")
+
   @@index([customerId, status])
   @@index([driverProfileId, status])
+  @@index([driverProfileId, hireStartAt, hireEndAt, status])
   @@index([organizationId, status])
   @@index([scheduledRideId])
   @@index([status, createdAt])
@@ -1546,6 +1553,41 @@ model PromotionUsage {
 
   @@index([promotionId, userId])
   @@map("promotion_usages")
+}
+
+enum DynamicPricingPolicyStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+
+  @@map("dynamic_pricing_policy_status")
+}
+
+/// Controlled Dynamic Pricing Policy configuration governed by Admin authority.
+model DynamicPricingPolicy {
+  id                      String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String
+  description             String?
+  version                 Int                        @default(1)
+  status                  DynamicPricingPolicyStatus @default(DRAFT)
+  bookingType             BookingType?               @map("booking_type")
+  zoneId                  String?                    @map("zone_id")
+  minimumPressure         String                     @default("NORMAL") @map("minimum_pressure")
+  maximumPressure         String                     @default("CRITICAL") @map("maximum_pressure")
+  adjustmentPercentage    Decimal                    @default(0) @map("adjustment_percentage") @db.Decimal(8, 4)
+  maxAdjustmentPercentage Decimal                    @default(50.00) @map("max_adjustment_percentage") @db.Decimal(8, 4)
+  flatSurgeAmount         Decimal                    @default(0) @map("flat_surge_amount") @db.Decimal(12, 4)
+  effectiveFrom           DateTime?                  @map("effective_from") @db.Timestamptz(6)
+  effectiveUntil          DateTime?                  @map("effective_until") @db.Timestamptz(6)
+  createdBy               String?                    @map("created_by") @db.Uuid
+  createdAt               DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, bookingType])
+  @@index([effectiveFrom, effectiveUntil])
+  @@map("dynamic_pricing_policies")
 }
 
 // ---------------------------------------------------------------------------
