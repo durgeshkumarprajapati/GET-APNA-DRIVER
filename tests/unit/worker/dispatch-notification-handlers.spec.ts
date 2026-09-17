@@ -318,13 +318,22 @@ describe('referral outbox notification handlers', () => {
       prisma as never,
     );
 
-    expect(createNotification).toHaveBeenCalledTimes(1);
+    expect(createNotification).toHaveBeenCalledTimes(2);
     expect(createNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'referrer-1',
         idempotencyKey: 'evt-ref-1-referral-invited',
         title: 'New Referral Registration',
         body: expect.stringContaining('Someone registered using your referral code'),
+      }),
+      prisma,
+    );
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'referred-1',
+        idempotencyKey: 'evt-ref-1-referral-invited-referee',
+        title: 'Referral Code Applied!',
+        body: expect.stringContaining('You registered using a referral code'),
       }),
       prisma,
     );

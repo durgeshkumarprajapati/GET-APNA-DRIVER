@@ -821,25 +821,42 @@ export function registerNotificationEventHandlers(): void {
     'referral.created',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const referrerUserId = payload.referrerUserId as string;
-      if (!referrerUserId) return;
+      const referredUserId = payload.referredUserId as string;
       const client = db ?? prisma;
 
       // Informational only — registering with a code never itself credits a
       // reward. The actual reward still depends on evaluateAndQualifyReferral
       // running later and posting to the ledger (see the 'referral.rewarded'
       // handler below), so the copy here must not promise one.
-      await createNotification(
-        {
-          userId: referrerUserId,
-          type: NotificationType.REFERRAL_INVITED,
-          title: 'New Referral Registration',
-          body: 'Someone registered using your referral code. Your referral reward will be credited after the required qualification steps are completed.',
-          actionUrl: '/customer/referral',
-          imageAsset: '/GiftBox.png',
-          idempotencyKey: `${event.id}-referral-invited`,
-        },
-        client,
-      );
+      if (referrerUserId) {
+        await createNotification(
+          {
+            userId: referrerUserId,
+            type: NotificationType.REFERRAL_INVITED,
+            title: 'New Referral Registration',
+            body: 'Someone registered using your referral code. Your referral reward will be credited after the required qualification steps are completed.',
+            actionUrl: '/customer/referral',
+            imageAsset: '/GiftBox.png',
+            idempotencyKey: `${event.id}-referral-invited`,
+          },
+          client,
+        );
+      }
+
+      if (referredUserId) {
+        await createNotification(
+          {
+            userId: referredUserId,
+            type: NotificationType.REFERRAL_INVITED,
+            title: 'Referral Code Applied!',
+            body: 'You registered using a referral code. Complete your profile and qualification steps to receive your referral bonus!',
+            actionUrl: '/customer/referral',
+            imageAsset: '/GiftBox.png',
+            idempotencyKey: `${event.id}-referral-invited-referee`,
+          },
+          client,
+        );
+      }
     },
   );
 
