@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
+import { useGeolocationCapture } from './use-geolocation-capture';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
 import { UserAvatar } from './ui/user-avatar';
@@ -38,6 +39,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('DRIVER');
+  const { capture: captureDeviceLocation } = useGeolocationCapture();
 
   // Restore sidebar scroll position and scroll active item into view if out of bounds
   useEffect(() => {
@@ -172,32 +174,25 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
     let locationPayload: { latitude?: number; longitude?: number; accuracy?: number } = {};
 
     if (targetStatus === 'AVAILABLE') {
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          if (!navigator.geolocation) {
-            reject(new Error('Geolocation not supported'));
-            return;
-          }
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 10000,
-          });
-        });
-
-        locationPayload = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        };
-      } catch {
-        // Fallback to default location if GPS acquisition fails
-        locationPayload = {
-          latitude: 28.6139,
-          longitude: 77.2090,
-          accuracy: 50,
-        };
+      // Reuses the same device-GPS capture used elsewhere in the app
+      // (high-accuracy attempt, then a standard-accuracy retry). A driver's
+      // live location must never be faked — if a real fix can't be
+      // acquired, going online is refused rather than silently submitting a
+      // fixed default city, which would show the driver in the wrong place
+      // for dispatch/tracking.
+      const result = await captureDeviceLocation();
+      if (!result) {
+        setUpdatingAvailability(false);
+        alert(
+          'We could not detect your current location. Please enable location access and try again.',
+        );
+        return;
       }
+      locationPayload = {
+        latitude: result.latitude,
+        longitude: result.longitude,
+        accuracy: result.accuracy ?? undefined,
+      };
     }
 
     try {

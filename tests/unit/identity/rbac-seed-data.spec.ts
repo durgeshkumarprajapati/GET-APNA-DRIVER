@@ -1,6 +1,6 @@
 import { ROLE_PERMISSION_MAP } from '@/modules/identity/domain/rbac-seed-data';
 import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
-import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
+import { PERMISSIONS, PERMISSION_CATALOG } from '@/modules/identity/domain/permission-catalog';
 
 describe('ROLE_PERMISSION_MAP', () => {
   it('never grants CUSTOMER an administrative permission', () => {
@@ -46,5 +46,21 @@ describe('ROLE_PERMISSION_MAP', () => {
     expect(new Set(ROLE_PERMISSION_MAP[SYSTEM_ROLE_CODES.ADMINISTRATOR])).toEqual(
       new Set(Object.values(PERMISSIONS)),
     );
+  });
+
+  it('has a PERMISSION_CATALOG entry for every code any role is granted (regression: prisma/seed.ts fails at runtime — Permission.findUniqueOrThrow — for any gap here, since the catalog is what actually populates the Permission table before role grants are wired up)', () => {
+    const catalogCodes = new Set(PERMISSION_CATALOG.map((p) => p.code));
+    const missing = new Set<string>();
+    for (const codes of Object.values(ROLE_PERMISSION_MAP)) {
+      for (const code of codes) {
+        if (!catalogCodes.has(code)) missing.add(code);
+      }
+    }
+    expect(Array.from(missing)).toEqual([]);
+  });
+
+  it('has no duplicate codes within PERMISSION_CATALOG itself', () => {
+    const codes = PERMISSION_CATALOG.map((p) => p.code);
+    expect(new Set(codes).size).toBe(codes.length);
   });
 });

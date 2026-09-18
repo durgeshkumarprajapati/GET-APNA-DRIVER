@@ -56,6 +56,7 @@ export const adminKn = {
     operationsCommandCenter: 'ಆಪರೇಷನ್ಸ್ ಕಮಾಂಡ್ ಸೆಂಟರ್',
     scheduledRides: 'ನಿಗದಿತ ಸವಾರಿಗಳು',
     riskAndTrust: 'ರಿಸ್ಕ್ ಮತ್ತು ಟ್ರಸ್ಟ್ ಇಂಜಿನ್',
+    dynamicPricing: 'ಡೈನಾಮಿಕ್ ಪ್ರೈಸಿಂಗ್',
   },
   marketplaceIntelligence: {
     title: 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿವಂತಿಕೆ ಕನ್ಸೋಲ್',

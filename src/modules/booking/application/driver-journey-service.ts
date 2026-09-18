@@ -359,6 +359,13 @@ export async function completeTrip(
       actualDurationMinutes,
       numberOfDays: booking.numberOfDays,
       hourlyPackageHours: booking.hourlyPackageHours,
+      // The frozen rate the customer agreed to at booking creation (DAILY/
+      // WEEKLY/MONTHLY hires with a selected driver) — reused unchanged
+      // here so the final charge never reverts to the platform-default
+      // rate just because it was recomputed at trip completion.
+      driverCustomRate: booking.driverCustomRateSnapshot
+        ? booking.driverCustomRateSnapshot.toString()
+        : null,
     },
     db,
   );
@@ -398,6 +405,13 @@ export async function completeTrip(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        // customerId/driverUserId are what the notification handler for
+        // this event actually keys its `if (customerId)`/`if (driverUserId)`
+        // checks on — without them, neither notification (including the
+        // customer's "please rate your driver" prompt) was ever created,
+        // even though the handler code for it already existed.
+        customerId: booking.customerId,
+        driverUserId,
         driverProfileId: profile.id,
         finalFareAmount: finalFareResult.breakdown.totalFareAmount,
         tripCompletedAt: now.toISOString(),

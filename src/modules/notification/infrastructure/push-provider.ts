@@ -84,6 +84,7 @@ export class VapidPushDeliveryProvider implements PushDeliveryProvider {
       body: payload.body,
       icon: payload.icon ?? '/icon-192.png',
       badge: payload.badge ?? '/badge-72.png',
+      tag: payload.tag,
       data: payload.data ?? {},
     });
 

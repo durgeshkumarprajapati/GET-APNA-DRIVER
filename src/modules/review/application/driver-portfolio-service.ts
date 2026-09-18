@@ -18,6 +18,7 @@ export interface PortfolioReview {
 export interface DriverPortfolio {
   driverProfileId: string;
   displayName: string;
+  profileImageUrl: string | null;
   bio: string | null;
   drivingExperienceYears: number;
   primaryServiceArea: string | null;
@@ -75,6 +76,7 @@ export async function getDriverPortfolio(
   return {
     driverProfileId,
     displayName,
+    profileImageUrl: profile.profileImageUrl,
     bio: profile.bio,
     drivingExperienceYears: profile.drivingExperienceYears,
     primaryServiceArea: profile.primaryServiceArea,

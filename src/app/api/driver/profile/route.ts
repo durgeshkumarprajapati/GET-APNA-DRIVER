@@ -18,6 +18,9 @@ const updateProfileSchema = z.object({
   bio: z.string().nullable().optional(),
   drivingExperienceYears: z.number().int().min(0).optional(),
   primaryServiceArea: z.string().nullable().optional(),
+  dailyHireRate: z.number().min(0).max(9_999_999).nullable().optional(),
+  weeklyHireRate: z.number().min(0).max(9_999_999).nullable().optional(),
+  monthlyHireRate: z.number().min(0).max(9_999_999).nullable().optional(),
 });
 
 export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (_req, { principal }) => {

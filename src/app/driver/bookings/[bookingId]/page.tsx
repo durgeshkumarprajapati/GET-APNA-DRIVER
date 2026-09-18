@@ -9,6 +9,7 @@ import { RidePinModal } from '@/components/driver/ride-pin-modal';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
 import { DirectCallResponse } from '@/modules/calling/domain/types';
+import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
 
 interface DriverBookingDetail {
   id: string;
@@ -307,6 +308,12 @@ export default function DriverJourneyControlPage({
                 <div className="text-[11px] text-emerald-200">{customerCallData.instructions}</div>
               </div>
             )}
+
+            <BookingMessagePanel
+              viewerRole="DRIVER"
+              apiBasePath={`/api/driver/bookings/${bookingId}/messages`}
+              title="Message Customer"
+            />
 
             {booking.status === 'DRIVER_ASSIGNED' && (
               <button

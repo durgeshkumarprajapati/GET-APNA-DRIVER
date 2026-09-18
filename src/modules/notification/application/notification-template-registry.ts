@@ -66,6 +66,14 @@ export const NOTIFICATION_TEMPLATE_MAP: Record<NotificationType, NotificationMet
     defaultActionUrl: '/customer/bookings',
     iconName: 'timer_off',
   },
+  BOOKING_MESSAGE_RECEIVED: {
+    category: 'BOOKING',
+    priority: NotificationPriority.NORMAL,
+    // Overridden per-notification with the recipient-appropriate booking
+    // detail URL (customer vs. driver) — see notification-event-handlers.ts.
+    defaultActionUrl: '/bookings',
+    iconName: 'chat',
+  },
 
   // Payment & Finance
   PAYMENT_CREATED: {

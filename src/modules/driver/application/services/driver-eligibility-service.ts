@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getJson } from '@/shared/config/configuration-service';
+import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 import { driverScheduleService } from './driver-schedule-service';
 
 export interface DriverEligibilityEvaluation {
@@ -61,6 +62,24 @@ export async function evaluateDriverEligibilityFromProfile(
 ): Promise<DriverEligibilityEvaluation> {
   const reasons: string[] = [];
 
+  // Auto-healing: If driver is APPROVED by admin and user account is PENDING, activate account & qualify referral
+  if (profile.approvalStatus === DriverApprovalStatus.APPROVED && profile.user.accountStatus === 'PENDING') {
+    if (db.user?.update) {
+      await db.user.update({
+        where: { id: profile.userId },
+        data: { accountStatus: 'ACTIVE' },
+      });
+    }
+    profile.user.accountStatus = 'ACTIVE';
+    await evaluateAndQualifyReferral(
+      {
+        userId: profile.userId,
+        trigger: 'DRIVER_APPROVED_ONBOARDING',
+      },
+      db,
+    );
+  }
+
   // 1. Check User Account Status
   if (profile.user.accountStatus !== 'ACTIVE') {
     reasons.push(`User account is not active (status: ${profile.user.accountStatus}).`);
@@ -102,9 +121,12 @@ export async function evaluateDriverEligibilityFromProfile(
   for (const docType of requiredDocTypes) {
     const doc = profile.documents.find((d) => d.documentType === docType);
     if (!doc) {
-      if (!isApproved) {
-        reasons.push(`Required document type '${docType}' is missing.`);
-      }
+      // Never bypassed by approvalStatus — a missing document must always
+      // block eligibility, even for a driver already marked APPROVED (e.g.
+      // if a document row was later removed). approveDriver only ever
+      // transitions a driver to APPROVED once every required document is
+      // already VERIFIED, so this never fires for a validly-approved driver.
+      reasons.push(`Required document type '${docType}' is missing.`);
     } else if (doc.status !== DriverDocumentStatus.VERIFIED) {
       reasons.push(`Document '${docType}' is not verified (status: ${doc.status}).`);
     } else if (doc.expiresAt && doc.expiresAt < now) {

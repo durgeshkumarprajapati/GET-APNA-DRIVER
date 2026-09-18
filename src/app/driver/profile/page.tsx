@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
+import { UnifiedMap } from '@/components/maps/unified-map';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
 
 interface DriverProfileData {
@@ -16,6 +17,11 @@ interface DriverProfileData {
   bio: string;
   drivingExperienceYears: number;
   primaryServiceArea: string;
+  // Empty string means "no rate set / opted out of this hire type" —
+  // converted to null on submit, never sent as 0.
+  dailyHireRate: string;
+  weeklyHireRate: string;
+  monthlyHireRate: string;
 }
 
 export default function DriverProfileEditPage() {
@@ -29,11 +35,26 @@ export default function DriverProfileEditPage() {
     bio: '',
     drivingExperienceYears: 1,
     primaryServiceArea: 'Bengaluru Central',
+    dailyHireRate: '',
+    weeklyHireRate: '',
+    monthlyHireRate: '',
   });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // DriverProfile.primaryServiceArea has no companion latitude/longitude
+  // columns — it's a free-text descriptor, not a stored coordinate. These
+  // hold the just-captured device location only for this page's own
+  // reverse-geocode-and-preview step; they're never sent to the server —
+  // only the resolved text the driver reviews/edits below is saved.
+  const [capturedCoords, setCapturedCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [resolvingAddress, setResolvingAddress] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -55,6 +76,12 @@ export default function DriverProfileEditPage() {
               bio: data.profile.bio || '',
               drivingExperienceYears: data.profile.drivingExperienceYears || 1,
               primaryServiceArea: data.profile.primaryServiceArea || '',
+              dailyHireRate:
+                data.profile.dailyHireRate != null ? String(data.profile.dailyHireRate) : '',
+              weeklyHireRate:
+                data.profile.weeklyHireRate != null ? String(data.profile.weeklyHireRate) : '',
+              monthlyHireRate:
+                data.profile.monthlyHireRate != null ? String(data.profile.monthlyHireRate) : '',
             });
           }
         }
@@ -70,12 +97,50 @@ export default function DriverProfileEditPage() {
     };
   }, []);
 
-  // DriverProfile has no latitude/longitude columns — primaryServiceArea is
-  // a free-text descriptor, and there is no client-facing reverse-geocoding
-  // provider, so a successful capture is labeled honestly rather than
-  // fabricating a resolved place name; the driver can still edit the text.
-  const handleUseCurrentLocation = (_location: CapturedLocation) => {
-    setForm((prev) => ({ ...prev, primaryServiceArea: 'Current location selected' }));
+  // Reverse-geocodes the captured device coordinates into a real, readable
+  // address (street, city, state, pincode) via the existing
+  // /api/location/reverse-geocode endpoint — the same one the customer
+  // saved-places flow uses — instead of the placeholder "Current location
+  // selected" text. The map preview below is shown from the captured
+  // coordinates for visual confirmation; only the resolved text (which the
+  // driver can still edit) is ever saved to primaryServiceArea, since the
+  // column itself stores free text, not coordinates.
+  const handleUseCurrentLocation = async (location: CapturedLocation) => {
+    setCapturedCoords({ latitude: location.latitude, longitude: location.longitude });
+    setLocationError(null);
+    setResolvingAddress(true);
+    try {
+      const res = await fetch(
+        `/api/location/reverse-geocode?lat=${location.latitude}&lng=${location.longitude}`,
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const address = data.address;
+        if (address) {
+          const resolvedText =
+            [address.addressLine1, address.city, address.state, address.postalCode]
+              .filter(Boolean)
+              .join(', ') || address.formattedAddress;
+          if (resolvedText) {
+            setForm((prev) => ({ ...prev, primaryServiceArea: resolvedText }));
+          } else {
+            setLocationError(
+              "Location detected, but we couldn't resolve an address. Please enter it manually below.",
+            );
+          }
+        }
+      } else {
+        setLocationError(
+          "Location detected, but we couldn't resolve an address. Please enter it manually below.",
+        );
+      }
+    } catch {
+      setLocationError(
+        "Location detected, but we couldn't resolve an address. Please enter it manually below.",
+      );
+    } finally {
+      setResolvingAddress(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,7 +152,13 @@ export default function DriverProfileEditPage() {
       const res = await fetch('/api/driver/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          dailyHireRate: form.dailyHireRate.trim() === '' ? null : Number(form.dailyHireRate),
+          weeklyHireRate: form.weeklyHireRate.trim() === '' ? null : Number(form.weeklyHireRate),
+          monthlyHireRate:
+            form.monthlyHireRate.trim() === '' ? null : Number(form.monthlyHireRate),
+        }),
       });
 
       const resData = await res.json();
@@ -361,6 +432,50 @@ export default function DriverProfileEditPage() {
                 <div style={{ marginTop: '0.5rem' }}>
                   <CurrentLocationButton onLocated={handleUseCurrentLocation} />
                 </div>
+
+                {resolvingAddress && (
+                  <p
+                    style={{
+                      marginTop: '0.5rem',
+                      fontSize: '0.8125rem',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    Resolving address from your location…
+                  </p>
+                )}
+
+                {locationError && (
+                  <p
+                    style={{
+                      marginTop: '0.5rem',
+                      fontSize: '0.8125rem',
+                      color: 'var(--color-danger)',
+                    }}
+                  >
+                    {locationError}
+                  </p>
+                )}
+
+                {capturedCoords && (
+                  <div style={{ marginTop: '0.75rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                    <UnifiedMap
+                      markers={[
+                        {
+                          id: 'driver-service-area',
+                          position: capturedCoords,
+                          type: 'CURRENT_LOCATION',
+                          title: 'Your Current Location',
+                          snippet: form.primaryServiceArea,
+                        },
+                      ]}
+                      height="220px"
+                      fitBounds={true}
+                      showControls={true}
+                      ariaLabel="Map preview of your detected current location"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -388,6 +503,113 @@ export default function DriverProfileEditPage() {
                     color: 'var(--color-text-primary)',
                   }}
                 />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    marginBottom: '0.375rem',
+                  }}
+                >
+                  Hire Rates (₹)
+                </label>
+                <p
+                  style={{
+                    margin: '0 0 0.75rem 0',
+                    fontSize: '0.8125rem',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  Set your own price for a full daily, weekly, or monthly hire. Customers browsing
+                  drivers for these bookings will see this rate and pick you directly at it. Leave a
+                  field blank to opt out of that hire type.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.75rem',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      Per Day
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="e.g. 2500"
+                      value={form.dailyHireRate}
+                      onChange={(e) => setForm({ ...form, dailyHireRate: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.75rem',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      Per Week
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="e.g. 15000"
+                      value={form.weeklyHireRate}
+                      onChange={(e) => setForm({ ...form, weeklyHireRate: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.75rem',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      Per Month
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="e.g. 45000"
+                      value={form.monthlyHireRate}
+                      onChange={(e) => setForm({ ...form, monthlyHireRate: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-background)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div style={{ marginTop: '1rem' }}>

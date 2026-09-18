@@ -167,7 +167,9 @@ export default function LoginPage() {
       setOtpStep('otp');
       setResendCooldown(30);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to send OTP. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Failed to send OTP. Please try again.';
+      setError(msg);
+      showToast(msg, 'error');
     } finally {
       setSendingOtp(false);
     }
@@ -195,14 +197,16 @@ export default function LoginPage() {
       const data = (await res.json()) as { message?: string; error?: string };
 
       if (!res.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        throw new Error(data.message || data.error || 'Authentication failed');
       }
 
       // Hard navigation to '/' so server-authoritative redirect service routes by role
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/';
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected authentication error occurred.');
+      const msg = err instanceof Error ? err.message : 'An unexpected authentication error occurred.';
+      setError(msg);
+      showToast(msg, 'error');
       setLoading(false);
     }
   };
@@ -231,7 +235,9 @@ export default function LoginPage() {
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/';
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Invalid OTP code.');
+      const msg = err instanceof Error ? err.message : 'Invalid OTP code.';
+      setError(msg);
+      showToast(msg, 'error');
       setLoading(false);
     }
   };

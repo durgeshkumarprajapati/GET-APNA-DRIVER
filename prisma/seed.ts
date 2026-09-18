@@ -283,7 +283,7 @@ async function main(): Promise<void> {
     },
     {
       key: 'booking.matching.driver_response_timeout_seconds',
-      value: '30',
+      value: '120',
       valueType: 'INTEGER' as const,
       category: 'booking',
       description: 'Time in seconds a driver has to accept or reject an assignment offer',

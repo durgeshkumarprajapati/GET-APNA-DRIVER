@@ -296,6 +296,80 @@ describe('settlement outbox notification handlers', () => {
   });
 });
 
+describe('referral outbox notification handlers', () => {
+  beforeAll(() => {
+    registerNotificationEventHandlers();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('registers both referral event types', () => {
+    expect(eventHandlerRegistry.hasHandler('referral.created')).toBe(true);
+    expect(eventHandlerRegistry.hasHandler('referral.rewarded')).toBe(true);
+  });
+
+  it('referral.created notifies the referrer with informational, non-promissory copy', async () => {
+    const handler = eventHandlerRegistry.getHandler('referral.created')!;
+    await handler(
+      fakeEvent('evt-ref-1'),
+      { referralId: 'ref-1', referrerUserId: 'referrer-1', referredUserId: 'referred-1' },
+      prisma as never,
+    );
+
+    expect(createNotification).toHaveBeenCalledTimes(2);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'referrer-1',
+        idempotencyKey: 'evt-ref-1-referral-invited',
+        title: 'New Referral Registration',
+        body: expect.stringContaining('Someone registered using your referral code'),
+      }),
+      prisma,
+    );
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'referred-1',
+        idempotencyKey: 'evt-ref-1-referral-invited-referee',
+        title: 'Referral Code Applied!',
+        body: expect.stringContaining('You registered using a referral code'),
+      }),
+      prisma,
+    );
+  });
+
+  it('referral.created does nothing when the payload has no referrerUserId', async () => {
+    const handler = eventHandlerRegistry.getHandler('referral.created')!;
+    await handler(fakeEvent('evt-ref-2'), { referralId: 'ref-2' }, prisma as never);
+
+    expect(createNotification).not.toHaveBeenCalled();
+  });
+
+  it('referral.rewarded notifies only the referrer, never a referee (no referee ledger posting exists)', async () => {
+    const handler = eventHandlerRegistry.getHandler('referral.rewarded')!;
+    await handler(
+      fakeEvent('evt-ref-3'),
+      {
+        referralId: 'ref-3',
+        referrerUserId: 'referrer-1',
+        referredUserId: 'referred-1',
+        rewardAmount: '200.0000',
+      },
+      prisma as never,
+    );
+
+    expect(createNotification).toHaveBeenCalledTimes(1);
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'referrer-1',
+        idempotencyKey: 'evt-ref-3-referral-rewarded-referrer',
+      }),
+      prisma,
+    );
+  });
+});
+
 describe('promotion outbox notification handlers', () => {
   beforeAll(() => {
     registerNotificationEventHandlers();

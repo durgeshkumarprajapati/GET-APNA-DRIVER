@@ -6,12 +6,13 @@ import { CustomerLayout } from '@/components/customer-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import type { MapMarkerDefinition } from '@/modules/maps/domain/map-types';
-import type { CapturedLocation } from '@/components/use-geolocation-capture';
+import { useGeolocationCapture, type CapturedLocation } from '@/components/use-geolocation-capture';
 import { useTranslation } from '@/i18n/context';
 import { BookingType } from '@prisma/client';
 import { BookingTypeSelector } from '@/components/booking/BookingTypeSelector';
 import { DriverHireDurationSelector } from '@/components/booking/DriverHireDurationSelector';
-import { isDriverHireBooking } from '@/modules/booking/domain/booking-policy';
+import { isDriverHireBooking, isRateSelectableHireBooking } from '@/modules/booking/domain/booking-policy';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface FareEstimateData {
   estimatedDistanceKm: number;
@@ -54,6 +55,41 @@ interface FavoriteDriverRecord {
   drivingExperienceYears: number;
 }
 
+interface HireDriverRecord {
+  driverProfileId: string;
+  displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  ratingAverage: number;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  rate: string;
+}
+
+interface DriverReviewRecord {
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewerLabel: string;
+}
+
+interface DriverProfileDetail {
+  driverProfileId: string;
+  displayName: string;
+  profileImageUrl: string | null;
+  bio: string | null;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  memberSince: string;
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
+  completedTrips: number;
+  completionRate: string;
+  recentReviews: DriverReviewRecord[];
+  rate: string | null;
+}
+
 interface BookingRecord {
   id: string;
   customerId: string;
@@ -76,6 +112,11 @@ function favoriteDisplayName(fav: FavoriteDriverRecord): string {
   return [fav.firstName, fav.lastName].filter(Boolean).join(' ') || '—';
 }
 
+function hireDriverDisplayName(driver: HireDriverRecord): string {
+  if (driver.displayName) return driver.displayName;
+  return [driver.firstName, driver.lastName].filter(Boolean).join(' ') || '—';
+}
+
 type BookingTypeTab = 'hourly' | 'oneway' | 'outstation' | 'nightout';
 
 const BOOKING_TYPE_TO_TAB: Record<string, BookingTypeTab> = {
@@ -89,18 +130,26 @@ function BookDriverPageInner() {
   const searchParams = useSearchParams();
   const { t, formatCurrency } = useTranslation();
 
+  // No hardcoded city default (e.g. Delhi) — pickup starts unresolved and is
+  // populated only from the customer's real device GPS (auto-captured below)
+  // or their own explicit choice (manual edit, saved place, Book Again).
+  // pickupReady stays false until one of those provides real coordinates, so
+  // nothing downstream (fare estimate, map marker, submit) ever treats an
+  // unresolved placeholder as if it were a real location.
   const [pickup, setPickup] = useState<LocationField>({
-    address: 'Vasant Vihar, Block C, New Delhi',
+    address: '',
     label: null,
-    latitude: 28.5603,
-    longitude: 77.1627,
+    latitude: 0,
+    longitude: 0,
   });
+  const [pickupReady, setPickupReady] = useState(false);
   const [dropoff, setDropoff] = useState<LocationField>({
-    address: 'Connaught Place, Block A, New Delhi',
+    address: '',
     label: null,
-    latitude: 28.6315,
-    longitude: 77.2167,
+    latitude: 0,
+    longitude: 0,
   });
+  const [dropoffReady, setDropoffReady] = useState(false);
   const [selectedBookingType, setSelectedBookingType] = useState<BookingType>(BookingType.POINT_TO_POINT);
   const [includeDropoff, setIncludeDropoff] = useState<boolean>(true);
   const [hireDurationValue, setHireDurationValue] = useState<number>(4);
@@ -109,8 +158,6 @@ function BookDriverPageInner() {
   const [vehicleClass, setVehicleClass] = useState<'luxury' | 'sedan' | 'hatchback'>('luxury');
   const [transmission, setTransmission] = useState<'auto' | 'manual'>('auto');
   const [preferredDriverProfileId, setPreferredDriverProfileId] = useState<string | null>(null);
-  const [radiusKm, setRadiusKm] = useState(5);
-  const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
 
   const getHireDurationMinutes = (type: BookingType, val: number): number | null => {
     if (type === BookingType.HOURLY) return val * 60;
@@ -135,10 +182,21 @@ function BookDriverPageInner() {
 
   const [savedLocations, setSavedLocations] = useState<SavedLocationRecord[]>([]);
   const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverRecord[]>([]);
+  const [hireDrivers, setHireDrivers] = useState<HireDriverRecord[]>([]);
+  const [hireDriversLoading, setHireDriversLoading] = useState(false);
+  const [viewingDriverId, setViewingDriverId] = useState<string | null>(null);
+  const [viewingDriverProfile, setViewingDriverProfile] = useState<DriverProfileDetail | null>(
+    null,
+  );
+  const [viewingDriverLoading, setViewingDriverLoading] = useState(false);
+  const [viewingDriverError, setViewingDriverError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
+  const { toast, showError, dismissToast } = useToast();
+
+  const { status: autoLocationStatus, errorMessage: autoLocationError, capture: captureDeviceLocation } =
+    useGeolocationCapture();
 
   // No reverse-geocoding provider is wired up client-side (the only one in
   // the codebase, src/modules/location/infrastructure/map-provider.ts, is a
@@ -153,7 +211,46 @@ function BookDriverPageInner() {
       address: 'Current location selected',
       label: null,
     }));
+    setPickupReady(true);
   };
+
+  // Auto-detect the customer's real device location on load — this is what
+  // "current location" actually means, so it must never fall back to a
+  // hardcoded city (this page previously defaulted pickup to a fixed New
+  // Delhi address regardless of where the customer actually was). If the
+  // browser denies/can't get a GPS fix, pickup stays unresolved and honestly
+  // prompts the customer to set it themselves, via the same capture button
+  // or manual "Change" entry, rather than silently substituting a fake spot.
+  // Skipped when arriving with an explicit prefill intent (Book Again /
+  // saved-place shortcut / deep-linked address) — those are a deliberate
+  // choice of pickup, not "use my current location", and must not be
+  // clobbered by a live GPS reading that resolves after them.
+  useEffect(() => {
+    if (
+      searchParams.get('bookAgain') ||
+      searchParams.get('savedLocationId') ||
+      searchParams.get('prefillPickup')
+    ) {
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const result = await captureDeviceLocation();
+      if (cancelled || !result) return;
+      setPickup((prev) => ({
+        ...prev,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        address: 'Current location selected',
+        label: null,
+      }));
+      setPickupReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load the customer's real saved places and favorite drivers once — used
   // by the quick-select chips and the preferred-driver picker below. Both
@@ -185,6 +282,91 @@ function BookDriverPageInner() {
     };
   }, []);
 
+  // DAILY/WEEKLY/MONTHLY hires require the customer to choose a specific
+  // active, non-conflicting driver at that driver's own rate — refetch this
+  // browsable list whenever the booking type, duration, or start time
+  // changes the hire window it needs to check against. If the previously
+  // selected driver drops out of the refreshed list (became unavailable, or
+  // the window changed), the selection is cleared rather than silently kept.
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!isRateSelectableHireBooking(selectedBookingType)) {
+        if (isMounted) setHireDrivers([]);
+        return;
+      }
+      const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
+      if (!hireMins) return;
+
+      if (isMounted) setHireDriversLoading(true);
+      try {
+        const params = new URLSearchParams({
+          bookingType: selectedBookingType,
+          hireDurationMinutes: String(hireMins),
+        });
+        if (hireStartTime) {
+          params.set('hireStartAt', new Date(hireStartTime).toISOString());
+        }
+        const res = await fetch(`/api/customer/drivers/available-for-hire?${params.toString()}`);
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          const drivers: HireDriverRecord[] = data.drivers ?? [];
+          setHireDrivers(drivers);
+          setPreferredDriverProfileId((prev) =>
+            prev && !drivers.some((d) => d.driverProfileId === prev) ? null : prev,
+          );
+        }
+      } catch {
+        // List just stays empty — the required-selection gate below still
+        // blocks submission honestly rather than pretending a driver exists.
+      } finally {
+        if (isMounted) setHireDriversLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBookingType, hireDurationValue, hireStartTime]);
+
+  // Loads the full profile (bio, rating breakdown, recent reviews, rate for
+  // this hire type) for whichever driver the customer just tapped in the
+  // "Choose Your Driver" list, so they can review before committing —
+  // required reading before selection, not just a name/rate row.
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!viewingDriverId) {
+        if (isMounted) setViewingDriverProfile(null);
+        return;
+      }
+      if (isMounted) {
+        setViewingDriverLoading(true);
+        setViewingDriverError(null);
+      }
+      try {
+        const params = new URLSearchParams({ bookingType: selectedBookingType });
+        const res = await fetch(
+          `/api/customer/drivers/${viewingDriverId}/profile?${params.toString()}`,
+        );
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          setViewingDriverProfile(data.profile);
+        } else {
+          setViewingDriverError(t('customer.booking.driverProfileLoadError'));
+        }
+      } catch {
+        if (isMounted) setViewingDriverError(t('customer.booking.driverProfileLoadError'));
+      } finally {
+        if (isMounted) setViewingDriverLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [viewingDriverId, selectedBookingType, t]);
+
   // Prefill from a dashboard "Book Again" action or a saved-place shortcut.
   // Book Again only ever reuses pickup/dropoff/service-type from the prior
   // booking — never its fare, driver, payment, or PIN, which are
@@ -210,9 +392,11 @@ function BookDriverPageInner() {
 
       if (prefillPickup) {
         setPickup((prev) => ({ ...prev, address: prefillPickup }));
+        setPickupReady(true);
       }
       if (prefillDropoff) {
         setDropoff((prev) => ({ ...prev, address: prefillDropoff }));
+        setDropoffReady(true);
       }
 
       if (!bookAgainId && !savedLocationId) return;
@@ -229,6 +413,7 @@ function BookDriverPageInner() {
             latitude: booking.pickupLocation.latitude,
             longitude: booking.pickupLocation.longitude,
           });
+          setPickupReady(true);
           if (booking.dropoffLocation) {
             setDropoff({
               address: booking.dropoffLocation.address,
@@ -236,6 +421,7 @@ function BookDriverPageInner() {
               latitude: booking.dropoffLocation.latitude,
               longitude: booking.dropoffLocation.longitude,
             });
+            setDropoffReady(true);
           }
           setSelectedTab(BOOKING_TYPE_TO_TAB[booking.bookingType] ?? 'oneway');
         } else if (savedLocationId) {
@@ -249,6 +435,7 @@ function BookDriverPageInner() {
             latitude: loc.latitude,
             longitude: loc.longitude,
           });
+          setDropoffReady(true);
         }
       } catch {
         // Prefill is a convenience — silently fall back to the defaults.
@@ -257,10 +444,18 @@ function BookDriverPageInner() {
   }, [searchParams]);
 
   useEffect(() => {
+    // Never quote a fare against an unresolved (0,0) placeholder pickup or
+    // dropoff — wait for real coordinates (device GPS, manual entry, saved
+    // place, or Book Again) before asking the pricing service for an
+    // estimate. Without this, a still-unset dropoff (address: '', 0,0)
+    // produces a nonsensical "10,000+ km" distance from Null Island.
+    const isHire = isDriverHireBooking(selectedBookingType);
+    const dropoffRequired = !isHire && includeDropoff;
+    if (!pickupReady || (dropoffRequired && !dropoffReady)) return;
+
     async function fetchEstimate() {
       try {
-        const isHire = isDriverHireBooking(selectedBookingType);
-        const activeDropoff = (!isHire && includeDropoff) ? dropoff : null;
+        const activeDropoff = dropoffRequired ? dropoff : null;
         const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
         const res = await fetch('/api/pricing/estimate', {
@@ -285,6 +480,7 @@ function BookDriverPageInner() {
             numberOfWeeks: selectedBookingType === BookingType.WEEKLY ? hireDurationValue : null,
             numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
             hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
+            preferredDriverProfileId,
           }),
         });
         if (res.ok) {
@@ -296,25 +492,54 @@ function BookDriverPageInner() {
       }
     }
     fetchEstimate();
-  }, [selectedBookingType, hireDurationValue, includeDropoff, pickup, dropoff]);
+  }, [
+    selectedBookingType,
+    hireDurationValue,
+    includeDropoff,
+    pickup,
+    dropoff,
+    pickupReady,
+    dropoffReady,
+    preferredDriverProfileId,
+  ]);
 
   const handleEditPickup = useCallback(() => {
     const next = prompt(t('customer.booking.promptPickup'), pickup.address);
-    if (next) setPickup((prev) => ({ ...prev, address: next, label: null }));
+    if (next) {
+      setPickup((prev) => ({ ...prev, address: next, label: null }));
+      setPickupReady(true);
+    }
   }, [pickup.address, t]);
 
   const handleEditDropoff = useCallback(() => {
     const next = prompt(t('customer.booking.promptDropoff'), dropoff.address);
-    if (next) setDropoff((prev) => ({ ...prev, address: next, label: null }));
+    if (next) {
+      setDropoff((prev) => ({ ...prev, address: next, label: null }));
+      setDropoffReady(true);
+    }
   }, [dropoff.address, t]);
 
   const handleConfirmDispatch = async () => {
+    const isHire = isDriverHireBooking(selectedBookingType);
+    const dropoffRequired = !isHire && includeDropoff;
+
+    if (!pickupReady) {
+      showError(t('customer.booking.locationNotSet'));
+      return;
+    }
+    if (dropoffRequired && !dropoffReady) {
+      showError(t('customer.booking.dropoffNotSet'));
+      return;
+    }
+    if (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId) {
+      showError(t('customer.booking.driverSelectionRequiredError'));
+      return;
+    }
+
     setLoading(true);
-    setError(null);
 
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const isHire = isDriverHireBooking(selectedBookingType);
-    const activeDropoff = (!isHire && includeDropoff) ? dropoff : null;
+    const activeDropoff = dropoffRequired ? dropoff : null;
     const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
     try {
@@ -356,9 +581,11 @@ function BookDriverPageInner() {
 
         const data = await res.json();
         if (!res.ok) {
-          setError(
-            data.message ||
-              t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
+          showError(
+            data.error === 'INVALID_INPUT'
+              ? t('customer.booking.validationFailedError')
+              : data.message ||
+                  t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
           );
         } else {
           router.push('/customer/scheduled-rides');
@@ -398,13 +625,21 @@ function BookDriverPageInner() {
 
         const data = await res.json();
         if (!res.ok) {
-          setError(data.message || t('customer.booking.dispatchFailedError'));
+          showError(
+            data.error === 'INVALID_INPUT'
+              ? t('customer.booking.validationFailedError')
+              : data.error === 'DRIVER_SELECTION_REQUIRED'
+                ? t('customer.booking.driverSelectionRequiredError')
+                : data.error === 'SELECTED_DRIVER_UNAVAILABLE'
+                  ? t('customer.booking.selectedDriverUnavailableError')
+                  : data.message || t('customer.booking.dispatchFailedError'),
+          );
         } else {
           router.push(`/bookings/${data.booking.id}`);
         }
       }
     } catch {
-      setError(t('customer.booking.dispatchUnexpectedError'));
+      showError(t('customer.booking.dispatchUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -449,12 +684,6 @@ function BookDriverPageInner() {
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
           {/* Left Panel: Booking Configuration (42% width) */}
           <section className="w-full xl:w-[42%] flex flex-col gap-4 shrink-0">
-            {error && (
-              <div className="p-4 rounded-xl bg-[#93000a]/40 border border-[#ffb4ab] text-[#ffdad6] text-xs">
-                {error}
-              </div>
-            )}
-
             {/* Phase 56 Flexible Driver Hire Mode Selector */}
             <BookingTypeSelector
               selectedType={selectedBookingType}
@@ -632,7 +861,11 @@ function BookDriverPageInner() {
                       {t('customer.booking.currentPickupZoneLabel')}
                     </span>
                     <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
-                      {pickup.label ?? pickup.address}
+                      {pickup.address
+                        ? (pickup.label ?? pickup.address)
+                        : autoLocationStatus === 'ACQUIRING'
+                          ? t('customer.booking.detectingLocation')
+                          : (autoLocationError ?? t('customer.booking.locationNotSet'))}
                     </p>
                   </div>
                 </div>
@@ -765,16 +998,22 @@ function BookDriverPageInner() {
                   <span className="text-[9px] text-[#68dba9] font-mono">LIVE MAP</span>
                 </div>
                 {(() => {
-                  const markers: MapMarkerDefinition[] = [
-                    {
+                  const markers: MapMarkerDefinition[] = [];
+                  if (pickupReady) {
+                    markers.push({
                       id: 'pickup',
                       position: { latitude: pickup.latitude, longitude: pickup.longitude },
                       type: 'PICKUP',
                       title: 'Pickup Location',
                       snippet: pickup.address,
-                    },
-                  ];
-                  if (dropoff && !isDriverHireBooking(selectedBookingType) && includeDropoff) {
+                    });
+                  }
+                  if (
+                    dropoffReady &&
+                    dropoff &&
+                    !isDriverHireBooking(selectedBookingType) &&
+                    includeDropoff
+                  ) {
                     markers.push({
                       id: 'dropoff',
                       position: { latitude: dropoff.latitude, longitude: dropoff.longitude },
@@ -890,8 +1129,10 @@ function BookDriverPageInner() {
               </div>
             </div>
 
-            {/* Preferred Driver — real favorites, honest non-guarantee framing */}
-            {favoriteDrivers.length > 0 && (
+            {/* Preferred Driver — real favorites, honest non-guarantee framing.
+                Not shown for DAILY/WEEKLY/MONTHLY, which use the required
+                "Choose Your Driver" section below instead. */}
+            {!isRateSelectableHireBooking(selectedBookingType) && favoriteDrivers.length > 0 && (
               <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
                 <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.preferredDriverSectionTitle')}
@@ -930,6 +1171,77 @@ function BookDriverPageInner() {
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Choose Your Driver — required for DAILY/WEEKLY/MONTHLY hires.
+                No platform-default-rate fallback for these three types: the
+                customer must pick one of the active, non-conflicting
+                drivers below, at that driver's own listed rate. */}
+            {isRateSelectableHireBooking(selectedBookingType) && (
+              <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  {t('customer.booking.chooseYourDriverTitle')}
+                </span>
+                <p className="text-[10px] text-[#87948b]">
+                  {t('customer.booking.chooseYourDriverSubtitle')}
+                </p>
+
+                {hireDriversLoading ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.loadingAvailableDrivers')}
+                  </p>
+                ) : hireDrivers.length === 0 ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.noDriversAvailableForHire')}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {hireDrivers.map((driver) => (
+                      <button
+                        key={driver.driverProfileId}
+                        type="button"
+                        onClick={() => setViewingDriverId(driver.driverProfileId)}
+                        className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                          preferredDriverProfileId === driver.driverProfileId
+                            ? 'bg-[#00311f] border-[#25a475]'
+                            : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {preferredDriverProfileId === driver.driverProfileId && (
+                            <span className="material-symbols-outlined text-[#25a475] text-base shrink-0">
+                              check_circle
+                            </span>
+                          )}
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-xs font-semibold text-[#dfe2ee] truncate">
+                              {hireDriverDisplayName(driver)}
+                            </span>
+                            <span className="text-[10px] text-[#87948b] font-mono">
+                              {t('customer.favorites.rating', {
+                                rating: driver.ratingAverage.toFixed(1),
+                              })}{' '}
+                              ·{' '}
+                              {t('customer.booking.experienceYears', {
+                                years: driver.drivingExperienceYears,
+                                defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs font-bold text-[#25a475] font-mono">
+                            {formatCurrency(Number(driver.rate))}
+                          </span>
+                          <span className="text-[9px] text-[#87948b] uppercase font-semibold underline">
+                            {t('customer.booking.viewDetailsLink', { defaultValue: 'View Details' })}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1005,7 +1317,12 @@ function BookDriverPageInner() {
               <button
                 type="button"
                 onClick={handleConfirmDispatch}
-                disabled={loading}
+                disabled={
+                  loading ||
+                  !pickupReady ||
+                  (!isDriverHireBooking(selectedBookingType) && includeDropoff && !dropoffReady) ||
+                  (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId)
+                }
                 className="w-full py-3.5 px-4 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#68dba9]/20 font-['Space_Grotesk'] disabled:opacity-50"
               >
                 {loading ? (
@@ -1026,141 +1343,30 @@ function BookDriverPageInner() {
 
           {/* Right Panel: Radar Canvas (58% width) */}
           <section className="w-full xl:w-[58%] flex flex-col gap-4 relative shrink-0">
-            <div className="relative w-full h-[540px] rounded-2xl overflow-hidden bg-[#0a0e16] shadow-2xl flex flex-col justify-between p-4 border border-[#262a33]">
-              {/* Radar Grid SVG */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                <defs>
-                  <radialGradient id="radarSweep" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#68dba9" stopOpacity="0.25" />
-                    <stop offset="60%" stopColor="#68dba9" stopOpacity="0.05" />
-                    <stop offset="100%" stopColor="#0f131c" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-                <path
-                  d="M0,190 H1000 M0,380 H1000 M0,570 H1000"
-                  stroke="#31353e"
-                  strokeWidth="1"
-                  strokeDasharray="4 8"
-                  opacity="0.4"
-                />
-                <path
-                  d="M250,0 V800 M500,0 V800 M750,0 V800"
-                  stroke="#31353e"
-                  strokeWidth="1"
-                  strokeDasharray="4 8"
-                  opacity="0.4"
-                />
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="90"
-                  fill="none"
-                  stroke="#68dba9"
-                  strokeWidth="1"
-                  strokeDasharray="3 6"
-                  opacity="0.3"
-                />
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="180"
-                  fill="none"
-                  stroke="#68dba9"
-                  strokeWidth="1"
-                  strokeDasharray="4 8"
-                  opacity="0.25"
-                />
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="240"
-                  fill="url(#radarSweep)"
-                  className="animate-pulse"
-                />
-              </svg>
-
-              <div className="absolute inset-0 origin-center animate-radar-sweep pointer-events-none">
-                <div className="w-1/2 h-1/2 bg-gradient-to-br from-[#68dba9]/30 to-transparent origin-bottom-right transform rotate-45 rounded-tl-full" />
-              </div>
-
-              {/* Top Map HUD & Controls */}
-              <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 bg-[#181c24]/90 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-[#262a33]">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-[#68dba9] flex items-center justify-center">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#0f131c]" />
-                    </span>
-                    <span className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk']">
-                      {t('customer.booking.radarSectorLabel')}
-                    </span>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-2 font-mono text-[10px] text-[#bccac0] bg-[#1c2028] px-2 py-1 rounded border border-[#262a33]">
-                    <span>{t('customer.booking.sweepBandLabel')}</span>
-                    <span>•</span>
-                    <span className="text-[#68dba9]">{t('customer.booking.latencyLabel')}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 bg-[#1c2028] px-3 py-1.5 rounded-lg border border-[#262a33]">
-                    <span className="material-symbols-outlined text-xs text-[#bccac0]">radar</span>
-                    <span className="font-mono text-[10px] text-[#bccac0]">
-                      {t('customer.booking.radiusLabel')}
-                    </span>
-                    <input
-                      type="range"
-                      min="2"
-                      max="15"
-                      value={radiusKm}
-                      onChange={(e) => setRadiusKm(parseInt(e.target.value, 10))}
-                      className="w-16 accent-[#68dba9] cursor-pointer h-1 bg-[#262a33] rounded-lg"
-                    />
-                    <span className="font-mono text-[10px] text-[#68dba9] font-bold">
-                      {radiusKm}km
-                    </span>
-                  </div>
-
-                  <div className="flex items-center bg-[#1c2028] p-1 rounded-lg border border-[#262a33]">
-                    <button
-                      type="button"
-                      onClick={() => setMapStyle('dark')}
-                      className={`px-2 py-0.5 rounded font-mono text-[10px] ${
-                        mapStyle === 'dark' ? 'bg-[#262a33] text-[#dfe2ee]' : 'text-[#bccac0]'
-                      }`}
-                    >
-                      {t('customer.booking.mapStyleDark')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMapStyle('satellite')}
-                      className={`px-2 py-0.5 rounded font-mono text-[10px] ${
-                        mapStyle === 'satellite' ? 'bg-[#262a33] text-[#dfe2ee]' : 'text-[#bccac0]'
-                      }`}
-                    >
-                      {t('customer.booking.mapStyleSatellite')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Customer Pin Anchor — reflects the real, currently-selected pickup */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center pointer-events-none">
-                <div className="relative flex items-center justify-center">
-                  <span className="absolute w-12 h-12 rounded-full bg-[#68dba9]/30 animate-ping" />
-                  <div className="w-6 h-6 rounded-full bg-[#68dba9] shadow-[0_0_16px_#68dba9] flex items-center justify-center text-[#003825]">
-                    <span className="material-symbols-outlined text-xs font-bold">person_pin</span>
-                  </div>
-                </div>
-                <div className="mt-2 bg-[#0a0e16]/90 backdrop-blur-md px-2.5 py-1 rounded shadow text-center border border-[#262a33] max-w-[220px]">
-                  <span className="text-[9px] font-bold text-[#68dba9] uppercase block font-['Space_Grotesk']">
-                    {t('customer.booking.pickupAnchorLabel')}
-                  </span>
-                  <span className="font-mono text-[9px] text-[#bccac0] truncate block">
-                    {pickup.label ?? pickup.address}
-                  </span>
-                </div>
-              </div>
-            </div>
+            {/* Real map showing only the current-location marker — no radar
+                decoration, no simulated telemetry, no second/fake pin. It
+                reflects the actual resolved pickup coordinates (device GPS,
+                manual entry, saved place, or Book Again), never a default
+                city, and stays empty until a real location is available. */}
+            <UnifiedMap
+              markers={
+                pickupReady
+                  ? [
+                      {
+                        id: 'current-location',
+                        position: { latitude: pickup.latitude, longitude: pickup.longitude },
+                        type: 'CURRENT_LOCATION',
+                        title: t('customer.booking.pickupAnchorLabel'),
+                        snippet: pickup.label ?? pickup.address,
+                      },
+                    ]
+                  : []
+              }
+              height="540px"
+              fitBounds={true}
+              showControls={true}
+              ariaLabel={t('customer.booking.pickupAnchorLabel')}
+            />
 
             {/* Telemetry & SLA Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1223,6 +1429,160 @@ function BookDriverPageInner() {
           </section>
         </div>
       </div>
+
+      {/* Driver Detail Review Modal — required stop before selecting a
+          driver for a DAILY/WEEKLY/MONTHLY hire: full profile, rating
+          breakdown, recent reviews, and the rate for this specific hire,
+          reviewed before the customer commits to that driver. */}
+      {viewingDriverId && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1319] border border-[#262a33] rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  {t('customer.booking.driverDetailsTitle', { defaultValue: 'Driver Details' })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setViewingDriverId(null)}
+                  className="text-[#87948b] hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              {viewingDriverLoading ? (
+                <p className="text-xs text-[#87948b] py-8 text-center">
+                  {t('customer.booking.loadingDriverProfile', {
+                    defaultValue: 'Loading driver profile…',
+                  })}
+                </p>
+              ) : viewingDriverError ? (
+                <p className="text-xs text-red-400 py-8 text-center">{viewingDriverError}</p>
+              ) : viewingDriverProfile ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="h-16 w-16 rounded-full bg-[#262a33] border border-[#25a475]/40 flex items-center justify-center text-xl font-bold text-white uppercase overflow-hidden shrink-0">
+                      {viewingDriverProfile.profileImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={viewingDriverProfile.profileImageUrl}
+                          alt={viewingDriverProfile.displayName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        viewingDriverProfile.displayName?.[0] || 'D'
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-base font-bold text-white truncate">
+                        {viewingDriverProfile.displayName}
+                      </span>
+                      <span className="text-[11px] text-[#87948b]">
+                        {t('customer.tracking.serviceAreaLabel', {
+                          area:
+                            viewingDriverProfile.primaryServiceArea ||
+                            t('customer.tracking.serviceAreaFallback'),
+                        })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
+                      <div className="text-sm font-bold text-[#25a475]">
+                        {viewingDriverProfile.averageRating.toFixed(1)}★
+                      </div>
+                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                        {t('customer.booking.reviewsCountLabel', {
+                          count: viewingDriverProfile.totalReviews,
+                          defaultValue: `${viewingDriverProfile.totalReviews} reviews`,
+                        })}
+                      </div>
+                    </div>
+                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
+                      <div className="text-sm font-bold text-white">
+                        {viewingDriverProfile.drivingExperienceYears}
+                      </div>
+                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                        {t('customer.booking.yearsExpLabel', { defaultValue: 'Years Exp' })}
+                      </div>
+                    </div>
+                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
+                      <div className="text-sm font-bold text-white">
+                        {viewingDriverProfile.completedTrips}
+                      </div>
+                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                        {t('customer.booking.tripsCompletedLabel', {
+                          defaultValue: 'Trips Done',
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {viewingDriverProfile.bio && (
+                    <p className="text-xs text-[#dfe2ee] bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
+                      {viewingDriverProfile.bio}
+                    </p>
+                  )}
+
+                  {viewingDriverProfile.rate && (
+                    <div className="flex items-center justify-between bg-[#00311f] border border-[#25a475]/40 rounded-lg p-3">
+                      <span className="text-xs text-[#bccac0]">
+                        {t('customer.booking.rateForThisHireLabel', {
+                          defaultValue: 'Rate for this hire',
+                        })}
+                      </span>
+                      <span className="text-sm font-bold text-[#25a475]">
+                        {formatCurrency(Number(viewingDriverProfile.rate))}
+                      </span>
+                    </div>
+                  )}
+
+                  {viewingDriverProfile.recentReviews.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider">
+                        {t('customer.booking.recentReviewsLabel', {
+                          defaultValue: 'Recent Reviews',
+                        })}
+                      </span>
+                      {viewingDriverProfile.recentReviews.slice(0, 3).map((review, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33] text-[11px] text-[#dfe2ee]"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold">{review.reviewerLabel}</span>
+                            <span className="text-[#25a475]">{'★'.repeat(review.rating)}</span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-[#87948b]">{review.comment}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreferredDriverProfileId(viewingDriverProfile.driverProfileId);
+                      setViewingDriverId(null);
+                    }}
+                    className="w-full py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm transition-all font-['Space_Grotesk']"
+                  >
+                    {t('customer.booking.selectThisDriverBtn', {
+                      defaultValue: 'Select This Driver',
+                    })}
+                  </button>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </CustomerLayout>
   );
 }

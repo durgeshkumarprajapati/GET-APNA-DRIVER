@@ -56,6 +56,7 @@ export const adminTa = {
     operationsCommandCenter: 'செயல்பாட்டு கட்டுப்பாட்டு மையம்',
     scheduledRides: 'திட்டமிடப்பட்ட சவாரிகள்',
     riskAndTrust: 'ஆபத்து மற்றும் நம்பிக்கை என்ஜின்',
+    dynamicPricing: 'டைனமிக் விலை நிர்ணயம்',
   },
   marketplaceIntelligence: {
     title: 'சந்தை நுண்ணறிவு கன்சோல்',

@@ -56,6 +56,7 @@ export const adminBn = {
     operationsCommandCenter: 'অপারেশনস কমান্ড সেন্টার',
     scheduledRides: 'নির্ধারিত রাইডসমূহ',
     riskAndTrust: 'ঝুঁকি ও ট্রাস্ট ইঞ্জিন',
+    dynamicPricing: 'ডাইনামিক প্রাইসিং',
   },
   marketplaceIntelligence: {
     title: 'মার্কেটপ্লেস ইন্টেলিজেন্স কনসোল',

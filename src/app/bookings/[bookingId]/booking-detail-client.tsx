@@ -7,6 +7,7 @@ import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { DirectCallResponse } from '@/modules/calling/domain/types';
 import { useTranslation } from '@/i18n/context';
+import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
 
 interface BookingDetail {
   id: string;
@@ -40,6 +41,7 @@ interface BookingDetail {
   cancellationReason: string | null;
   expiresAt: string | null;
   preferredDriverProfileId: string | null;
+  pendingOffer?: { driverName: string | null; expiresAt: string } | null;
   assignedDriver?: {
     id: string;
     displayName: string | null;
@@ -416,6 +418,20 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             </div>
           )}
 
+          {/* Pending Offer — request sent to a specific driver, awaiting their response */}
+          {booking.status === 'SEARCHING_DRIVER' && booking.pendingOffer && (
+            <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center gap-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
+              <p className="text-xs text-amber-200">
+                {t('customer.tracking.pendingOfferWaiting', {
+                  driverName:
+                    booking.pendingOffer.driverName ||
+                    t('customer.bookingsList.professionalDriverFallback'),
+                })}
+              </p>
+            </div>
+          )}
+
           {/* Assigned Driver Card */}
           {booking.assignedDriver && (
             <div className="p-6 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-4">
@@ -479,6 +495,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                 </div>
               )}
             </div>
+          )}
+
+          {/* Message Driver — available once a specific driver is
+              associated with the booking (assigned, or currently offered
+              while waiting for confirmation) */}
+          {(booking.assignedDriver || booking.pendingOffer) && (
+            <BookingMessagePanel
+              viewerRole="CUSTOMER"
+              apiBasePath={`/api/customer/bookings/${booking.id}/messages`}
+              title={t('customer.tracking.messagesTitle', { defaultValue: 'Messages' })}
+            />
           )}
 
           {/* Rate Your Driver */}

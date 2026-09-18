@@ -1,4 +1,5 @@
-import { BookingStatus, AssignmentAttemptStatus } from '@prisma/client';
+import { BookingStatus, AssignmentAttemptStatus, BookingType } from '@prisma/client';
+import { AppError } from '@/shared/errors/app-error';
 
 export class BookingNotFoundError extends Error {
   constructor(identifier: string) {
@@ -94,5 +95,57 @@ export class MaxRidePinAttemptsExceededError extends Error {
   constructor() {
     super('Maximum ride PIN verification attempts exceeded for this booking.');
     this.name = 'MaxRidePinAttemptsExceededError';
+  }
+}
+
+/**
+ * DAILY/WEEKLY/MONTHLY bookings require the customer to pick a specific
+ * driver (at that driver's own rate) up front — unlike every other booking
+ * type, there is no platform-default-rate fallback for these three.
+ */
+export class DriverSelectionRequiredError extends AppError {
+  constructor(bookingType: BookingType) {
+    super(
+      `A driver must be selected for ${bookingType} bookings.`,
+      400,
+      'DRIVER_SELECTION_REQUIRED',
+    );
+  }
+}
+
+/**
+ * The customer's selected driver (for a DAILY/WEEKLY/MONTHLY hire) is no
+ * longer a valid choice — not approved/available, has no rate set for this
+ * hire type, or already has a conflicting hire booking for the requested
+ * window. Thrown instead of silently substituting another driver, since
+ * this booking type has no fallback (see matching-service.ts).
+ */
+export class SelectedDriverUnavailableError extends AppError {
+  constructor(driverProfileId: string, reason: string) {
+    super(`Selected driver ${driverProfileId} is not available: ${reason}`, 400, 'SELECTED_DRIVER_UNAVAILABLE');
+  }
+}
+
+/**
+ * The caller is neither the booking's customer nor a driver associated with
+ * it (assigned, or currently offered/preferred) — not-found rather than a
+ * generic 403 would leak booking existence, but messaging has no separate
+ * "does this booking exist" concern the way getBookingById does, so this is
+ * a plain 403.
+ */
+export class MessagingNotAuthorizedError extends AppError {
+  constructor(bookingId: string) {
+    super(`Not authorized to message on booking ${bookingId}.`, 403, 'MESSAGING_NOT_AUTHORIZED');
+  }
+}
+
+/**
+ * The booking has reached a terminal state (CANCELLED/EXPIRED) where
+ * starting a new message no longer makes sense — existing message history
+ * remains readable, this only blocks sending new ones.
+ */
+export class MessagingNotAllowedError extends AppError {
+  constructor(bookingId: string, status: BookingStatus) {
+    super(`Cannot send a message on booking ${bookingId} in status ${status}.`, 400, 'MESSAGING_NOT_ALLOWED');
   }
 }

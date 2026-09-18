@@ -5,7 +5,11 @@ import {
   listRecentCompletedBookings,
 } from '@/modules/booking/application/booking-service';
 import { BookingStatus, BookingType } from '@prisma/client';
-import { BookingNotFoundError } from '@/modules/booking/domain/errors';
+import {
+  BookingNotFoundError,
+  DriverSelectionRequiredError,
+  SelectedDriverUnavailableError,
+} from '@/modules/booking/domain/errors';
 
 const mockTx = {
   booking: {
@@ -89,11 +93,13 @@ describe('BookingService', () => {
   const mockFindUniqueOrThrow = prisma.booking.findUniqueOrThrow as jest.Mock;
   const mockFavoriteFindUnique = prisma.customerFavoriteDriver.findUnique as jest.Mock;
   const mockDriverProfileFindUnique = prisma.driverProfile.findUnique as jest.Mock;
+  const mockBookingFindMany = prisma.booking.findMany as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockFavoriteFindUnique.mockResolvedValue(null);
     mockDriverProfileFindUnique.mockResolvedValue(null);
+    mockBookingFindMany.mockResolvedValue([]);
   });
 
   describe('createBooking', () => {
@@ -275,6 +281,127 @@ describe('BookingService', () => {
             data: expect.objectContaining({ preferredDriverProfileId: null }),
           }),
         );
+      });
+    });
+
+    describe('required driver selection for DAILY/WEEKLY/MONTHLY hires', () => {
+      const mockHireBooking = {
+        id: 'bk-hire-1',
+        customerId: 'cust-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.WEEKLY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        pickupAddress: 'Connaught Place, New Delhi',
+        requestedAt: new Date(),
+        searchStartedAt: new Date(),
+        expiresAt: new Date(Date.now() + 300000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        driverProfile: null,
+      };
+
+      beforeEach(() => {
+        mockTx.booking.create.mockResolvedValue(mockHireBooking);
+        mockFindUniqueOrThrow.mockResolvedValue(mockHireBooking);
+        mockFindUnique.mockResolvedValue(null); // no idempotency-key collision
+      });
+
+      it('rejects a WEEKLY booking with no preferredDriverProfileId — no platform-rate fallback for this booking type', async () => {
+        await expect(
+          createBooking('cust-1', {
+            pickupLocation: {
+              latitude: 28.6139,
+              longitude: 77.209,
+              address: 'Connaught Place, New Delhi',
+            },
+            bookingType: BookingType.WEEKLY,
+            hireDurationMinutes: 10080,
+          }),
+        ).rejects.toBeInstanceOf(DriverSelectionRequiredError);
+
+        expect(mockTx.booking.create).not.toHaveBeenCalled();
+      });
+
+      it("does not require the selected driver to be one of the customer's favorites, unlike every other booking type", async () => {
+        mockDriverProfileFindUnique.mockResolvedValue({
+          id: 'driver-1',
+          approvalStatus: 'APPROVED',
+          availabilityStatus: 'AVAILABLE',
+          weeklyHireRate: { toString: () => '15000.0000' },
+        });
+
+        await createBooking('cust-1', {
+          pickupLocation: {
+            latitude: 28.6139,
+            longitude: 77.209,
+            address: 'Connaught Place, New Delhi',
+          },
+          bookingType: BookingType.WEEKLY,
+          hireDurationMinutes: 10080,
+          preferredDriverProfileId: 'driver-1',
+        });
+
+        // Never even checked CustomerFavoriteDriver — this path is a required
+        // direct selection, not a favorites-scoped preference.
+        expect(mockFavoriteFindUnique).not.toHaveBeenCalled();
+        expect(mockTx.booking.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              preferredDriverProfileId: 'driver-1',
+              driverCustomRateSnapshot: '15000.0000',
+            }),
+          }),
+        );
+      });
+
+      it('rejects the booking when the selected driver has not set a rate for this hire type', async () => {
+        mockDriverProfileFindUnique.mockResolvedValue({
+          id: 'driver-1',
+          approvalStatus: 'APPROVED',
+          availabilityStatus: 'AVAILABLE',
+          weeklyHireRate: null,
+        });
+
+        await expect(
+          createBooking('cust-1', {
+            pickupLocation: {
+              latitude: 28.6139,
+              longitude: 77.209,
+              address: 'Connaught Place, New Delhi',
+            },
+            bookingType: BookingType.WEEKLY,
+            hireDurationMinutes: 10080,
+            preferredDriverProfileId: 'driver-1',
+          }),
+        ).rejects.toBeInstanceOf(SelectedDriverUnavailableError);
+
+        expect(mockTx.booking.create).not.toHaveBeenCalled();
+      });
+
+      it('rejects the booking when the selected driver already has a conflicting hire for the requested window', async () => {
+        mockDriverProfileFindUnique.mockResolvedValue({
+          id: 'driver-1',
+          approvalStatus: 'APPROVED',
+          availabilityStatus: 'AVAILABLE',
+          weeklyHireRate: { toString: () => '15000.0000' },
+        });
+        mockBookingFindMany.mockResolvedValue([{ driverProfileId: 'driver-1' }]);
+
+        await expect(
+          createBooking('cust-1', {
+            pickupLocation: {
+              latitude: 28.6139,
+              longitude: 77.209,
+              address: 'Connaught Place, New Delhi',
+            },
+            bookingType: BookingType.WEEKLY,
+            hireDurationMinutes: 10080,
+            preferredDriverProfileId: 'driver-1',
+          }),
+        ).rejects.toBeInstanceOf(SelectedDriverUnavailableError);
+
+        expect(mockTx.booking.create).not.toHaveBeenCalled();
       });
     });
   });

@@ -32,8 +32,8 @@ export default function NearbyDriversPage() {
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
   const [selectedSavedId, setSelectedSavedId] = useState<string>('');
-  const [manualLat, setManualLat] = useState<string>('28.6139'); // Default New Delhi
-  const [manualLng, setManualLng] = useState<string>('77.2090');
+  const [manualLat, setManualLat] = useState<string>('');
+  const [manualLng, setManualLng] = useState<string>('');
   const [radiusMeters, setRadiusMeters] = useState<number>(5000);
 
   const [drivers, setDrivers] = useState<NearbyDriver[]>([]);

@@ -122,6 +122,31 @@ export function registerNotificationEventHandlers(): void {
   );
 
   eventHandlerRegistry.register(
+    'booking.message.sent',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const recipientUserId = payload.recipientUserId as string;
+      const recipientRole = payload.recipientRole as 'CUSTOMER' | 'DRIVER';
+      const bookingId = payload.bookingId as string;
+      const bodyPreview = payload.bodyPreview as string;
+      if (!recipientUserId) return;
+
+      await createNotification(
+        {
+          userId: recipientUserId,
+          type: NotificationType.BOOKING_MESSAGE_RECEIVED,
+          title: recipientRole === 'DRIVER' ? 'New message from customer' : 'New message from driver',
+          body: bodyPreview,
+          data: { bookingId },
+          actionUrl:
+            recipientRole === 'DRIVER' ? `/driver/bookings/${bookingId}` : `/bookings/${bookingId}`,
+          idempotencyKey: `${event.id}-message-${recipientUserId}`,
+        },
+        db ?? prisma,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
     'booking.driver.en_route',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
@@ -197,8 +222,14 @@ export function registerNotificationEventHandlers(): void {
             userId: customerId,
             type: NotificationType.BOOKING_TRIP_COMPLETED,
             title: 'Trip Completed',
-            body: 'Thank you for riding with us! Please rate your chauffeur experience.',
+            body: 'Thank you for riding with us! Tap to rate your chauffeur.',
             data: { bookingId },
+            // Straight to this specific booking's tracker page, which
+            // already shows the "Rate Your Driver" form once TRIP_COMPLETED
+            // — not the generic bookings list (the template's
+            // defaultActionUrl), which would leave the customer to go find
+            // the right booking themselves.
+            actionUrl: `/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-customer-trip-completed`,
           },
           db ?? prisma,
@@ -213,6 +244,7 @@ export function registerNotificationEventHandlers(): void {
             title: 'Mission Fulfilled',
             body: 'Trip completed successfully. Earnings credited to your driver wallet.',
             data: { bookingId },
+            actionUrl: `/driver/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-driver-trip-completed`,
           },
           db ?? prisma,
@@ -821,21 +853,42 @@ export function registerNotificationEventHandlers(): void {
     'referral.created',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const referrerUserId = payload.referrerUserId as string;
-      if (!referrerUserId) return;
+      const referredUserId = payload.referredUserId as string;
       const client = db ?? prisma;
 
-      await createNotification(
-        {
-          userId: referrerUserId,
-          type: NotificationType.REFERRAL_INVITED,
-          title: 'Referral Invite Sent!',
-          body: 'Your referral invitation link has been shared. Earn rewards when your friend completes their first ride.',
-          actionUrl: '/customer/referral',
-          imageAsset: '/GiftBox.png',
-          idempotencyKey: `${event.id}-referral-invited`,
-        },
-        client,
-      );
+      // Informational only — registering with a code never itself credits a
+      // reward. The actual reward still depends on evaluateAndQualifyReferral
+      // running later and posting to the ledger (see the 'referral.rewarded'
+      // handler below), so the copy here must not promise one.
+      if (referrerUserId) {
+        await createNotification(
+          {
+            userId: referrerUserId,
+            type: NotificationType.REFERRAL_INVITED,
+            title: 'New Referral Registration',
+            body: 'Someone registered using your referral code. Your referral reward will be credited after the required qualification steps are completed.',
+            actionUrl: '/customer/referral',
+            imageAsset: '/GiftBox.png',
+            idempotencyKey: `${event.id}-referral-invited`,
+          },
+          client,
+        );
+      }
+
+      if (referredUserId) {
+        await createNotification(
+          {
+            userId: referredUserId,
+            type: NotificationType.REFERRAL_INVITED,
+            title: 'Referral Code Applied!',
+            body: 'You registered using a referral code. Complete your profile and qualification steps to receive your referral bonus!',
+            actionUrl: '/customer/referral',
+            imageAsset: '/GiftBox.png',
+            idempotencyKey: `${event.id}-referral-invited-referee`,
+          },
+          client,
+        );
+      }
     },
   );
 
@@ -865,10 +918,16 @@ export function registerNotificationEventHandlers(): void {
     'referral.rewarded',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const referrerUserId = payload.referrerUserId as string;
-      const refereeUserId = payload.refereeUserId as string;
       const rewardAmount = payload.rewardAmount as number | string;
       const client = db ?? prisma;
 
+      // Referrer-only: evaluateAndQualifyReferral actually posts the reward
+      // to the referrer's ledger/wallet, so "credited" is true for them.
+      // There is no corresponding referee-side ledger posting today (the
+      // emitted payload doesn't even carry a referee reward amount) — a
+      // referee-facing "reward credited" notification here would claim a
+      // credit that never happened, so none is sent until that financial
+      // path actually exists.
       if (referrerUserId) {
         await createNotification(
           {
@@ -879,21 +938,6 @@ export function registerNotificationEventHandlers(): void {
             actionUrl: '/customer/referral',
             imageAsset: '/GiftBox.png',
             idempotencyKey: `${event.id}-referral-rewarded-referrer`,
-          },
-          client,
-        );
-      }
-
-      if (refereeUserId) {
-        await createNotification(
-          {
-            userId: refereeUserId,
-            type: NotificationType.REFERRAL_REWARDED,
-            title: 'Welcome Referral Reward!',
-            body: `Welcome bonus of ₹${rewardAmount} has been credited to your wallet!`,
-            actionUrl: '/customer/wallet',
-            imageAsset: '/GiftBox1.png',
-            idempotencyKey: `${event.id}-referral-rewarded-referee`,
           },
           client,
         );

@@ -123,6 +123,13 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
           }),
           icon: 'monitoring',
         },
+        {
+          href: '/admin/dynamic-pricing',
+          label: t('admin.nav.dynamicPricing', {
+            defaultValue: 'Dynamic Pricing',
+          }),
+          icon: 'payments',
+        },
       ],
     },
     {

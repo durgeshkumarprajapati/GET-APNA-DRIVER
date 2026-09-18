@@ -38,6 +38,10 @@ export interface UpdateDriverProfileInput {
   bio?: string | null;
   drivingExperienceYears?: number;
   primaryServiceArea?: string | null;
+  /** Driver's own rate for a full DAILY/WEEKLY/MONTHLY hire, shown to customers browsing drivers for that hire type. Null clears/opts out of that hire type. */
+  dailyHireRate?: number | null;
+  weeklyHireRate?: number | null;
+  monthlyHireRate?: number | null;
 }
 
 /**
@@ -138,6 +142,9 @@ export async function updateDriverProfile(
         ...(input.primaryServiceArea !== undefined && {
           primaryServiceArea: input.primaryServiceArea,
         }),
+        ...(input.dailyHireRate !== undefined && { dailyHireRate: input.dailyHireRate }),
+        ...(input.weeklyHireRate !== undefined && { weeklyHireRate: input.weeklyHireRate }),
+        ...(input.monthlyHireRate !== undefined && { monthlyHireRate: input.monthlyHireRate }),
         onboardingStatus: nextOnboardingStatus,
       },
     });

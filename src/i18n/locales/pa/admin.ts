@@ -56,6 +56,7 @@ export const adminPa = {
     operationsCommandCenter: 'ਓਪਰੇਸ਼ਨ ਕਮਾਂਡ ਸੈਂਟਰ',
     scheduledRides: 'ਸ਼ਡਿਊਲ ਕੀਤੀਆਂ ਰਾਈਡਾਂ',
     riskAndTrust: 'ਜੋਖਮ ਅਤੇ ਭਰੋਸਾ ਇੰਜਣ',
+    dynamicPricing: 'ਡਾਇਨਾਮਿਕ ਪ੍ਰਾਈਸਿੰਗ',
   },
   marketplaceIntelligence: {
     title: 'ਮਾਰਕੀਟਪਲੇਸ ਇੰਟੈਲੀਜੈਂਸ ਕੰਸੋਲ',

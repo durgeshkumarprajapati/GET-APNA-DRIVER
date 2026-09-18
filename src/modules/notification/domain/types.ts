@@ -53,4 +53,12 @@ export interface PushPayload {
   data?: Record<string, unknown>;
   icon?: string;
   badge?: string;
+  /**
+   * Notification tag (W3C Notifications API) — notifications sharing a tag
+   * replace one another in the OS tray instead of stacking. Used to collapse
+   * successive status updates for the same booking into a single visible
+   * notification; omitted for one-off notifications that should each stay
+   * visible on their own.
+   */
+  tag?: string;
 }

@@ -89,12 +89,25 @@ export async function createNotification(
     });
 
     try {
+      // actionUrl travels inside `data` (not just the DB row) so the service
+      // worker's notificationclick handler can open the exact right page
+      // without re-deriving it from bookingId/paymentId heuristics that
+      // don't cover every notification type (e.g. a role-specific URL like
+      // booking-message notifications already compute).
+      const pushData = { ...(input.data ?? {}), actionUrl };
+      const entityId = (input.data?.bookingId ?? input.data?.paymentId) as string | undefined;
+
       const pushRes = await sendPushToUser(
         input.userId,
         {
           title: input.title,
           body: input.body,
-          data: input.data,
+          data: pushData,
+          // Successive status updates for the same booking/payment replace
+          // each other in the OS tray instead of stacking up; anything
+          // without an associated entity (promotions, system announcements)
+          // is left untagged so each one stays independently visible.
+          tag: entityId ? `${category}-${entityId}` : undefined,
         },
         db,
       );

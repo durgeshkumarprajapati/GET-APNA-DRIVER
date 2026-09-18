@@ -15,6 +15,7 @@ import {
 } from '@/modules/identity/application/services/referral-service';
 import { getDecimal } from '@/shared/config/configuration-service';
 import { applyWalletChange } from '@/modules/finance/application/services/wallet-service';
+import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 
 let referralUpdateMock = jest.fn().mockResolvedValue({
   id: 'ref-1',
@@ -211,6 +212,61 @@ describe('Referral Service', () => {
 
       expect(res).not.toBeNull();
       expect(res?.status).toBe(ReferralStatus.PENDING);
+    });
+
+    it('emits a referral.created outbox event (informational only) when a new referral is created', async () => {
+      mockDb.userReferralCode.findUnique.mockResolvedValue({
+        id: 'code-1',
+        userId: 'user-1',
+        code: 'REF-123',
+      });
+      mockDb.referral.findUnique.mockResolvedValue(null);
+      mockDb.referral.create.mockResolvedValue({
+        id: 'ref-100',
+        referrerUserId: 'user-1',
+        referredUserId: 'user-2',
+        codeUsed: 'REF-123',
+        status: ReferralStatus.PENDING,
+      });
+
+      await applyReferralCode({ referredUserId: 'user-2', code: 'REF-123' }, mockDb as never);
+
+      expect(insertOutboxEvent).toHaveBeenCalledWith(
+        mockDb,
+        expect.objectContaining({
+          eventType: 'referral.created',
+          aggregateType: 'Referral',
+          aggregateId: 'ref-100',
+          payload: expect.objectContaining({
+            referralId: 'ref-100',
+            referrerUserId: 'user-1',
+            referredUserId: 'user-2',
+          }),
+        }),
+      );
+    });
+
+    it('does not re-emit referral.created when the referred user was already referred (idempotent retry)', async () => {
+      mockDb.userReferralCode.findUnique.mockResolvedValue({
+        id: 'code-1',
+        userId: 'user-1',
+        code: 'REF-123',
+      });
+      mockDb.referral.findUnique.mockResolvedValue({
+        id: 'ref-existing',
+        referrerUserId: 'user-1',
+        referredUserId: 'user-2',
+        status: ReferralStatus.PENDING,
+      });
+
+      const res = await applyReferralCode(
+        { referredUserId: 'user-2', code: 'REF-123' },
+        mockDb as never,
+      );
+
+      expect(res?.id).toBe('ref-existing');
+      expect(mockDb.referral.create).not.toHaveBeenCalled();
+      expect(insertOutboxEvent).not.toHaveBeenCalled();
     });
   });
 

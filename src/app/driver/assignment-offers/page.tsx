@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
 
 interface AssignmentOffer {
   id: string;
@@ -30,6 +31,8 @@ export default function DriverAssignmentOffersPage() {
   const [error, setError] = useState<string | null>(null);
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [messagingBookingId, setMessagingBookingId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const { toast, showToast, dismissToast } = useToast();
 
   const fetchOffers = useCallback(async () => {
@@ -66,6 +69,39 @@ export default function DriverAssignmentOffersPage() {
       clearInterval(interval);
     };
   }, [fetchOffers]);
+
+  // Ticks independently of the 5s data poll so the countdown/expired state
+  // shown below updates every second — without this, an offer's buttons
+  // could sit disabled for up to 5s after actually expiring (or, worse,
+  // *look* expired for up to 5s after the page loaded a stale snapshot)
+  // with no visible indication of why.
+  useEffect(() => {
+    const clock = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(clock);
+  }, []);
+
+  // As soon as a PENDING offer's own countdown hits zero, refetch right
+  // away instead of leaving a dead, disabled card on screen for up to 5
+  // more seconds waiting on the regular poll — this is purely a "move it
+  // out of the way faster" nicety, the server's expiresAt is still what
+  // actually governs whether Accept/Reject succeeds.
+  const refetchedForExpiry = useRef(new Set<string>());
+  useEffect(() => {
+    const newlyExpired = offers.some(
+      (o) =>
+        o.status === 'PENDING' &&
+        new Date(o.expiresAt).getTime() <= now &&
+        !refetchedForExpiry.current.has(o.id),
+    );
+    if (newlyExpired) {
+      for (const o of offers) {
+        if (o.status === 'PENDING' && new Date(o.expiresAt).getTime() <= now) {
+          refetchedForExpiry.current.add(o.id);
+        }
+      }
+      void fetchOffers();
+    }
+  }, [now, offers, fetchOffers]);
 
   const handleAccept = async (attemptId: string) => {
     setActioningId(attemptId);
@@ -165,7 +201,8 @@ export default function DriverAssignmentOffersPage() {
             <div className="space-y-4">
               {pendingOffers.map((offer) => {
                 const expiresDate = new Date(offer.expiresAt);
-                const isExpired = new Date() > expiresDate;
+                const secondsLeft = Math.max(0, Math.round((expiresDate.getTime() - now) / 1000));
+                const isExpired = secondsLeft <= 0;
 
                 return (
                   <div
@@ -181,9 +218,17 @@ export default function DriverAssignmentOffersPage() {
                           {offer.bookingType.replace('_', ' ')}
                         </span>
                       </div>
-                      <div className="text-xs text-amber-400 font-semibold">
-                        Expires: {expiresDate.toLocaleTimeString()}
-                      </div>
+                      {isExpired ? (
+                        <div className="text-xs text-red-400 font-semibold">
+                          Offer expired — refreshing…
+                        </div>
+                      ) : (
+                        <div
+                          className={`text-xs font-semibold ${secondsLeft <= 10 ? 'text-red-400' : 'text-amber-400'}`}
+                        >
+                          Expires in {secondsLeft}s ({expiresDate.toLocaleTimeString()})
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -220,7 +265,27 @@ export default function DriverAssignmentOffersPage() {
                       >
                         Reject
                       </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMessagingBookingId((prev) =>
+                            prev === offer.bookingId ? null : offer.bookingId,
+                          )
+                        }
+                        className="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-base">chat</span>
+                        Message Customer
+                      </button>
                     </div>
+
+                    {messagingBookingId === offer.bookingId && (
+                      <BookingMessagePanel
+                        viewerRole="DRIVER"
+                        apiBasePath={`/api/driver/bookings/${offer.bookingId}/messages`}
+                        title="Message Customer"
+                      />
+                    )}
                   </div>
                 );
               })}

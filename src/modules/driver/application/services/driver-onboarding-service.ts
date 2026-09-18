@@ -16,8 +16,10 @@ import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-r
 import {
   DriverProfileNotFoundError,
   InvalidDriverStatusTransitionError,
+  DriverDocumentsNotVerifiedError,
 } from '../../domain/errors';
 import { getOrCreateDriverProfile, type DriverProfileWithContact } from './driver-profile-service';
+import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 
 /**
  * Submits driver profile and documents for administrative review.
@@ -257,34 +259,23 @@ export async function approveDriver(
       tx,
     )) as DriverDocumentType[];
 
+    // Approval must never itself verify or fabricate a document — that would
+    // let a driver reach dispatch eligibility without a real admin document
+    // review ever having occurred (see verifyDocument/rejectDocument in
+    // driver-document-service.ts, the only legitimate path to VERIFIED).
+    // Every required document must already be independently verified, and
+    // not expired, before approval can proceed.
     const now = new Date();
-    for (const reqType of requiredDocTypes) {
+    const missingOrUnverified = requiredDocTypes.filter((reqType) => {
       const doc = profile.documents.find((d) => d.documentType === reqType);
-      if (!doc) {
-        await tx.driverDocument.create({
-          data: {
-            driverProfileId,
-            documentType: reqType,
-            documentNumber: `VERIFIED-${reqType}-${Date.now().toString().slice(-6)}`,
-            storageKey: 'docs/verified-document.pdf',
-            originalFileName: 'verified-document.pdf',
-            contentType: 'application/pdf',
-            fileSizeBytes: 2048,
-            status: DriverDocumentStatus.VERIFIED,
-            isCurrent: true,
-            verifiedAt: now,
-            expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
-          },
-        });
-      } else if (doc.status !== DriverDocumentStatus.VERIFIED) {
-        await tx.driverDocument.update({
-          where: { id: doc.id },
-          data: {
-            status: DriverDocumentStatus.VERIFIED,
-            verifiedAt: now,
-          },
-        });
-      }
+      if (!doc) return true;
+      if (doc.status !== DriverDocumentStatus.VERIFIED) return true;
+      if (doc.expiresAt && doc.expiresAt < now) return true;
+      return false;
+    });
+
+    if (missingOrUnverified.length > 0) {
+      throw new DriverDocumentsNotVerifiedError(missingOrUnverified);
     }
 
     const updated = await tx.driverProfile.update({
@@ -298,6 +289,14 @@ export async function approveDriver(
         rejectionReason: null,
       },
     });
+
+    // Synchronize User.accountStatus to ACTIVE so the driver becomes eligible to go online immediately
+    if (tx.user?.update) {
+      await tx.user.update({
+        where: { id: profile.userId },
+        data: { accountStatus: 'ACTIVE' },
+      });
+    }
 
     await tx.driverOnboardingLog.create({
       data: {
@@ -325,6 +324,15 @@ export async function approveDriver(
       aggregateId: driverProfileId,
       payload: { driverProfileId, approvedBy: adminUserId },
     });
+
+    // Process referral reward if driver was referred by another user
+    await evaluateAndQualifyReferral(
+      {
+        userId: profile.userId,
+        trigger: 'DRIVER_APPROVED_ONBOARDING',
+      },
+      tx,
+    );
 
     return updated;
   });

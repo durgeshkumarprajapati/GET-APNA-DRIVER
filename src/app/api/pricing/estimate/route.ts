@@ -5,6 +5,8 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calculation-service';
 import { evaluateEligiblePromotions } from '@/modules/promotion/application/services/promotion-eligibility-service';
+import { isRateSelectableHireBooking } from '@/modules/booking/domain/booking-policy';
+import { peekDriverHireRate } from '@/modules/booking/application/driver-hire-availability-service';
 
 const coordinatesSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -21,15 +23,26 @@ const estimateSchema = z.object({
   numberOfWeeks: z.number().int().min(1).max(52).nullable().optional(),
   numberOfMonths: z.number().int().min(1).max(12).nullable().optional(),
   hourlyPackageHours: z.number().int().min(1).max(24).nullable().optional(),
+  preferredDriverProfileId: z.string().uuid().nullable().optional(),
 });
 
 export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
   try {
     const body = await req.json();
     const parsed = estimateSchema.parse(body);
+    const bookingType = parsed.bookingType ?? BookingType.POINT_TO_POINT;
+
+    // Best-effort only — a live preview never validates availability or
+    // conflicts, it just previews what the selected driver's own rate would
+    // quote. If the driver hasn't set a rate, the estimate silently falls
+    // back to the platform-default rate for that field.
+    const driverCustomRate =
+      parsed.preferredDriverProfileId && isRateSelectableHireBooking(bookingType)
+        ? await peekDriverHireRate(parsed.preferredDriverProfileId, bookingType)
+        : null;
 
     const estimate = await calculateEstimatedFare({
-      bookingType: parsed.bookingType ?? BookingType.POINT_TO_POINT,
+      bookingType,
       pickup: parsed.pickup,
       dropoff: parsed.dropoff ?? null,
       estimatedDurationMinutes: parsed.estimatedDurationMinutes,
@@ -38,6 +51,7 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
       numberOfWeeks: parsed.numberOfWeeks,
       numberOfMonths: parsed.numberOfMonths,
       hourlyPackageHours: parsed.hourlyPackageHours,
+      driverCustomRate,
     });
 
     // Advisory only — the booking-creation flow re-validates and re-computes

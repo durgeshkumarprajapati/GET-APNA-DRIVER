@@ -57,6 +57,7 @@ export const PERMISSIONS = {
   FINANCE_WALLET_READ: 'finance.wallet.read',
   FINANCE_SETTLEMENT_MANAGE: 'finance.settlement.manage',
   FINANCE_COMMISSION_MANAGE: 'finance.commission.manage',
+  ADMIN_PRICING_MANAGE: 'admin.pricing.manage',
 
   // Promotions & Growth (Phase 20 domain)
   PROMOTIONS_READ: 'promotions.read',
@@ -102,6 +103,10 @@ export const PERMISSIONS = {
   CALL_CUSTOMER_INITIATE: 'calling.customer.initiate',
   CALL_SUPPORT_INITIATE: 'calling.support.initiate',
   ADMIN_CALLS_READ: 'admin.calls.read',
+
+  // Direct booking messaging (customer <-> driver text chat)
+  MESSAGE_DRIVER_SEND: 'messaging.driver.send',
+  MESSAGE_CUSTOMER_SEND: 'messaging.customer.send',
 
   // Driver Schedule & Availability (Phase 29 domain & admin)
   DRIVER_SCHEDULE_READ: 'driver.schedule.read',
@@ -306,6 +311,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.FINANCE_COMMISSION_MANAGE,
     description: 'View and update the platform commission rate (admin).',
   },
+  {
+    code: PERMISSIONS.ADMIN_PRICING_MANAGE,
+    description: 'View and update platform pricing rules and rates (admin).',
+  },
 
   {
     code: PERMISSIONS.PROMOTIONS_READ,
@@ -390,6 +399,14 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_CALLS_READ,
     description: 'View platform call sessions and telephony logs (admin).',
+  },
+  {
+    code: PERMISSIONS.MESSAGE_DRIVER_SEND,
+    description: 'Send and read direct text messages with the assigned or offered driver.',
+  },
+  {
+    code: PERMISSIONS.MESSAGE_CUSTOMER_SEND,
+    description: 'Send and read direct text messages with the booking customer.',
   },
 
   {
@@ -568,6 +585,18 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_INCIDENT_ESCALATE,
     description: 'Escalate trip incidents to emergency or operational support teams.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_PLATFORM_HEALTH_READ,
+    description: 'View overall platform health status and SRE observability dashboards (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_PLATFORM_DIAGNOSTICS_READ,
+    description: 'View platform diagnostics and troubleshooting detail (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
+    description: 'View platform performance and reliability metrics (admin).',
   },
   {
     code: PERMISSIONS.ADMIN_OPERATIONS_READ,
