@@ -14,6 +14,7 @@ import { registerCallingEventHandlers } from './jobs/calling-event-handlers';
 import { registerDriverEngagementEventHandlers } from './jobs/driver-engagement-event-handlers';
 import { processDueScheduledRides } from '@/modules/scheduled-rides/application/scheduled-ride-generator';
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
+import { runAssignmentExpirySweep } from './jobs/assignment-expiry-sweep-job';
 
 /** Hard ceiling on how long shutdown waits for the current batch to drain before forcing exit. */
 const SHUTDOWN_FORCE_EXIT_MS = 30_000;
@@ -60,6 +61,15 @@ async function bootstrapWorker(): Promise<void> {
   while (isRunning) {
     try {
       const processedCount = await outboxDispatcherService.runBatch();
+
+      // Every iteration — a driver who never responds to an offer must not
+      // leave the customer's booking stuck in SEARCHING_DRIVER forever (see
+      // assignment-expiry-sweep-job.ts). The query is a cheap, indexed,
+      // bounded-batch lookup, so running it unconditionally rather than
+      // gating it behind the iteration counter (like the jobs below) keeps
+      // the response-timeout window meaningful even when the outbox is
+      // otherwise idle.
+      await runAssignmentExpirySweep();
 
       // Periodically process due scheduled rides
       iteration++;

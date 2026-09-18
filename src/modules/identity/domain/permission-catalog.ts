@@ -311,6 +311,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.FINANCE_COMMISSION_MANAGE,
     description: 'View and update the platform commission rate (admin).',
   },
+  {
+    code: PERMISSIONS.ADMIN_PRICING_MANAGE,
+    description: 'View and update platform pricing rules and rates (admin).',
+  },
 
   {
     code: PERMISSIONS.PROMOTIONS_READ,
@@ -581,6 +585,18 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_INCIDENT_ESCALATE,
     description: 'Escalate trip incidents to emergency or operational support teams.',
+  },
+  {
+    code: PERMISSIONS.ADMIN_PLATFORM_HEALTH_READ,
+    description: 'View overall platform health status and SRE observability dashboards (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_PLATFORM_DIAGNOSTICS_READ,
+    description: 'View platform diagnostics and troubleshooting detail (admin).',
+  },
+  {
+    code: PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
+    description: 'View platform performance and reliability metrics (admin).',
   },
   {
     code: PERMISSIONS.ADMIN_OPERATIONS_READ,

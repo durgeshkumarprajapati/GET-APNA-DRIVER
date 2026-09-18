@@ -93,9 +93,20 @@ export async function findAndOfferNextDriver(
   const initialRadius = await getInteger('booking.matching.initial_radius_meters', 5000, db);
   const radiusIncrement = await getInteger('booking.matching.radius_increment_meters', 2500, db);
   const maxRadius = await getInteger('booking.matching.maximum_radius_meters', 20000, db);
+  // 30s was too tight against real-world latency: the driver app polls for
+  // new offers every 5s, plus push-notification delivery time, plus the
+  // time it actually takes a person to look at their phone and decide —
+  // that easily eats most of a 30s window before the driver has even seen
+  // the offer, leaving Accept/Reject looking permanently disabled by the
+  // time they do. 120s (2 minutes) gives a realistic margin without
+  // materially slowing dispatch to the next candidate if a driver
+  // genuinely doesn't respond — this default only applies when no
+  // SystemConfiguration row exists yet; an existing seeded row (see
+  // prisma/seed.ts) still wins until it's updated via
+  // POST /api/admin/configuration or a fresh seed run.
   const responseTimeoutSeconds = await getInteger(
     'booking.matching.driver_response_timeout_seconds',
-    30,
+    120,
     db,
   );
 
