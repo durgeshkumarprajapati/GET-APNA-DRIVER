@@ -66,6 +66,30 @@ interface HireDriverRecord {
   rate: string;
 }
 
+interface DriverReviewRecord {
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewerLabel: string;
+}
+
+interface DriverProfileDetail {
+  driverProfileId: string;
+  displayName: string;
+  profileImageUrl: string | null;
+  bio: string | null;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  memberSince: string;
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: { 5: number; 4: number; 3: number; 2: number; 1: number };
+  completedTrips: number;
+  completionRate: string;
+  recentReviews: DriverReviewRecord[];
+  rate: string | null;
+}
+
 interface BookingRecord {
   id: string;
   customerId: string;
@@ -160,6 +184,12 @@ function BookDriverPageInner() {
   const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverRecord[]>([]);
   const [hireDrivers, setHireDrivers] = useState<HireDriverRecord[]>([]);
   const [hireDriversLoading, setHireDriversLoading] = useState(false);
+  const [viewingDriverId, setViewingDriverId] = useState<string | null>(null);
+  const [viewingDriverProfile, setViewingDriverProfile] = useState<DriverProfileDetail | null>(
+    null,
+  );
+  const [viewingDriverLoading, setViewingDriverLoading] = useState(false);
+  const [viewingDriverError, setViewingDriverError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
@@ -298,6 +328,44 @@ function BookDriverPageInner() {
       isMounted = false;
     };
   }, [selectedBookingType, hireDurationValue, hireStartTime]);
+
+  // Loads the full profile (bio, rating breakdown, recent reviews, rate for
+  // this hire type) for whichever driver the customer just tapped in the
+  // "Choose Your Driver" list, so they can review before committing —
+  // required reading before selection, not just a name/rate row.
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!viewingDriverId) {
+        if (isMounted) setViewingDriverProfile(null);
+        return;
+      }
+      if (isMounted) {
+        setViewingDriverLoading(true);
+        setViewingDriverError(null);
+      }
+      try {
+        const params = new URLSearchParams({ bookingType: selectedBookingType });
+        const res = await fetch(
+          `/api/customer/drivers/${viewingDriverId}/profile?${params.toString()}`,
+        );
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          setViewingDriverProfile(data.profile);
+        } else {
+          setViewingDriverError(t('customer.booking.driverProfileLoadError'));
+        }
+      } catch {
+        if (isMounted) setViewingDriverError(t('customer.booking.driverProfileLoadError'));
+      } finally {
+        if (isMounted) setViewingDriverLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [viewingDriverId, selectedBookingType, t]);
 
   // Prefill from a dashboard "Book Again" action or a saved-place shortcut.
   // Book Again only ever reuses pickup/dropoff/service-type from the prior
@@ -1133,31 +1201,43 @@ function BookDriverPageInner() {
                       <button
                         key={driver.driverProfileId}
                         type="button"
-                        onClick={() => setPreferredDriverProfileId(driver.driverProfileId)}
+                        onClick={() => setViewingDriverId(driver.driverProfileId)}
                         className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
                           preferredDriverProfileId === driver.driverProfileId
                             ? 'bg-[#00311f] border-[#25a475]'
                             : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
                         }`}
                       >
-                        <div className="flex flex-col gap-0.5 min-w-0">
-                          <span className="text-xs font-semibold text-[#dfe2ee] truncate">
-                            {hireDriverDisplayName(driver)}
+                        <div className="flex items-center gap-2 min-w-0">
+                          {preferredDriverProfileId === driver.driverProfileId && (
+                            <span className="material-symbols-outlined text-[#25a475] text-base shrink-0">
+                              check_circle
+                            </span>
+                          )}
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-xs font-semibold text-[#dfe2ee] truncate">
+                              {hireDriverDisplayName(driver)}
+                            </span>
+                            <span className="text-[10px] text-[#87948b] font-mono">
+                              {t('customer.favorites.rating', {
+                                rating: driver.ratingAverage.toFixed(1),
+                              })}{' '}
+                              ·{' '}
+                              {t('customer.booking.experienceYears', {
+                                years: driver.drivingExperienceYears,
+                                defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs font-bold text-[#25a475] font-mono">
+                            {formatCurrency(Number(driver.rate))}
                           </span>
-                          <span className="text-[10px] text-[#87948b] font-mono">
-                            {t('customer.favorites.rating', {
-                              rating: driver.ratingAverage.toFixed(1),
-                            })}{' '}
-                            ·{' '}
-                            {t('customer.booking.experienceYears', {
-                              years: driver.drivingExperienceYears,
-                              defaultValue: `${driver.drivingExperienceYears} yrs exp`,
-                            })}
+                          <span className="text-[9px] text-[#87948b] uppercase font-semibold underline">
+                            {t('customer.booking.viewDetailsLink', { defaultValue: 'View Details' })}
                           </span>
                         </div>
-                        <span className="text-xs font-bold text-[#25a475] shrink-0 font-mono">
-                          {formatCurrency(Number(driver.rate))}
-                        </span>
                       </button>
                     ))}
                   </div>
@@ -1349,6 +1429,159 @@ function BookDriverPageInner() {
           </section>
         </div>
       </div>
+
+      {/* Driver Detail Review Modal — required stop before selecting a
+          driver for a DAILY/WEEKLY/MONTHLY hire: full profile, rating
+          breakdown, recent reviews, and the rate for this specific hire,
+          reviewed before the customer commits to that driver. */}
+      {viewingDriverId && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0f1319] border border-[#262a33] rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  {t('customer.booking.driverDetailsTitle', { defaultValue: 'Driver Details' })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setViewingDriverId(null)}
+                  className="text-[#87948b] hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              {viewingDriverLoading ? (
+                <p className="text-xs text-[#87948b] py-8 text-center">
+                  {t('customer.booking.loadingDriverProfile', {
+                    defaultValue: 'Loading driver profile…',
+                  })}
+                </p>
+              ) : viewingDriverError ? (
+                <p className="text-xs text-red-400 py-8 text-center">{viewingDriverError}</p>
+              ) : viewingDriverProfile ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="h-16 w-16 rounded-full bg-[#262a33] border border-[#25a475]/40 flex items-center justify-center text-xl font-bold text-white uppercase overflow-hidden shrink-0">
+                      {viewingDriverProfile.profileImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={viewingDriverProfile.profileImageUrl}
+                          alt={viewingDriverProfile.displayName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        viewingDriverProfile.displayName?.[0] || 'D'
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-base font-bold text-white truncate">
+                        {viewingDriverProfile.displayName}
+                      </span>
+                      <span className="text-[11px] text-[#87948b]">
+                        {t('customer.tracking.serviceAreaLabel', {
+                          area:
+                            viewingDriverProfile.primaryServiceArea ||
+                            t('customer.tracking.serviceAreaFallback'),
+                        })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
+                      <div className="text-sm font-bold text-[#25a475]">
+                        {viewingDriverProfile.averageRating.toFixed(1)}★
+                      </div>
+                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                        {t('customer.booking.reviewsCountLabel', {
+                          count: viewingDriverProfile.totalReviews,
+                          defaultValue: `${viewingDriverProfile.totalReviews} reviews`,
+                        })}
+                      </div>
+                    </div>
+                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
+                      <div className="text-sm font-bold text-white">
+                        {viewingDriverProfile.drivingExperienceYears}
+                      </div>
+                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                        {t('customer.booking.yearsExpLabel', { defaultValue: 'Years Exp' })}
+                      </div>
+                    </div>
+                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
+                      <div className="text-sm font-bold text-white">
+                        {viewingDriverProfile.completedTrips}
+                      </div>
+                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                        {t('customer.booking.tripsCompletedLabel', {
+                          defaultValue: 'Trips Done',
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {viewingDriverProfile.bio && (
+                    <p className="text-xs text-[#dfe2ee] bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
+                      {viewingDriverProfile.bio}
+                    </p>
+                  )}
+
+                  {viewingDriverProfile.rate && (
+                    <div className="flex items-center justify-between bg-[#00311f] border border-[#25a475]/40 rounded-lg p-3">
+                      <span className="text-xs text-[#bccac0]">
+                        {t('customer.booking.rateForThisHireLabel', {
+                          defaultValue: 'Rate for this hire',
+                        })}
+                      </span>
+                      <span className="text-sm font-bold text-[#25a475]">
+                        {formatCurrency(Number(viewingDriverProfile.rate))}
+                      </span>
+                    </div>
+                  )}
+
+                  {viewingDriverProfile.recentReviews.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider">
+                        {t('customer.booking.recentReviewsLabel', {
+                          defaultValue: 'Recent Reviews',
+                        })}
+                      </span>
+                      {viewingDriverProfile.recentReviews.slice(0, 3).map((review, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33] text-[11px] text-[#dfe2ee]"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold">{review.reviewerLabel}</span>
+                            <span className="text-[#25a475]">{'★'.repeat(review.rating)}</span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-[#87948b]">{review.comment}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreferredDriverProfileId(viewingDriverProfile.driverProfileId);
+                      setViewingDriverId(null);
+                    }}
+                    className="w-full py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm transition-all font-['Space_Grotesk']"
+                  >
+                    {t('customer.booking.selectThisDriverBtn', {
+                      defaultValue: 'Select This Driver',
+                    })}
+                  </button>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ToastViewport toast={toast} onDismiss={dismissToast} />
     </CustomerLayout>
   );
