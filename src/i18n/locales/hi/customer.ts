@@ -55,6 +55,8 @@ export const customerHi = {
     ridePinSubtitle: 'यात्रा शुरू करने से पहले अपने ड्राइवर को यह 6-अंकों का पिन दें',
     pickupLockedEyebrow: 'पिकअप टेलीमेट्री लॉक्ड',
     pickupSetTag: 'पिकअप स्थान सेट किया गया',
+    detectingLocation: 'आपका स्थान पता लगाया जा रहा है…',
+    locationNotSet: 'स्थान सेट नहीं है — बदलें पर टैप करें या वर्तमान स्थान का उपयोग करें',
     currentPickupZoneLabel: 'वर्तमान पिकअप ज़ोन',
     changeBtn: 'बदलें',
     destinationZoneLabel: 'गंतव्य / ड्रॉप ज़ोन',

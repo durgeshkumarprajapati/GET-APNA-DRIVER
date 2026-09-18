@@ -55,6 +55,8 @@ export const customerGu = {
     ridePinSubtitle: 'મુસાફરી શરૂ કરતા પહેલા તમારા ડ્રાઇવરને આ 6-અંકનો પિન આપો',
     pickupLockedEyebrow: 'પિકઅપ ટેલિમેટ્રી લોક થયેલ',
     pickupSetTag: 'પિકઅપ સ્થળ સેટ કરેલ',
+    detectingLocation: 'તમારું સ્થાન શોધી રહ્યા છીએ…',
+    locationNotSet: 'સ્થાન સેટ નથી — બદલો પર ટેપ કરો અથવા હાલનું સ્થાન વાપરો',
     currentPickupZoneLabel: 'હાલનું પિકઅપ ઝોન',
     changeBtn: 'બદલો',
     destinationZoneLabel: 'ગંતવ્ય / ડ્રોપ ઝોન',

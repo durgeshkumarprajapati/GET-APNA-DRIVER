@@ -55,6 +55,8 @@ export const customerPa = {
     ridePinSubtitle: 'ਸਵਾਰੀ ਸ਼ੁਰੂ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਡਰਾਈਵਰ ਨੂੰ ਇਹ 6 ਅੰਕਾਂ ਦਾ PIN ਦਿਓ',
     pickupLockedEyebrow: 'ਪਿਕਅੱਪ ਸਥਾਨ ਸੈੱਟ ਹੈ',
     pickupSetTag: 'ਪਿਕਅੱਪ ਸਥਾਨ ਨਿਰਧਾਰਿਤ',
+    detectingLocation: 'ਤੁਹਾਡਾ ਸਥਾਨ ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ…',
+    locationNotSet: 'ਸਥਾਨ ਸੈੱਟ ਨਹੀਂ ਹੈ — ਬਦਲੋ \'ਤੇ ਟੈਪ ਕਰੋ ਜਾਂ ਮੌਜੂਦਾ ਸਥਾਨ ਵਰਤੋ',
     currentPickupZoneLabel: 'ਮੌਜੂਦਾ ਪਿਕਅੱਪ ਖੇਤਰ',
     changeBtn: 'ਬਦਲੋ',
     destinationZoneLabel: 'ਗੰਭੀਰ ਸਥਾਨ',

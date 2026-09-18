@@ -55,6 +55,8 @@ export const customerKn = {
     ridePinSubtitle: 'ಸವಾರಿ ಪ್ರಾರಂಭಿಸುವ ಮೊದಲು ಈ 6 ಅಂಕಿಯ PIN ಅನ್ನು ಚಾಲಕರಿಗೆ ನೀಡಿ',
     pickupLockedEyebrow: 'ಪಿಕಪ್ ಲಾಕ್ ಮಾಡಲಾಗಿದೆ',
     pickupSetTag: 'ಪಿಕಪ್ ಸ್ಥಳ ಹೊಂದಿಸಲಾಗಿದೆ',
+    detectingLocation: 'ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಪತ್ತೆ ಮಾಡಲಾಗುತ್ತಿದೆ…',
+    locationNotSet: 'ಸ್ಥಳ ಹೊಂದಿಸಿಲ್ಲ — ಬದಲಾಯಿಸಿ ಟ್ಯಾಪ್ ಮಾಡಿ ಅಥವಾ ಪ್ರಸ್ತುತ ಸ್ಥಳವನ್ನು ಬಳಸಿ',
     currentPickupZoneLabel: 'ಪ್ರಸ್ತುತ ಪಿಕಪ್ ವಲಯ',
     changeBtn: 'ಬದಲಾಯಿಸಿ',
     destinationZoneLabel: 'ತಲುಪುವ ಸ್ಥಳ',

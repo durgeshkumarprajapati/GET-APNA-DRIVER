@@ -55,6 +55,8 @@ export const customerTe = {
     ridePinSubtitle: 'రైడ్ ప్రారంభించే ముందు డ్రైవర్‌కు ఈ 6 అంకెల పిన్ చెప్పండి',
     pickupLockedEyebrow: 'పికప్ లాక్ చేయబడింది',
     pickupSetTag: 'పికప్ స్థానం ఎంచుకోబడింది',
+    detectingLocation: 'మీ లొకేషన్‌ను గుర్తిస్తున్నాము…',
+    locationNotSet: 'లొకేషన్ సెట్ చేయబడలేదు — మార్చు నొక్కండి లేదా ప్రస్తుత లొకేషన్‌ను ఉపయోగించండి',
     currentPickupZoneLabel: 'ప్రస్తుత పికప్ జోన్',
     changeBtn: 'మార్చండి',
     destinationZoneLabel: 'గమ్యస్థానం',

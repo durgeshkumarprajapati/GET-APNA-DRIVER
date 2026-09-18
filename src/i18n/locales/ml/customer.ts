@@ -55,6 +55,8 @@ export const customerMl = {
     ridePinSubtitle: 'യാത്ര തുടങ്ങുന്നതിന് മുൻപ് ഈ 6 അക്ക PIN ഡ്രൈവർക്ക് നൽകുക',
     pickupLockedEyebrow: 'പിക്കപ്പ് ലൊക്കേഷൻ സെറ്റ് ചെയ്തു',
     pickupSetTag: 'പിക്കപ്പ് സ്ഥലം ഉറപ്പിച്ചു',
+    detectingLocation: 'നിങ്ങളുടെ ലൊക്കേഷൻ കണ്ടെത്തുന്നു…',
+    locationNotSet: 'ലൊക്കേഷൻ സെറ്റ് ചെയ്തിട്ടില്ല — മാറ്റുക ടാപ്പ് ചെയ്യുക അല്ലെങ്കിൽ നിലവിലെ ലൊക്കേഷൻ ഉപയോഗിക്കുക',
     currentPickupZoneLabel: 'നിലവിലെ പിക്കപ്പ് ഏരിയ',
     changeBtn: 'മാറ്റുക',
     destinationZoneLabel: 'പോകേണ്ട സ്ഥലം',

@@ -55,6 +55,8 @@ export const customerBn = {
     ridePinSubtitle: 'ট্রিপ শুরু করার আগে ড্রাইভারকে এই ৬ ডিজিটের PIN টি দিন',
     pickupLockedEyebrow: 'পিকআপ স্থান লক করা হয়েছে',
     pickupSetTag: 'পিকআপ স্থান সেট করা হয়েছে',
+    detectingLocation: 'আপনার অবস্থান শনাক্ত করা হচ্ছে…',
+    locationNotSet: 'অবস্থান সেট করা হয়নি — পরিবর্তন করুন-এ ট্যাপ করুন অথবা বর্তমান অবস্থান ব্যবহার করুন',
     currentPickupZoneLabel: 'বর্তমান পিকআপ জোন',
     changeBtn: 'পরিবর্তন করুন',
     destinationZoneLabel: 'গন্তব্য স্থান',

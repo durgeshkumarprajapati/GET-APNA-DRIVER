@@ -55,6 +55,8 @@ export const customerTa = {
     ridePinSubtitle: 'பயணத்தை தொடங்குவதற்கு முன் ஓட்டுநரிடம் இந்த 6 இலக்க PIN-ஐ வழங்கவும்',
     pickupLockedEyebrow: 'பிக்கப் லாக் செய்யப்பட்டது',
     pickupSetTag: 'பிக்கப் இடம் அமைக்கப்பட்டது',
+    detectingLocation: 'உங்கள் இருப்பிடத்தைக் கண்டறிகிறோம்…',
+    locationNotSet: 'இருப்பிடம் அமைக்கப்படவில்லை — மாற்று என்பதைத் தட்டவும் அல்லது தற்போதைய இருப்பிடத்தைப் பயன்படுத்தவும்',
     currentPickupZoneLabel: 'தற்போதைய பிக்கப் பகுதி',
     changeBtn: 'மாற்று',
     destinationZoneLabel: 'செல்லும் இடம்',

@@ -55,6 +55,8 @@ export const customerEn = {
     ridePinSubtitle: 'Provide this 6-digit PIN to your driver before starting the trip',
     pickupLockedEyebrow: 'Pickup Telemetry Locked',
     pickupSetTag: 'Pickup location set',
+    detectingLocation: 'Detecting your location…',
+    locationNotSet: "Location not set — tap Change or use current location",
     currentPickupZoneLabel: 'Current Pickup Zone',
     changeBtn: 'Change',
     destinationZoneLabel: 'Destination / Dropoff Zone',

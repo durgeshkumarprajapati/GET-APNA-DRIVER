@@ -55,6 +55,8 @@ export const customerMr = {
     ridePinSubtitle: 'ट्रिप सुरू करण्यापूर्वी तुमच्या ड्रायव्हरला हा ६-अंकी पिन द्या',
     pickupLockedEyebrow: 'पिकअप टेलिमेट्री लॉक',
     pickupSetTag: 'पिकअप ठिकाण निश्चित',
+    detectingLocation: 'तुमचे स्थान शोधले जात आहे…',
+    locationNotSet: 'स्थान सेट केलेले नाही — बदला वर टॅप करा किंवा सध्याचे स्थान वापरा',
     currentPickupZoneLabel: 'सध्याचे पिकअप क्षेत्र',
     changeBtn: 'बदला',
     destinationZoneLabel: 'गंतव्य / ड्रॉपऑफ क्षेत्र',
