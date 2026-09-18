@@ -405,6 +405,13 @@ export async function completeTrip(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        // customerId/driverUserId are what the notification handler for
+        // this event actually keys its `if (customerId)`/`if (driverUserId)`
+        // checks on — without them, neither notification (including the
+        // customer's "please rate your driver" prompt) was ever created,
+        // even though the handler code for it already existed.
+        customerId: booking.customerId,
+        driverUserId,
         driverProfileId: profile.id,
         finalFareAmount: finalFareResult.breakdown.totalFareAmount,
         tripCompletedAt: now.toISOString(),

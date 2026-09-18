@@ -65,9 +65,43 @@ jest.mock('@/modules/location/application/driver-location-service', () => ({
   addDriverToLiveIndex: jest.fn().mockResolvedValue(undefined),
 }));
 
+// completeTrip calls both of these for post-trip milestone/incentive
+// evaluation; both were previously unmocked in this file, so `completeTrip`
+// tests occasionally reached their real (DB-touching, prisma-mock-shaped-
+// wrong) implementations and hung until jest's 5000ms test timeout — an
+// intermittent flake unrelated to whatever the test itself was asserting.
+jest.mock('@/modules/identity/application/services/referral-service', () => ({
+  evaluateAndQualifyReferral: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('@/modules/incentive/application/services/incentive-evaluator-service', () => ({
+  evaluateDriverIncentivesForCompletedTrip: jest.fn().mockResolvedValue(undefined),
+}));
+
+// calculateFinalFare (called by completeTrip) pulls in Controlled Dynamic
+// Pricing, which in turn queries marketplace-intelligence zone/supply data
+// for real — several more unmocked real dependencies transitively reached
+// from this one test file. Short-circuiting it here keeps completeTrip
+// tests testing completeTrip, not the entire pricing/marketplace stack.
+jest.mock('@/modules/dynamic-pricing/application/dynamic-pricing-service', () => ({
+  evaluateDynamicPricing: jest.fn().mockResolvedValue({
+    baseFareAmount: 0,
+    dynamicAdjustmentAmount: 0,
+    finalGrossFareAmount: 0,
+    appliedPolicyId: null,
+    appliedPolicyVersion: null,
+    appliedPolicyName: null,
+    pressureState: 'NORMAL',
+    adjustmentPercentage: 0,
+    flatSurgeAmount: 0,
+    wasCapped: false,
+  }),
+}));
+
 import { prisma } from '@/shared/database/prisma';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
+import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 
 describe('DriverJourneyService', () => {
   const mockGetOrCreateProfile = getOrCreateDriverProfile as jest.Mock;
@@ -191,6 +225,33 @@ describe('DriverJourneyService', () => {
         data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
       });
       expect(addDriverToLiveIndex).toHaveBeenCalledWith('drv-prof-1', expect.anything());
+    });
+
+    it("includes customerId and driverUserId in the 'booking.trip.completed' outbox payload, so the trip-completed notifications (including the customer's rate-your-driver prompt) actually get created", async () => {
+      const mockInProgressBooking = {
+        ...mockBookingAssigned,
+        status: BookingStatus.TRIP_IN_PROGRESS,
+      };
+      mockFindUniqueBooking.mockResolvedValue(mockInProgressBooking);
+      mockFindUniqueOrThrowBooking.mockResolvedValue({
+        ...mockInProgressBooking,
+        status: BookingStatus.TRIP_COMPLETED,
+        tripCompletedAt: new Date(),
+      });
+
+      await completeTrip('user-drv-1', 'bk-100');
+
+      expect(insertOutboxEvent).toHaveBeenCalledWith(
+        mockTx,
+        expect.objectContaining({
+          eventType: 'booking.trip.completed',
+          payload: expect.objectContaining({
+            bookingId: 'bk-100',
+            customerId: 'cust-1',
+            driverUserId: 'user-drv-1',
+          }),
+        }),
+      );
     });
   });
 

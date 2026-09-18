@@ -222,8 +222,14 @@ export function registerNotificationEventHandlers(): void {
             userId: customerId,
             type: NotificationType.BOOKING_TRIP_COMPLETED,
             title: 'Trip Completed',
-            body: 'Thank you for riding with us! Please rate your chauffeur experience.',
+            body: 'Thank you for riding with us! Tap to rate your chauffeur.',
             data: { bookingId },
+            // Straight to this specific booking's tracker page, which
+            // already shows the "Rate Your Driver" form once TRIP_COMPLETED
+            // — not the generic bookings list (the template's
+            // defaultActionUrl), which would leave the customer to go find
+            // the right booking themselves.
+            actionUrl: `/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-customer-trip-completed`,
           },
           db ?? prisma,
@@ -238,6 +244,7 @@ export function registerNotificationEventHandlers(): void {
             title: 'Mission Fulfilled',
             body: 'Trip completed successfully. Earnings credited to your driver wallet.',
             data: { bookingId },
+            actionUrl: `/driver/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-driver-trip-completed`,
           },
           db ?? prisma,
