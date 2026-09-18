@@ -101,6 +101,7 @@ model User {
   customerSupportTickets  SupportTicket[]          @relation("CustomerSupportTickets")
   assignedSupportTickets  SupportTicket[]          @relation("AssignedSupportTickets")
   supportMessages         SupportMessage[]
+  sentBookingMessages     BookingMessage[]
   initiatedCalls          CallSession[]            @relation("InitiatedCalls")
   customerCalls           CallSession[]            @relation("CustomerCalls")
   customerTaxInvoices     TaxInvoice[]             @relation("CustomerTaxInvoices")
@@ -576,6 +577,14 @@ model DriverProfile {
   bio                    String?
   drivingExperienceYears Int                      @default(0) @map("driving_experience_years")
   primaryServiceArea     String?                  @map("primary_service_area")
+
+  /// Driver-set rate for a full DAILY/WEEKLY/MONTHLY hire (not per-km/per-minute).
+  /// Null means the driver has not opted into that hire type, so they are
+  /// excluded from the customer-facing browsable list for it — see
+  /// driver-hire-availability-service.ts.
+  dailyHireRate   Decimal? @map("daily_hire_rate") @db.Decimal(12, 4)
+  weeklyHireRate  Decimal? @map("weekly_hire_rate") @db.Decimal(12, 4)
+  monthlyHireRate Decimal? @map("monthly_hire_rate") @db.Decimal(12, 4)
   onboardingStatus       DriverOnboardingStatus   @default(NOT_STARTED) @map("onboarding_status")
   verificationStatus     DriverVerificationStatus @default(NOT_VERIFIED) @map("verification_status")
   approvalStatus         DriverApprovalStatus     @default(PENDING) @map("approval_status")
@@ -796,6 +805,13 @@ model Booking {
   preferredDriverProfileId String?        @map("preferred_driver_profile_id") @db.Uuid
   preferredDriver          DriverProfile? @relation("PreferredDriverBookings", fields: [preferredDriverProfileId], references: [id], onDelete: SetNull)
 
+  /// Frozen snapshot of the chosen driver's own hire rate (DriverProfile.
+  /// dailyHireRate/weeklyHireRate/monthlyHireRate), for DAILY/WEEKLY/MONTHLY
+  /// bookings only, captured at creation and reused unchanged for the final
+  /// fare at trip completion — a later change to the driver's listed rate
+  /// must never alter what this customer already agreed to pay.
+  driverCustomRateSnapshot Decimal? @map("driver_custom_rate_snapshot") @db.Decimal(12, 4)
+
   status      BookingStatus @default(DRAFT)
   bookingType BookingType   @default(ONE_WAY) @map("booking_type")
 
@@ -870,6 +886,7 @@ model Booking {
   promotionUsage     PromotionUsage?
   supportTickets           SupportTicket[]
   callSessions             CallSession[]
+  messages                 BookingMessage[]
   taxInvoice               TaxInvoice?
   loyaltyTransactions      LoyaltyPointTransaction[]  @relation("BookingLoyaltyTransactions")
   scheduledRideId          String?                    @map("scheduled_ride_id") @db.Uuid
@@ -1604,6 +1621,7 @@ enum NotificationType {
   BOOKING_TRIP_COMPLETED
   BOOKING_CANCELLED
   BOOKING_EXPIRED
+  BOOKING_MESSAGE_RECEIVED
   PAYMENT_CREATED
   PAYMENT_PROCESSING
   PAYMENT_CAPTURED
@@ -2312,6 +2330,25 @@ model SupportMessage {
   @@index([ticketId, isInternalNote, createdAt])
   @@index([authorUserId])
   @@map("support_messages")
+}
+
+/// Direct text message between a booking's customer and its assigned or
+/// currently-offered driver. Authorization (who may read/send) is enforced
+/// in booking-messaging-service.ts, not by this schema — a message thread
+/// exists once a specific driver is associated with the booking (assigned,
+/// or offered/preferred), not only after acceptance.
+model BookingMessage {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId    String   @map("booking_id") @db.Uuid
+  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderUserId String   @map("sender_user_id") @db.Uuid
+  sender       User     @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  body         String
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([bookingId, createdAt])
+  @@map("booking_messages")
 }
 
 // ---------------------------------------------------------------------------

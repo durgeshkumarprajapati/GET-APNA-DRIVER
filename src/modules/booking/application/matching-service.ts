@@ -1,6 +1,11 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
-import { BookingStatus, AssignmentAttemptStatus, DriverAvailabilityStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  AssignmentAttemptStatus,
+  DriverApprovalStatus,
+  DriverAvailabilityStatus,
+} from '@prisma/client';
 import { getInteger } from '@/shared/config/configuration-service';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
 import { validateBookingStatusTransition } from '../domain/booking-state-machine';
@@ -12,7 +17,8 @@ import {
   cancelBookingNoDriverFound,
   SEARCH_DEADLINE_SECONDS,
 } from '@/modules/dispatch/application/dispatch-search-service';
-import { isDriverHireBooking } from '../domain/booking-policy';
+import { isDriverHireBooking, isRateSelectableHireBooking } from '../domain/booking-policy';
+import { findConflictingDriverIds } from './driver-hire-availability-service';
 
 export interface MatchingResult {
   attemptId: string | null;
@@ -93,6 +99,122 @@ export async function findAndOfferNextDriver(
     db,
   );
 
+  // Transactionally creates a PENDING assignment attempt offering the given
+  // driver, and records the matching outbox event + audit log. Shared by
+  // both the normal geo-proximity path below and the DAILY/WEEKLY/MONTHLY
+  // no-fallback single-driver path.
+  const createOffer = async (
+    driverProfileId: string,
+    offerMessage: string,
+  ): Promise<MatchingResult> => {
+    const offerExpiresAt = new Date(now.getTime() + responseTimeoutSeconds * 1000);
+    const nextAttemptNumber = booking.assignmentAttempts.length + 1;
+
+    // The notification handler for 'booking.driver.offered' needs the
+    // driver's USER id, not their DriverProfile id — without this lookup,
+    // payload.driverUserId is always undefined and the driver is never
+    // actually notified of the offer (a bug that silently affected every
+    // booking type, not just this one).
+    const offeredDriverProfile = await db.driverProfile.findUnique({
+      where: { id: driverProfileId },
+      select: { userId: true },
+    });
+
+    const attempt = await db.$transaction(async (tx) => {
+      const createdAttempt = await tx.bookingAssignmentAttempt.create({
+        data: {
+          bookingId: booking.id,
+          driverProfileId,
+          attemptNumber: nextAttemptNumber,
+          status: AssignmentAttemptStatus.PENDING,
+          offeredAt: now,
+          expiresAt: offerExpiresAt,
+        },
+      });
+
+      await insertOutboxEvent(tx, {
+        eventType: 'booking.driver.offered',
+        aggregateType: 'BookingAssignmentAttempt',
+        aggregateId: createdAttempt.id,
+        payload: {
+          bookingId: booking.id,
+          attemptId: createdAttempt.id,
+          driverProfileId,
+          driverUserId: offeredDriverProfile?.userId ?? null,
+          attemptNumber: nextAttemptNumber,
+          offeredAt: now.toISOString(),
+          expiresAt: offerExpiresAt.toISOString(),
+        },
+      });
+
+      return createdAttempt;
+    });
+
+    await recordAuditLog(db, {
+      actorUserId: null,
+      action: 'booking.driver.offered',
+      entityType: 'BookingAssignmentAttempt',
+      entityId: attempt.id,
+      afterState: {
+        bookingId: booking.id,
+        driverProfileId,
+        attemptNumber: nextAttemptNumber,
+        expiresAt: offerExpiresAt.toISOString(),
+      },
+    });
+
+    return {
+      attemptId: attempt.id,
+      status: 'OFFERED',
+      message: offerMessage,
+    };
+  };
+
+  // DAILY/WEEKLY/MONTHLY hires require the customer to have already chosen
+  // a specific driver at that driver's own rate (enforced at booking
+  // creation — see booking-service.ts / driver-hire-availability-service.ts).
+  // By design there is no fallback to a different driver here: reassigning
+  // to someone else would silently change the price the customer agreed to.
+  // If the chosen driver is no longer available, the search expires outright
+  // rather than widening into the normal geo-proximity pool below.
+  if (isRateSelectableHireBooking(booking.bookingType)) {
+    const chosenDriverId = booking.preferredDriverProfileId;
+    let isStillAvailable = false;
+
+    if (chosenDriverId && !attemptedDriverIds.has(chosenDriverId)) {
+      const driverProfile = await db.driverProfile.findUnique({ where: { id: chosenDriverId } });
+      isStillAvailable =
+        !!driverProfile &&
+        driverProfile.approvalStatus === DriverApprovalStatus.APPROVED &&
+        driverProfile.availabilityStatus === DriverAvailabilityStatus.AVAILABLE;
+
+      if (isStillAvailable && booking.hireStartAt && booking.hireEndAt) {
+        const conflicting = await findConflictingDriverIds(
+          [chosenDriverId],
+          booking.hireStartAt,
+          booking.hireEndAt,
+          db,
+        );
+        isStillAvailable = !conflicting.has(chosenDriverId);
+      }
+    }
+
+    if (!chosenDriverId || !isStillAvailable) {
+      await cancelBookingNoDriverFound(booking.id, db);
+      return {
+        attemptId: null,
+        status: 'NO_DRIVERS_FOUND',
+        message:
+          'The selected driver is no longer available; this booking type does not fall back to another driver.',
+      };
+    }
+
+    return createOffer(
+      chosenDriverId,
+      "Assignment offer created for the customer's selected driver.",
+    );
+  }
+
   let currentRadius = initialRadius + booking.assignmentAttempts.length * radiusIncrement;
   currentRadius = Math.min(currentRadius, maxRadius);
 
@@ -109,33 +231,22 @@ export async function findAndOfferNextDriver(
   // Filter out drivers already attempted
   let unattempted = candidates.filter((c) => !attemptedDriverIds.has(c.driverId));
 
-  // For duration-based driver hire (HOURLY/DAILY/WEEKLY/MONTHLY/etc.), also
-  // exclude any candidate already committed to another hire whose window
-  // overlaps this booking's [hireStartAt, hireEndAt] — a driver assigned
-  // 10:00-18:00 today must never be offered a second hire for 12:00-14:00.
-  // This is additive: it narrows the candidate pool further, it never
-  // widens isDriverDispatchEligible's existing (broader) active-booking
-  // gate, so no previously-blocked driver becomes eligible here.
+  // For duration-based driver hire (HOURLY/FULL_DAY/MULTI_DAY — the hire
+  // types that still use the geo-proximity pool rather than the required
+  // single-driver path above), also exclude any candidate already committed
+  // to another hire whose window overlaps this booking's [hireStartAt,
+  // hireEndAt] — a driver assigned 10:00-18:00 today must never be offered a
+  // second hire for 12:00-14:00. This is additive: it narrows the candidate
+  // pool further, it never widens isDriverDispatchEligible's existing
+  // (broader) active-booking gate, so no previously-blocked driver becomes
+  // eligible here.
   if (isDriverHireBooking(booking.bookingType) && booking.hireStartAt && booking.hireEndAt) {
     const candidateIds = unattempted.map((c) => c.driverId);
-    const conflicts = await db.booking.findMany({
-      where: {
-        driverProfileId: { in: candidateIds },
-        status: {
-          in: [
-            BookingStatus.DRIVER_ASSIGNED,
-            BookingStatus.DRIVER_EN_ROUTE,
-            BookingStatus.DRIVER_ARRIVED,
-            BookingStatus.TRIP_IN_PROGRESS,
-          ],
-        },
-        hireStartAt: { lt: booking.hireEndAt },
-        hireEndAt: { gt: booking.hireStartAt },
-      },
-      select: { driverProfileId: true },
-    });
-    const conflictingDriverIds = new Set(
-      conflicts.map((c) => c.driverProfileId).filter((id): id is string => id !== null),
+    const conflictingDriverIds = await findConflictingDriverIds(
+      candidateIds,
+      booking.hireStartAt,
+      booking.hireEndAt,
+      db,
     );
     unattempted = unattempted.filter((c) => !conflictingDriverIds.has(c.driverId));
   }
@@ -221,57 +332,10 @@ export async function findAndOfferNextDriver(
       : unattempted[0];
   }
 
-  const offerExpiresAt = new Date(now.getTime() + responseTimeoutSeconds * 1000);
-  const nextAttemptNumber = booking.assignmentAttempts.length + 1;
-
-  // Transactionally create assignment attempt
-  const attempt = await db.$transaction(async (tx) => {
-    const createdAttempt = await tx.bookingAssignmentAttempt.create({
-      data: {
-        bookingId: booking.id,
-        driverProfileId: targetDriver.driverId,
-        attemptNumber: nextAttemptNumber,
-        status: AssignmentAttemptStatus.PENDING,
-        offeredAt: now,
-        expiresAt: offerExpiresAt,
-      },
-    });
-
-    await insertOutboxEvent(tx, {
-      eventType: 'booking.driver.offered',
-      aggregateType: 'BookingAssignmentAttempt',
-      aggregateId: createdAttempt.id,
-      payload: {
-        bookingId: booking.id,
-        attemptId: createdAttempt.id,
-        driverProfileId: targetDriver.driverId,
-        attemptNumber: nextAttemptNumber,
-        offeredAt: now.toISOString(),
-        expiresAt: offerExpiresAt.toISOString(),
-      },
-    });
-
-    return createdAttempt;
-  });
-
-  await recordAuditLog(db, {
-    actorUserId: null,
-    action: 'booking.driver.offered',
-    entityType: 'BookingAssignmentAttempt',
-    entityId: attempt.id,
-    afterState: {
-      bookingId: booking.id,
-      driverProfileId: targetDriver.driverId,
-      attemptNumber: nextAttemptNumber,
-      expiresAt: offerExpiresAt.toISOString(),
-    },
-  });
-
-  return {
-    attemptId: attempt.id,
-    status: 'OFFERED',
-    message: `Assignment offer #${nextAttemptNumber} created for driver ${targetDriver.displayName}.`,
-  };
+  return createOffer(
+    targetDriver.driverId,
+    `Assignment offer #${booking.assignmentAttempts.length + 1} created for driver ${targetDriver.displayName}.`,
+  );
 }
 
 /**

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
 
 interface AssignmentOffer {
   id: string;
@@ -30,6 +31,7 @@ export default function DriverAssignmentOffersPage() {
   const [error, setError] = useState<string | null>(null);
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [messagingBookingId, setMessagingBookingId] = useState<string | null>(null);
   const { toast, showToast, dismissToast } = useToast();
 
   const fetchOffers = useCallback(async () => {
@@ -220,7 +222,27 @@ export default function DriverAssignmentOffersPage() {
                       >
                         Reject
                       </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMessagingBookingId((prev) =>
+                            prev === offer.bookingId ? null : offer.bookingId,
+                          )
+                        }
+                        className="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-base">chat</span>
+                        Message Customer
+                      </button>
                     </div>
+
+                    {messagingBookingId === offer.bookingId && (
+                      <BookingMessagePanel
+                        viewerRole="DRIVER"
+                        apiBasePath={`/api/driver/bookings/${offer.bookingId}/messages`}
+                        title="Message Customer"
+                      />
+                    )}
                   </div>
                 );
               })}

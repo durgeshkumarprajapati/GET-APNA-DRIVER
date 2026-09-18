@@ -13,8 +13,13 @@ import {
   isBookingCancellable,
   validateBookingStatusTransition,
 } from '../domain/booking-state-machine';
-import { isDriverHireBooking, calculateHireEndTimestamp } from '../domain/booking-policy';
+import {
+  isDriverHireBooking,
+  isRateSelectableHireBooking,
+  calculateHireEndTimestamp,
+} from '../domain/booking-policy';
 import { findAndOfferNextDriver } from './matching-service';
+import { validateSelectedHireDriver } from './driver-hire-availability-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
@@ -25,6 +30,7 @@ import {
   BookingNotFoundError,
   BookingNotCancellableError,
   DuplicateBookingIdempotencyError,
+  DriverSelectionRequiredError,
 } from '../domain/errors';
 
 import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calculation-service';
@@ -42,6 +48,14 @@ export interface BookingDetail {
   customerId: string;
   driverProfileId: string | null;
   preferredDriverProfileId: string | null;
+  driverCustomRateSnapshot?: string | null;
+  /**
+   * The currently outstanding PENDING assignment attempt, if any — surfaced
+   * so the customer's tracker page can show "Request sent to <driver>,
+   * waiting for confirmation" instead of a generic "Searching" status.
+   * Null once the offer is accepted/rejected/expired or there is none.
+   */
+  pendingOffer?: { driverName: string | null; expiresAt: Date } | null;
   status: BookingStatus;
   bookingType: BookingType;
   pickupLocation: {
@@ -155,16 +169,6 @@ export async function createBooking(
     validateCoordinates(input.dropoffLocation.latitude, input.dropoffLocation.longitude);
   }
 
-  // 2b. Resolve preferred-driver preference (never fails booking creation —
-  // an invalid/stale/unfavorited reference is silently dropped rather than
-  // rejected, since this is a preference, not a requirement).
-  const preferredDriverProfileId = await resolvePreferredDriverPreference(
-    customerUserId,
-    input.preferredDriverProfileId,
-    db,
-  );
-
-  // 3. Calculate Estimated Fare and Route
   const bookingType = input.bookingType || BookingType.POINT_TO_POINT;
   const hireDurationMinutes = input.hireDurationMinutes ?? null;
 
@@ -179,6 +183,37 @@ export async function createBooking(
     }
   }
 
+  // 2b. Resolve the preferred-driver reference. For DAILY/WEEKLY/MONTHLY
+  // hires this is not a soft favorite nudge — the customer must select one
+  // of the browsable active/non-conflicting drivers at that driver's own
+  // rate (see driver-hire-availability-service.ts), validated strictly and
+  // never silently dropped. Every other booking type keeps the existing
+  // favorites-only, optional preference untouched.
+  let preferredDriverProfileId: string | null;
+  let driverCustomRateSnapshot: string | null = null;
+
+  if (isRateSelectableHireBooking(bookingType)) {
+    if (!input.preferredDriverProfileId || !hireStartAt || !hireEndAt) {
+      throw new DriverSelectionRequiredError(bookingType);
+    }
+    const validated = await validateSelectedHireDriver(
+      input.preferredDriverProfileId,
+      bookingType,
+      hireStartAt,
+      hireEndAt,
+      db,
+    );
+    preferredDriverProfileId = input.preferredDriverProfileId;
+    driverCustomRateSnapshot = validated.rate;
+  } else {
+    preferredDriverProfileId = await resolvePreferredDriverPreference(
+      customerUserId,
+      input.preferredDriverProfileId,
+      db,
+    );
+  }
+
+  // 3. Calculate Estimated Fare and Route
   const fareResult = await calculateEstimatedFare(
     {
       bookingType,
@@ -190,6 +225,7 @@ export async function createBooking(
       numberOfWeeks: input.numberOfWeeks,
       numberOfMonths: input.numberOfMonths,
       hourlyPackageHours: input.hourlyPackageHours,
+      driverCustomRate: driverCustomRateSnapshot,
     },
     db,
   );
@@ -230,6 +266,7 @@ export async function createBooking(
         estimatedDurationMinutes: fareResult.estimatedDurationMinutes,
         customerNotes: input.customerNotes || null,
         preferredDriverProfileId,
+        driverCustomRateSnapshot,
         requestedAt: now,
         searchStartedAt: now,
         expiresAt: searchExpiresAt,
@@ -358,7 +395,23 @@ export async function getBookingById(
     throw new BookingNotFoundError(bookingId);
   }
 
-  return mapBookingToDetail(booking);
+  let pendingOffer: BookingDetail['pendingOffer'] = null;
+  if (booking.status === BookingStatus.SEARCHING_DRIVER) {
+    const attempt = await db.bookingAssignmentAttempt.findFirst({
+      where: { bookingId: booking.id, status: AssignmentAttemptStatus.PENDING },
+      orderBy: { attemptNumber: 'desc' },
+      include: { driverProfile: true },
+    });
+    if (attempt) {
+      const dp = attempt.driverProfile;
+      pendingOffer = {
+        driverName: dp.displayName || [dp.firstName, dp.lastName].filter(Boolean).join(' ') || null,
+        expiresAt: attempt.expiresAt,
+      };
+    }
+  }
+
+  return { ...mapBookingToDetail(booking), pendingOffer };
 }
 
 /**
@@ -553,6 +606,9 @@ function mapBookingToDetail(
     customerId: booking.customerId,
     driverProfileId: booking.driverProfileId,
     preferredDriverProfileId: booking.preferredDriverProfileId,
+    driverCustomRateSnapshot: booking.driverCustomRateSnapshot
+      ? booking.driverCustomRateSnapshot.toString()
+      : null,
     status: booking.status,
     bookingType: booking.bookingType,
     pickupLocation: {

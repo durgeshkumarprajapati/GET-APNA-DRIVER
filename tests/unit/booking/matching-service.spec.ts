@@ -34,6 +34,7 @@ jest.mock('@/shared/database/prisma', () => ({
           id: where.id,
           user: { id: 'u-1', accountStatus: 'ACTIVE' },
           approvalStatus: 'APPROVED',
+          availabilityStatus: 'AVAILABLE',
           verificationStatus: 'VERIFIED',
           onboardingStatus: 'COMPLETED',
           documents: [],
@@ -72,11 +73,14 @@ jest.mock('@/shared/outbox/outbox-service', () => ({
 
 import { prisma } from '@/shared/database/prisma';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
+import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 
 describe('MatchingService', () => {
   const mockFindUniqueBooking = prisma.booking.findUnique as jest.Mock;
   const mockFindManyBooking = prisma.booking.findMany as jest.Mock;
   const mockFindNearby = findNearbyDrivers as jest.Mock;
+  const mockInsertOutboxEvent = insertOutboxEvent as jest.Mock;
+  const mockDriverProfileFindUnique = prisma.driverProfile.findUnique as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -114,6 +118,48 @@ describe('MatchingService', () => {
 
     expect(result.status).toBe('OFFERED');
     expect(result.attemptId).toBe('att-1');
+  });
+
+  it("includes the offered driver's userId in the outbox payload, so the driver actually gets notified (regression: payload previously only carried driverProfileId)", async () => {
+    mockFindUniqueBooking.mockResolvedValue({
+      id: 'bk-1',
+      status: BookingStatus.SEARCHING_DRIVER,
+      pickupLatitude: 28.6139,
+      pickupLongitude: 77.209,
+      expiresAt: new Date(Date.now() + 300000),
+      assignmentAttempts: [],
+    });
+    mockFindNearby.mockResolvedValue([
+      { driverId: 'dp-1', displayName: 'Rajesh Kumar', distanceMeters: 1200 },
+    ]);
+    mockDriverProfileFindUnique.mockImplementation(({ where }: { where: { id: string } }) =>
+      Promise.resolve({
+        id: where.id,
+        userId: 'user-of-dp-1',
+        user: { id: 'user-of-dp-1', accountStatus: 'ACTIVE' },
+        approvalStatus: 'APPROVED',
+        availabilityStatus: 'AVAILABLE',
+        verificationStatus: 'VERIFIED',
+        onboardingStatus: 'COMPLETED',
+        documents: [],
+      }),
+    );
+    mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+      id: 'att-1',
+      driverProfileId: 'dp-1',
+      attemptNumber: 1,
+      status: AssignmentAttemptStatus.PENDING,
+    });
+
+    await findAndOfferNextDriver('bk-1');
+
+    expect(mockInsertOutboxEvent).toHaveBeenCalledWith(
+      mockTx,
+      expect.objectContaining({
+        eventType: 'booking.driver.offered',
+        payload: expect.objectContaining({ driverProfileId: 'dp-1', driverUserId: 'user-of-dp-1' }),
+      }),
+    );
   });
 
   describe('preferred driver preference', () => {
@@ -233,13 +279,16 @@ describe('MatchingService', () => {
       },
     ];
 
-    it('excludes a candidate already committed to an overlapping hire window for a new WEEKLY hire booking', async () => {
+    it('excludes a candidate already committed to an overlapping hire window for a new HOURLY hire booking', async () => {
+      // HOURLY (unlike DAILY/WEEKLY/MONTHLY) still uses the geo-proximity
+      // candidate pool + conflict filter below — it has no required
+      // single-driver selection.
       const hireStartAt = new Date('2026-10-01T10:00:00Z');
       const hireEndAt = new Date('2026-10-08T10:00:00Z');
       mockFindUniqueBooking.mockResolvedValue({
         id: 'bk-1',
         status: BookingStatus.SEARCHING_DRIVER,
-        bookingType: BookingType.WEEKLY,
+        bookingType: BookingType.HOURLY,
         pickupLatitude: 28.6139,
         pickupLongitude: 77.209,
         expiresAt: new Date(Date.now() + 300000),
@@ -278,7 +327,7 @@ describe('MatchingService', () => {
       mockFindUniqueBooking.mockResolvedValue({
         id: 'bk-1',
         status: BookingStatus.SEARCHING_DRIVER,
-        bookingType: BookingType.DAILY,
+        bookingType: BookingType.FULL_DAY,
         pickupLatitude: 28.6139,
         pickupLongitude: 77.209,
         expiresAt: new Date(Date.now() + 300000),
@@ -321,6 +370,88 @@ describe('MatchingService', () => {
       await findAndOfferNextDriver('bk-1');
 
       expect(mockFindManyBooking).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('DAILY/WEEKLY/MONTHLY required single-driver selection (no fallback)', () => {
+    it("offers only the customer's selected driver for a WEEKLY booking, bypassing geo-proximity search entirely", async () => {
+      const hireStartAt = new Date('2026-10-01T10:00:00Z');
+      const hireEndAt = new Date('2026-10-08T10:00:00Z');
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.WEEKLY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt,
+        hireEndAt,
+        preferredDriverProfileId: 'dp-selected',
+        assignmentAttempts: [],
+      });
+      mockFindManyBooking.mockResolvedValue([]); // no conflicting hires
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-1',
+        driverProfileId: 'dp-selected',
+        attemptNumber: 1,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('OFFERED');
+      expect(mockFindNearby).not.toHaveBeenCalled();
+      expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ driverProfileId: 'dp-selected' }),
+        }),
+      );
+    });
+
+    it('expires the search instead of falling back to another driver when the selected driver already has a conflicting hire', async () => {
+      const hireStartAt = new Date('2026-10-01T10:00:00Z');
+      const hireEndAt = new Date('2026-10-08T10:00:00Z');
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.MONTHLY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt,
+        hireEndAt,
+        preferredDriverProfileId: 'dp-selected',
+        assignmentAttempts: [],
+      });
+      // The chosen driver already has a conflicting hire for this window.
+      mockFindManyBooking.mockResolvedValue([{ driverProfileId: 'dp-selected' }]);
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('NO_DRIVERS_FOUND');
+      expect(mockFindNearby).not.toHaveBeenCalled();
+      expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
+    });
+
+    it('expires the search when the selected driver has already been offered and rejected, without offering a different driver', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.DAILY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt: new Date('2026-10-01T10:00:00Z'),
+        hireEndAt: new Date('2026-10-02T10:00:00Z'),
+        preferredDriverProfileId: 'dp-selected',
+        assignmentAttempts: [{ driverProfileId: 'dp-selected' }],
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('NO_DRIVERS_FOUND');
+      expect(mockFindNearby).not.toHaveBeenCalled();
+      expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
     });
   });
 

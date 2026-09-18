@@ -11,7 +11,8 @@ import { useTranslation } from '@/i18n/context';
 import { BookingType } from '@prisma/client';
 import { BookingTypeSelector } from '@/components/booking/BookingTypeSelector';
 import { DriverHireDurationSelector } from '@/components/booking/DriverHireDurationSelector';
-import { isDriverHireBooking } from '@/modules/booking/domain/booking-policy';
+import { isDriverHireBooking, isRateSelectableHireBooking } from '@/modules/booking/domain/booking-policy';
+import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface FareEstimateData {
   estimatedDistanceKm: number;
@@ -54,6 +55,17 @@ interface FavoriteDriverRecord {
   drivingExperienceYears: number;
 }
 
+interface HireDriverRecord {
+  driverProfileId: string;
+  displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  ratingAverage: number;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  rate: string;
+}
+
 interface BookingRecord {
   id: string;
   customerId: string;
@@ -74,6 +86,11 @@ function savedLocationAddress(loc: SavedLocationRecord): string {
 function favoriteDisplayName(fav: FavoriteDriverRecord): string {
   if (fav.displayName) return fav.displayName;
   return [fav.firstName, fav.lastName].filter(Boolean).join(' ') || '—';
+}
+
+function hireDriverDisplayName(driver: HireDriverRecord): string {
+  if (driver.displayName) return driver.displayName;
+  return [driver.firstName, driver.lastName].filter(Boolean).join(' ') || '—';
 }
 
 type BookingTypeTab = 'hourly' | 'oneway' | 'outstation' | 'nightout';
@@ -141,10 +158,12 @@ function BookDriverPageInner() {
 
   const [savedLocations, setSavedLocations] = useState<SavedLocationRecord[]>([]);
   const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverRecord[]>([]);
+  const [hireDrivers, setHireDrivers] = useState<HireDriverRecord[]>([]);
+  const [hireDriversLoading, setHireDriversLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
+  const { toast, showError, dismissToast } = useToast();
 
   const { status: autoLocationStatus, errorMessage: autoLocationError, capture: captureDeviceLocation } =
     useGeolocationCapture();
@@ -233,6 +252,53 @@ function BookDriverPageInner() {
     };
   }, []);
 
+  // DAILY/WEEKLY/MONTHLY hires require the customer to choose a specific
+  // active, non-conflicting driver at that driver's own rate — refetch this
+  // browsable list whenever the booking type, duration, or start time
+  // changes the hire window it needs to check against. If the previously
+  // selected driver drops out of the refreshed list (became unavailable, or
+  // the window changed), the selection is cleared rather than silently kept.
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!isRateSelectableHireBooking(selectedBookingType)) {
+        if (isMounted) setHireDrivers([]);
+        return;
+      }
+      const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
+      if (!hireMins) return;
+
+      if (isMounted) setHireDriversLoading(true);
+      try {
+        const params = new URLSearchParams({
+          bookingType: selectedBookingType,
+          hireDurationMinutes: String(hireMins),
+        });
+        if (hireStartTime) {
+          params.set('hireStartAt', new Date(hireStartTime).toISOString());
+        }
+        const res = await fetch(`/api/customer/drivers/available-for-hire?${params.toString()}`);
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          const drivers: HireDriverRecord[] = data.drivers ?? [];
+          setHireDrivers(drivers);
+          setPreferredDriverProfileId((prev) =>
+            prev && !drivers.some((d) => d.driverProfileId === prev) ? null : prev,
+          );
+        }
+      } catch {
+        // List just stays empty — the required-selection gate below still
+        // blocks submission honestly rather than pretending a driver exists.
+      } finally {
+        if (isMounted) setHireDriversLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBookingType, hireDurationValue, hireStartTime]);
+
   // Prefill from a dashboard "Book Again" action or a saved-place shortcut.
   // Book Again only ever reuses pickup/dropoff/service-type from the prior
   // booking — never its fare, driver, payment, or PIN, which are
@@ -310,15 +376,18 @@ function BookDriverPageInner() {
   }, [searchParams]);
 
   useEffect(() => {
-    // Never quote a fare against an unresolved (0,0) placeholder pickup —
-    // wait for a real location (device GPS, manual entry, saved place, or
-    // Book Again) before asking the pricing service for an estimate.
-    if (!pickupReady) return;
+    // Never quote a fare against an unresolved (0,0) placeholder pickup or
+    // dropoff — wait for real coordinates (device GPS, manual entry, saved
+    // place, or Book Again) before asking the pricing service for an
+    // estimate. Without this, a still-unset dropoff (address: '', 0,0)
+    // produces a nonsensical "10,000+ km" distance from Null Island.
+    const isHire = isDriverHireBooking(selectedBookingType);
+    const dropoffRequired = !isHire && includeDropoff;
+    if (!pickupReady || (dropoffRequired && !dropoffReady)) return;
 
     async function fetchEstimate() {
       try {
-        const isHire = isDriverHireBooking(selectedBookingType);
-        const activeDropoff = (!isHire && includeDropoff) ? dropoff : null;
+        const activeDropoff = dropoffRequired ? dropoff : null;
         const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
         const res = await fetch('/api/pricing/estimate', {
@@ -343,6 +412,7 @@ function BookDriverPageInner() {
             numberOfWeeks: selectedBookingType === BookingType.WEEKLY ? hireDurationValue : null,
             numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
             hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
+            preferredDriverProfileId,
           }),
         });
         if (res.ok) {
@@ -354,7 +424,16 @@ function BookDriverPageInner() {
       }
     }
     fetchEstimate();
-  }, [selectedBookingType, hireDurationValue, includeDropoff, pickup, dropoff, pickupReady]);
+  }, [
+    selectedBookingType,
+    hireDurationValue,
+    includeDropoff,
+    pickup,
+    dropoff,
+    pickupReady,
+    dropoffReady,
+    preferredDriverProfileId,
+  ]);
 
   const handleEditPickup = useCallback(() => {
     const next = prompt(t('customer.booking.promptPickup'), pickup.address);
@@ -373,17 +452,26 @@ function BookDriverPageInner() {
   }, [dropoff.address, t]);
 
   const handleConfirmDispatch = async () => {
+    const isHire = isDriverHireBooking(selectedBookingType);
+    const dropoffRequired = !isHire && includeDropoff;
+
     if (!pickupReady) {
-      setError(t('customer.booking.locationNotSet'));
+      showError(t('customer.booking.locationNotSet'));
+      return;
+    }
+    if (dropoffRequired && !dropoffReady) {
+      showError(t('customer.booking.dropoffNotSet'));
+      return;
+    }
+    if (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId) {
+      showError(t('customer.booking.driverSelectionRequiredError'));
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const isHire = isDriverHireBooking(selectedBookingType);
-    const activeDropoff = (!isHire && includeDropoff) ? dropoff : null;
+    const activeDropoff = dropoffRequired ? dropoff : null;
     const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
     try {
@@ -425,9 +513,11 @@ function BookDriverPageInner() {
 
         const data = await res.json();
         if (!res.ok) {
-          setError(
-            data.message ||
-              t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
+          showError(
+            data.error === 'INVALID_INPUT'
+              ? t('customer.booking.validationFailedError')
+              : data.message ||
+                  t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
           );
         } else {
           router.push('/customer/scheduled-rides');
@@ -467,13 +557,21 @@ function BookDriverPageInner() {
 
         const data = await res.json();
         if (!res.ok) {
-          setError(data.message || t('customer.booking.dispatchFailedError'));
+          showError(
+            data.error === 'INVALID_INPUT'
+              ? t('customer.booking.validationFailedError')
+              : data.error === 'DRIVER_SELECTION_REQUIRED'
+                ? t('customer.booking.driverSelectionRequiredError')
+                : data.error === 'SELECTED_DRIVER_UNAVAILABLE'
+                  ? t('customer.booking.selectedDriverUnavailableError')
+                  : data.message || t('customer.booking.dispatchFailedError'),
+          );
         } else {
           router.push(`/bookings/${data.booking.id}`);
         }
       }
     } catch {
-      setError(t('customer.booking.dispatchUnexpectedError'));
+      showError(t('customer.booking.dispatchUnexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -518,12 +616,6 @@ function BookDriverPageInner() {
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
           {/* Left Panel: Booking Configuration (42% width) */}
           <section className="w-full xl:w-[42%] flex flex-col gap-4 shrink-0">
-            {error && (
-              <div className="p-4 rounded-xl bg-[#93000a]/40 border border-[#ffb4ab] text-[#ffdad6] text-xs">
-                {error}
-              </div>
-            )}
-
             {/* Phase 56 Flexible Driver Hire Mode Selector */}
             <BookingTypeSelector
               selectedType={selectedBookingType}
@@ -969,8 +1061,10 @@ function BookDriverPageInner() {
               </div>
             </div>
 
-            {/* Preferred Driver — real favorites, honest non-guarantee framing */}
-            {favoriteDrivers.length > 0 && (
+            {/* Preferred Driver — real favorites, honest non-guarantee framing.
+                Not shown for DAILY/WEEKLY/MONTHLY, which use the required
+                "Choose Your Driver" section below instead. */}
+            {!isRateSelectableHireBooking(selectedBookingType) && favoriteDrivers.length > 0 && (
               <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
                 <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.preferredDriverSectionTitle')}
@@ -1009,6 +1103,65 @@ function BookDriverPageInner() {
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Choose Your Driver — required for DAILY/WEEKLY/MONTHLY hires.
+                No platform-default-rate fallback for these three types: the
+                customer must pick one of the active, non-conflicting
+                drivers below, at that driver's own listed rate. */}
+            {isRateSelectableHireBooking(selectedBookingType) && (
+              <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  {t('customer.booking.chooseYourDriverTitle')}
+                </span>
+                <p className="text-[10px] text-[#87948b]">
+                  {t('customer.booking.chooseYourDriverSubtitle')}
+                </p>
+
+                {hireDriversLoading ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.loadingAvailableDrivers')}
+                  </p>
+                ) : hireDrivers.length === 0 ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.noDriversAvailableForHire')}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {hireDrivers.map((driver) => (
+                      <button
+                        key={driver.driverProfileId}
+                        type="button"
+                        onClick={() => setPreferredDriverProfileId(driver.driverProfileId)}
+                        className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                          preferredDriverProfileId === driver.driverProfileId
+                            ? 'bg-[#00311f] border-[#25a475]'
+                            : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span className="text-xs font-semibold text-[#dfe2ee] truncate">
+                            {hireDriverDisplayName(driver)}
+                          </span>
+                          <span className="text-[10px] text-[#87948b] font-mono">
+                            {t('customer.favorites.rating', {
+                              rating: driver.ratingAverage.toFixed(1),
+                            })}{' '}
+                            ·{' '}
+                            {t('customer.booking.experienceYears', {
+                              years: driver.drivingExperienceYears,
+                              defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                            })}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-[#25a475] shrink-0 font-mono">
+                          {formatCurrency(Number(driver.rate))}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1084,7 +1237,12 @@ function BookDriverPageInner() {
               <button
                 type="button"
                 onClick={handleConfirmDispatch}
-                disabled={loading || !pickupReady}
+                disabled={
+                  loading ||
+                  !pickupReady ||
+                  (!isDriverHireBooking(selectedBookingType) && includeDropoff && !dropoffReady) ||
+                  (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId)
+                }
                 className="w-full py-3.5 px-4 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#68dba9]/20 font-['Space_Grotesk'] disabled:opacity-50"
               >
                 {loading ? (
@@ -1191,6 +1349,7 @@ function BookDriverPageInner() {
           </section>
         </div>
       </div>
+      <ToastViewport toast={toast} onDismiss={dismissToast} />
     </CustomerLayout>
   );
 }

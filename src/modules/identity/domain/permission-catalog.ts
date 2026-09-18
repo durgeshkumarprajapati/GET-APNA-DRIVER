@@ -104,6 +104,10 @@ export const PERMISSIONS = {
   CALL_SUPPORT_INITIATE: 'calling.support.initiate',
   ADMIN_CALLS_READ: 'admin.calls.read',
 
+  // Direct booking messaging (customer <-> driver text chat)
+  MESSAGE_DRIVER_SEND: 'messaging.driver.send',
+  MESSAGE_CUSTOMER_SEND: 'messaging.customer.send',
+
   // Driver Schedule & Availability (Phase 29 domain & admin)
   DRIVER_SCHEDULE_READ: 'driver.schedule.read',
   DRIVER_SCHEDULE_MANAGE: 'driver.schedule.manage',
@@ -391,6 +395,14 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.ADMIN_CALLS_READ,
     description: 'View platform call sessions and telephony logs (admin).',
+  },
+  {
+    code: PERMISSIONS.MESSAGE_DRIVER_SEND,
+    description: 'Send and read direct text messages with the assigned or offered driver.',
+  },
+  {
+    code: PERMISSIONS.MESSAGE_CUSTOMER_SEND,
+    description: 'Send and read direct text messages with the booking customer.',
   },
 
   {

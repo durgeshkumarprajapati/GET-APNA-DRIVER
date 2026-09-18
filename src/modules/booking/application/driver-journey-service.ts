@@ -359,6 +359,13 @@ export async function completeTrip(
       actualDurationMinutes,
       numberOfDays: booking.numberOfDays,
       hourlyPackageHours: booking.hourlyPackageHours,
+      // The frozen rate the customer agreed to at booking creation (DAILY/
+      // WEEKLY/MONTHLY hires with a selected driver) — reused unchanged
+      // here so the final charge never reverts to the platform-default
+      // rate just because it was recomputed at trip completion.
+      driverCustomRate: booking.driverCustomRateSnapshot
+        ? booking.driverCustomRateSnapshot.toString()
+        : null,
     },
     db,
   );

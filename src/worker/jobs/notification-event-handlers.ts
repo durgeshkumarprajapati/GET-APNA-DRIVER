@@ -122,6 +122,31 @@ export function registerNotificationEventHandlers(): void {
   );
 
   eventHandlerRegistry.register(
+    'booking.message.sent',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const recipientUserId = payload.recipientUserId as string;
+      const recipientRole = payload.recipientRole as 'CUSTOMER' | 'DRIVER';
+      const bookingId = payload.bookingId as string;
+      const bodyPreview = payload.bodyPreview as string;
+      if (!recipientUserId) return;
+
+      await createNotification(
+        {
+          userId: recipientUserId,
+          type: NotificationType.BOOKING_MESSAGE_RECEIVED,
+          title: recipientRole === 'DRIVER' ? 'New message from customer' : 'New message from driver',
+          body: bodyPreview,
+          data: { bookingId },
+          actionUrl:
+            recipientRole === 'DRIVER' ? `/driver/bookings/${bookingId}` : `/bookings/${bookingId}`,
+          idempotencyKey: `${event.id}-message-${recipientUserId}`,
+        },
+        db ?? prisma,
+      );
+    },
+  );
+
+  eventHandlerRegistry.register(
     'booking.driver.en_route',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;

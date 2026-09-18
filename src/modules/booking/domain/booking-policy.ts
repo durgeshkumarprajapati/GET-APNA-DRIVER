@@ -26,6 +26,42 @@ export function isDriverHireBooking(bookingType: BookingType): boolean {
 }
 
 /**
+ * Duration-based hire types where the customer selects a specific driver at
+ * that driver's own rate (see DriverProfile.dailyHireRate/weeklyHireRate/
+ * monthlyHireRate) rather than a platform-default rate. Deliberately
+ * excludes HOURLY (and FULL_DAY/MULTI_DAY) — the customer only asked for
+ * this on daily/weekly/monthly hires, and those other hire types keep the
+ * existing soft favorite-driver preference + platform-rate flow unchanged.
+ */
+export const RATE_SELECTABLE_HIRE_TYPES: readonly BookingType[] = [
+  BookingType.DAILY,
+  BookingType.WEEKLY,
+  BookingType.MONTHLY,
+];
+
+export function isRateSelectableHireBooking(bookingType: BookingType): boolean {
+  return RATE_SELECTABLE_HIRE_TYPES.includes(bookingType);
+}
+
+export type HireRateField = 'dailyHireRate' | 'weeklyHireRate' | 'monthlyHireRate';
+
+/**
+ * Maps a rate-selectable booking type to its DriverProfile rate column.
+ */
+export function hireRateFieldFor(bookingType: BookingType): HireRateField | null {
+  switch (bookingType) {
+    case BookingType.DAILY:
+      return 'dailyHireRate';
+    case BookingType.WEEKLY:
+      return 'weeklyHireRate';
+    case BookingType.MONTHLY:
+      return 'monthlyHireRate';
+    default:
+      return null;
+  }
+}
+
+/**
  * Returns true if the booking mode supports an optional or explicit drop location.
  * Driver hire modes omit/forbid drop location.
  */

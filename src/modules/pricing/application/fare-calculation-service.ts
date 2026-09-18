@@ -1,5 +1,5 @@
 import 'server-only';
-import type { BookingType } from '@prisma/client';
+import { BookingType } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getString } from '@/shared/config/configuration-service';
 import type {
@@ -7,6 +7,7 @@ import type {
   LocationCoordinates,
   PricingRulesConfig,
 } from '../domain/pricing-types';
+import type { DynamicPricingEvaluationResult } from '@/modules/dynamic-pricing/domain/pricing-pressure-types';
 import { calculateFareBreakdown } from '../domain/pricing-rules';
 import { estimateRoute } from './route-estimation-service';
 
@@ -24,6 +25,74 @@ export interface FareCalculationInput {
   hourlyPackageHours?: number | null;
   hireDurationMinutes?: number | null;
   zoneId?: string | null;
+  /**
+   * For DAILY/WEEKLY/MONTHLY bookings where the customer selected a
+   * specific driver at that driver's own rate — overrides the matching
+   * platform-default rate field before the fare breakdown is computed.
+   */
+  driverCustomRate?: string | null;
+}
+
+/**
+ * True only when a driver custom rate was supplied AND this booking type
+ * actually has a matching rate field to override (DAILY/FULL_DAY/WEEKLY/
+ * MONTHLY). Governs both the rate override below and whether Controlled
+ * Dynamic Pricing is skipped — an irrelevant/stray driverCustomRate for any
+ * other booking type must never suppress normal surge pricing.
+ */
+function usesDriverCustomRate(bookingType: BookingType, driverCustomRate?: string | null): boolean {
+  if (!driverCustomRate) return false;
+  return (
+    bookingType === BookingType.DAILY ||
+    bookingType === BookingType.FULL_DAY ||
+    bookingType === BookingType.WEEKLY ||
+    bookingType === BookingType.MONTHLY
+  );
+}
+
+/**
+ * Overrides the platform-default rate for the matching booking-type field
+ * with the driver's own rate, so calculateFareBreakdown prices the hire at
+ * exactly what the customer agreed to — never the platform default.
+ */
+function applyDriverCustomRate(
+  rates: PricingRulesConfig,
+  bookingType: BookingType,
+  driverCustomRate?: string | null,
+): PricingRulesConfig {
+  if (!usesDriverCustomRate(bookingType, driverCustomRate)) return rates;
+  switch (bookingType) {
+    case BookingType.DAILY:
+    case BookingType.FULL_DAY:
+      return { ...rates, dailyRate: driverCustomRate as string };
+    case BookingType.WEEKLY:
+      return { ...rates, weeklyRate: driverCustomRate as string };
+    case BookingType.MONTHLY:
+      return { ...rates, monthlyRate: driverCustomRate as string };
+    default:
+      return rates;
+  }
+}
+
+/**
+ * A driver-custom-rate hire is priced exactly at the rate the customer
+ * already agreed to — Controlled Dynamic Pricing surge/demand adjustments
+ * never apply on top of it.
+ */
+function noDynamicAdjustment(totalFareAmount: string): DynamicPricingEvaluationResult {
+  const baseFareAmount = Number(totalFareAmount);
+  return {
+    baseFareAmount,
+    dynamicAdjustmentAmount: 0,
+    finalGrossFareAmount: baseFareAmount,
+    appliedPolicyId: null,
+    appliedPolicyVersion: null,
+    appliedPolicyName: null,
+    pressureState: 'NORMAL',
+    adjustmentPercentage: 0,
+    flatSurgeAmount: 0,
+    wasCapped: false,
+  };
 }
 
 export interface FareCalculationResult {
@@ -80,7 +149,11 @@ export async function calculateEstimatedFare(
   input: FareCalculationInput,
   db: Db = prisma,
 ): Promise<FareCalculationResult> {
-  const rates = await getActivePricingRules(db);
+  const rates = applyDriverCustomRate(
+    await getActivePricingRules(db),
+    input.bookingType,
+    input.driverCustomRate,
+  );
   const route = await estimateRoute({
     pickup: input.pickup,
     dropoff: input.dropoff,
@@ -101,15 +174,19 @@ export async function calculateEstimatedFare(
     config: rates,
   });
 
-  // Evaluate Controlled Dynamic Pricing adjustment
-  const dynamicResult = await evaluateDynamicPricing(
-    {
-      baseFareAmount: Number(rawBreakdown.totalFareAmount),
-      bookingType: input.bookingType,
-      zoneId: input.zoneId,
-    },
-    db,
-  );
+  // Evaluate Controlled Dynamic Pricing adjustment — skipped entirely when a
+  // driver custom rate applies, since that rate is exactly what the
+  // customer agreed to pay.
+  const dynamicResult = usesDriverCustomRate(input.bookingType, input.driverCustomRate)
+    ? noDynamicAdjustment(rawBreakdown.totalFareAmount)
+    : await evaluateDynamicPricing(
+        {
+          baseFareAmount: Number(rawBreakdown.totalFareAmount),
+          bookingType: input.bookingType,
+          zoneId: input.zoneId,
+        },
+        db,
+      );
 
   const breakdown: FareBreakdown = {
     ...rawBreakdown,
@@ -136,7 +213,11 @@ export async function calculateFinalFare(
   input: FareCalculationInput,
   db: Db = prisma,
 ): Promise<FareCalculationResult> {
-  const rates = await getActivePricingRules(db);
+  const rates = applyDriverCustomRate(
+    await getActivePricingRules(db),
+    input.bookingType,
+    input.driverCustomRate,
+  );
   const route = await estimateRoute({
     pickup: input.pickup,
     dropoff: input.dropoff,
@@ -158,15 +239,19 @@ export async function calculateFinalFare(
     config: rates,
   });
 
-  // Evaluate Controlled Dynamic Pricing adjustment
-  const dynamicResult = await evaluateDynamicPricing(
-    {
-      baseFareAmount: Number(rawBreakdown.totalFareAmount),
-      bookingType: input.bookingType,
-      zoneId: input.zoneId,
-    },
-    db,
-  );
+  // Evaluate Controlled Dynamic Pricing adjustment — skipped entirely when a
+  // driver custom rate applies, since that rate is exactly what the
+  // customer agreed to pay.
+  const dynamicResult = usesDriverCustomRate(input.bookingType, input.driverCustomRate)
+    ? noDynamicAdjustment(rawBreakdown.totalFareAmount)
+    : await evaluateDynamicPricing(
+        {
+          baseFareAmount: Number(rawBreakdown.totalFareAmount),
+          bookingType: input.bookingType,
+          zoneId: input.zoneId,
+        },
+        db,
+      );
 
   const breakdown: FareBreakdown = {
     ...rawBreakdown,
