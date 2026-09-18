@@ -25,6 +25,13 @@ export async function getDispatchSearchState(
       searchStartedAt: true,
       createdAt: true,
       expiresAt: true,
+      assignmentAttempts: {
+        select: {
+          id: true,
+          status: true,
+          expiresAt: true,
+        },
+      },
     },
   });
 
@@ -36,14 +43,18 @@ export async function getDispatchSearchState(
   const remainingSeconds = Math.max(0, Math.ceil((searchDeadlineAt.getTime() - now.getTime()) / 1000));
   const hasExpired = now >= searchDeadlineAt;
 
+  const activeOffersCount = booking.assignmentAttempts
+    ? booking.assignmentAttempts.filter((a) => a.status === AssignmentAttemptStatus.PENDING).length
+    : 0;
+
   return {
     bookingId: booking.id,
     status: booking.status,
     searchStartedAt,
     searchDeadlineAt,
     remainingSeconds,
-    candidatePoolSize: 0,
-    rankedCandidatesCount: 0,
+    candidatePoolSize: activeOffersCount,
+    rankedCandidatesCount: booking.assignmentAttempts?.length || 0,
     hasExpired,
   };
 }

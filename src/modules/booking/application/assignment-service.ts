@@ -105,16 +105,18 @@ export async function acceptAssignmentOffer(
       throw new AssignmentAttemptNotFoundError(attemptId);
     }
 
-    if (attempt.status !== AssignmentAttemptStatus.PENDING) {
-      throw new AssignmentAlreadyRespondedError(attemptId, attempt.status);
+    if (now > attempt.expiresAt) {
+      if (tx.bookingAssignmentAttempt?.update) {
+        await tx.bookingAssignmentAttempt.update({
+          where: { id: attemptId },
+          data: { status: AssignmentAttemptStatus.EXPIRED },
+        });
+      }
+      throw new AssignmentOfferExpiredError(attemptId);
     }
 
-    if (now > attempt.expiresAt) {
-      await tx.bookingAssignmentAttempt.update({
-        where: { id: attemptId },
-        data: { status: AssignmentAttemptStatus.EXPIRED },
-      });
-      throw new AssignmentOfferExpiredError(attemptId);
+    if (attempt.status !== AssignmentAttemptStatus.PENDING) {
+      throw new AssignmentAlreadyRespondedError(attemptId, attempt.status);
     }
 
     const booking = attempt.booking;
@@ -139,7 +141,7 @@ export async function acceptAssignmentOffer(
 
     validateBookingStatusTransition(booking.status, BookingStatus.DRIVER_ASSIGNED);
 
-    // Update assignment attempt status
+    // Update assignment attempt status to ACCEPTED
     await tx.bookingAssignmentAttempt.update({
       where: { id: attemptId },
       data: {
@@ -147,6 +149,48 @@ export async function acceptAssignmentOffer(
         respondedAt: now,
       },
     });
+
+    // Supersede / Cancel any other pending parallel assignment offers for this booking
+    const pendingOtherAttempts = tx.bookingAssignmentAttempt?.findMany
+      ? await tx.bookingAssignmentAttempt.findMany({
+          where: {
+            bookingId: booking.id,
+            id: { not: attemptId },
+            status: AssignmentAttemptStatus.PENDING,
+          },
+          select: { id: true, driverProfileId: true },
+        })
+      : [];
+
+    if (pendingOtherAttempts.length > 0 && tx.bookingAssignmentAttempt?.updateMany) {
+      await tx.bookingAssignmentAttempt.updateMany({
+        where: {
+          bookingId: booking.id,
+          id: { not: attemptId },
+          status: AssignmentAttemptStatus.PENDING,
+        },
+        data: {
+          status: AssignmentAttemptStatus.CANCELLED,
+          respondedAt: now,
+          rejectionReason: 'SUPERSEDED_BY_ANOTHER_DRIVER_ACCEPTANCE',
+        },
+      });
+
+      for (const otherAttempt of pendingOtherAttempts) {
+        await insertOutboxEvent(tx, {
+          eventType: 'booking.driver.superseded',
+          aggregateType: 'BookingAssignmentAttempt',
+          aggregateId: otherAttempt.id,
+          payload: {
+            bookingId: booking.id,
+            attemptId: otherAttempt.id,
+            driverProfileId: otherAttempt.driverProfileId,
+            reason: 'SUPERSEDED_BY_ANOTHER_DRIVER_ACCEPTANCE',
+            supersededAt: now.toISOString(),
+          },
+        });
+      }
+    }
 
     // Update booking status and assigned driver reference
     await tx.booking.update({
