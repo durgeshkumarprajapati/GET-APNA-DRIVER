@@ -44,6 +44,8 @@ import type { TripIntelligenceResult } from '@/modules/trip-intelligence/trip-in
 import { DriverPickupReliabilityCard } from '@/components/trip-reliability/DriverPickupReliabilityCard';
 import type { DriverReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
 import { LocationETACard } from '@/components/location-intelligence/LocationETACard';
+import { SmartJourneyCard } from '@/components/trip-execution/SmartJourneyCard';
+import type { DriverJourneyDTO } from '@/modules/trip-execution/application/journey-orchestration-service';
 
 export default function DriverJourneyControlPage({
   params,
@@ -62,9 +64,18 @@ export default function DriverJourneyControlPage({
   const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
   const [reliability, setReliability] = useState<DriverReliabilityView | null>(null);
   const [locationIntel, setLocationIntel] = useState<Record<string, unknown> | null>(null);
+  const [journeyData, setJourneyData] = useState<DriverJourneyDTO | null>(null);
 
   useEffect(() => {
     if (!bookingId) return;
+
+    fetch(`/api/driver/bookings/${bookingId}/journey`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.journey) setJourneyData(data.journey);
+      })
+      .catch(() => {});
+
     fetch(`/api/driver/bookings/${bookingId}/trip-intelligence`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -231,6 +242,14 @@ export default function DriverJourneyControlPage({
   return (
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
+        {journeyData && (
+          <SmartJourneyCard
+            journey={journeyData}
+            role="DRIVER"
+            onVerifyPinClick={() => setIsPinModalOpen(true)}
+            onCallCustomer={handleCallCustomer}
+          />
+        )}
         {locationIntel && <LocationETACard locationIntelligence={locationIntel} variant="driver" />}
         {intelligence && <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />}
         {reliability && <DriverPickupReliabilityCard reliability={reliability} />}
