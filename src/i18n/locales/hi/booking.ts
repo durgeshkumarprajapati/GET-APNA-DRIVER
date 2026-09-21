@@ -46,6 +46,11 @@ export const bookingHi = {
     subtitle: 'यात्रा शुरू करने से पहले ग्राहक से 6-अंकों का पिन पूछें',
     submit: 'पिन सत्यापित करें',
   },
-  noActiveDriverNearby: 'आपके पास कोई सक्रिय ड्राइवर नहीं मिला।',
-  searchingNearbyDrivers: 'पास के ड्राइवरों की तलाश की जा रही है…',
+  noActiveDriverNearby: 'आपके निकट कोई सक्रिय ड्राइवर नहीं मिला।',
+  searchingNearbyDrivers: 'निकटतम ड्राइवरों की खोज की जा रही है…',
+  vehicleCategory: 'वाहन श्रेणी',
+  vehicleCategoryHint: 'आवश्यक वाहन प्रकार चुनें',
+  anyVehicleCategory: 'कोई भी वाहन (कोई प्राथमिकता नहीं)',
+  vehicleCapabilities: 'वाहन क्षमताएं',
+  vehicleCapabilitiesHint: 'वाहन श्रेणियां जो आप चला सकते हैं',
 };

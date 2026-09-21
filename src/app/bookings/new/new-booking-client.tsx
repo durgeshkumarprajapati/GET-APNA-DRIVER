@@ -16,6 +16,7 @@ import {
   isRateSelectableHireBooking,
 } from '@/modules/booking/domain/booking-policy';
 import { useToast, ToastViewport } from '@/components/ui/toast';
+import { VehicleCategorySelector } from '@/components/booking/VehicleCategorySelector';
 
 interface FareEstimateData {
   estimatedDistanceKm: number;
@@ -163,6 +164,7 @@ function BookDriverPageInner() {
   const [vehicleClass, setVehicleClass] = useState<'luxury' | 'sedan' | 'hatchback'>('luxury');
   const [transmission, setTransmission] = useState<'auto' | 'manual'>('auto');
   const [preferredDriverProfileId, setPreferredDriverProfileId] = useState<string | null>(null);
+  const [selectedVehicleCategoryId, setSelectedVehicleCategoryId] = useState<string | null>(null);
 
   const getHireDurationMinutes = (type: BookingType, val: number): number | null => {
     if (type === BookingType.HOURLY) return val * 60;
@@ -352,6 +354,9 @@ function BookDriverPageInner() {
         if (hireStartTime) {
           params.set('hireStartAt', new Date(hireStartTime).toISOString());
         }
+        if (selectedVehicleCategoryId) {
+          params.set('vehicleCategoryId', selectedVehicleCategoryId);
+        }
         const res = await fetch(`/api/customer/drivers/available-for-hire?${params.toString()}`);
         if (!isMounted) return;
         if (res.ok) {
@@ -372,7 +377,7 @@ function BookDriverPageInner() {
     return () => {
       isMounted = false;
     };
-  }, [selectedBookingType, hireDurationValue, hireStartTime]);
+  }, [selectedBookingType, hireDurationValue, hireStartTime, selectedVehicleCategoryId]);
 
   // Loads the full profile (bio, rating breakdown, recent reviews, rate for
   // this hire type) for whichever driver the customer just tapped in the
@@ -622,6 +627,7 @@ function BookDriverPageInner() {
               : null,
             bookingType: selectedBookingType,
             preferredDriverProfileId,
+            vehicleCategoryId: selectedVehicleCategoryId ?? undefined,
           }),
         });
 
@@ -667,6 +673,7 @@ function BookDriverPageInner() {
             hourlyPackageHours:
               selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
             preferredDriverProfileId,
+            vehicleCategoryId: selectedVehicleCategoryId ?? undefined,
             promotionCode: appliedCouponCode ?? undefined,
           }),
         });
@@ -736,6 +743,12 @@ function BookDriverPageInner() {
             <BookingTypeSelector
               selectedType={selectedBookingType}
               onSelectType={setSelectedBookingType}
+            />
+
+            {/* Vehicle Category Requirement Selector (Phase 66) */}
+            <VehicleCategorySelector
+              selectedCategoryId={selectedVehicleCategoryId}
+              onSelectCategory={setSelectedVehicleCategoryId}
             />
 
             {/* Duration Selector for Driver Hire Modes */}

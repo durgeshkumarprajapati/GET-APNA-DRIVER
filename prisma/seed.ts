@@ -1130,9 +1130,77 @@ async function seedMarketplaceZones(): Promise<void> {
   console.log('Phase 42 Marketplace Zones Seeding Completed.');
 }
 
+async function seedVehicleCategories() {
+  const defaultVehicleCategories = [
+    {
+      code: 'MINI_CAR',
+      name: 'Mini / Hatchback',
+      description: 'Compact cars suitable for quick city rides and tight spaces',
+      displayOrder: 1,
+    },
+    {
+      code: 'CAR',
+      name: 'Sedan / Standard Car',
+      description: 'Standard 4-seater sedan for comfortable daily travel',
+      displayOrder: 2,
+    },
+    {
+      code: 'LONG_CAR',
+      name: 'Luxury / Long Sedan',
+      description: 'Premium long-wheelbase sedans and executive vehicles',
+      displayOrder: 3,
+    },
+    {
+      code: 'SUV',
+      name: 'SUV / MUV',
+      description: 'Spacious 6-7 seater sport utility vehicles for families and luggage',
+      displayOrder: 4,
+    },
+    {
+      code: 'TRACTOR',
+      name: 'Tractor / Farm Vehicle',
+      description: 'Agricultural and utility tractor operation capability',
+      displayOrder: 5,
+    },
+    {
+      code: 'TRUCK',
+      name: 'Commercial Truck (LCV)',
+      description: 'Light commercial goods trucks and delivery vehicles',
+      displayOrder: 6,
+    },
+    {
+      code: 'HEAVY_TRUCK',
+      name: 'Heavy Commercial Truck',
+      description: 'Multi-axle heavy transport trucks and freight vehicles',
+      displayOrder: 7,
+    },
+  ];
+
+  for (const cat of defaultVehicleCategories) {
+    await prisma.vehicleCategory.upsert({
+      where: { code: cat.code },
+      create: {
+        code: cat.code,
+        name: cat.name,
+        description: cat.description,
+        displayOrder: cat.displayOrder,
+        isActive: true,
+      },
+      update: {
+        name: cat.name,
+        description: cat.description,
+        displayOrder: cat.displayOrder,
+      },
+    });
+  }
+
+  console.log('Phase 66 Vehicle Categories Seeding Completed.');
+}
+
 async function runAllSeeds() {
   await seedPhase41CorporateData();
   await seedMarketplaceZones();
+  await seedVehicleCategories();
 }
 
 main()

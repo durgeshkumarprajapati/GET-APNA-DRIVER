@@ -45,6 +45,11 @@ export const bookingMl = {
     subtitle: 'യാത്ര ആരംഭിക്കുന്നതിന് മുമ്പ് ഉപഭോക്താവിനോട് 6 അക്ക പിൻ ചോദിക്കുക',
     submit: 'പിൻ സ്ഥിരീകരിക്കുക',
   },
-  noActiveDriverNearby: 'നിങ്ങളുടെ അടുത്തുള്ള സജീവ ഡ്രൈവർമാരൊന്നും ലഭ്യമല്ല.',
-  searchingNearbyDrivers: 'അടുത്തുള്ള ഡ്രൈവർമാർക്കായി തിരയുന്നു…',
+  noActiveDriverNearby: 'നിങ്ങളുടെ അടുത്ത് സജീവമായ ഡ്രൈവർമാരെ ഒന്നും കണ്ടെത്തിയില്ല.',
+  searchingNearbyDrivers: 'സമീപത്തുള്ള ഡ്രൈവർമാർക്കായി തിരയുന്നു…',
+  vehicleCategory: 'വാഹന വിഭാഗം',
+  vehicleCategoryHint: 'ആവശ്യമായ വാഹന തരം തിരഞ്ഞെടുക്കുക',
+  anyVehicleCategory: 'ഏതെങ്കിലും വാഹനം (മുൻഗണനയില്ല)',
+  vehicleCapabilities: 'വാഹന ശേഷികൾ',
+  vehicleCapabilitiesHint: 'നിങ്ങൾക്ക് ഓടിക്കാൻ കഴിയുന്ന വാഹന വിഭാഗങ്ങൾ',
 };

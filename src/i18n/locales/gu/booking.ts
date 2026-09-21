@@ -46,5 +46,10 @@ export const bookingGu = {
     submit: 'પિન ચકાસો',
   },
   noActiveDriverNearby: 'તમારી નજીક કોઈ સક્રિય ડ્રાઇવર મળ્યો નથી.',
-  searchingNearbyDrivers: 'નજીકના ડ્રાઇવરો શોધી રહ્યા છીએ…',
+  searchingNearbyDrivers: 'નજીકના ડ્રાઇવરો શોધી રહ્યાં છીએ…',
+  vehicleCategory: 'વાહન શ્રેણી',
+  vehicleCategoryHint: 'જરૂરી વાહન પ્રકાર પસંદ કરો',
+  anyVehicleCategory: 'કોઈપણ વાહન (કોઈ પસંદગી નથી)',
+  vehicleCapabilities: 'વાહન ક્ષમતાઓ',
+  vehicleCapabilitiesHint: 'વાહન શ્રેણીઓ જે તમે ચલાવી શકો છો',
 };

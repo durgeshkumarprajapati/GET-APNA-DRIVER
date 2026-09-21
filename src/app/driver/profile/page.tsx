@@ -6,6 +6,7 @@ import { DriverLayout } from '@/components/driver-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
+import { DriverCapabilitySelector } from '@/components/driver/DriverCapabilitySelector';
 
 interface DriverProfileData {
   firstName: string;
@@ -631,6 +632,10 @@ export default function DriverProfileEditPage() {
               </div>
             </form>
           )}
+
+          <div style={{ marginTop: '2rem' }}>
+            <DriverCapabilitySelector />
+          </div>
         </div>
       </div>
     </DriverLayout>

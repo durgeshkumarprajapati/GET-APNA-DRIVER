@@ -47,4 +47,9 @@ export const bookingPa = {
   },
   noActiveDriverNearby: 'ਤੁਹਾਡੇ ਨੇੜੇ ਕੋਈ ਸਰਗਰਮ ਡਰਾਈਵਰ ਨਹੀਂ ਮਿਲਿਆ।',
   searchingNearbyDrivers: 'ਨੇੜਲੇ ਡਰਾਈਵਰਾਂ ਦੀ ਖੋਜ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…',
+  vehicleCategory: 'ਵਾਹਨ ਸ਼੍ਰੇਣੀ',
+  vehicleCategoryHint: 'ਲੋੜੀਂਦੀ ਵਾਹਨ ਕਿਸਮ ਚੁਣੋ',
+  anyVehicleCategory: 'ਕੋਈ ਵੀ ਵਾਹਨ (ਕੋਈ ਤਰਜੀਹ ਨਹੀਂ)',
+  vehicleCapabilities: 'ਵਾਹਨ ਸਮਰੱਥਾਵਾਂ',
+  vehicleCapabilitiesHint: 'ਵਾਹਨ ਸ਼੍ਰੇਣੀਆਂ ਜੋ ਤੁਸੀਂ ਚਲਾ ਸਕਦੇ ਹੋ',
 };

@@ -45,6 +45,11 @@ export const bookingMr = {
     subtitle: 'प्रवास सुरू करण्यापूर्वी ग्राहकाकडून ६-अंकी पिन मागा',
     submit: 'पिन पडताळा',
   },
-  noActiveDriverNearby: 'तुमच्या जवळ कोणताही सक्रिय चालक आढळला नाही.',
-  searchingNearbyDrivers: 'जवळपासचे चालक शोधत आहे…',
+  noActiveDriverNearby: 'तुमच्या जवळ कोणताही सक्रिय ड्रायव्हर आढळला नाही.',
+  searchingNearbyDrivers: 'जवळचे ड्रायव्हर्स शोधत आहे…',
+  vehicleCategory: 'वाहन श्रेणी',
+  vehicleCategoryHint: 'आवश्यक वाहन प्रकार निवडा',
+  anyVehicleCategory: 'कोणतेही वाहन (पसंती नाही)',
+  vehicleCapabilities: 'वाहन क्षमता',
+  vehicleCapabilitiesHint: 'आपण चालवू शकणाऱ्या वाहन श्रेणी',
 };

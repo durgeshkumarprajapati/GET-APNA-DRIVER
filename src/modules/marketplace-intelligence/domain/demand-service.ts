@@ -146,7 +146,8 @@ export async function getDemandMetrics(query: DemandWindowQuery): Promise<Demand
 
   for (const b of filteredBookings) {
     // Category tally
-    categoryMap[b.vehicleCategory] = (categoryMap[b.vehicleCategory] || 0) + 1;
+    const catCode = b.vehicleCategory?.code ?? 'UNKNOWN';
+    categoryMap[catCode] = (categoryMap[catCode] || 0) + 1;
 
     // Zone tally
     const zEntry = zoneMap[b.resolvedZoneId] || { requests: 0, completed: 0, cancelled: 0 };
@@ -257,7 +258,7 @@ async function calculateHistoricalBaselineDemand(
           gte: historicalStart,
           lte: historicalEnd,
         },
-        ...(vehicleCategory ? { vehicleCategory } : {}),
+        ...(vehicleCategory ? { vehicleCategory: { code: vehicleCategory } } : {}),
       },
     });
 
