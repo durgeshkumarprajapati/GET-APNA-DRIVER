@@ -66,8 +66,18 @@ export function registerNotificationEventHandlers(): void {
   eventHandlerRegistry.register(
     'booking.driver.offered',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
-      const driverUserId = payload.driverUserId as string;
+      let driverUserId = payload.driverUserId as string | undefined;
+      const driverProfileId = payload.driverProfileId as string | undefined;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
+
+      if (!driverUserId && driverProfileId) {
+        const dp = await database.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        driverUserId = dp?.userId;
+      }
       if (!driverUserId) return;
 
       await createNotification(
@@ -79,7 +89,7 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-driver-offer`,
         },
-        db ?? prisma,
+        database,
       );
     },
   );
@@ -88,8 +98,18 @@ export function registerNotificationEventHandlers(): void {
     'booking.driver.assigned',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
-      const driverUserId = payload.driverUserId as string;
+      let driverUserId = payload.driverUserId as string | undefined;
+      const driverProfileId = payload.driverProfileId as string | undefined;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
+
+      if (!driverUserId && driverProfileId) {
+        const dp = await database.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        driverUserId = dp?.userId;
+      }
 
       if (customerId) {
         await createNotification(
@@ -101,7 +121,7 @@ export function registerNotificationEventHandlers(): void {
             data: { bookingId },
             idempotencyKey: `${event.id}-customer-assigned`,
           },
-          db ?? prisma,
+          database,
         );
       }
 
@@ -115,7 +135,7 @@ export function registerNotificationEventHandlers(): void {
             data: { bookingId },
             idempotencyKey: `${event.id}-driver-assigned`,
           },
-          db ?? prisma,
+          database,
         );
       }
     },
@@ -324,9 +344,18 @@ export function registerNotificationEventHandlers(): void {
   eventHandlerRegistry.register(
     'payment.captured',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
-      const customerId = payload.customerId as string;
-      const paymentId = payload.paymentId as string;
+      let customerId = payload.customerId as string | undefined;
+      const paymentId = payload.paymentId as string | undefined;
       const amount = payload.amount as string | number;
+      const client = db ?? prisma;
+
+      if (!customerId && paymentId) {
+        const payment = await client.payment.findUnique({
+          where: { id: paymentId },
+          select: { customerId: true, booking: { select: { customerId: true } } },
+        });
+        customerId = payment?.customerId ?? payment?.booking?.customerId;
+      }
 
       if (customerId) {
         await createNotification(
@@ -338,7 +367,7 @@ export function registerNotificationEventHandlers(): void {
             data: { paymentId },
             idempotencyKey: `${event.id}-payment-captured`,
           },
-          db ?? prisma,
+          client,
         );
       }
     },
@@ -347,8 +376,18 @@ export function registerNotificationEventHandlers(): void {
   eventHandlerRegistry.register(
     'payment.refunded',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
-      const customerId = payload.customerId as string;
+      let customerId = payload.customerId as string | undefined;
+      const paymentId = payload.paymentId as string | undefined;
       const amount = payload.amount as string | number;
+      const client = db ?? prisma;
+
+      if (!customerId && paymentId) {
+        const payment = await client.payment.findUnique({
+          where: { id: paymentId },
+          select: { customerId: true, booking: { select: { customerId: true } } },
+        });
+        customerId = payment?.customerId ?? payment?.booking?.customerId;
+      }
 
       if (customerId) {
         await createNotification(
@@ -360,7 +399,7 @@ export function registerNotificationEventHandlers(): void {
             data: payload,
             idempotencyKey: `${event.id}-payment-refunded`,
           },
-          db ?? prisma,
+          client,
         );
       }
     },
