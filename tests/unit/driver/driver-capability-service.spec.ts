@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   setDriverVehicleCapabilities,
   getDriverVehicleCapabilities,
@@ -83,9 +84,9 @@ describe('DriverCapabilityService', () => {
         { id: 'vc-car', code: 'CAR', name: 'Car', isActive: true },
       ]);
 
-      await expect(
-        setDriverVehicleCapabilities('dp-1', ['vc-car', 'vc-invalid']),
-      ).rejects.toThrow('Invalid or inactive vehicle category selection: vc-invalid');
+      await expect(setDriverVehicleCapabilities('dp-1', ['vc-car', 'vc-invalid'])).rejects.toThrow(
+        'Invalid or inactive vehicle category selection: vc-invalid',
+      );
     });
 
     it('throws error if driver profile is not found', async () => {

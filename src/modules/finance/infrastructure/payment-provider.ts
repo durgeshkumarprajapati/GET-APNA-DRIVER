@@ -336,4 +336,6 @@ export class MockPaymentProvider implements PaymentProvider {
 }
 
 export const paymentProvider: PaymentProvider =
-  env.NODE_ENV === 'production' ? new RazorpayPaymentProvider() : new MockPaymentProvider();
+  (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) || env.NODE_ENV === 'production'
+    ? new RazorpayPaymentProvider()
+    : new MockPaymentProvider();

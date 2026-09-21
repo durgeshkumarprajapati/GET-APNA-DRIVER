@@ -50,6 +50,7 @@ export interface PaymentCheckoutInit {
   paymentMethod?: string | null;
   /** Razorpay's public key — safe to expose to the client checkout widget. */
   razorpayKeyId: string | null;
+  razorpayPaymentPageUrl?: string | null;
 }
 
 export interface PaymentSummary {
@@ -60,6 +61,8 @@ export interface PaymentSummary {
   amount: string;
   currency: string;
   provider: string;
+  providerOrderId: string | null;
+  providerPaymentId: string | null;
   paymentMethod: string | null;
   cashCustomerConfirmedAt: string | null;
   cashDriverConfirmedAt: string | null;
@@ -100,6 +103,8 @@ function mapPaymentToSummary(payment: Payment): PaymentSummary {
     amount: payment.amount.toFixed(4),
     currency: payment.currency,
     provider: payment.provider,
+    providerOrderId: payment.providerOrderId ?? null,
+    providerPaymentId: payment.providerPaymentId ?? null,
     paymentMethod: payment.paymentMethod ?? null,
     cashCustomerConfirmedAt: payment.cashCustomerConfirmedAt
       ? payment.cashCustomerConfirmedAt.toISOString()
@@ -154,6 +159,7 @@ function toCheckoutInit(payment: Payment): PaymentCheckoutInit {
     currency: payment.currency,
     paymentMethod: payment.paymentMethod ?? null,
     razorpayKeyId: env.RAZORPAY_KEY_ID ?? null,
+    razorpayPaymentPageUrl: env.RAZORPAY_PAYMENT_PAGE ?? null,
   };
 }
 
