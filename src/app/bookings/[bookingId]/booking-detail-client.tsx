@@ -8,6 +8,7 @@ import { useToast, ToastViewport } from '@/components/ui/toast';
 import { DirectCallResponse } from '@/modules/calling/domain/types';
 import { useTranslation } from '@/i18n/context';
 import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
+import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 interface BookingDetail {
   id: string;
@@ -508,46 +509,50 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             />
           )}
 
-          {/* Rate Your Driver */}
+          {/* Post-Trip Payment & Rate Your Driver */}
           {booking.status === 'TRIP_COMPLETED' && (
-            <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                {review
-                  ? t('customer.tracking.yourReviewTitle')
-                  : t('customer.tracking.rateYourDriverTitle')}
-              </h3>
-              {review ? (
-                <div className="space-y-2">
-                  <RatingStars value={review.rating} size="md" />
-                  {review.comment && (
-                    <p className="text-sm text-slate-300 italic">&quot;{review.comment}&quot;</p>
-                  )}
-                  <p className="text-[10px] text-slate-500">
-                    {t('customer.tracking.submittedOn', { date: formatDate(review.createdAt) })}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <RatingStars value={reviewRating} size="lg" onChange={setReviewRating} />
-                  <textarea
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder={t('customer.tracking.reviewPlaceholder')}
-                    className="w-full h-20 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                  />
-                  {reviewError && <p className="text-xs text-red-400">{reviewError}</p>}
-                  <button
-                    type="button"
-                    disabled={submittingReview}
-                    onClick={() => void handleSubmitReview()}
-                    className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold text-sm disabled:opacity-50 transition-colors"
-                  >
-                    {submittingReview
-                      ? t('customer.tracking.submitting')
-                      : t('customer.tracking.submitReviewBtn')}
-                  </button>
-                </div>
-              )}
+            <div className="space-y-6">
+              <PostTripPaymentCard bookingId={booking.id} role="CUSTOMER" />
+
+              <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
+                <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                  {review
+                    ? t('customer.tracking.yourReviewTitle')
+                    : t('customer.tracking.rateYourDriverTitle')}
+                </h3>
+                {review ? (
+                  <div className="space-y-2">
+                    <RatingStars value={review.rating} size="md" />
+                    {review.comment && (
+                      <p className="text-sm text-slate-300 italic">&quot;{review.comment}&quot;</p>
+                    )}
+                    <p className="text-[10px] text-slate-500">
+                      {t('customer.tracking.submittedOn', { date: formatDate(review.createdAt) })}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <RatingStars value={reviewRating} size="lg" onChange={setReviewRating} />
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder={t('customer.tracking.reviewPlaceholder')}
+                      className="w-full h-20 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                    {reviewError && <p className="text-xs text-red-400">{reviewError}</p>}
+                    <button
+                      type="button"
+                      disabled={submittingReview}
+                      onClick={() => void handleSubmitReview()}
+                      className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold text-sm disabled:opacity-50 transition-colors"
+                    >
+                      {submittingReview
+                        ? t('customer.tracking.submitting')
+                        : t('customer.tracking.submitReviewBtn')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
