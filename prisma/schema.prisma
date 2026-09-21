@@ -1133,6 +1133,13 @@ model Payment {
   providerOrderId   String? @map("provider_order_id")
   providerPaymentId String? @map("provider_payment_id")
 
+  /// Post-trip payment method chosen by customer: UPI, QR, CASH, or ONLINE.
+  paymentMethod String? @map("payment_method")
+
+  /// Cash payment confirmation timestamps (dual confirmation required).
+  cashCustomerConfirmedAt DateTime? @map("cash_customer_confirmed_at") @db.Timestamptz(6)
+  cashDriverConfirmedAt   DateTime? @map("cash_driver_confirmed_at") @db.Timestamptz(6)
+
   /// Client-supplied key for the "create payment order" request. Prevents
   /// creating two orders for the same checkout attempt on retry/double-click.
   idempotencyKey String? @unique @map("idempotency_key")

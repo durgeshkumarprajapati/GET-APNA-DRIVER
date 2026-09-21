@@ -65,6 +65,18 @@ export class PaymentVerificationFailedError extends AppError {
   }
 }
 
+export class CashPaymentConfirmationForbiddenError extends AppError {
+  constructor(reason: string) {
+    super(`Cash payment confirmation failed: ${reason}`, 403, 'CASH_PAYMENT_CONFIRMATION_FORBIDDEN');
+  }
+}
+
+export class InvalidPaymentMethodError extends AppError {
+  constructor(method: string) {
+    super(`Invalid payment method: ${method}`, 400, 'INVALID_PAYMENT_METHOD');
+  }
+}
+
 export class WebhookSignatureInvalidError extends AppError {
   constructor() {
     super('Webhook signature verification failed', 400, 'WEBHOOK_SIGNATURE_INVALID');
