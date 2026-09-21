@@ -53,7 +53,8 @@ export default function AdminLocationIntelligencePage() {
               Location Intelligence & Routing
             </h1>
             <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-              Real-time telemetry, ETA provider health, stale location counts, and geofence activity.
+              Real-time telemetry, ETA provider health, stale location counts, and geofence
+              activity.
             </p>
           </div>
 

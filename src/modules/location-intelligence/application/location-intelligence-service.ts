@@ -9,7 +9,10 @@ import { evaluateDestinationProximity } from '../rules/destination-proximity-rul
 import { evaluateLocationFreshnessState } from '../domain/location-policy';
 import { evaluatePickupZoneIntelligence } from '../rules/pickup-zone-rule';
 import { getLocationTelemetryStats } from '../infrastructure/location-telemetry';
-import type { LocationPoint, LocationConfidenceAssessment } from '../domain/location-intelligence-types';
+import type {
+  LocationPoint,
+  LocationConfidenceAssessment,
+} from '../domain/location-intelligence-types';
 import type { ETAResult } from '../domain/eta-types';
 
 export interface BookingLocationIntelligence {
@@ -78,11 +81,7 @@ export async function getBookingLocationIntelligence(
     }
   }
 
-  const distances = computeTripDistances(
-    driverLocation,
-    pickupCoordinates,
-    destinationCoordinates,
-  );
+  const distances = computeTripDistances(driverLocation, pickupCoordinates, destinationCoordinates);
 
   let etaToPickup: ETAResult | null = null;
   if (driverLocation) {
@@ -155,10 +154,7 @@ export async function getBookingLocationIntelligence(
   };
 }
 
-export async function getDriverPickupLocationIntelligence(
-  bookingId: string,
-  db: Db = prisma,
-) {
+export async function getDriverPickupLocationIntelligence(bookingId: string, db: Db = prisma) {
   const intel = await getBookingLocationIntelligence(bookingId, db);
   if (!intel) return null;
 

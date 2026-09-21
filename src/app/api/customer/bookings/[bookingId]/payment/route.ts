@@ -6,14 +6,14 @@ import {
   getPostTripPaymentForBooking,
 } from '@/modules/finance/application/services/payment-service';
 
-export const GET = withAuth(async (_req, _principal, routeContext?: unknown) => {
+export const GET = withAuth(async (_req, { principal }, routeContext?: unknown) => {
   try {
     const params = await (routeContext as { params: Promise<{ bookingId: string }> })?.params;
     const bookingId = params?.bookingId;
     if (!bookingId) {
       return NextResponse.json({ error: 'Missing booking ID' }, { status: 400 });
     }
-    const payment = await getPostTripPaymentForBooking(bookingId);
+    const payment = await getPostTripPaymentForBooking(bookingId, { userId: principal.userId });
     return NextResponse.json({ success: true, payment }, { status: 200 });
   } catch (err: unknown) {
     const message =

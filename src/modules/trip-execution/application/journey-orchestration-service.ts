@@ -1,7 +1,10 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { BookingStatus, BookingType, DriverAvailabilityStatus } from '@prisma/client';
-import { calculateHaversineDistance, toKmDisplay } from '@/modules/location/application/distance-service';
+import {
+  calculateHaversineDistance,
+  toKmDisplay,
+} from '@/modules/location/application/distance-service';
 import { evaluateLocationFreshnessState } from '@/modules/location-intelligence/domain/location-policy';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 
@@ -253,7 +256,8 @@ export async function getJourneyDetails(
   // Location Freshness & Confidence Calculation
   const freshnessAssessment = evaluateLocationFreshnessState(driverLoc?.capturedAt);
   const locationFreshness: LocationFreshnessRating = freshnessAssessment.freshness;
-  const lastLocationUpdatedAgoSeconds = freshnessAssessment.ageSeconds < 999999 ? freshnessAssessment.ageSeconds : null;
+  const lastLocationUpdatedAgoSeconds =
+    freshnessAssessment.ageSeconds < 999999 ? freshnessAssessment.ageSeconds : null;
 
   let locationConfidence: LocationConfidenceLevel = 'UNAVAILABLE';
   if (driverLoc) {
@@ -372,10 +376,17 @@ export async function getJourneyDetails(
 
   // Pre-Trip Readiness Assessment
   const driverProfile = booking.driverProfile;
-  const driverApproved = driverProfile?.approvalStatus === 'APPROVED' && driverProfile?.verificationStatus === 'VERIFIED';
+  const driverApproved =
+    driverProfile?.approvalStatus === 'APPROVED' &&
+    driverProfile?.verificationStatus === 'VERIFIED';
   const documentsValid = driverProfile?.verificationStatus === 'VERIFIED';
-  const driverOnline = driverProfile?.availabilityStatus === DriverAvailabilityStatus.AVAILABLE || driverProfile?.availabilityStatus === DriverAvailabilityStatus.BUSY;
-  const locationAvailable = driverLoc !== null && freshnessAssessment.freshness !== 'UNAVAILABLE' && freshnessAssessment.freshness !== 'STALE';
+  const driverOnline =
+    driverProfile?.availabilityStatus === DriverAvailabilityStatus.AVAILABLE ||
+    driverProfile?.availabilityStatus === DriverAvailabilityStatus.BUSY;
+  const locationAvailable =
+    driverLoc !== null &&
+    freshnessAssessment.freshness !== 'UNAVAILABLE' &&
+    freshnessAssessment.freshness !== 'STALE';
   const vehicleCompatible = true;
   const pickupLocationAvailable = booking.pickupLatitude != null && booking.pickupLongitude != null;
   const ridePinAvailable = Boolean(booking.customer.customerProfile?.customerRidePinHash);
@@ -388,7 +399,14 @@ export async function getJourneyDetails(
     vehicleCompatible,
     pickupLocationAvailable,
     ridePinAvailable,
-    isReady: Boolean(driverApproved && documentsValid && driverOnline && locationAvailable && pickupLocationAvailable && ridePinAvailable),
+    isReady: Boolean(
+      driverApproved &&
+      documentsValid &&
+      driverOnline &&
+      locationAvailable &&
+      pickupLocationAvailable &&
+      ridePinAvailable,
+    ),
   };
 
   // Timeline Generator
@@ -409,31 +427,50 @@ export async function getJourneyDetails(
       key: 'DRIVER_EN_ROUTE',
       titleKey: 'journey.timeline.driverEnRoute',
       timestamp: booking.driverEnRouteAt ? booking.driverEnRouteAt.toISOString() : null,
-      status: booking.driverEnRouteAt ? 'COMPLETED' : booking.assignedAt ? 'IN_PROGRESS' : 'PENDING',
+      status: booking.driverEnRouteAt
+        ? 'COMPLETED'
+        : booking.assignedAt
+          ? 'IN_PROGRESS'
+          : 'PENDING',
     },
     {
       key: 'DRIVER_ARRIVED',
       titleKey: 'journey.timeline.driverArrived',
       timestamp: booking.driverArrivedAt ? booking.driverArrivedAt.toISOString() : null,
-      status: booking.driverArrivedAt ? 'COMPLETED' : booking.driverEnRouteAt ? 'IN_PROGRESS' : 'PENDING',
+      status: booking.driverArrivedAt
+        ? 'COMPLETED'
+        : booking.driverEnRouteAt
+          ? 'IN_PROGRESS'
+          : 'PENDING',
     },
     {
       key: 'TRIP_STARTED',
       titleKey: 'journey.timeline.tripStarted',
       timestamp: booking.tripStartedAt ? booking.tripStartedAt.toISOString() : null,
-      status: booking.tripStartedAt ? 'COMPLETED' : booking.driverArrivedAt ? 'IN_PROGRESS' : 'PENDING',
+      status: booking.tripStartedAt
+        ? 'COMPLETED'
+        : booking.driverArrivedAt
+          ? 'IN_PROGRESS'
+          : 'PENDING',
     },
     {
       key: 'TRIP_COMPLETED',
       titleKey: 'journey.timeline.tripCompleted',
       timestamp: booking.tripCompletedAt ? booking.tripCompletedAt.toISOString() : null,
-      status: booking.tripCompletedAt ? 'COMPLETED' : booking.tripStartedAt ? 'IN_PROGRESS' : 'PENDING',
+      status: booking.tripCompletedAt
+        ? 'COMPLETED'
+        : booking.tripStartedAt
+          ? 'IN_PROGRESS'
+          : 'PENDING',
     },
   ];
 
   // ETA Engine Calculations
   let estimatedMinutes: number | null = null;
-  if (booking.status === BookingStatus.DRIVER_ASSIGNED || booking.status === BookingStatus.DRIVER_EN_ROUTE) {
+  if (
+    booking.status === BookingStatus.DRIVER_ASSIGNED ||
+    booking.status === BookingStatus.DRIVER_EN_ROUTE
+  ) {
     if (pickupDistanceMeters !== null) {
       const speedMps = (25 * 1000) / 3600;
       estimatedMinutes = Math.max(1, Math.round(pickupDistanceMeters / speedMps / 60));
@@ -449,29 +486,32 @@ export async function getJourneyDetails(
   const displayETA = isLocationStale
     ? null
     : estimatedMinutes !== null
-    ? `${estimatedMinutes} min`
-    : null;
+      ? `${estimatedMinutes} min`
+      : null;
 
   const baseDTO: BaseJourneyDTO = {
     bookingId: booking.id,
     bookingType: booking.bookingType,
     status: booking.status,
     derivedState,
-    requestedStartTime: booking.requestedStartTime ? booking.requestedStartTime.toISOString() : null,
+    requestedStartTime: booking.requestedStartTime
+      ? booking.requestedStartTime.toISOString()
+      : null,
     pickup: {
       latitude: booking.pickupLatitude,
       longitude: booking.pickupLongitude,
       address: booking.pickupAddress,
       label: booking.pickupLabel,
     },
-    dropoff: booking.dropoffLatitude != null && booking.dropoffLongitude != null
-      ? {
-          latitude: booking.dropoffLatitude,
-          longitude: booking.dropoffLongitude,
-          address: booking.dropoffAddress ?? null,
-          label: booking.dropoffLabel ?? null,
-        }
-      : null,
+    dropoff:
+      booking.dropoffLatitude != null && booking.dropoffLongitude != null
+        ? {
+            latitude: booking.dropoffLatitude,
+            longitude: booking.dropoffLongitude,
+            address: booking.dropoffAddress ?? null,
+            label: booking.dropoffLabel ?? null,
+          }
+        : null,
     pickupProximity,
     destinationProximity,
     timeline,
@@ -495,7 +535,9 @@ export async function getJourneyDetails(
             fullName: driverProfile.user.fullName,
             phone: driverProfile.user.phoneNumber,
             rating: 4.85,
-            totalTrips: driverProfile.drivingExperienceYears ? driverProfile.drivingExperienceYears * 25 : 50,
+            totalTrips: driverProfile.drivingExperienceYears
+              ? driverProfile.drivingExperienceYears * 25
+              : 50,
             vehicleModel: driverProfile.displayName ?? 'Maruti Dzire',
             vehicleColor: 'White',
             licensePlate: 'MH02AB1234',
@@ -605,8 +647,12 @@ export async function handleJourneyProximityCheck(
   );
 
   if (distance <= 500 && booking.status === BookingStatus.DRIVER_EN_ROUTE) {
-    const idempotencyKey = getNotificationIdempotencyKey(bookingId, booking.customerId, 'trip.driver.near_pickup');
-    
+    const idempotencyKey = getNotificationIdempotencyKey(
+      bookingId,
+      booking.customerId,
+      'trip.driver.near_pickup',
+    );
+
     await insertOutboxEvent(db, {
       eventType: 'trip.driver.near_pickup',
       aggregateType: 'Booking',

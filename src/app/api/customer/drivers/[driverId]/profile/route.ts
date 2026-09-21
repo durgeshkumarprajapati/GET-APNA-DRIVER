@@ -71,7 +71,10 @@ export const GET = withPermission<RouteParams>(
         );
       }
       if (err instanceof AppError) {
-        return NextResponse.json({ error: err.code, message: err.message }, { status: err.statusCode });
+        return NextResponse.json(
+          { error: err.code, message: err.message },
+          { status: err.statusCode },
+        );
       }
       const message = err instanceof Error ? err.message : 'Failed to load driver profile.';
       return NextResponse.json({ error: 'DRIVER_PROFILE_FETCH_FAILED', message }, { status: 500 });

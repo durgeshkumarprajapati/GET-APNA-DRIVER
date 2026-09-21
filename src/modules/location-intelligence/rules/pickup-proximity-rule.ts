@@ -4,9 +4,7 @@ import { LOCATION_POLICY } from '../domain/location-policy';
 import type { LocationPoint } from '../domain/location-intelligence-types';
 
 export type PickupProximitySignal =
-  | 'DRIVER_FAR_FROM_PICKUP'
-  | 'DRIVER_NEAR_PICKUP'
-  | 'DRIVER_AT_PICKUP';
+  'DRIVER_FAR_FROM_PICKUP' | 'DRIVER_NEAR_PICKUP' | 'DRIVER_AT_PICKUP';
 
 export interface PickupProximityEvaluation {
   signal: PickupProximitySignal;

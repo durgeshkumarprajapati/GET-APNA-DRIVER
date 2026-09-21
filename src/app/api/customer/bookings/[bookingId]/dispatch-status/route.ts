@@ -28,7 +28,10 @@ export const GET = withPermission<RouteParams>(
       );
     } catch (err: unknown) {
       if (err instanceof BookingNotFoundError) {
-        return NextResponse.json({ error: 'BOOKING_NOT_FOUND', message: err.message }, { status: 404 });
+        return NextResponse.json(
+          { error: 'BOOKING_NOT_FOUND', message: err.message },
+          { status: 404 },
+        );
       }
       const message = err instanceof Error ? err.message : 'Failed to fetch dispatch status.';
       return NextResponse.json({ error: 'FETCH_DISPATCH_STATUS_FAILED', message }, { status: 500 });

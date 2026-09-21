@@ -11,7 +11,10 @@ import { useTranslation } from '@/i18n/context';
 import { BookingType } from '@prisma/client';
 import { BookingTypeSelector } from '@/components/booking/BookingTypeSelector';
 import { DriverHireDurationSelector } from '@/components/booking/DriverHireDurationSelector';
-import { isDriverHireBooking, isRateSelectableHireBooking } from '@/modules/booking/domain/booking-policy';
+import {
+  isDriverHireBooking,
+  isRateSelectableHireBooking,
+} from '@/modules/booking/domain/booking-policy';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 
 interface FareEstimateData {
@@ -150,7 +153,9 @@ function BookDriverPageInner() {
     longitude: 0,
   });
   const [dropoffReady, setDropoffReady] = useState(false);
-  const [selectedBookingType, setSelectedBookingType] = useState<BookingType>(BookingType.POINT_TO_POINT);
+  const [selectedBookingType, setSelectedBookingType] = useState<BookingType>(
+    BookingType.POINT_TO_POINT,
+  );
   const [includeDropoff, setIncludeDropoff] = useState<boolean>(true);
   const [hireDurationValue, setHireDurationValue] = useState<number>(4);
   const [hireStartTime, setHireStartTime] = useState<string>('');
@@ -232,8 +237,11 @@ function BookDriverPageInner() {
     }
   }, [couponCodeInput, fareEstimate, selectedBookingType]);
 
-  const { status: autoLocationStatus, errorMessage: autoLocationError, capture: captureDeviceLocation } =
-    useGeolocationCapture();
+  const {
+    status: autoLocationStatus,
+    errorMessage: autoLocationError,
+    capture: captureDeviceLocation,
+  } = useGeolocationCapture();
 
   // No reverse-geocoding provider is wired up client-side (the only one in
   // the codebase, src/modules/location/infrastructure/map-provider.ts, is a
@@ -516,7 +524,8 @@ function BookDriverPageInner() {
             numberOfDays: selectedBookingType === BookingType.DAILY ? hireDurationValue : null,
             numberOfWeeks: selectedBookingType === BookingType.WEEKLY ? hireDurationValue : null,
             numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
-            hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
+            hourlyPackageHours:
+              selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
             preferredDriverProfileId,
           }),
         });
@@ -655,7 +664,8 @@ function BookDriverPageInner() {
             numberOfDays: selectedBookingType === BookingType.DAILY ? hireDurationValue : null,
             numberOfWeeks: selectedBookingType === BookingType.WEEKLY ? hireDurationValue : null,
             numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
-            hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
+            hourlyPackageHours:
+              selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
             preferredDriverProfileId,
             promotionCode: appliedCouponCode ?? undefined,
           }),
@@ -947,7 +957,9 @@ function BookDriverPageInner() {
               {/* Flexible Dropoff Location Section */}
               {isDriverHireBooking(selectedBookingType) ? (
                 <div className="bg-[#1c2028] rounded-lg p-3.5 border border-[#262a33] text-xs text-[#87948b] flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[#25a475] text-lg shrink-0">info</span>
+                  <span className="material-symbols-outlined text-[#25a475] text-lg shrink-0">
+                    info
+                  </span>
                   <span>
                     {t('booking.noDropoffRequiredHire', {
                       defaultValue:
@@ -1273,7 +1285,9 @@ function BookDriverPageInner() {
                             {formatCurrency(Number(driver.rate))}
                           </span>
                           <span className="text-[9px] text-[#87948b] uppercase font-semibold underline">
-                            {t('customer.booking.viewDetailsLink', { defaultValue: 'View Details' })}
+                            {t('customer.booking.viewDetailsLink', {
+                              defaultValue: 'View Details',
+                            })}
                           </span>
                         </div>
                       </button>
@@ -1361,7 +1375,9 @@ function BookDriverPageInner() {
               <div className="p-3.5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-[#dfe2ee] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">local_offer</span>
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                      local_offer
+                    </span>
                     <span>Coupon / Promo Code</span>
                   </span>
                   {appliedCouponCode && (
@@ -1420,7 +1436,12 @@ function BookDriverPageInner() {
                     <div className="flex justify-between text-[#dfe2ee] font-extrabold text-sm pt-1 border-t border-[#262a33]">
                       <span>Final Fare:</span>
                       <span className="text-[#68dba9]">
-                        ₹{Math.max(0, Number(fareEstimate.breakdown.totalFareAmount) - Number(couponDiscountAmount)).toFixed(2)}
+                        ₹
+                        {Math.max(
+                          0,
+                          Number(fareEstimate.breakdown.totalFareAmount) -
+                            Number(couponDiscountAmount),
+                        ).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -1669,9 +1690,7 @@ function BookDriverPageInner() {
                             <span className="font-semibold">{review.reviewerLabel}</span>
                             <span className="text-[#25a475]">{'★'.repeat(review.rating)}</span>
                           </div>
-                          {review.comment && (
-                            <p className="text-[#87948b]">{review.comment}</p>
-                          )}
+                          {review.comment && <p className="text-[#87948b]">{review.comment}</p>}
                         </div>
                       ))}
                     </div>

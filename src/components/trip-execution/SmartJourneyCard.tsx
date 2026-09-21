@@ -2,7 +2,11 @@
 
 import React from 'react';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
-import type { CustomerJourneyDTO, DriverJourneyDTO, AdminJourneyDTO } from '@/modules/trip-execution/application/journey-orchestration-service';
+import type {
+  CustomerJourneyDTO,
+  DriverJourneyDTO,
+  AdminJourneyDTO,
+} from '@/modules/trip-execution/application/journey-orchestration-service';
 
 interface SmartJourneyCardProps {
   journey: CustomerJourneyDTO | DriverJourneyDTO | AdminJourneyDTO;
@@ -60,7 +64,9 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
       <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-[#262a33]">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[#68dba9] text-xl">near_me</span>
-          <span className="font-bold text-sm tracking-wide uppercase text-[#a2abb3]">Journey Execution 2.0</span>
+          <span className="font-bold text-sm tracking-wide uppercase text-[#a2abb3]">
+            Journey Execution 2.0
+          </span>
         </div>
         <StatusBadge label={label} tone={tone} />
       </div>
@@ -68,36 +74,46 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
       {/* ETA & Freshness Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-[#11141a] border border-[#262a33] text-xs">
         <div>
-          <span className="block text-[10px] uppercase text-[#87948b] font-bold">Estimated Arrival / ETA</span>
+          <span className="block text-[10px] uppercase text-[#87948b] font-bold">
+            Estimated Arrival / ETA
+          </span>
           <span className="text-sm font-bold text-[#68dba9]">
             {journey.eta.isStale ? (
               <span className="text-[#ffb4ab]">Location updating…</span>
             ) : (
-              journey.eta.displayETA ?? 'Calculating…'
+              (journey.eta.displayETA ?? 'Calculating…')
             )}
           </span>
         </div>
 
         <div>
-          <span className="block text-[10px] uppercase text-[#87948b] font-bold">Location Freshness</span>
+          <span className="block text-[10px] uppercase text-[#87948b] font-bold">
+            Location Freshness
+          </span>
           <span className="flex items-center gap-1.5 mt-0.5">
             <span
               className={`w-2 h-2 rounded-full ${
                 journey.locationFreshness === 'LIVE'
                   ? 'bg-[#68dba9] animate-pulse'
                   : journey.locationFreshness === 'RECENT'
-                  ? 'bg-[#e2c46c]'
-                  : 'bg-[#ff897d]'
+                    ? 'bg-[#e2c46c]'
+                    : 'bg-[#ff897d]'
               }`}
             />
-            <span className="font-semibold text-xs text-[#c0c7d4]">{journey.locationFreshness}</span>
+            <span className="font-semibold text-xs text-[#c0c7d4]">
+              {journey.locationFreshness}
+            </span>
           </span>
         </div>
 
         <div>
-          <span className="block text-[10px] uppercase text-[#87948b] font-bold">Pickup Proximity</span>
+          <span className="block text-[10px] uppercase text-[#87948b] font-bold">
+            Pickup Proximity
+          </span>
           <span className="font-medium text-xs text-[#c0c7d4]">
-            {journey.pickupProximity.distanceKmDisplay ? `${journey.pickupProximity.distanceKmDisplay} away` : 'N/A'}
+            {journey.pickupProximity.distanceKmDisplay
+              ? `${journey.pickupProximity.distanceKmDisplay} away`
+              : 'N/A'}
           </span>
         </div>
       </div>
@@ -124,7 +140,9 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
       {driverJourney && (
         <div className="p-4 rounded-xl bg-[#11141a] border border-[#262a33] flex items-center justify-between flex-wrap gap-3">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#a2abb3]">Ride PIN Status</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#a2abb3]">
+              Ride PIN Status
+            </span>
             <p className="text-xs mt-0.5 text-[#dfe2ee]">
               {driverJourney.ridePinVerification.verified ? (
                 <span className="text-[#68dba9] font-bold flex items-center gap-1">
@@ -181,8 +199,11 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
             <div>
               <p className="text-sm font-bold text-[#dfe2ee]">{customerJourney.driver.fullName}</p>
               <p className="text-[11px] text-[#87948b]">
-                ⭐ {customerJourney.driver.rating.toFixed(1)} • {customerJourney.driver.totalTrips} Trips
-                {customerJourney.driver.vehicleModel ? ` • ${customerJourney.driver.vehicleModel}` : ''}
+                ⭐ {customerJourney.driver.rating.toFixed(1)} • {customerJourney.driver.totalTrips}{' '}
+                Trips
+                {customerJourney.driver.vehicleModel
+                  ? ` • ${customerJourney.driver.vehicleModel}`
+                  : ''}
               </p>
             </div>
           </div>
@@ -206,7 +227,9 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
             <p className="text-xs text-[#87948b] font-bold uppercase">Customer</p>
             <p className="text-sm font-bold text-[#dfe2ee]">{driverJourney.customer.fullName}</p>
             {driverJourney.customer.notes && (
-              <p className="text-[11px] text-[#a2abb3] mt-0.5">Notes: {driverJourney.customer.notes}</p>
+              <p className="text-[11px] text-[#a2abb3] mt-0.5">
+                Notes: {driverJourney.customer.notes}
+              </p>
             )}
           </div>
 
@@ -231,14 +254,18 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
           </div>
           <div>
             <p className="text-[#87948b] font-bold uppercase text-[10px]">Assigned Driver</p>
-            <p className="text-[#dfe2ee] font-semibold">{adminJourney.driverName ?? 'Unassigned'}</p>
+            <p className="text-[#dfe2ee] font-semibold">
+              {adminJourney.driverName ?? 'Unassigned'}
+            </p>
           </div>
         </div>
       )}
 
       {/* Journey Timeline */}
       <div className="pt-3 border-t border-[#262a33]">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[#87948b] mb-2">Journey Timeline</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-[#87948b] mb-2">
+          Journey Timeline
+        </p>
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-[10px]">
           {journey.timeline.map((step) => (
             <div
@@ -247,13 +274,18 @@ export const SmartJourneyCard: React.FC<SmartJourneyCardProps> = ({
                 step.status === 'COMPLETED'
                   ? 'bg-[#25a475]/10 border-[#25a475]/40 text-[#68dba9]'
                   : step.status === 'IN_PROGRESS'
-                  ? 'bg-[#e2c46c]/10 border-[#e2c46c]/40 text-[#e2c46c]'
-                  : 'bg-[#11141a] border-[#262a33] text-[#6c757d]'
+                    ? 'bg-[#e2c46c]/10 border-[#e2c46c]/40 text-[#e2c46c]'
+                    : 'bg-[#11141a] border-[#262a33] text-[#6c757d]'
               }`}
             >
               <span className="block font-bold truncate">{step.key.replace(/_/g, ' ')}</span>
               <span className="block text-[9px] mt-0.5 opacity-80">
-                {step.timestamp ? new Date(step.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Pending'}
+                {step.timestamp
+                  ? new Date(step.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Pending'}
               </span>
             </div>
           ))}

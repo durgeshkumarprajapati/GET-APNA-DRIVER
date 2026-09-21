@@ -1,8 +1,5 @@
 import 'server-only';
-import {
-  evaluateLocationConfidence,
-  detectLocationAnomaly,
-} from '../domain/location-confidence';
+import { evaluateLocationConfidence, detectLocationAnomaly } from '../domain/location-confidence';
 import { recordLocationAnomalyMetric } from '../infrastructure/location-telemetry';
 import type {
   LocationPoint,

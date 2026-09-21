@@ -1,5 +1,8 @@
 import 'server-only';
-import { resolveZoneForLocation, type ZoneSummary } from '@/modules/marketplace-intelligence/domain/zone-service';
+import {
+  resolveZoneForLocation,
+  type ZoneSummary,
+} from '@/modules/marketplace-intelligence/domain/zone-service';
 
 export interface PickupZoneIntelligence {
   zone: ZoneSummary;

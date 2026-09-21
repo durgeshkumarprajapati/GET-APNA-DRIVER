@@ -20,9 +20,7 @@ const SWEEP_BATCH_SIZE = 50;
  * Runs on every worker loop iteration (see worker/index.ts) — cheap,
  * indexed query, bounded batch size, safe to run frequently.
  */
-export async function runAssignmentExpirySweep(
-  db: Db = prisma,
-): Promise<{ sweptCount: number }> {
+export async function runAssignmentExpirySweep(db: Db = prisma): Promise<{ sweptCount: number }> {
   const staleAttempts = await db.bookingAssignmentAttempt.findMany({
     where: {
       status: AssignmentAttemptStatus.PENDING,

@@ -18,7 +18,12 @@ describe('NotificationService - push payload (actionUrl + tag propagation)', () 
       notification: {
         findUnique: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockImplementation((args: { data: Record<string, unknown> }) =>
-          Promise.resolve({ id: 'notif-1', ...args.data, createdAt: new Date(), updatedAt: new Date() }),
+          Promise.resolve({
+            id: 'notif-1',
+            ...args.data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }),
         ),
       },
       notificationDelivery: {

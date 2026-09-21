@@ -80,16 +80,14 @@ export const GET = withPermission(
         zoneSupplyBreakdown: [],
       }));
 
-      const forecast = await defaultForecastProvider
-        .generateForecast('1h', zoneId)
-        .catch(() => ({
-          horizon: '1h' as const,
-          zoneId: zoneId || 'all',
-          forecastedDemand: 0,
-          confidence: 'HIGH' as const,
-          explanation: 'Baseline demand forecast stable.',
-          evaluatedAt: new Date().toISOString(),
-        }));
+      const forecast = await defaultForecastProvider.generateForecast('1h', zoneId).catch(() => ({
+        horizon: '1h' as const,
+        zoneId: zoneId || 'all',
+        forecastedDemand: 0,
+        confidence: 'HIGH' as const,
+        explanation: 'Baseline demand forecast stable.',
+        evaluatedAt: new Date().toISOString(),
+      }));
 
       const health = evaluateMarketplaceHealth({
         totalRequests: demand.totalRequests,

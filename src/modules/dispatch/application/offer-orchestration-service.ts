@@ -98,7 +98,11 @@ export async function orchestrateDispatchOffers(
   const attemptedDriverIds = new Set(booking.assignmentAttempts.map((a) => a.driverProfileId));
 
   // 3. Load Strategy Configuration
-  const configuredStrategy = (await getString('dispatch.offer.strategy', 'SEQUENTIAL', db)) as DispatchOfferStrategy;
+  const configuredStrategy = (await getString(
+    'dispatch.offer.strategy',
+    'SEQUENTIAL',
+    db,
+  )) as DispatchOfferStrategy;
   const strategy: DispatchOfferStrategy = options.strategy || configuredStrategy || 'SEQUENTIAL';
 
   const configuredBatchSize = await getInteger('dispatch.offer.batch_size', 1, db);
@@ -106,11 +110,7 @@ export async function orchestrateDispatchOffers(
   // Bounded parallel offer batch size: min 1, max 3 (prevents notification storms/fan-out)
   const batchSize = strategy === 'PARALLEL' ? Math.min(Math.max(1, rawBatchSize), 3) : 1;
 
-  const responseTimeoutSeconds = await getInteger(
-    'dispatch.offer.timeout_seconds',
-    30,
-    db,
-  );
+  const responseTimeoutSeconds = await getInteger('dispatch.offer.timeout_seconds', 30, db);
   const offerTimeout = options.timeoutSeconds || responseTimeoutSeconds || 30;
 
   // 4. Radius Calculation & Candidate Discovery

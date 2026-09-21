@@ -57,14 +57,17 @@ export const customerGu = {
     pickupSetTag: 'પિકઅપ સ્થળ સેટ કરેલ',
     detectingLocation: 'તમારું સ્થાન શોધી રહ્યા છીએ…',
     locationNotSet: 'સ્થાન સેટ નથી — બદલો પર ટેપ કરો અથવા હાલનું સ્થાન વાપરો',
-    dropoffNotSet: 'કૃપા કરીને ગંતવ્ય પસંદ કરો, અથવા \'ડ્રોપ સ્થાન સ્પષ્ટ કરો\' અનચેક કરો.',
+    dropoffNotSet: "કૃપા કરીને ગંતવ્ય પસંદ કરો, અથવા 'ડ્રોપ સ્થાન સ્પષ્ટ કરો' અનચેક કરો.",
     validationFailedError: 'કૃપા કરીને તમારું પિકઅપ અને ગંતવ્ય તપાસો અને ફરી પ્રયાસ કરો.',
     chooseYourDriverTitle: 'તમારો ડ્રાઇવર પસંદ કરો',
-    chooseYourDriverSubtitle: 'દૈનિક, સાપ્તાહિક અને માસિક ભાડા માટે જરૂરી — તમે આ ડ્રાઇવરના પોતાના દરે જ ચૂકવણી કરશો, ફક્ત આ ડ્રાઇવરને.',
+    chooseYourDriverSubtitle:
+      'દૈનિક, સાપ્તાહિક અને માસિક ભાડા માટે જરૂરી — તમે આ ડ્રાઇવરના પોતાના દરે જ ચૂકવણી કરશો, ફક્ત આ ડ્રાઇવરને.',
     loadingAvailableDrivers: 'ઉપલબ્ધ ડ્રાઇવરો શોધાઈ રહ્યા છે…',
-    noDriversAvailableForHire: 'અત્યારે આ ભાડા સમયગાળા માટે કોઈ ડ્રાઇવર ઉપલબ્ધ નથી. કૃપા કરી અલગ સમય અથવા સમયગાળો પ્રયાસ કરો.',
+    noDriversAvailableForHire:
+      'અત્યારે આ ભાડા સમયગાળા માટે કોઈ ડ્રાઇવર ઉપલબ્ધ નથી. કૃપા કરી અલગ સમય અથવા સમયગાળો પ્રયાસ કરો.',
     driverSelectionRequiredError: 'કૃપા કરી પુષ્ટિ કરતા પહેલા આ ભાડા માટે ડ્રાઇવર પસંદ કરો.',
-    selectedDriverUnavailableError: 'તમારો પસંદ કરેલો ડ્રાઇવર હવે આ ભાડા માટે ઉપલબ્ધ નથી. કૃપા કરી બીજો ડ્રાઇવર પસંદ કરો.',
+    selectedDriverUnavailableError:
+      'તમારો પસંદ કરેલો ડ્રાઇવર હવે આ ભાડા માટે ઉપલબ્ધ નથી. કૃપા કરી બીજો ડ્રાઇવર પસંદ કરો.',
     driverProfileLoadError: 'ડ્રાઇવર પ્રોફાઇલ લોડ કરવામાં નિષ્ફળ. કૃપા કરી ફરી પ્રયાસ કરો.',
     driverDetailsTitle: 'ડ્રાઇવર વિગતો',
     loadingDriverProfile: 'ડ્રાઇવર પ્રોફાઇલ લોડ થઈ રહી છે…',
@@ -138,7 +141,8 @@ export const customerGu = {
     maskedCallerDriver: 'માસ્ક્ડ કોલર: {{caller}} → માસ્ક્ડ ડ્રાઇવર: {{driver}}',
     preferredDriverUnavailableNote:
       'અમે તમારા મનપસંદ ડ્રાઇવરને સોંપી શક્યા નહીં. અમે શ્રેષ્ઠ ઉપલબ્ધ ડ્રાઇવર શોધીશું.',
-    pendingOfferWaiting: '{{driverName}} ને વિનંતી મોકલવામાં આવી — તેમની પુષ્ટિની રાહ જોવાઈ રહી છે.',
+    pendingOfferWaiting:
+      '{{driverName}} ને વિનંતી મોકલવામાં આવી — તેમની પુષ્ટિની રાહ જોવાઈ રહી છે.',
     messagesTitle: 'સંદેશા',
     yourReviewTitle: 'તમારી સમીક્ષા',
     rateYourDriverTitle: 'તમારા ડ્રાઇવરને રેટ કરો',

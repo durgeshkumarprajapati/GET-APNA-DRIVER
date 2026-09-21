@@ -561,4 +561,3 @@ export async function getClaimedCustomerOffers(customerId: string): Promise<stri
   const set = claimedOffersStore.get(customerId);
   return set ? Array.from(set) : [];
 }
-

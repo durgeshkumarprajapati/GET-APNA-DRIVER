@@ -113,7 +113,10 @@ export function calculatePolicyAdjustment(
   const rawAdjustment = percentageAdj + policy.flatSurgeAmount;
 
   // Enforce server-side maxAdjustmentPercentage policy cap
-  const policyCappedAdjustment = Math.min(rawAdjustment, (baseFareAmount * policy.maxAdjustmentPercentage) / 100);
+  const policyCappedAdjustment = Math.min(
+    rawAdjustment,
+    (baseFareAmount * policy.maxAdjustmentPercentage) / 100,
+  );
 
   // Enforce ABSOLUTE SERVER-SIDE HARD SAFETY BOUNDS: MIN 0.5x, MAX 3.0x
   // 0.5x minimum multiplier => dynamicAdjustment >= -0.5 * baseFare

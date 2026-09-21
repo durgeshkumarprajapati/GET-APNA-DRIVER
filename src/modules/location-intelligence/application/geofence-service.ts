@@ -29,9 +29,7 @@ export async function evaluateGeofence(
 
   try {
     const previousRaw = await redis.get(cacheKey);
-    const previousState: GeofenceStateRecord | null = previousRaw
-      ? JSON.parse(previousRaw)
-      : null;
+    const previousState: GeofenceStateRecord | null = previousRaw ? JSON.parse(previousRaw) : null;
 
     if (!previousState) {
       if (isInside) {

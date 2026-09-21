@@ -10,11 +10,7 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { evaluateDriverEligibility } from './driver-eligibility-service';
 
 export type DriverNextAction =
-  | 'COMPLETE_PROFILE'
-  | 'UPLOAD_DOCUMENTS'
-  | 'WAIT_FOR_REVIEW'
-  | 'GO_ONLINE'
-  | 'NONE';
+  'COMPLETE_PROFILE' | 'UPLOAD_DOCUMENTS' | 'WAIT_FOR_REVIEW' | 'GO_ONLINE' | 'NONE';
 
 export interface DriverProfileCompletionDetail {
   status: 'COMPLETE' | 'INCOMPLETE';
@@ -129,21 +125,30 @@ export async function evaluateDriverOperationalStatus(
   let nextAction: DriverNextAction = 'NONE';
   if (profileCompletion.status === 'INCOMPLETE') {
     nextAction = 'COMPLETE_PROFILE';
-  } else if (documentStatus === 'NOT_SUBMITTED' || documentStatus === DriverDocumentStatus.REJECTED) {
+  } else if (
+    documentStatus === 'NOT_SUBMITTED' ||
+    documentStatus === DriverDocumentStatus.REJECTED
+  ) {
     nextAction = 'UPLOAD_DOCUMENTS';
   } else if (
     profile.approvalStatus === DriverApprovalStatus.PENDING ||
     documentStatus === DriverDocumentStatus.PENDING_VERIFICATION
   ) {
     nextAction = 'WAIT_FOR_REVIEW';
-  } else if (dispatchEligibility.isEligible && profile.availabilityStatus === DriverAvailabilityStatus.OFFLINE) {
+  } else if (
+    dispatchEligibility.isEligible &&
+    profile.availabilityStatus === DriverAvailabilityStatus.OFFLINE
+  ) {
     nextAction = 'GO_ONLINE';
   }
 
   return {
     driverProfileId: profile.id,
     userId: profile.userId,
-    displayName: profile.displayName || `${profile.firstName ?? ''} ${profile.lastName ?? ''}`.trim() || 'Driver Partner',
+    displayName:
+      profile.displayName ||
+      `${profile.firstName ?? ''} ${profile.lastName ?? ''}`.trim() ||
+      'Driver Partner',
     profileCompletion,
     documentStatus,
     adminApprovalStatus: profile.approvalStatus,
@@ -204,7 +209,9 @@ export async function getDriverStatusForAdmin(
     throw new Error(`Driver profile not found: ${driverProfileId}`);
   }
 
-  const verifiedCount = profile.documents.filter((d) => d.status === DriverDocumentStatus.VERIFIED).length;
+  const verifiedCount = profile.documents.filter(
+    (d) => d.status === DriverDocumentStatus.VERIFIED,
+  ).length;
 
   return {
     ...base,
@@ -259,7 +266,9 @@ export async function getDriverStatusForCustomer(
       'Professional Driver',
     avatarUrl: profile.profileImageUrl,
     isVerifiedDriver,
-    verificationBadgeLabel: isVerifiedDriver ? 'Verified Driver' : 'Driver Verification In Progress',
+    verificationBadgeLabel: isVerifiedDriver
+      ? 'Verified Driver'
+      : 'Driver Verification In Progress',
     drivingExperienceYears: profile.drivingExperienceYears,
     primaryServiceArea: profile.primaryServiceArea,
     availabilityStatus: profile.availabilityStatus,

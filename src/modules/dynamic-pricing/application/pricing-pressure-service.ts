@@ -19,12 +19,21 @@ export async function getMarketplacePressure(
     typeof simulatedDemandOverride === 'number'
       ? simulatedDemandOverride
       : (_db.booking?.count
-          ? await _db.booking.count({
-              where: {
-                requestedAt: { gte: fifteenMinsAgo },
-                status: { in: ['SEARCHING_DRIVER', 'DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE', 'TRIP_IN_PROGRESS'] },
-              },
-            }).catch(() => 1)
+          ? await _db.booking
+              .count({
+                where: {
+                  requestedAt: { gte: fifteenMinsAgo },
+                  status: {
+                    in: [
+                      'SEARCHING_DRIVER',
+                      'DRIVER_ASSIGNED',
+                      'DRIVER_EN_ROUTE',
+                      'TRIP_IN_PROGRESS',
+                    ],
+                  },
+                },
+              })
+              .catch(() => 1)
           : 1) || 1;
 
   const supplyMetrics = await getSupplyMetrics(zoneId ?? undefined, undefined, activeDemandCount);

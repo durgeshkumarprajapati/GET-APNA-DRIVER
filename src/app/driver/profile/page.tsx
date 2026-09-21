@@ -156,8 +156,7 @@ export default function DriverProfileEditPage() {
           ...form,
           dailyHireRate: form.dailyHireRate.trim() === '' ? null : Number(form.dailyHireRate),
           weeklyHireRate: form.weeklyHireRate.trim() === '' ? null : Number(form.weeklyHireRate),
-          monthlyHireRate:
-            form.monthlyHireRate.trim() === '' ? null : Number(form.monthlyHireRate),
+          monthlyHireRate: form.monthlyHireRate.trim() === '' ? null : Number(form.monthlyHireRate),
         }),
       });
 

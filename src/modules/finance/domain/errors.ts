@@ -67,7 +67,11 @@ export class PaymentVerificationFailedError extends AppError {
 
 export class CashPaymentConfirmationForbiddenError extends AppError {
   constructor(reason: string) {
-    super(`Cash payment confirmation failed: ${reason}`, 403, 'CASH_PAYMENT_CONFIRMATION_FORBIDDEN');
+    super(
+      `Cash payment confirmation failed: ${reason}`,
+      403,
+      'CASH_PAYMENT_CONFIRMATION_FORBIDDEN',
+    );
   }
 }
 

@@ -16,6 +16,9 @@ export const POST = withAuth(async (_req, { principal }, routeContext?: unknown)
     return NextResponse.json({ success: true, payment }, { status: 200 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed driver cash payment confirmation.';
-    return NextResponse.json({ error: 'DRIVER_CASH_CONFIRMATION_FAILED', message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'DRIVER_CASH_CONFIRMATION_FAILED', message },
+      { status: 500 },
+    );
   }
 });
