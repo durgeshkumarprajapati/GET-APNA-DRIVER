@@ -195,6 +195,43 @@ function BookDriverPageInner() {
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
   const { toast, showError, dismissToast } = useToast();
 
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [couponDiscountAmount, setCouponDiscountAmount] = useState<string | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponValidating, setCouponValidating] = useState(false);
+
+  const handleApplyCoupon = useCallback(async () => {
+    if (!couponCodeInput.trim() || !fareEstimate) return;
+    setCouponValidating(true);
+    setCouponError(null);
+    try {
+      const res = await fetch('/api/customer/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCodeInput.trim(),
+          fareAmount: fareEstimate.breakdown.totalFareAmount,
+          bookingType: selectedBookingType,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.preview?.valid) {
+        setAppliedCouponCode(data.preview.code);
+        setCouponDiscountAmount(data.preview.discountAmount);
+        setCouponError(null);
+      } else {
+        setAppliedCouponCode(null);
+        setCouponDiscountAmount(null);
+        setCouponError(data?.preview?.errorMessage || data?.message || 'Invalid coupon code.');
+      }
+    } catch {
+      setCouponError('Failed to validate coupon code.');
+    } finally {
+      setCouponValidating(false);
+    }
+  }, [couponCodeInput, fareEstimate, selectedBookingType]);
+
   const { status: autoLocationStatus, errorMessage: autoLocationError, capture: captureDeviceLocation } =
     useGeolocationCapture();
 
@@ -620,6 +657,7 @@ function BookDriverPageInner() {
             numberOfMonths: selectedBookingType === BookingType.MONTHLY ? hireDurationValue : null,
             hourlyPackageHours: selectedBookingType === BookingType.HOURLY ? hireDurationValue : null,
             preferredDriverProfileId,
+            promotionCode: appliedCouponCode ?? undefined,
           }),
         });
 
@@ -1299,7 +1337,13 @@ function BookDriverPageInner() {
                   </span>
                   <span className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                     {fareEstimate
-                      ? formatCurrency(Number(fareEstimate.breakdown.totalFareAmount))
+                      ? formatCurrency(
+                          Math.max(
+                            0,
+                            Number(fareEstimate.breakdown.totalFareAmount) -
+                              Number(couponDiscountAmount ?? 0),
+                          ),
+                        )
                       : formatCurrency(335)}
                   </span>
                 </div>
@@ -1311,6 +1355,76 @@ function BookDriverPageInner() {
                     {t('customer.booking.noCancellationFeeNote')}
                   </span>
                 </div>
+              </div>
+
+              {/* Coupon / Promo Code Card */}
+              <div className="p-3.5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-[#dfe2ee] flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[#68dba9] text-base">local_offer</span>
+                    <span>Coupon / Promo Code</span>
+                  </span>
+                  {appliedCouponCode && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAppliedCouponCode(null);
+                        setCouponDiscountAmount(null);
+                        setCouponCodeInput('');
+                        setCouponError(null);
+                      }}
+                      className="text-[11px] text-rose-400 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={couponCodeInput}
+                    onChange={(e) => {
+                      setCouponCodeInput(e.target.value.toUpperCase());
+                      setCouponError(null);
+                    }}
+                    placeholder="Enter Code (e.g. FIRST50)"
+                    className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d1117] border border-[#262a33] text-xs font-mono text-[#dfe2ee] uppercase focus:outline-none focus:border-[#68dba9]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={couponValidating || !couponCodeInput.trim() || !fareEstimate}
+                    className="px-3.5 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50"
+                  >
+                    {couponValidating ? 'Checking…' : 'Apply'}
+                  </button>
+                </div>
+
+                {couponError && (
+                  <p className="text-xs text-[#ff897d] bg-[#93000a]/20 p-2 rounded-lg border border-[#93000a]">
+                    {couponError}
+                  </p>
+                )}
+
+                {appliedCouponCode && couponDiscountAmount && fareEstimate && (
+                  <div className="pt-2 border-t border-[#262a33] text-xs space-y-1">
+                    <div className="flex justify-between text-[#87948b]">
+                      <span>Original Fare:</span>
+                      <span>₹{Number(fareEstimate.breakdown.totalFareAmount).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-[#68dba9] font-bold">
+                      <span>Coupon Discount ({appliedCouponCode}):</span>
+                      <span>- ₹{Number(couponDiscountAmount).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-[#dfe2ee] font-extrabold text-sm pt-1 border-t border-[#262a33]">
+                      <span>Final Fare:</span>
+                      <span className="text-[#68dba9]">
+                        ₹{Math.max(0, Number(fareEstimate.breakdown.totalFareAmount) - Number(couponDiscountAmount)).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Primary CTA Button */}
