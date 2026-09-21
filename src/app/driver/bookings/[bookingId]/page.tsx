@@ -46,6 +46,7 @@ import type { DriverReliabilityView } from '@/modules/trip-reliability/trip-reli
 import { LocationETACard } from '@/components/location-intelligence/LocationETACard';
 import { SmartJourneyCard } from '@/components/trip-execution/SmartJourneyCard';
 import type { DriverJourneyDTO } from '@/modules/trip-execution/application/journey-orchestration-service';
+import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 export default function DriverJourneyControlPage({
   params,
@@ -250,6 +251,7 @@ export default function DriverJourneyControlPage({
             onCallCustomer={handleCallCustomer}
           />
         )}
+        <PostTripPaymentCard bookingId={bookingId} role="DRIVER" />
         {locationIntel && <LocationETACard locationIntelligence={locationIntel} variant="driver" />}
         {intelligence && <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />}
         {reliability && <DriverPickupReliabilityCard reliability={reliability} />}

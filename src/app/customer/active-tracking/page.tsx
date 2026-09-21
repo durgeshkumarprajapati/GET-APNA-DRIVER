@@ -20,6 +20,7 @@ import { LocationETACard } from '@/components/location-intelligence/LocationETAC
 import { DispatchSearchCountdownCard } from '@/components/dispatch/DispatchSearchCountdownCard';
 import { SmartJourneyCard } from '@/components/trip-execution/SmartJourneyCard';
 import type { CustomerJourneyDTO } from '@/modules/trip-execution/application/journey-orchestration-service';
+import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 const STATUS_TONE: Record<string, StatusBadgeTone> = {
   SEARCHING_DRIVER: 'warning',
@@ -125,6 +126,8 @@ export default function CustomerActiveTrackingPage() {
         ) : (
           <>
             <DispatchSearchCountdownCard bookingId={displayBooking.id} />
+
+            <PostTripPaymentCard bookingId={displayBooking.id} role="CUSTOMER" />
 
             {journeyData && <SmartJourneyCard journey={journeyData} role="CUSTOMER" />}
 

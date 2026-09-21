@@ -11,6 +11,10 @@ interface Payment {
   status: string;
   amount: string;
   currency: string;
+  paymentMethod?: string | null;
+  discountAmount?: string | null;
+  cashCustomerConfirmedAt?: string | null;
+  cashDriverConfirmedAt?: string | null;
   createdAt: string;
 }
 
@@ -76,6 +80,7 @@ export default function AdminPaymentsPage() {
               <thead className="bg-[#181c24] text-[#87948b] text-xs uppercase tracking-wider">
                 <tr>
                   <th className="text-left px-4 py-3">Amount</th>
+                  <th className="text-left px-4 py-3">Method</th>
                   <th className="text-left px-4 py-3">Status</th>
                   <th className="text-left px-4 py-3">Booking</th>
                   <th className="text-left px-4 py-3">Created</th>
@@ -89,7 +94,17 @@ export default function AdminPaymentsPage() {
                     className="bg-[#0a0e16] hover:bg-[#181c24] transition-colors"
                   >
                     <td className="px-4 py-3 font-medium text-[#dfe2ee]">
-                      {payment.currency} {payment.amount}
+                      <div>
+                        {payment.currency} {payment.amount}
+                      </div>
+                      {payment.discountAmount && parseFloat(payment.discountAmount) > 0 && (
+                        <div className="text-[10px] text-emerald-400 font-normal">
+                          Discount: -{payment.currency} {payment.discountAmount}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-semibold text-indigo-300 uppercase">
+                      {payment.paymentMethod || 'ONLINE'}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -99,7 +114,7 @@ export default function AdminPaymentsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[#87948b]">
-                      {payment.bookingId}
+                      {payment.bookingId.substring(0, 8)}...
                     </td>
                     <td className="px-4 py-3 text-[#87948b]">
                       {new Date(payment.createdAt).toLocaleDateString()}
