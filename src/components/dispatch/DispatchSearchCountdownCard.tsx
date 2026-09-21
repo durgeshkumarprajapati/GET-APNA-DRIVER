@@ -26,7 +26,7 @@ export function DispatchSearchCountdownCard({
   onCancelled,
 }: DispatchSearchCountdownCardProps) {
   const [dispatchStatus, setDispatchStatus] = useState<DispatchStatusResponse | null>(null);
-  const [remainingSec, setRemainingSec] = useState<number>(120);
+  const [remainingSec, setRemainingSec] = useState<number>(180);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -91,7 +91,7 @@ export function DispatchSearchCountdownCard({
 
         <div className="pt-3 border-t border-[#262a33] flex items-center justify-between flex-wrap gap-3">
           <p className="text-xs text-[#87948b]">
-            Your booking search was safely cancelled after 2 minutes.
+            Your booking search was safely cancelled after 3 minutes.
           </p>
           <Link
             href="/bookings/new"
@@ -127,12 +127,12 @@ export function DispatchSearchCountdownCard({
       <div className="w-full bg-[#262a33] h-1.5 rounded-full overflow-hidden">
         <div
           className="bg-gradient-to-r from-[#25a475] to-[#68dba9] h-full transition-all duration-1000 ease-linear"
-          style={{ width: `${Math.min(100, Math.max(0, (remainingSec / 120) * 100))}%` }}
+          style={{ width: `${Math.min(100, Math.max(0, (remainingSec / 180) * 100))}%` }}
         />
       </div>
 
       <div className="flex items-center justify-between text-[11px] text-[#87948b]">
-        <span>Server-authoritative 2-minute search deadline</span>
+        <span>Server-authoritative 3-minute search deadline</span>
         <span>Matching eligible candidates nearby</span>
       </div>
     </div>

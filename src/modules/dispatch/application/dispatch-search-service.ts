@@ -6,7 +6,7 @@ import { recordAuditLog } from '@/shared/audit/audit-service';
 import { validateBookingStatusTransition } from '@/modules/booking/domain/booking-state-machine';
 import { DispatchSearchState } from '../domain/candidate-ranking-types';
 
-export const SEARCH_DEADLINE_SECONDS = 120; // Server-authoritative 2-minute search deadline
+export const SEARCH_DEADLINE_SECONDS = 180; // Server-authoritative 3-minute search deadline
 export const CANCELLATION_REASON_NO_DRIVER = 'NO_ACTIVE_DRIVER_NEARBY';
 export const CUSTOMER_CANCELLATION_TEXT = 'No active driver found near you.';
 

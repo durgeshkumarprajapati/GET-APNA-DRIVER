@@ -232,7 +232,7 @@ export async function createBooking(
 
   const pricingSnapshot = createPricingQuoteSnapshot(bookingType, fareResult);
 
-  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 300, db);
+  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 180, db);
   const now = new Date();
   const searchExpiresAt = new Date(now.getTime() + searchTimeoutSeconds * 1000);
 

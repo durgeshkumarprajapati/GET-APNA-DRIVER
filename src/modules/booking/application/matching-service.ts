@@ -53,7 +53,7 @@ export async function findAndOfferNextDriver(
 
   const now = new Date();
 
-  // 1. Check Overall Search Expiration (Server-authoritative 2-minute limit)
+  // 1. Check Overall Search Expiration (Server-authoritative 3-minute limit)
   const searchTimeoutSeconds = await getInteger(
     'booking.matching.search_timeout_seconds',
     SEARCH_DEADLINE_SECONDS,
