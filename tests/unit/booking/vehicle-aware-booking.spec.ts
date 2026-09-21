@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createBooking } from '@/modules/booking/application/booking-service';
 import { BookingType } from '@prisma/client';
 import { prisma } from '@/shared/database/prisma';

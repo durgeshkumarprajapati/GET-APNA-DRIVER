@@ -132,6 +132,21 @@ export async function orchestrateDispatchOffers(
 
   let unattempted = nearbyCandidates.filter((c) => !attemptedDriverIds.has(c.driverId));
 
+  // Filter out drivers lacking requested vehicle category capability
+  if (booking.vehicleCategoryId && unattempted.length > 0) {
+    const candidateIds = unattempted.map((c) => c.driverId);
+    const capable = await db.driverVehicleCapability.findMany({
+      where: {
+        driverProfileId: { in: candidateIds },
+        vehicleCategoryId: booking.vehicleCategoryId,
+        vehicleCategory: { isActive: true },
+      },
+      select: { driverProfileId: true },
+    });
+    const capableSet = new Set(capable.map((c) => c.driverProfileId));
+    unattempted = unattempted.filter((c) => capableSet.has(c.driverId));
+  }
+
   // Filter duration-based driver hire overlaps
   if (isDriverHireBooking(booking.bookingType) && booking.hireStartAt && booking.hireEndAt) {
     const candidateIds = unattempted.map((c) => c.driverId);
@@ -211,6 +226,7 @@ export async function orchestrateDispatchOffers(
       preferredDriverProfileId: booking.preferredDriverProfileId,
       customerId: booking.customerId,
       bookingType: booking.bookingType,
+      requestedVehicleCategory: booking.vehicleCategoryId,
     },
     db,
   );
