@@ -46,5 +46,10 @@ export const bookingBn = {
     submit: 'পিন যাচাই করুন',
   },
   noActiveDriverNearby: 'আপনার কাছাকাছি কোনো সক্রিয় ড্রাইভার পাওয়া যায়নি।',
-  searchingNearbyDrivers: 'কাছাকাছি ড্রাইভার খোঁজা হচ্ছে…',
+  searchingNearbyDrivers: 'কাছাকাছি ড্রাইভারদের খোঁজা হচ্ছে…',
+  vehicleCategory: 'যানবাহন বিভাগ',
+  vehicleCategoryHint: 'প্রয়োজনীয় যানবাহনের ধরন নির্বাচন করুন',
+  anyVehicleCategory: 'যেকোনো যানবাহন (কোনো পছন্দ নেই)',
+  vehicleCapabilities: 'যানবাহন সক্ষমতা',
+  vehicleCapabilitiesHint: 'যানবাহন বিভাগ যা আপনি চালাতে পারেন',
 };

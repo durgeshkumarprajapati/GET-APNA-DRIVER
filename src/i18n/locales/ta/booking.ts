@@ -46,5 +46,10 @@ export const bookingTa = {
     submit: 'பின்னை சரிபார்',
   },
   noActiveDriverNearby: 'உங்களுக்கு அருகில் செயலில் உள்ள ஓட்டுநர் எவரும் இல்லை.',
-  searchingNearbyDrivers: 'அருகிலுள்ள ஓட்டுநர்கள் தேடப்படுகிறார்கள்…',
+  searchingNearbyDrivers: 'அருகிலுள்ள ஓட்டுநர்களைத் தேடுகிறது…',
+  vehicleCategory: 'வாகன வகை',
+  vehicleCategoryHint: 'தேவையான வாகன வகையைத் தேர்ந்தெடுக்கவும்',
+  anyVehicleCategory: 'எந்த வாகனமும் (முன்னுரிமை இல்லை)',
+  vehicleCapabilities: 'வாகனத் திறன்கள்',
+  vehicleCapabilitiesHint: 'நீங்கள் இயக்கக்கூடிய வாகன வகைகள்',
 };

@@ -42,6 +42,7 @@ interface BookingDetail {
   cancellationReason: string | null;
   expiresAt: string | null;
   preferredDriverProfileId: string | null;
+  vehicleCategory?: { id: string; code: string; name: string } | null;
   pendingOffer?: { driverName: string | null; expiresAt: string } | null;
   assignedDriver?: {
     id: string;
@@ -387,13 +388,19 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
               <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">
                 {t('customer.tracking.currentStateLabel')}
               </span>
-              <div className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="text-2xl font-bold text-white flex flex-wrap items-center gap-3">
                 <span
                   className={`h-3.5 w-3.5 rounded-full ${STATUS_DOT_CLASS[booking.status] ?? 'bg-slate-500'}`}
                 />
                 <span className={STATUS_TEXT_CLASS[booking.status] ?? 'text-slate-400'}>
                   {statusLabel(booking.status)}
                 </span>
+                {booking.vehicleCategory && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 shadow-sm">
+                    <span className="material-symbols-outlined text-sm">directions_car</span>
+                    {booking.vehicleCategory.name}
+                  </span>
+                )}
               </div>
             </div>
 

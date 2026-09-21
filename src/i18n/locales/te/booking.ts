@@ -45,6 +45,11 @@ export const bookingTe = {
     subtitle: 'ట్రిప్ ప్రారంభించే ముందు కస్టమర్‌ని 6 అంకెల పిన్ అడగండి',
     submit: 'పిన్‌ను ధృవీకరించండి',
   },
-  noActiveDriverNearby: 'మీ సమీపంలో క్రియాశీల డ్రైవర్లు ఎవరూ లేరు.',
-  searchingNearbyDrivers: 'సమీపంలోని డ్రైవర్ల కోసం వెతుకుతోంది…',
+  noActiveDriverNearby: 'మీకు సమీపంలో క్రియాశీల డ్రైవర్లు ఎవరూ కనుగొనబడలేదు.',
+  searchingNearbyDrivers: 'సమీప డ్రైవర్ల కోసం శోధిస్తోంది…',
+  vehicleCategory: 'వాహన వర్గం',
+  vehicleCategoryHint: 'అవసరమైన వాహన రకాన్ని ఎంచుకోండి',
+  anyVehicleCategory: 'ఏదైనా వాహనం (ప్రాధాన్యత లేదు)',
+  vehicleCapabilities: 'వాహన సామర్థ్యాలు',
+  vehicleCapabilitiesHint: 'మీరు నడపగల వాహన వర్గాలు',
 };

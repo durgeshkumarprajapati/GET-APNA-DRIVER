@@ -14,6 +14,7 @@ const querySchema = z.object({
   bookingType: z.nativeEnum(BookingType),
   hireDurationMinutes: z.coerce.number().int().min(1).max(525_600),
   hireStartAt: z.string().datetime().optional(),
+  vehicleCategoryId: z.string().optional(),
 });
 
 /**
@@ -29,6 +30,7 @@ export const GET = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req: NextR
       bookingType: url.searchParams.get('bookingType'),
       hireDurationMinutes: url.searchParams.get('hireDurationMinutes'),
       hireStartAt: url.searchParams.get('hireStartAt') ?? undefined,
+      vehicleCategoryId: url.searchParams.get('vehicleCategoryId') ?? undefined,
     });
 
     if (!isRateSelectableHireBooking(parsed.bookingType)) {
@@ -42,7 +44,12 @@ export const GET = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req: NextR
       hireStartAt,
     );
 
-    const drivers = await listActiveDriversForHire(parsed.bookingType, hireStartAt, hireEndAt);
+    const drivers = await listActiveDriversForHire(
+      parsed.bookingType,
+      hireStartAt,
+      hireEndAt,
+      parsed.vehicleCategoryId,
+    );
 
     return NextResponse.json({ drivers }, { status: 200 });
   } catch (err: unknown) {

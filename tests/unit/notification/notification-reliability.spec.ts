@@ -109,7 +109,9 @@ describe('Phase 65 — Notification Reliability & Outbox Processing Unit Tests',
           bookingId: 'booking-100',
           driverProfileId: 'driver-profile-99',
         },
-      } as unknown as Parameters<NonNullable<ReturnType<typeof eventHandlerRegistry.getHandler>>>[0];
+      } as unknown as Parameters<
+        NonNullable<ReturnType<typeof eventHandlerRegistry.getHandler>>
+      >[0];
 
       await handler!(outboxEvent, outboxEvent.payload as Record<string, unknown>, prisma);
 
@@ -151,7 +153,9 @@ describe('Phase 65 — Notification Reliability & Outbox Processing Unit Tests',
           customerId: 'customer-user-1',
           driverProfileId: 'driver-profile-77',
         },
-      } as unknown as Parameters<NonNullable<ReturnType<typeof eventHandlerRegistry.getHandler>>>[0];
+      } as unknown as Parameters<
+        NonNullable<ReturnType<typeof eventHandlerRegistry.getHandler>>
+      >[0];
 
       await handler!(outboxEvent, outboxEvent.payload as Record<string, unknown>, prisma);
 
@@ -191,7 +195,9 @@ describe('Phase 65 — Notification Reliability & Outbox Processing Unit Tests',
           amount: '250.0000',
           newPaymentStatus: 'REFUNDED',
         },
-      } as unknown as Parameters<NonNullable<ReturnType<typeof eventHandlerRegistry.getHandler>>>[0];
+      } as unknown as Parameters<
+        NonNullable<ReturnType<typeof eventHandlerRegistry.getHandler>>
+      >[0];
 
       await handler!(outboxEvent, outboxEvent.payload as Record<string, unknown>, prisma);
 

@@ -65,6 +65,7 @@ export async function listActiveDriversForHire(
   bookingType: BookingType,
   hireStartAt: Date,
   hireEndAt: Date,
+  vehicleCategoryId?: string,
   db: Db = prisma,
 ): Promise<DriverHireListing[]> {
   const rateField = hireRateFieldFor(bookingType);
@@ -75,6 +76,13 @@ export async function listActiveDriversForHire(
       approvalStatus: DriverApprovalStatus.APPROVED,
       availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
       [rateField]: { not: null },
+      ...(vehicleCategoryId
+        ? {
+            vehicleCapabilities: {
+              some: { vehicleCategoryId, vehicleCategory: { isActive: true } },
+            },
+          }
+        : {}),
     },
     include: { ratingSummary: true },
   });
@@ -98,7 +106,7 @@ export async function listActiveDriversForHire(
       ratingAverage: c.ratingSummary ? Number(c.ratingSummary.averageRating) : 0,
       drivingExperienceYears: c.drivingExperienceYears,
       primaryServiceArea: c.primaryServiceArea,
-      rate: c[rateField]!.toString(),
+      rate: c[rateField] != null ? String(c[rateField]) : '0',
     }));
 }
 

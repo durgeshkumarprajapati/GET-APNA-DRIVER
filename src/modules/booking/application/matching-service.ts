@@ -208,6 +208,20 @@ export async function findAndOfferNextDriver(
         );
         isStillAvailable = !conflicting.has(chosenDriverId);
       }
+
+      if (isStillAvailable && booking.vehicleCategoryId) {
+        const cap = await db.driverVehicleCapability.findUnique({
+          where: {
+            driverProfileId_vehicleCategoryId: {
+              driverProfileId: chosenDriverId,
+              vehicleCategoryId: booking.vehicleCategoryId,
+            },
+          },
+        });
+        if (!cap) {
+          isStillAvailable = false;
+        }
+      }
     }
 
     if (!chosenDriverId || !isStillAvailable) {
@@ -216,7 +230,7 @@ export async function findAndOfferNextDriver(
         attemptId: null,
         status: 'NO_DRIVERS_FOUND',
         message:
-          'The selected driver is no longer available; this booking type does not fall back to another driver.',
+          'The selected driver is no longer available or does not possess the requested vehicle capability; this booking type does not fall back to another driver.',
       };
     }
 
@@ -241,6 +255,21 @@ export async function findAndOfferNextDriver(
 
   // Filter out drivers already attempted
   let unattempted = candidates.filter((c) => !attemptedDriverIds.has(c.driverId));
+
+  // Filter out drivers lacking requested vehicle category capability
+  if (booking.vehicleCategoryId && unattempted.length > 0) {
+    const candidateIds = unattempted.map((c) => c.driverId);
+    const capable = await db.driverVehicleCapability.findMany({
+      where: {
+        driverProfileId: { in: candidateIds },
+        vehicleCategoryId: booking.vehicleCategoryId,
+        vehicleCategory: { isActive: true },
+      },
+      select: { driverProfileId: true },
+    });
+    const capableSet = new Set(capable.map((c) => c.driverProfileId));
+    unattempted = unattempted.filter((c) => capableSet.has(c.driverId));
+  }
 
   // For duration-based driver hire (HOURLY/FULL_DAY/MULTI_DAY — the hire
   // types that still use the geo-proximity pool rather than the required
@@ -318,6 +347,7 @@ export async function findAndOfferNextDriver(
       preferredDriverProfileId: booking.preferredDriverProfileId,
       customerId: booking.customerId,
       bookingType: booking.bookingType,
+      requestedVehicleCategory: booking.vehicleCategoryId,
     },
     db,
   );

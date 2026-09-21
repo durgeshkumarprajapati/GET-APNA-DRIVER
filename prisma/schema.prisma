@@ -620,6 +620,7 @@ model DriverProfile {
   achievementProgresses DriverAchievementProgress[]
   achievementUnlocks    DriverAchievementUnlock[]
   streak                DriverStreak?
+  vehicleCapabilities   DriverVehicleCapability[]
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -671,6 +672,47 @@ model DriverOnboardingLog {
 
   @@index([driverProfileId, createdAt])
   @@map("driver_onboarding_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 66: Vehicle Categories & Driver Capabilities
+// ---------------------------------------------------------------------------
+
+/// Vehicle category master table managed by administrators.
+model VehicleCategory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String   @unique // e.g. MINI_CAR, CAR, LONG_CAR, SUV, TRACTOR, TRUCK, HEAVY_TRUCK
+  name         String
+  description  String?
+  iconUrl      String?  @map("icon_url")
+  displayOrder Int      @default(0) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  driverCapabilities DriverVehicleCapability[]
+  bookings           Booking[]
+
+  @@index([isActive, displayOrder])
+  @@map("vehicle_categories")
+}
+
+/// Normalized capability mapping between DriverProfile and VehicleCategory.
+/// Indicates which vehicle categories a driver is qualified / approved to operate.
+model DriverVehicleCapability {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId   String          @map("driver_profile_id") @db.Uuid
+  driverProfile     DriverProfile   @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  vehicleCategoryId String          @map("vehicle_category_id") @db.Uuid
+  vehicleCategory   VehicleCategory @relation(fields: [vehicleCategoryId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([driverProfileId, vehicleCategoryId])
+  @@index([vehicleCategoryId])
+  @@index([driverProfileId])
+  @@map("driver_vehicle_capabilities")
 }
 
 // ---------------------------------------------------------------------------
@@ -804,6 +846,11 @@ model Booking {
   /// truth for who was actually assigned.
   preferredDriverProfileId String?        @map("preferred_driver_profile_id") @db.Uuid
   preferredDriver          DriverProfile? @relation("PreferredDriverBookings", fields: [preferredDriverProfileId], references: [id], onDelete: SetNull)
+
+  /// Optional customer vehicle requirement (e.g. MINI_CAR, CAR, SUV, TRUCK).
+  /// Enforces capability matching during driver assignment and dispatch.
+  vehicleCategoryId String?          @map("vehicle_category_id") @db.Uuid
+  vehicleCategory   VehicleCategory? @relation(fields: [vehicleCategoryId], references: [id], onDelete: SetNull)
 
   /// Frozen snapshot of the chosen driver's own hire rate (DriverProfile.
   /// dailyHireRate/weeklyHireRate/monthlyHireRate), for DAILY/WEEKLY/MONTHLY

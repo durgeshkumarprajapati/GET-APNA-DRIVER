@@ -45,6 +45,11 @@ export const bookingKn = {
     subtitle: 'ಪ್ರಯಾಣ ಪ್ರಾರಂಭಿಸುವ ಮೊದಲು ಗ್ರಾಹಕರಿಂದ 6 ಆಂಕಿಯ ಪಿನ್ ಕೇಳಿ',
     submit: 'ಪಿನ್ ಪರಿಶೀಲಿಸಿ',
   },
-  noActiveDriverNearby: 'ನಿಮ್ಮ ಹತ್ತಿರ ಯಾವುದೇ ಸಕ್ರಿಯ ಚಾಲಕರು ಕಂಡುಬಂದಿಲ್ಲ.',
-  searchingNearbyDrivers: 'ಹತ್ತಿರದ ಚಾಲಕರನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…',
+  noActiveDriverNearby: 'ನಿಮ್ಮ ಬಳಿ ಯಾವುದೇ ಸಕ್ರಿಯ ಚಾಲಕರು ಕಂಡುಬಂದಿಲ್ಲ.',
+  searchingNearbyDrivers: 'ಸಮೀಪದ ಚಾಲಕರನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…',
+  vehicleCategory: 'ವಾಹನ ವರ್ಗ',
+  vehicleCategoryHint: 'ಅಗತ್ಯವಿರುವ ವಾಹನ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+  anyVehicleCategory: 'ಯಾವುದೇ ವಾಹನ (ಆದ್ಯತೆಯಿಲ್ಲ)',
+  vehicleCapabilities: 'ವಾಹನ ಸಾಮರ್ಥ್ಯಗಳು',
+  vehicleCapabilitiesHint: 'ನೀವು ಚಾಲನೆ ಮಾಡಬಹುದಾದ ವಾಹನ ವರ್ಗಗಳು',
 };
