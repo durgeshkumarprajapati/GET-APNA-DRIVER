@@ -20,7 +20,11 @@ export function DriverHireDurationSelector({
 }: DriverHireDurationSelectorProps) {
   const { t } = useTranslation();
 
-  if (bookingType === BookingType.POINT_TO_POINT || bookingType === BookingType.ONE_WAY || bookingType === BookingType.ROUND_TRIP) {
+  if (
+    bookingType === BookingType.POINT_TO_POINT ||
+    bookingType === BookingType.ONE_WAY ||
+    bookingType === BookingType.ROUND_TRIP
+  ) {
     return null;
   }
 
@@ -98,7 +102,9 @@ export function DriverHireDurationSelector({
 
       {/* Preset Chips */}
       <div className="flex items-center gap-2 flex-wrap pt-1">
-        <span className="text-[10px] text-[#87948b] font-medium uppercase tracking-wider">Presets:</span>
+        <span className="text-[10px] text-[#87948b] font-medium uppercase tracking-wider">
+          Presets:
+        </span>
         {presets.map((preset) => (
           <button
             key={preset}

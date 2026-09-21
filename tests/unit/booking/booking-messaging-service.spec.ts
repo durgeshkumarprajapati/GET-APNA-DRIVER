@@ -110,19 +110,22 @@ describe('BookingMessagingService', () => {
       expect(mockInsertOutboxEvent).toHaveBeenCalledWith(
         prisma,
         expect.objectContaining({
-          payload: expect.objectContaining({ recipientUserId: 'cust-1', recipientRole: 'CUSTOMER' }),
+          payload: expect.objectContaining({
+            recipientUserId: 'cust-1',
+            recipientRole: 'CUSTOMER',
+          }),
         }),
       );
     });
 
-    it("rejects a driver who was never associated with this booking (not assigned, not preferred, never attempted)", async () => {
+    it('rejects a driver who was never associated with this booking (not assigned, not preferred, never attempted)', async () => {
       mockBookingFindUnique.mockResolvedValue(baseBooking);
       mockDriverProfileFindUnique.mockResolvedValue({ id: 'dp-stranger' });
       mockAttemptFindFirst.mockResolvedValue(null);
 
-      await expect(
-        sendBookingMessage('stranger-driver-user', 'bk-1', 'hi'),
-      ).rejects.toBeInstanceOf(MessagingNotAuthorizedError);
+      await expect(sendBookingMessage('stranger-driver-user', 'bk-1', 'hi')).rejects.toBeInstanceOf(
+        MessagingNotAuthorizedError,
+      );
       expect(mockMessageCreate).not.toHaveBeenCalled();
     });
 

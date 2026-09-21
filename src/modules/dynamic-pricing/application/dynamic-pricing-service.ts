@@ -2,7 +2,10 @@ import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { findActivePricingPolicy } from '../infrastructure/pricing-policy-repository';
 import { getMarketplacePressure } from './pricing-pressure-service';
-import { calculatePolicyAdjustment, calculatePressureFromSignals } from '../domain/pricing-pressure-policy';
+import {
+  calculatePolicyAdjustment,
+  calculatePressureFromSignals,
+} from '../domain/pricing-pressure-policy';
 import type {
   DynamicPricingEvaluationInput,
   DynamicPricingEvaluationResult,
@@ -52,7 +55,11 @@ export async function simulateDynamicPricing(
   });
 
   const matchedPolicy = await findActivePricingPolicy(bookingType, zoneId, now, db);
-  const evaluation = calculatePolicyAdjustment(baseFareAmount, pressure.pressureLevel, matchedPolicy);
+  const evaluation = calculatePolicyAdjustment(
+    baseFareAmount,
+    pressure.pressureLevel,
+    matchedPolicy,
+  );
 
   return {
     pressureLevel: pressure.pressureLevel,

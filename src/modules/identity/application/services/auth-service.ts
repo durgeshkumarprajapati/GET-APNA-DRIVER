@@ -93,14 +93,16 @@ export async function registerWithEmailPassword(
         }
       }
 
-      const { user: newUser, identity: newIdentity } =
-        await userRepository.createUserWithIdentity(tx, {
+      const { user: newUser, identity: newIdentity } = await userRepository.createUserWithIdentity(
+        tx,
+        {
           providerType: 'EMAIL',
           providerName: 'email',
           providerSubject: normalizedEmail,
           email: normalizedEmail,
           phoneNumber: input.phoneNumber?.trim() || null,
-        });
+        },
+      );
 
       await credentialRepository.createUserCredential(tx, newUser.id, hashedPassword);
 

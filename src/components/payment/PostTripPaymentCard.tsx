@@ -137,7 +137,9 @@ export function PostTripPaymentCard({
   if (loading && !details) {
     return (
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl animate-pulse flex items-center justify-center min-h-[140px]">
-        <div className="text-slate-400 text-sm font-medium">Loading post-trip payment details...</div>
+        <div className="text-slate-400 text-sm font-medium">
+          Loading post-trip payment details...
+        </div>
       </div>
     );
   }
@@ -324,9 +326,7 @@ export function PostTripPaymentCard({
             </button>
 
             <h4 className="text-base font-bold text-white">Scan & Pay via Any UPI App</h4>
-            <p className="text-xs text-slate-400">
-              GPay, PhonePe, Paytm, BHIM, or Banking UPI App
-            </p>
+            <p className="text-xs text-slate-400">GPay, PhonePe, Paytm, BHIM, or Banking UPI App</p>
 
             {/* Generated QR Card Graphic */}
             <div className="bg-white p-5 rounded-xl inline-block shadow-inner">

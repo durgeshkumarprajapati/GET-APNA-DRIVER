@@ -6,9 +6,7 @@ export class MapboxRouteProvider implements RouteProvider {
   readonly providerName = 'MAPBOX' as const;
 
   private getAccessToken(): string | null {
-    return (
-      process.env.MAPBOX_ACCESS_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || null
-    );
+    return process.env.MAPBOX_ACCESS_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || null;
   }
 
   async isAvailable(): Promise<boolean> {
@@ -66,7 +64,9 @@ export class MapboxRouteProvider implements RouteProvider {
       };
     } catch (err) {
       clearTimeout(timeoutId);
-      throw new Error(`Mapbox route provider failed: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(
+        `Mapbox route provider failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 }

@@ -74,7 +74,11 @@ export function DispatchSearchCountdownCard({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (dispatchStatus.isNoDriverCancelled || (dispatchStatus.status === 'CANCELLED' && dispatchStatus.cancellationReason === 'NO_ACTIVE_DRIVER_NEARBY')) {
+  if (
+    dispatchStatus.isNoDriverCancelled ||
+    (dispatchStatus.status === 'CANCELLED' &&
+      dispatchStatus.cancellationReason === 'NO_ACTIVE_DRIVER_NEARBY')
+  ) {
     return (
       <div className="p-6 rounded-2xl bg-[#181c24] border border-[#f2b8b5]/30 space-y-4 shadow-lg animate-fade-in">
         <div className="flex items-center gap-3 text-[#f2b8b5]">

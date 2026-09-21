@@ -122,7 +122,11 @@ export class DriverSelectionRequiredError extends AppError {
  */
 export class SelectedDriverUnavailableError extends AppError {
   constructor(driverProfileId: string, reason: string) {
-    super(`Selected driver ${driverProfileId} is not available: ${reason}`, 400, 'SELECTED_DRIVER_UNAVAILABLE');
+    super(
+      `Selected driver ${driverProfileId} is not available: ${reason}`,
+      400,
+      'SELECTED_DRIVER_UNAVAILABLE',
+    );
   }
 }
 
@@ -146,6 +150,10 @@ export class MessagingNotAuthorizedError extends AppError {
  */
 export class MessagingNotAllowedError extends AppError {
   constructor(bookingId: string, status: BookingStatus) {
-    super(`Cannot send a message on booking ${bookingId} in status ${status}.`, 400, 'MESSAGING_NOT_ALLOWED');
+    super(
+      `Cannot send a message on booking ${bookingId} in status ${status}.`,
+      400,
+      'MESSAGING_NOT_ALLOWED',
+    );
   }
 }

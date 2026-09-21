@@ -982,11 +982,25 @@ export async function captureCashPayment(
 
 export async function getPostTripPaymentForBooking(
   bookingId: string,
+  userAccessCheck?: { userId?: string; driverProfileId?: string },
   db: Db = prisma,
 ): Promise<PostTripPaymentDetails> {
   const booking = await db.booking.findUnique({ where: { id: bookingId } });
   if (!booking) {
     throw new PaymentBookingNotFoundError(bookingId);
+  }
+
+  if (userAccessCheck) {
+    const isCustomer = Boolean(
+      userAccessCheck.userId && booking.customerId === userAccessCheck.userId,
+    );
+    const isDriver = Boolean(
+      userAccessCheck.driverProfileId &&
+      booking.driverProfileId === userAccessCheck.driverProfileId,
+    );
+    if (!isCustomer && !isDriver) {
+      throw new PaymentBookingNotFoundError(bookingId);
+    }
   }
 
   const { amount: grossAmountStr } = await calculateBookingAmount(booking, db);

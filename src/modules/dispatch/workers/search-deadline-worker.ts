@@ -2,7 +2,10 @@ import 'server-only';
 import { BookingStatus } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { RedisLockService } from '@/shared/infrastructure/redis-lock-service';
-import { cancelBookingNoDriverFound, SEARCH_DEADLINE_SECONDS } from '../application/dispatch-search-service';
+import {
+  cancelBookingNoDriverFound,
+  SEARCH_DEADLINE_SECONDS,
+} from '../application/dispatch-search-service';
 
 export interface ProcessExpiredSearchesResult {
   processedCount: number;

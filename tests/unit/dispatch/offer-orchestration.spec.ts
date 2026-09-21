@@ -171,7 +171,11 @@ describe('Phase 60 — Intelligent Dispatch Orchestration & Concurrency Safety',
 
       expect(mockTx.bookingAssignmentAttempt.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { bookingId: 'bk-200', id: { not: 'att-1' }, status: AssignmentAttemptStatus.PENDING },
+          where: {
+            bookingId: 'bk-200',
+            id: { not: 'att-1' },
+            status: AssignmentAttemptStatus.PENDING,
+          },
           data: expect.objectContaining({ status: AssignmentAttemptStatus.CANCELLED }),
         }),
       );

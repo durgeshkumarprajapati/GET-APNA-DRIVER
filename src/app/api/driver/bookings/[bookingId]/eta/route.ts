@@ -24,7 +24,10 @@ export const GET = withAuth(async (req, { principal }, routeContext?: unknown) =
     }
 
     if (booking.driverProfile?.userId !== principal.userId) {
-      return NextResponse.json({ error: 'Unauthorized access to driver booking ETA' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Unauthorized access to driver booking ETA' },
+        { status: 403 },
+      );
     }
 
     const intel = await getDriverPickupLocationIntelligence(bookingId);

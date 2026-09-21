@@ -176,7 +176,8 @@ export async function createBooking(
   let hireEndAt: Date | null = input.hireEndAt ? new Date(input.hireEndAt) : null;
 
   if (isDriverHireBooking(bookingType)) {
-    const start = hireStartAt || (input.requestedStartTime ? new Date(input.requestedStartTime) : new Date());
+    const start =
+      hireStartAt || (input.requestedStartTime ? new Date(input.requestedStartTime) : new Date());
     hireStartAt = start;
     if (hireDurationMinutes && !hireEndAt) {
       hireEndAt = calculateHireEndTimestamp(bookingType, hireDurationMinutes, start);

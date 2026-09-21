@@ -3,7 +3,10 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import { prisma } from '@/shared/database/prisma';
 import { redis } from '@/shared/redis/client';
-import { CANCELLATION_REASON_NO_DRIVER, SEARCH_DEADLINE_SECONDS } from '@/modules/dispatch/application/dispatch-search-service';
+import {
+  CANCELLATION_REASON_NO_DRIVER,
+  SEARCH_DEADLINE_SECONDS,
+} from '@/modules/dispatch/application/dispatch-search-service';
 import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withAuth(async (req) => {

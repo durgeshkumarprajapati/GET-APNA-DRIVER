@@ -195,9 +195,7 @@ export async function updatePricingPolicyStatus(
   }
 }
 
-export async function listPricingPolicies(
-  db: Db = prisma,
-): Promise<DynamicPricingPolicyDTO[]> {
+export async function listPricingPolicies(db: Db = prisma): Promise<DynamicPricingPolicyDTO[]> {
   const records = await db.dynamicPricingPolicy.findMany({
     orderBy: { createdAt: 'desc' },
   });

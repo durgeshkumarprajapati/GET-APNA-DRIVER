@@ -44,6 +44,14 @@ export interface InitiateRefundResult {
   amountMinorUnits: number;
 }
 
+export interface FetchOrderResult {
+  providerOrderId: string;
+  amountMinorUnits: number;
+  currency: string;
+  status: string;
+  attemptsCount?: number;
+}
+
 /**
  * Provider-independent contract for the payment gateway. All Razorpay SDK
  * calls / HTTP calls stay inside RazorpayPaymentProvider — application
@@ -53,6 +61,7 @@ export interface InitiateRefundResult {
 export interface PaymentProvider {
   createOrder(input: CreateOrderInput): Promise<CreateOrderResult>;
   fetchPayment(providerPaymentId: string): Promise<FetchPaymentResult>;
+  fetchOrder(providerOrderId: string): Promise<FetchOrderResult>;
   /** Verifies the client-side checkout completion signature (order_id|payment_id HMAC). */
   verifyPaymentSignature(input: VerifyPaymentSignatureInput): boolean;
   initiateRefund(input: InitiateRefundInput): Promise<InitiateRefundResult>;
@@ -162,6 +171,36 @@ export class RazorpayPaymentProvider implements PaymentProvider {
     };
   }
 
+  async fetchOrder(providerOrderId: string): Promise<FetchOrderResult> {
+    const { keyId, keySecret } = getRazorpayCredentials();
+
+    const response = await fetch(`${RAZORPAY_API_BASE_URL}/orders/${providerOrderId}`, {
+      headers: { Authorization: basicAuthHeader(keyId, keySecret) },
+    });
+
+    const body = (await response.json()) as RazorpayErrorBody & {
+      id?: string;
+      amount?: number;
+      currency?: string;
+      status?: string;
+      attempts?: number;
+    };
+
+    if (!response.ok || !body.id) {
+      throw new Error(
+        `Razorpay order fetch failed: ${body.error?.description ?? response.statusText}`,
+      );
+    }
+
+    return {
+      providerOrderId: body.id,
+      amountMinorUnits: body.amount ?? 0,
+      currency: body.currency ?? 'INR',
+      status: body.status ?? 'created',
+      attemptsCount: body.attempts ?? 0,
+    };
+  }
+
   verifyPaymentSignature(input: VerifyPaymentSignatureInput): boolean {
     const { keySecret } = getRazorpayCredentials();
     const expected = crypto
@@ -245,6 +284,16 @@ export class MockPaymentProvider implements PaymentProvider {
       status: 'captured',
       amountMinorUnits: 0,
       currency: 'INR',
+    };
+  }
+
+  async fetchOrder(providerOrderId: string): Promise<FetchOrderResult> {
+    return {
+      providerOrderId,
+      amountMinorUnits: 0,
+      currency: 'INR',
+      status: 'paid',
+      attemptsCount: 1,
     };
   }
 

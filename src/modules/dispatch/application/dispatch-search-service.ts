@@ -39,8 +39,12 @@ export async function getDispatchSearchState(
 
   const now = new Date();
   const searchStartedAt = booking.searchStartedAt || booking.createdAt;
-  const searchDeadlineAt = booking.expiresAt || new Date(searchStartedAt.getTime() + SEARCH_DEADLINE_SECONDS * 1000);
-  const remainingSeconds = Math.max(0, Math.ceil((searchDeadlineAt.getTime() - now.getTime()) / 1000));
+  const searchDeadlineAt =
+    booking.expiresAt || new Date(searchStartedAt.getTime() + SEARCH_DEADLINE_SECONDS * 1000);
+  const remainingSeconds = Math.max(
+    0,
+    Math.ceil((searchDeadlineAt.getTime() - now.getTime()) / 1000),
+  );
   const hasExpired = now >= searchDeadlineAt;
 
   const activeOffersCount = booking.assignmentAttempts
@@ -83,7 +87,8 @@ export async function cancelBookingNoDriverFound(
 
   // Check if there is an assignment attempt currently PENDING or ACCEPTED
   const hasActiveAttempt = booking.assignmentAttempts.some(
-    (a) => a.status === AssignmentAttemptStatus.PENDING || a.status === AssignmentAttemptStatus.ACCEPTED,
+    (a) =>
+      a.status === AssignmentAttemptStatus.PENDING || a.status === AssignmentAttemptStatus.ACCEPTED,
   );
 
   if (hasActiveAttempt && booking.driverProfileId) {
@@ -144,7 +149,10 @@ export async function cancelBookingNoDriverFound(
     entityType: 'Booking',
     entityId: bookingId,
     beforeState: { status: booking.status },
-    afterState: { status: BookingStatus.CANCELLED, cancellationReason: CANCELLATION_REASON_NO_DRIVER },
+    afterState: {
+      status: BookingStatus.CANCELLED,
+      cancellationReason: CANCELLATION_REASON_NO_DRIVER,
+    },
   });
 
   return { cancelled: true, reason: CANCELLATION_REASON_NO_DRIVER };
@@ -180,11 +188,10 @@ export async function handleDriverOnlinePresence(
 
   for (const booking of searchingBookings) {
     // Check if booking search is within radius
-    const distanceMeters =
-      Math.hypot(
-        (booking.pickupLatitude - currentLocation.latitude) * 111000,
-        (booking.pickupLongitude - currentLocation.longitude) * 111000,
-      );
+    const distanceMeters = Math.hypot(
+      (booking.pickupLatitude - currentLocation.latitude) * 111000,
+      (booking.pickupLongitude - currentLocation.longitude) * 111000,
+    );
 
     if (distanceMeters <= maxSearchRadius) {
       count++;

@@ -7,7 +7,10 @@ interface LocationETACardProps {
   variant?: 'customer' | 'driver' | 'admin';
 }
 
-export function LocationETACard({ locationIntelligence, variant = 'customer' }: LocationETACardProps) {
+export function LocationETACard({
+  locationIntelligence,
+  variant = 'customer',
+}: LocationETACardProps) {
   const {
     etaToPickup,
     etaToDestination,
@@ -47,13 +50,17 @@ export function LocationETACard({ locationIntelligence, variant = 'customer' }: 
               Location Intelligence & ETA
             </h3>
             <p className="text-[11px] text-[#87948b] font-mono">
-              {activeETA?.provider ? `Routing Provider: ${activeETA.provider}` : 'Multi-provider Routing'}
+              {activeETA?.provider
+                ? `Routing Provider: ${activeETA.provider}`
+                : 'Multi-provider Routing'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border uppercase tracking-wider ${freshnessColor}`}>
+          <span
+            className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border uppercase tracking-wider ${freshnessColor}`}
+          >
             {freshness} TELEMETRY
           </span>
           {locationConfidence && (
@@ -79,10 +86,18 @@ export function LocationETACard({ locationIntelligence, variant = 'customer' }: 
         <div className="p-3 rounded-xl bg-[#0a0e16] border border-[#262a33] space-y-1">
           <span className="text-[10px] uppercase text-[#87948b] block">Distance to Pickup</span>
           <div className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-            {distances?.driverToPickupKmDisplay || (pickupProximity?.distanceMeters !== undefined && pickupProximity.distanceMeters !== 999999 ? `${(pickupProximity.distanceMeters / 1000).toFixed(1)} km` : '—')}
+            {distances?.driverToPickupKmDisplay ||
+              (pickupProximity?.distanceMeters !== undefined &&
+              pickupProximity.distanceMeters !== 999999
+                ? `${(pickupProximity.distanceMeters / 1000).toFixed(1)} km`
+                : '—')}
           </div>
           <span className="text-[10px] text-[#bccac0]">
-            {pickupProximity?.signal === 'DRIVER_AT_PICKUP' ? 'Arrived at pickup point' : pickupProximity?.isNearPickup ? 'Within 500m pickup zone' : 'Driver en route'}
+            {pickupProximity?.signal === 'DRIVER_AT_PICKUP'
+              ? 'Arrived at pickup point'
+              : pickupProximity?.isNearPickup
+                ? 'Within 500m pickup zone'
+                : 'Driver en route'}
           </span>
         </div>
 
@@ -91,9 +106,7 @@ export function LocationETACard({ locationIntelligence, variant = 'customer' }: 
           <div className="text-sm font-bold text-[#dfe2ee] truncate">
             {pickupZone?.zone?.name || 'Urban Zone'}
           </div>
-          <span className="text-[10px] text-[#68dba9]">
-            {pickupZone?.zone?.code || 'GENERAL'}
-          </span>
+          <span className="text-[10px] text-[#68dba9]">{pickupZone?.zone?.code || 'GENERAL'}</span>
         </div>
       </div>
 

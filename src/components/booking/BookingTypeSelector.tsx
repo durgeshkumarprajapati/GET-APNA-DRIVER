@@ -83,7 +83,9 @@ export function BookingTypeSelector({ selectedType, onSelectType }: BookingTypeS
               }`}
             >
               <span className="material-symbols-outlined text-lg">{opt.icon}</span>
-              <span className="truncate w-full">{t(opt.labelKey, { defaultValue: opt.defaultLabel })}</span>
+              <span className="truncate w-full">
+                {t(opt.labelKey, { defaultValue: opt.defaultLabel })}
+              </span>
             </button>
           );
         })}

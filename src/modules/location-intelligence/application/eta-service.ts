@@ -35,7 +35,9 @@ export class ETAService {
 
       try {
         if (errors.length > 0) {
-          console.info(`[ETAService] Attempting route estimation fallback using ${provider.providerName} provider...`);
+          console.info(
+            `[ETAService] Attempting route estimation fallback using ${provider.providerName} provider...`,
+          );
         }
 
         const result = await provider.estimateRoute(request);
@@ -43,7 +45,9 @@ export class ETAService {
         recordETARequest(provider.providerName, true, latencyMs);
 
         if (errors.length > 0) {
-          console.info(`[ETAService] Successfully estimated ETA using fallback provider ${provider.providerName}.`);
+          console.info(
+            `[ETAService] Successfully estimated ETA using fallback provider ${provider.providerName}.`,
+          );
         }
 
         // Cache result for 30s
@@ -61,7 +65,9 @@ export class ETAService {
     }
 
     // Fallback if all configured providers fail unexpectedly
-    console.warn(`[ETAService] All route providers failed (${errors.join('; ')}). Using DeterministicRouteProvider fallback.`);
+    console.warn(
+      `[ETAService] All route providers failed (${errors.join('; ')}). Using DeterministicRouteProvider fallback.`,
+    );
     const fallbackProvider = new DeterministicRouteProvider();
     const result = await fallbackProvider.estimateRoute(request);
     await setCachedETA(request, result, 15);

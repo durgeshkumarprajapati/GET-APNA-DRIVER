@@ -125,7 +125,8 @@ export async function acceptAssignmentOffer(
     }
 
     // Check hire/schedule window overlap conflict for driver
-    const hireStart = booking.hireStartAt ?? booking.requestedStartTime ?? booking.requestedAt ?? new Date();
+    const hireStart =
+      booking.hireStartAt ?? booking.requestedStartTime ?? booking.requestedAt ?? new Date();
     const hireMins = booking.hireDurationMinutes ?? booking.estimatedDurationMinutes ?? 60;
     const hireEnd = booking.hireEndAt ?? new Date(hireStart.getTime() + hireMins * 60 * 1000);
 

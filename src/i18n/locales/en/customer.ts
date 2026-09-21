@@ -56,15 +56,18 @@ export const customerEn = {
     pickupLockedEyebrow: 'Pickup Telemetry Locked',
     pickupSetTag: 'Pickup location set',
     detectingLocation: 'Detecting your location…',
-    locationNotSet: "Location not set — tap Change or use current location",
-    dropoffNotSet: 'Please select a destination, or uncheck \'Specify Drop Location\'.',
+    locationNotSet: 'Location not set — tap Change or use current location',
+    dropoffNotSet: "Please select a destination, or uncheck 'Specify Drop Location'.",
     validationFailedError: 'Please check your pickup and destination and try again.',
     chooseYourDriverTitle: 'Choose Your Driver',
-    chooseYourDriverSubtitle: 'Required for daily, weekly, and monthly hires — you pay this driver\'s own rate, and this driver only.',
+    chooseYourDriverSubtitle:
+      "Required for daily, weekly, and monthly hires — you pay this driver's own rate, and this driver only.",
     loadingAvailableDrivers: 'Finding available drivers…',
-    noDriversAvailableForHire: 'No drivers are available for this hire window right now. Try a different start time or duration.',
+    noDriversAvailableForHire:
+      'No drivers are available for this hire window right now. Try a different start time or duration.',
     driverSelectionRequiredError: 'Please choose a driver for this hire before confirming.',
-    selectedDriverUnavailableError: 'Your selected driver is no longer available for this hire. Please choose another driver.',
+    selectedDriverUnavailableError:
+      'Your selected driver is no longer available for this hire. Please choose another driver.',
     driverProfileLoadError: 'Failed to load driver profile. Please try again.',
     driverDetailsTitle: 'Driver Details',
     loadingDriverProfile: 'Loading driver profile…',

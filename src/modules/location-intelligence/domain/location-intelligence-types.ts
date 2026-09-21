@@ -1,11 +1,7 @@
 import 'server-only';
 
 export type LocationPointSource =
-  | 'DRIVER_DEVICE'
-  | 'CUSTOMER_DEVICE'
-  | 'SERVER'
-  | 'BOOKING'
-  | 'UNKNOWN';
+  'DRIVER_DEVICE' | 'CUSTOMER_DEVICE' | 'SERVER' | 'BOOKING' | 'UNKNOWN';
 
 export interface LocationPoint {
   latitude: number;

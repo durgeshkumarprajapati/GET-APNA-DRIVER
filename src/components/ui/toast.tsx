@@ -264,7 +264,9 @@ export function ToastViewport({
         {/* Text Content */}
         <div className="flex-1 min-w-0 pr-2">
           {title && (
-            <h4 className={`text-xs font-bold uppercase tracking-wider ${config.titleColor} font-mono mb-0.5`}>
+            <h4
+              className={`text-xs font-bold uppercase tracking-wider ${config.titleColor} font-mono mb-0.5`}
+            >
               {title}
             </h4>
           )}
@@ -285,7 +287,9 @@ export function ToastViewport({
 
         {/* Animated Countdown Bar */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5 overflow-hidden">
-          <div className={`h-full ${config.barColor} animate-[toast-progress_4s_linear_forwards]`} />
+          <div
+            className={`h-full ${config.barColor} animate-[toast-progress_4s_linear_forwards]`}
+          />
         </div>
       </div>
     </div>

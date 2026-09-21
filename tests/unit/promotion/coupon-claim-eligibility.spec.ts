@@ -29,11 +29,19 @@ describe('Phase 62 — Production Coupon Claim, Eligibility & Discount Managemen
     updatedAt: new Date(),
   };
 
-  const createMockDb = (promoOverridden: Record<string, unknown> | null = mockPromotion, completedBookingsCount = 0, userUsageCount = 0) => {
+  const createMockDb = (
+    promoOverridden: Record<string, unknown> | null = mockPromotion,
+    completedBookingsCount = 0,
+    userUsageCount = 0,
+  ) => {
     return {
       promotion: {
-        findFirst: jest.fn().mockResolvedValue(promoOverridden ? { ...mockPromotion, ...promoOverridden } : null),
-        findUnique: jest.fn().mockResolvedValue(promoOverridden ? { ...mockPromotion, ...promoOverridden } : null),
+        findFirst: jest
+          .fn()
+          .mockResolvedValue(promoOverridden ? { ...mockPromotion, ...promoOverridden } : null),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue(promoOverridden ? { ...mockPromotion, ...promoOverridden } : null),
       },
       booking: {
         count: jest.fn().mockResolvedValue(completedBookingsCount),

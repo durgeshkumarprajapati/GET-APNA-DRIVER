@@ -70,7 +70,10 @@ describe('Phase 61 — Intelligent Trip Execution & Journey Orchestration', () =
     capturedAt: new Date(),
   };
 
-  const createMockDb = (bookingOverridden: Record<string, unknown> = {}, locOverridden: Record<string, unknown> | null = mockDriverLocation) => {
+  const createMockDb = (
+    bookingOverridden: Record<string, unknown> = {},
+    locOverridden: Record<string, unknown> | null = mockDriverLocation,
+  ) => {
     return {
       booking: {
         findUnique: jest.fn().mockResolvedValue({
@@ -89,7 +92,10 @@ describe('Phase 61 — Intelligent Trip Execution & Journey Orchestration', () =
 
   describe('Derived Journey State Calculation', () => {
     it('derives SEARCHING_DRIVER state when booking is in DRAFT or SEARCHING_DRIVER', async () => {
-      const db = createMockDb({ status: BookingStatus.SEARCHING_DRIVER, driverProfileId: null }, null);
+      const db = createMockDb(
+        { status: BookingStatus.SEARCHING_DRIVER, driverProfileId: null },
+        null,
+      );
       const res = await getJourneyDetails(mockBooking.id, 'CUSTOMER', mockBooking.customerId, db);
 
       expect(res.customer?.derivedState).toBe('SEARCHING_DRIVER');
@@ -104,7 +110,10 @@ describe('Phase 61 — Intelligent Trip Execution & Journey Orchestration', () =
     });
 
     it('derives READY_TO_START when driver has arrived at pickup', async () => {
-      const db = createMockDb({ status: BookingStatus.DRIVER_ARRIVED, driverArrivedAt: new Date() });
+      const db = createMockDb({
+        status: BookingStatus.DRIVER_ARRIVED,
+        driverArrivedAt: new Date(),
+      });
       const res = await getJourneyDetails(mockBooking.id, 'CUSTOMER', mockBooking.customerId, db);
 
       expect(res.customer?.derivedState).toBe('READY_TO_START');
@@ -113,7 +122,7 @@ describe('Phase 61 — Intelligent Trip Execution & Journey Orchestration', () =
     it('derives DESTINATION_NEAR when active trip is within 1000m of dropoff', async () => {
       const nearDropoffLoc = {
         ...mockDriverLocation,
-        latitude: 19.2180,
+        latitude: 19.218,
         longitude: 72.9781,
       };
       const db = createMockDb(
@@ -223,7 +232,9 @@ describe('Phase 61 — Intelligent Trip Execution & Journey Orchestration', () =
         'trip.driver.near_pickup',
       );
 
-      expect(key).toBe(`journey:${mockBooking.id}:${mockBooking.customerId}:trip.driver.near_pickup`);
+      expect(key).toBe(
+        `journey:${mockBooking.id}:${mockBooking.customerId}:trip.driver.near_pickup`,
+      );
     });
 
     it('emits outbox notification when driver reaches near pickup threshold', async () => {

@@ -71,7 +71,8 @@ export function computeTripDistances(
 
   return {
     driverToPickupMeters,
-    driverToPickupKmDisplay: driverToPickupMeters !== null ? toKmDisplay(driverToPickupMeters) : null,
+    driverToPickupKmDisplay:
+      driverToPickupMeters !== null ? toKmDisplay(driverToPickupMeters) : null,
     pickupToDestinationMeters,
     pickupToDestinationKmDisplay:
       pickupToDestinationMeters !== null ? toKmDisplay(pickupToDestinationMeters) : null,

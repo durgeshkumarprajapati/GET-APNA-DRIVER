@@ -2,7 +2,11 @@ import 'server-only';
 import { BookingStatus, type BookingMessage } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
-import { BookingNotFoundError, MessagingNotAuthorizedError, MessagingNotAllowedError } from '../domain/errors';
+import {
+  BookingNotFoundError,
+  MessagingNotAuthorizedError,
+  MessagingNotAllowedError,
+} from '../domain/errors';
 
 const MESSAGE_BODY_MAX_LENGTH = 2000;
 const MESSAGE_PREVIEW_LENGTH = 140;

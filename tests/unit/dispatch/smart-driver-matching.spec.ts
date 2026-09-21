@@ -31,10 +31,18 @@ describe('Phase 59 — Smart Driver Matching & Candidate Ranking Unit Tests', ()
 
   describe('Location Telemetry Classification', () => {
     it('classifies location freshness deterministically', () => {
-      expect(classifyLocationFreshness(new Date('2026-09-17T11:59:45.000Z'), referenceTime)).toBe('LIVE');
-      expect(classifyLocationFreshness(new Date('2026-09-17T11:58:30.000Z'), referenceTime)).toBe('RECENT');
-      expect(classifyLocationFreshness(new Date('2026-09-17T11:56:00.000Z'), referenceTime)).toBe('STALE');
-      expect(classifyLocationFreshness(new Date('2026-09-17T11:50:00.000Z'), referenceTime)).toBe('UNAVAILABLE');
+      expect(classifyLocationFreshness(new Date('2026-09-17T11:59:45.000Z'), referenceTime)).toBe(
+        'LIVE',
+      );
+      expect(classifyLocationFreshness(new Date('2026-09-17T11:58:30.000Z'), referenceTime)).toBe(
+        'RECENT',
+      );
+      expect(classifyLocationFreshness(new Date('2026-09-17T11:56:00.000Z'), referenceTime)).toBe(
+        'STALE',
+      );
+      expect(classifyLocationFreshness(new Date('2026-09-17T11:50:00.000Z'), referenceTime)).toBe(
+        'UNAVAILABLE',
+      );
     });
 
     it('classifies location confidence deterministically based on accuracy', () => {
@@ -65,7 +73,10 @@ describe('Phase 59 — Smart Driver Matching & Candidate Ranking Unit Tests', ()
       },
       customerFavoriteDriver: {
         findMany: jest.fn().mockImplementation(({ where }) => {
-          if (where.customerId === 'customer-fav' && where.driverProfileId.in.includes('driver-fav')) {
+          if (
+            where.customerId === 'customer-fav' &&
+            where.driverProfileId.in.includes('driver-fav')
+          ) {
             return Promise.resolve([{ driverProfileId: 'driver-fav' }]);
           }
           return Promise.resolve([]);

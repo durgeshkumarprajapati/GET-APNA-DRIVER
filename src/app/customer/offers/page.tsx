@@ -34,7 +34,9 @@ interface OffersApiResponse {
 
 export default function CustomerOffersPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'LIVE' | 'DISCOUNT' | 'GIFT_BOX' | 'SCRATCH_CARD' | 'USED' | 'EXPIRED'>('LIVE');
+  const [activeTab, setActiveTab] = useState<
+    'LIVE' | 'DISCOUNT' | 'GIFT_BOX' | 'SCRATCH_CARD' | 'USED' | 'EXPIRED'
+  >('LIVE');
   const [liveOffers, setLiveOffers] = useState<OffersApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -146,15 +148,15 @@ export default function CustomerOffersPage() {
           </button>
         </div>
 
-        {loading && (
-          <p className="text-xs text-[#87948b] py-4">Loading active offers & coupons…</p>
-        )}
+        {loading && <p className="text-xs text-[#87948b] py-4">Loading active offers & coupons…</p>}
 
         {/* Live Active Database Promotions Section */}
         {activeTab === 'LIVE' && liveOffers && liveOffers.available.length > 0 && (
           <section className="space-y-3">
             <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#68dba9] text-base">local_offer</span>
+              <span className="material-symbols-outlined text-[#68dba9] text-base">
+                local_offer
+              </span>
               <span>Available Ride Coupons</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -234,7 +236,10 @@ export default function CustomerOffersPage() {
               <p className="text-xs text-[#87948b]">No redeemed coupons yet.</p>
             ) : (
               liveOffers.used.map((promo) => (
-                <div key={promo.id} className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] text-xs">
+                <div
+                  key={promo.id}
+                  className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] text-xs"
+                >
                   <span className="font-mono text-xs font-bold text-[#87948b]">{promo.code}</span>
                   <h4 className="font-bold text-[#dfe2ee] mt-1">{promo.name}</h4>
                   <p className="text-[11px] text-[#68dba9] mt-0.5">Used by you</p>
