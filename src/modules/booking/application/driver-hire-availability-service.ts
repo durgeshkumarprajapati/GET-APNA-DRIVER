@@ -1,5 +1,10 @@
 import 'server-only';
-import { BookingStatus, BookingType, DriverApprovalStatus, DriverAvailabilityStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  BookingType,
+  DriverApprovalStatus,
+  DriverAvailabilityStatus,
+} from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { hireRateFieldFor } from '../domain/booking-policy';
 import { SelectedDriverUnavailableError } from '../domain/errors';
@@ -36,9 +41,7 @@ export async function findConflictingDriverIds(
     select: { driverProfileId: true },
   });
 
-  return new Set(
-    conflicts.map((c) => c.driverProfileId).filter((id): id is string => id !== null),
-  );
+  return new Set(conflicts.map((c) => c.driverProfileId).filter((id): id is string => id !== null));
 }
 
 export interface DriverHireListing {
@@ -165,6 +168,7 @@ export async function peekDriverHireRate(
     where: { id: driverProfileId },
     select: { [rateField]: true },
   });
-  const rate = profile?.[rateField as keyof typeof profile] as { toString(): string } | null | undefined;
+  const rate = profile?.[rateField as keyof typeof profile] as
+    { toString(): string } | null | undefined;
   return rate ? rate.toString() : null;
 }

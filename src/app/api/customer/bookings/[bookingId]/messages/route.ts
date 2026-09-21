@@ -3,7 +3,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
-import { sendBookingMessage, listBookingMessages } from '@/modules/booking/application/booking-messaging-service';
+import {
+  sendBookingMessage,
+  listBookingMessages,
+} from '@/modules/booking/application/booking-messaging-service';
 import { AppError } from '@/shared/errors/app-error';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
@@ -22,10 +25,16 @@ export const GET = withPermission<RouteParams>(
       return NextResponse.json({ messages }, { status: 200 });
     } catch (err: unknown) {
       if (err instanceof BookingNotFoundError) {
-        return NextResponse.json({ error: 'BOOKING_NOT_FOUND', message: err.message }, { status: 404 });
+        return NextResponse.json(
+          { error: 'BOOKING_NOT_FOUND', message: err.message },
+          { status: 404 },
+        );
       }
       if (err instanceof AppError) {
-        return NextResponse.json({ error: err.code, message: err.message }, { status: err.statusCode });
+        return NextResponse.json(
+          { error: err.code, message: err.message },
+          { status: err.statusCode },
+        );
       }
       const message = err instanceof Error ? err.message : 'Failed to load messages.';
       return NextResponse.json({ error: 'MESSAGES_FETCH_FAILED', message }, { status: 500 });
@@ -50,10 +59,16 @@ export const POST = withPermission<RouteParams>(
         );
       }
       if (err instanceof BookingNotFoundError) {
-        return NextResponse.json({ error: 'BOOKING_NOT_FOUND', message: err.message }, { status: 404 });
+        return NextResponse.json(
+          { error: 'BOOKING_NOT_FOUND', message: err.message },
+          { status: 404 },
+        );
       }
       if (err instanceof AppError) {
-        return NextResponse.json({ error: err.code, message: err.message }, { status: err.statusCode });
+        return NextResponse.json(
+          { error: err.code, message: err.message },
+          { status: err.statusCode },
+        );
       }
       const message = err instanceof Error ? err.message : 'Failed to send message.';
       return NextResponse.json({ error: 'MESSAGE_SEND_FAILED', message }, { status: 500 });

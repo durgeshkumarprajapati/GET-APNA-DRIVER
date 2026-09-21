@@ -26,45 +26,39 @@ const createPolicySchema = z.object({
   effectiveUntil: z.string().datetime().optional().nullable(),
 });
 
-export const GET = withPermission(
-  PERMISSIONS.ADMIN_PRICING_MANAGE,
-  async () => {
-    const policies = await listPricingPolicies();
-    const pressure = await getMarketplacePressure();
+export const GET = withPermission(PERMISSIONS.ADMIN_PRICING_MANAGE, async () => {
+  const policies = await listPricingPolicies();
+  const pressure = await getMarketplacePressure();
 
-    return NextResponse.json(
-      {
-        policies,
-        currentPressure: pressure,
-      },
-      { status: 200 },
-    );
-  },
-);
+  return NextResponse.json(
+    {
+      policies,
+      currentPressure: pressure,
+    },
+    { status: 200 },
+  );
+});
 
-export const POST = withPermission(
-  PERMISSIONS.ADMIN_PRICING_MANAGE,
-  async (req, { principal }) => {
-    const body = await req.json();
-    const parsed = createPolicySchema.parse(body);
+export const POST = withPermission(PERMISSIONS.ADMIN_PRICING_MANAGE, async (req, { principal }) => {
+  const body = await req.json();
+  const parsed = createPolicySchema.parse(body);
 
-    const policy = await createPricingPolicy({
-      ...parsed,
-      effectiveFrom: parsed.effectiveFrom ? new Date(parsed.effectiveFrom) : null,
-      effectiveUntil: parsed.effectiveUntil ? new Date(parsed.effectiveUntil) : null,
-      createdBy: principal.userId,
-    });
+  const policy = await createPricingPolicy({
+    ...parsed,
+    effectiveFrom: parsed.effectiveFrom ? new Date(parsed.effectiveFrom) : null,
+    effectiveUntil: parsed.effectiveUntil ? new Date(parsed.effectiveUntil) : null,
+    createdBy: principal.userId,
+  });
 
-    await recordAuditLog(prisma, {
-      actorUserId: principal.userId,
-      action: 'admin.pricing_policy.created',
-      entityType: 'DynamicPricingPolicy',
-      entityId: policy.id,
-      beforeState: null,
-      afterState: { policyName: policy.name, status: policy.status },
-      requestMetadata: { ipAddress: req.headers.get('x-forwarded-for') },
-    });
+  await recordAuditLog(prisma, {
+    actorUserId: principal.userId,
+    action: 'admin.pricing_policy.created',
+    entityType: 'DynamicPricingPolicy',
+    entityId: policy.id,
+    beforeState: null,
+    afterState: { policyName: policy.name, status: policy.status },
+    requestMetadata: { ipAddress: req.headers.get('x-forwarded-for') },
+  });
 
-    return NextResponse.json({ policy }, { status: 201 });
-  },
-);
+  return NextResponse.json({ policy }, { status: 201 });
+});

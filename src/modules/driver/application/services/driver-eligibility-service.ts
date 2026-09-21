@@ -63,7 +63,10 @@ export async function evaluateDriverEligibilityFromProfile(
   const reasons: string[] = [];
 
   // Auto-healing: If driver is APPROVED by admin and user account is PENDING, activate account & qualify referral
-  if (profile.approvalStatus === DriverApprovalStatus.APPROVED && profile.user.accountStatus === 'PENDING') {
+  if (
+    profile.approvalStatus === DriverApprovalStatus.APPROVED &&
+    profile.user.accountStatus === 'PENDING'
+  ) {
     if (db.user?.update) {
       await db.user.update({
         where: { id: profile.userId },

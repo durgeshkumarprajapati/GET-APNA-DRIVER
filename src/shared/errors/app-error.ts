@@ -55,9 +55,11 @@ export function toErrorResponse(error: unknown, path: string): NextResponse<Erro
 
     let message = 'A record with this information already exists in the system.';
     if (targetStr.includes('phone') || targetStr.includes('mobile')) {
-      message = 'This mobile number is already registered. Please sign in or use a different number.';
+      message =
+        'This mobile number is already registered. Please sign in or use a different number.';
     } else if (targetStr.includes('email')) {
-      message = 'This email address is already registered. Please sign in or use a different email.';
+      message =
+        'This email address is already registered. Please sign in or use a different email.';
     }
 
     return NextResponse.json(

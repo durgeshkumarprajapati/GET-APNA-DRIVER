@@ -24,7 +24,11 @@ const stats: LocationTelemetryStats = {
   anomalyCount: 0,
 };
 
-export function recordETARequest(provider: RouteProviderType, isSuccess: boolean, latencyMs: number) {
+export function recordETARequest(
+  provider: RouteProviderType,
+  isSuccess: boolean,
+  latencyMs: number,
+) {
   stats.etaRequestCount++;
   if (isSuccess) {
     stats.etaSuccessCount++;

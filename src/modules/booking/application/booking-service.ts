@@ -176,7 +176,8 @@ export async function createBooking(
   let hireEndAt: Date | null = input.hireEndAt ? new Date(input.hireEndAt) : null;
 
   if (isDriverHireBooking(bookingType)) {
-    const start = hireStartAt || (input.requestedStartTime ? new Date(input.requestedStartTime) : new Date());
+    const start =
+      hireStartAt || (input.requestedStartTime ? new Date(input.requestedStartTime) : new Date());
     hireStartAt = start;
     if (hireDurationMinutes && !hireEndAt) {
       hireEndAt = calculateHireEndTimestamp(bookingType, hireDurationMinutes, start);
@@ -232,7 +233,7 @@ export async function createBooking(
 
   const pricingSnapshot = createPricingQuoteSnapshot(bookingType, fareResult);
 
-  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 300, db);
+  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 180, db);
   const now = new Date();
   const searchExpiresAt = new Date(now.getTime() + searchTimeoutSeconds * 1000);
 

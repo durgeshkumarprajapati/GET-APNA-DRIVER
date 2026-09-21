@@ -18,6 +18,9 @@ import { SmartTripReliabilityCard } from '@/components/trip-reliability/SmartTri
 import type { CustomerReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
 import { LocationETACard } from '@/components/location-intelligence/LocationETACard';
 import { DispatchSearchCountdownCard } from '@/components/dispatch/DispatchSearchCountdownCard';
+import { SmartJourneyCard } from '@/components/trip-execution/SmartJourneyCard';
+import type { CustomerJourneyDTO } from '@/modules/trip-execution/application/journey-orchestration-service';
+import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 const STATUS_TONE: Record<string, StatusBadgeTone> = {
   SEARCHING_DRIVER: 'warning',
@@ -51,12 +54,23 @@ export default function CustomerActiveTrackingPage() {
   const [intelligence, setIntelligence] = useState<TripIntelligenceResult | null>(null);
   const [reliability, setReliability] = useState<CustomerReliabilityView | null>(null);
   const [locationIntel, setLocationIntel] = useState<Record<string, unknown> | null>(null);
+  const [journeyData, setJourneyData] = useState<CustomerJourneyDTO | null>(null);
 
   const loading = resolvingActiveBooking || (Boolean(activeBooking) && trackingLoading);
   const displayBooking = booking ?? activeBooking;
 
   useEffect(() => {
     if (!displayBooking?.id) return;
+
+    fetch(`/api/customer/bookings/${displayBooking.id}/journey`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.journey) {
+          setJourneyData(data.journey);
+        }
+      })
+      .catch(() => {});
+
     fetch(`/api/customer/bookings/${displayBooking.id}/trip-intelligence`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -112,6 +126,10 @@ export default function CustomerActiveTrackingPage() {
         ) : (
           <>
             <DispatchSearchCountdownCard bookingId={displayBooking.id} />
+
+            <PostTripPaymentCard bookingId={displayBooking.id} role="CUSTOMER" />
+
+            {journeyData && <SmartJourneyCard journey={journeyData} role="CUSTOMER" />}
 
             {locationIntel && <LocationETACard locationIntelligence={locationIntel} />}
 

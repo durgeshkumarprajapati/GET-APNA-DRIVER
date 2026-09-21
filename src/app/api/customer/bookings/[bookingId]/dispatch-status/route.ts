@@ -1,61 +1,40 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
-import { withAuth } from '@/modules/identity/authorization/route-guard';
-import { prisma } from '@/shared/database/prisma';
-import {
-  getDispatchSearchState,
-  CUSTOMER_CANCELLATION_TEXT,
-  CANCELLATION_REASON_NO_DRIVER,
-} from '@/modules/dispatch/application/dispatch-search-service';
-import { toErrorResponse } from '@/shared/errors/app-error';
+import { withPermission } from '@/modules/identity/authorization/route-guard';
+import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
+import { getDispatchSearchState } from '@/modules/dispatch/application/dispatch-search-service';
+import { getBookingById } from '@/modules/booking/application/booking-service';
+import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
-export const GET = withAuth(async (req, { principal }, routeContext?: unknown) => {
-  try {
-    const params = await (routeContext as { params: Promise<{ bookingId: string }> })?.params;
-    const bookingId = params?.bookingId;
+type RouteParams = { params: Promise<{ bookingId: string }> };
 
-    if (!bookingId) {
-      return NextResponse.json({ error: 'Missing booking ID' }, { status: 400 });
+export const GET = withPermission<RouteParams>(
+  PERMISSIONS.BOOKINGS_READ,
+  async (_req, { principal }, routeContext) => {
+    try {
+      const { bookingId } = await routeContext!.params;
+      const booking = await getBookingById(principal.userId, bookingId);
+
+      const dispatchState = await getDispatchSearchState(bookingId);
+
+      return NextResponse.json(
+        {
+          bookingId,
+          status: booking.status,
+          dispatchState,
+          assignedDriverId: booking.driverProfileId,
+        },
+        { status: 200 },
+      );
+    } catch (err: unknown) {
+      if (err instanceof BookingNotFoundError) {
+        return NextResponse.json(
+          { error: 'BOOKING_NOT_FOUND', message: err.message },
+          { status: 404 },
+        );
+      }
+      const message = err instanceof Error ? err.message : 'Failed to fetch dispatch status.';
+      return NextResponse.json({ error: 'FETCH_DISPATCH_STATUS_FAILED', message }, { status: 500 });
     }
-
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      select: {
-        id: true,
-        customerId: true,
-        status: true,
-        cancellationReason: true,
-        cancelledAt: true,
-      },
-    });
-
-    if (!booking) {
-      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
-    }
-
-    if (booking.customerId !== principal.userId) {
-      return NextResponse.json({ error: 'Unauthorized access to booking dispatch status' }, { status: 403 });
-    }
-
-    const searchState = await getDispatchSearchState(bookingId);
-
-    const isNoDriverCancelled =
-      booking.status === 'CANCELLED' && booking.cancellationReason === CANCELLATION_REASON_NO_DRIVER;
-
-    return NextResponse.json({
-      dispatchStatus: {
-        bookingId: booking.id,
-        status: booking.status,
-        searchStartedAt: searchState?.searchStartedAt.toISOString() || null,
-        searchDeadlineAt: searchState?.searchDeadlineAt.toISOString() || null,
-        remainingSeconds: searchState?.remainingSeconds ?? 0,
-        hasExpired: searchState?.hasExpired ?? false,
-        isNoDriverCancelled,
-        cancellationReason: booking.cancellationReason,
-        cancellationMessage: isNoDriverCancelled ? CUSTOMER_CANCELLATION_TEXT : null,
-      },
-    });
-  } catch (error: unknown) {
-    return toErrorResponse(error, req.nextUrl.pathname);
-  }
-});
+  },
+);

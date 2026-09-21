@@ -6,7 +6,7 @@ import { recordAuditLog } from '@/shared/audit/audit-service';
 import { validateBookingStatusTransition } from '@/modules/booking/domain/booking-state-machine';
 import { DispatchSearchState } from '../domain/candidate-ranking-types';
 
-export const SEARCH_DEADLINE_SECONDS = 120; // Server-authoritative 2-minute search deadline
+export const SEARCH_DEADLINE_SECONDS = 180; // Server-authoritative 3-minute search deadline
 export const CANCELLATION_REASON_NO_DRIVER = 'NO_ACTIVE_DRIVER_NEARBY';
 export const CUSTOMER_CANCELLATION_TEXT = 'No active driver found near you.';
 
@@ -25,6 +25,13 @@ export async function getDispatchSearchState(
       searchStartedAt: true,
       createdAt: true,
       expiresAt: true,
+      assignmentAttempts: {
+        select: {
+          id: true,
+          status: true,
+          expiresAt: true,
+        },
+      },
     },
   });
 
@@ -32,9 +39,17 @@ export async function getDispatchSearchState(
 
   const now = new Date();
   const searchStartedAt = booking.searchStartedAt || booking.createdAt;
-  const searchDeadlineAt = booking.expiresAt || new Date(searchStartedAt.getTime() + SEARCH_DEADLINE_SECONDS * 1000);
-  const remainingSeconds = Math.max(0, Math.ceil((searchDeadlineAt.getTime() - now.getTime()) / 1000));
+  const searchDeadlineAt =
+    booking.expiresAt || new Date(searchStartedAt.getTime() + SEARCH_DEADLINE_SECONDS * 1000);
+  const remainingSeconds = Math.max(
+    0,
+    Math.ceil((searchDeadlineAt.getTime() - now.getTime()) / 1000),
+  );
   const hasExpired = now >= searchDeadlineAt;
+
+  const activeOffersCount = booking.assignmentAttempts
+    ? booking.assignmentAttempts.filter((a) => a.status === AssignmentAttemptStatus.PENDING).length
+    : 0;
 
   return {
     bookingId: booking.id,
@@ -42,8 +57,8 @@ export async function getDispatchSearchState(
     searchStartedAt,
     searchDeadlineAt,
     remainingSeconds,
-    candidatePoolSize: 0,
-    rankedCandidatesCount: 0,
+    candidatePoolSize: activeOffersCount,
+    rankedCandidatesCount: booking.assignmentAttempts?.length || 0,
     hasExpired,
   };
 }
@@ -72,7 +87,8 @@ export async function cancelBookingNoDriverFound(
 
   // Check if there is an assignment attempt currently PENDING or ACCEPTED
   const hasActiveAttempt = booking.assignmentAttempts.some(
-    (a) => a.status === AssignmentAttemptStatus.PENDING || a.status === AssignmentAttemptStatus.ACCEPTED,
+    (a) =>
+      a.status === AssignmentAttemptStatus.PENDING || a.status === AssignmentAttemptStatus.ACCEPTED,
   );
 
   if (hasActiveAttempt && booking.driverProfileId) {
@@ -133,7 +149,10 @@ export async function cancelBookingNoDriverFound(
     entityType: 'Booking',
     entityId: bookingId,
     beforeState: { status: booking.status },
-    afterState: { status: BookingStatus.CANCELLED, cancellationReason: CANCELLATION_REASON_NO_DRIVER },
+    afterState: {
+      status: BookingStatus.CANCELLED,
+      cancellationReason: CANCELLATION_REASON_NO_DRIVER,
+    },
   });
 
   return { cancelled: true, reason: CANCELLATION_REASON_NO_DRIVER };
@@ -169,11 +188,10 @@ export async function handleDriverOnlinePresence(
 
   for (const booking of searchingBookings) {
     // Check if booking search is within radius
-    const distanceMeters =
-      Math.hypot(
-        (booking.pickupLatitude - currentLocation.latitude) * 111000,
-        (booking.pickupLongitude - currentLocation.longitude) * 111000,
-      );
+    const distanceMeters = Math.hypot(
+      (booking.pickupLatitude - currentLocation.latitude) * 111000,
+      (booking.pickupLongitude - currentLocation.longitude) * 111000,
+    );
 
     if (distanceMeters <= maxSearchRadius) {
       count++;

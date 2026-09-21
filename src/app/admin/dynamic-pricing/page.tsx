@@ -215,7 +215,9 @@ export default function AdminDynamicPricingPage() {
                 Marketplace Pressure
               </span>
               <div className="mt-2 flex items-center gap-2">
-                <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full border ${getPressureBadgeClass(pressure.pressureLevel)}`}>
+                <span
+                  className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full border ${getPressureBadgeClass(pressure.pressureLevel)}`}
+                >
                   {pressure.pressureLevel}
                 </span>
               </div>
@@ -230,7 +232,8 @@ export default function AdminDynamicPricingPage() {
                 {pressure.supplyDemandRatio.toFixed(2)}
               </div>
               <p className="text-[11px] text-[#87948b] mt-1">
-                {pressure.expectedEligibleSupply} eligible supply / {pressure.forecastedDemand} active demand
+                {pressure.expectedEligibleSupply} eligible supply / {pressure.forecastedDemand}{' '}
+                active demand
               </p>
             </div>
 
@@ -263,10 +266,15 @@ export default function AdminDynamicPricingPage() {
             {/* Create Policy Card */}
             <div className="bg-[#141822] p-5 rounded-xl border border-[#262a33] space-y-4">
               <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-[#68dba9]">add_chart</span>
+                <span className="material-symbols-outlined text-base text-[#68dba9]">
+                  add_chart
+                </span>
                 Create Pricing Policy
               </h2>
-              <form onSubmit={(e) => void handleCreatePolicy(e)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form
+                onSubmit={(e) => void handleCreatePolicy(e)}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
                 <div>
                   <label className="text-xs text-[#87948b]">Policy Name</label>
                   <input
@@ -362,9 +370,13 @@ export default function AdminDynamicPricingPage() {
 
             {/* Policy List Table */}
             <div className="bg-[#141822] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">Pricing Policies</h2>
+              <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                Pricing Policies
+              </h2>
               {policies.length === 0 ? (
-                <div className="text-xs text-[#87948b] py-8 text-center">No pricing policies configured yet.</div>
+                <div className="text-xs text-[#87948b] py-8 text-center">
+                  No pricing policies configured yet.
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs text-[#dfe2ee]">
@@ -383,12 +395,18 @@ export default function AdminDynamicPricingPage() {
                       {policies.map((p) => (
                         <tr key={p.id} className="hover:bg-[#1c2028]/50">
                           <td className="px-3 py-3 font-semibold">{p.name}</td>
-                          <td className="px-3 py-3 font-mono text-[11px] text-[#87948b]">{p.bookingType || 'ALL'}</td>
+                          <td className="px-3 py-3 font-mono text-[11px] text-[#87948b]">
+                            {p.bookingType || 'ALL'}
+                          </td>
                           <td className="px-3 py-3 font-mono text-[11px]">
                             {p.minimumPressure} → {p.maximumPressure}
                           </td>
-                          <td className="px-3 py-3 font-mono text-[#68dba9] font-bold">+{p.adjustmentPercentage}%</td>
-                          <td className="px-3 py-3 font-mono text-[#ffb4ab]">{p.maxAdjustmentPercentage}%</td>
+                          <td className="px-3 py-3 font-mono text-[#68dba9] font-bold">
+                            +{p.adjustmentPercentage}%
+                          </td>
+                          <td className="px-3 py-3 font-mono text-[#ffb4ab]">
+                            {p.maxAdjustmentPercentage}%
+                          </td>
                           <td className="px-3 py-3">
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
@@ -425,7 +443,8 @@ export default function AdminDynamicPricingPage() {
                 Dry-Run Fare Simulator
               </h2>
               <p className="text-xs text-[#87948b]">
-                Simulate dynamic fare calculations under different supply/demand pressure scenarios. No database or ledger records are modified.
+                Simulate dynamic fare calculations under different supply/demand pressure scenarios.
+                No database or ledger records are modified.
               </p>
 
               <div className="space-y-3 pt-2">
@@ -474,7 +493,9 @@ export default function AdminDynamicPricingPage() {
                 <div className="mt-4 p-4 bg-[#1c2028] rounded-xl border border-[#262a33] space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-[#87948b]">Calculated Pressure</span>
-                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${getPressureBadgeClass(simulation.pressureLevel)}`}>
+                    <span
+                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${getPressureBadgeClass(simulation.pressureLevel)}`}
+                    >
                       {simulation.pressureLevel}
                     </span>
                   </div>

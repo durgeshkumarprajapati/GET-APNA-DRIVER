@@ -105,7 +105,9 @@ export async function collectOperationsSignals(db: Db = prisma): Promise<Operati
     db.safetyIncident?.count
       ? db.safetyIncident
           .count({
-            where: { status: { in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING] } },
+            where: {
+              status: { in: [SafetyIncidentStatus.OPEN, SafetyIncidentStatus.INVESTIGATING] },
+            },
           })
           .catch(() => 0)
       : Promise.resolve(0),

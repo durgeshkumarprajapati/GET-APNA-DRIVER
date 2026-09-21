@@ -24,7 +24,8 @@ export const bookingHi = {
   selectHireType: 'किराया मोड चुनें',
   hireDurationTitle: 'किराये की अवधि',
   requestedStart: 'अनुरोधित प्रारंभ समय (वैकल्पिक)',
-  noDropoffRequiredHire: 'ड्राइवर किराये पर लेने के लिए ड्रॉप स्थान आवश्यक नहीं है। आपका ड्राइवर पूरी अवधि आपके साथ रहेगा।',
+  noDropoffRequiredHire:
+    'ड्राइवर किराये पर लेने के लिए ड्रॉप स्थान आवश्यक नहीं है। आपका ड्राइवर पूरी अवधि आपके साथ रहेगा।',
   addDropoffOptional: 'ड्रॉप स्थान निर्दिष्ट करें (वैकल्पिक)',
   destinationLocation: 'ड्रॉप स्थान',
   units: {

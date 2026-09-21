@@ -72,7 +72,8 @@ export default function AdminDispatchIntelligencePage() {
               Intelligent Dispatch & Search Deadlines
             </h1>
             <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-              Real-time driver presence, candidate ranking telemetry, 2-minute search deadlines, and auto-cancellations.
+              Real-time driver presence, candidate ranking telemetry, 2-minute search deadlines, and
+              auto-cancellations.
             </p>
           </div>
 
@@ -186,7 +187,10 @@ export default function AdminDispatchIntelligencePage() {
                       </thead>
                       <tbody className="divide-y divide-[#262a33]">
                         {activeSearches.map((search) => (
-                          <tr key={search.bookingId} className="hover:bg-[#181c24] transition-colors">
+                          <tr
+                            key={search.bookingId}
+                            className="hover:bg-[#181c24] transition-colors"
+                          >
                             <td className="py-3.5 px-4 font-mono font-bold text-[#dfe2ee]">
                               {search.bookingId.slice(0, 8)}…
                             </td>

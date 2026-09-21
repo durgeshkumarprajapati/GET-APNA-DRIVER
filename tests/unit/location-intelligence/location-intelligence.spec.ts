@@ -1,5 +1,8 @@
 import { evaluateLocationFreshnessState } from '@/modules/location-intelligence/domain/location-policy';
-import { evaluateLocationConfidence, detectLocationAnomaly } from '@/modules/location-intelligence/domain/location-confidence';
+import {
+  evaluateLocationConfidence,
+  detectLocationAnomaly,
+} from '@/modules/location-intelligence/domain/location-confidence';
 import { DeterministicRouteProvider } from '@/modules/location-intelligence/providers/deterministic-route-provider';
 import { ETAService } from '@/modules/location-intelligence/application/eta-service';
 import { evaluatePickupProximity } from '@/modules/location-intelligence/rules/pickup-proximity-rule';
@@ -200,4 +203,3 @@ describe('Phase 54 - Location Intelligence Engine Unit Tests', () => {
     });
   });
 });
-

@@ -24,7 +24,9 @@ import {
 } from '../../domain/money';
 import {
   BookingNotEligibleForPaymentError,
+  CashPaymentConfirmationForbiddenError,
   DuplicatePaymentIdempotencyError,
+  InvalidPaymentMethodError,
   PaymentAlreadyInProgressError,
   PaymentBookingNotFoundError,
   PaymentNotFoundError,
@@ -36,6 +38,7 @@ export { PaymentNotFoundError };
 
 export interface CreatePaymentForBookingInput {
   bookingId: string;
+  paymentMethod?: 'UPI' | 'QR' | 'CASH' | 'ONLINE' | string;
   idempotencyKey?: string | null;
 }
 
@@ -44,6 +47,7 @@ export interface PaymentCheckoutInit {
   providerOrderId: string;
   amount: string;
   currency: string;
+  paymentMethod?: string | null;
   /** Razorpay's public key — safe to expose to the client checkout widget. */
   razorpayKeyId: string | null;
 }
@@ -56,6 +60,9 @@ export interface PaymentSummary {
   amount: string;
   currency: string;
   provider: string;
+  paymentMethod: string | null;
+  cashCustomerConfirmedAt: string | null;
+  cashDriverConfirmedAt: string | null;
   commissionAmount: string | null;
   driverEarningsAmount: string | null;
   promotionId: string | null;
@@ -74,6 +81,9 @@ export interface CustomerPaymentSummary {
   amount: string;
   currency: string;
   provider: string;
+  paymentMethod: string | null;
+  cashCustomerConfirmedAt: string | null;
+  cashDriverConfirmedAt: string | null;
   promotionId: string | null;
   promotionCodeSnapshot: string | null;
   discountAmount: string | null;
@@ -90,6 +100,13 @@ function mapPaymentToSummary(payment: Payment): PaymentSummary {
     amount: payment.amount.toFixed(4),
     currency: payment.currency,
     provider: payment.provider,
+    paymentMethod: payment.paymentMethod ?? null,
+    cashCustomerConfirmedAt: payment.cashCustomerConfirmedAt
+      ? payment.cashCustomerConfirmedAt.toISOString()
+      : null,
+    cashDriverConfirmedAt: payment.cashDriverConfirmedAt
+      ? payment.cashDriverConfirmedAt.toISOString()
+      : null,
     commissionAmount: payment.commissionAmount ? payment.commissionAmount.toFixed(4) : null,
     driverEarningsAmount: payment.driverEarningsAmount
       ? payment.driverEarningsAmount.toFixed(4)
@@ -111,6 +128,13 @@ function mapPaymentToCustomerSummary(payment: Payment): CustomerPaymentSummary {
     amount: payment.amount.toFixed(4),
     currency: payment.currency,
     provider: payment.provider,
+    paymentMethod: payment.paymentMethod ?? null,
+    cashCustomerConfirmedAt: payment.cashCustomerConfirmedAt
+      ? payment.cashCustomerConfirmedAt.toISOString()
+      : null,
+    cashDriverConfirmedAt: payment.cashDriverConfirmedAt
+      ? payment.cashDriverConfirmedAt.toISOString()
+      : null,
     promotionId: payment.promotionId,
     promotionCodeSnapshot: payment.promotionCodeSnapshot,
     discountAmount: payment.discountAmount ? payment.discountAmount.toFixed(4) : null,
@@ -128,6 +152,7 @@ function toCheckoutInit(payment: Payment): PaymentCheckoutInit {
     providerOrderId: payment.providerOrderId,
     amount: payment.amount.toFixed(4),
     currency: payment.currency,
+    paymentMethod: payment.paymentMethod ?? null,
     razorpayKeyId: env.RAZORPAY_KEY_ID ?? null,
   };
 }
@@ -194,6 +219,12 @@ export async function createPaymentForBooking(
     ? roundMoney(toDecimal(grossAmount).sub(toDecimal(discountAmount))).toFixed(4)
     : grossAmount;
 
+  const paymentMethod = input.paymentMethod ?? 'ONLINE';
+  if (!['UPI', 'QR', 'CASH', 'ONLINE'].includes(paymentMethod)) {
+    throw new InvalidPaymentMethodError(paymentMethod);
+  }
+  const provider = paymentMethod === 'CASH' ? 'cash' : 'razorpay';
+
   const payment = await db.payment.create({
     data: {
       bookingId: booking.id,
@@ -202,6 +233,8 @@ export async function createPaymentForBooking(
       amount: chargeAmount,
       currency,
       status: 'CREATED',
+      provider,
+      paymentMethod,
       idempotencyKey: input.idempotencyKey ?? null,
       promotionId: booking.promotionId,
       promotionCodeSnapshot: booking.promotionCodeSnapshot,
@@ -637,6 +670,403 @@ export async function getPaymentByIdForAdmin(
 export async function listAllPayments(db: Db = prisma): Promise<PaymentSummary[]> {
   const payments = await db.payment.findMany({ orderBy: { createdAt: 'desc' }, take: 200 });
   return payments.map(mapPaymentToSummary);
+}
+
+export interface PostTripPaymentDetails {
+  bookingId: string;
+  status: Payment['status'] | 'UNPAID';
+  paymentId: string | null;
+  amount: string;
+  grossAmount: string;
+  discountAmount: string | null;
+  currency: string;
+  paymentMethod: string | null;
+  provider: string | null;
+  providerOrderId: string | null;
+  providerPaymentId: string | null;
+  cashCustomerConfirmedAt: string | null;
+  cashDriverConfirmedAt: string | null;
+  capturedAt: string | null;
+  upiQrPayload?: {
+    upiId: string;
+    qrData: string;
+  } | null;
+}
+
+export async function confirmCashPaymentByCustomer(
+  customerUserId: string,
+  bookingId: string,
+  db: Db = prisma,
+): Promise<CustomerPaymentSummary> {
+  const booking = await db.booking.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.customerId !== customerUserId) {
+    throw new PaymentBookingNotFoundError(bookingId);
+  }
+  if (booking.status !== 'TRIP_COMPLETED') {
+    throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
+  }
+
+  let payment = await db.payment.findFirst({
+    where: { bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+  });
+
+  const now = new Date();
+
+  if (!payment) {
+    const { amount: grossAmount } = await calculateBookingAmount(booking, db);
+    const currency = await getString('finance.currency', 'INR', db);
+    const discountAmount = booking.discountAmount
+      ? roundMoney(toDecimal(booking.discountAmount)).toFixed(4)
+      : null;
+    const chargeAmount = discountAmount
+      ? roundMoney(toDecimal(grossAmount).sub(toDecimal(discountAmount))).toFixed(4)
+      : grossAmount;
+
+    payment = await db.payment.create({
+      data: {
+        bookingId,
+        customerId: customerUserId,
+        driverProfileId: booking.driverProfileId,
+        amount: chargeAmount,
+        currency,
+        status: 'PROCESSING',
+        provider: 'cash',
+        paymentMethod: 'CASH',
+        providerOrderId: `CASH_${bookingId}`,
+        cashCustomerConfirmedAt: now,
+        promotionId: booking.promotionId,
+        promotionCodeSnapshot: booking.promotionCodeSnapshot,
+        discountAmount,
+      },
+    });
+  } else {
+    if (payment.status === 'CAPTURED') {
+      return mapPaymentToCustomerSummary(payment);
+    }
+    payment = await db.payment.update({
+      where: { id: payment.id },
+      data: {
+        provider: 'cash',
+        paymentMethod: 'CASH',
+        cashCustomerConfirmedAt: now,
+      },
+    });
+  }
+
+  await recordAuditLog(db, {
+    actorUserId: customerUserId,
+    action: 'finance.payment.cash_customer_confirmed',
+    entityType: 'Payment',
+    entityId: payment.id,
+    beforeState: null,
+    afterState: { cashCustomerConfirmedAt: now.toISOString() },
+    requestMetadata: null,
+  });
+
+  if (payment.cashDriverConfirmedAt) {
+    await captureCashPayment(payment.id, db);
+    const updated = await db.payment.findUnique({ where: { id: payment.id } });
+    return mapPaymentToCustomerSummary(updated ?? payment);
+  }
+
+  return mapPaymentToCustomerSummary(payment);
+}
+
+export async function confirmCashPaymentByDriver(
+  driverProfileId: string,
+  bookingId: string,
+  db: Db = prisma,
+): Promise<PaymentSummary> {
+  const booking = await db.booking.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.driverProfileId !== driverProfileId) {
+    throw new CashPaymentConfirmationForbiddenError('Driver is not assigned to this booking');
+  }
+  if (booking.status !== 'TRIP_COMPLETED') {
+    throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
+  }
+
+  let payment = await db.payment.findFirst({
+    where: { bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+  });
+
+  const now = new Date();
+
+  if (!payment) {
+    const { amount: grossAmount } = await calculateBookingAmount(booking, db);
+    const currency = await getString('finance.currency', 'INR', db);
+    const discountAmount = booking.discountAmount
+      ? roundMoney(toDecimal(booking.discountAmount)).toFixed(4)
+      : null;
+    const chargeAmount = discountAmount
+      ? roundMoney(toDecimal(grossAmount).sub(toDecimal(discountAmount))).toFixed(4)
+      : grossAmount;
+
+    payment = await db.payment.create({
+      data: {
+        bookingId,
+        customerId: booking.customerId,
+        driverProfileId,
+        amount: chargeAmount,
+        currency,
+        status: 'PROCESSING',
+        provider: 'cash',
+        paymentMethod: 'CASH',
+        providerOrderId: `CASH_${bookingId}`,
+        cashDriverConfirmedAt: now,
+        promotionId: booking.promotionId,
+        promotionCodeSnapshot: booking.promotionCodeSnapshot,
+        discountAmount,
+      },
+    });
+  } else {
+    if (payment.status === 'CAPTURED') {
+      return mapPaymentToSummary(payment);
+    }
+    payment = await db.payment.update({
+      where: { id: payment.id },
+      data: {
+        provider: 'cash',
+        paymentMethod: 'CASH',
+        cashDriverConfirmedAt: now,
+      },
+    });
+  }
+
+  await recordAuditLog(db, {
+    actorUserId: null,
+    action: 'finance.payment.cash_driver_confirmed',
+    entityType: 'Payment',
+    entityId: payment.id,
+    beforeState: null,
+    afterState: { cashDriverConfirmedAt: now.toISOString() },
+    requestMetadata: { driverProfileId },
+  });
+
+  if (payment.cashCustomerConfirmedAt) {
+    await captureCashPayment(payment.id, db);
+    const updated = await db.payment.findUnique({ where: { id: payment.id } });
+    return mapPaymentToSummary(updated ?? payment);
+  }
+
+  return mapPaymentToSummary(payment);
+}
+
+export async function captureCashPayment(
+  paymentId: string,
+  db: Db = prisma,
+): Promise<PaymentSummary> {
+  return db.$transaction(async (tx: Db) => {
+    const payment = await tx.payment.findUnique({ where: { id: paymentId } });
+    if (!payment) {
+      throw new PaymentNotFoundError(paymentId);
+    }
+
+    if (
+      payment.status === 'CAPTURED' ||
+      payment.status === 'PARTIALLY_REFUNDED' ||
+      payment.status === 'REFUNDED'
+    ) {
+      return mapPaymentToSummary(payment);
+    }
+
+    const discountAmount = payment.discountAmount ? toDecimal(payment.discountAmount) : ZERO;
+    const grossAmount = roundMoney(toDecimal(payment.amount).add(discountAmount)).toFixed(4);
+    const { commissionPercentage, commissionAmount, driverEarningsAmount } =
+      await calculateCommission(grossAmount, tx);
+
+    const capturedAt = new Date();
+    const updated = await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: 'CAPTURED',
+        providerPaymentId: payment.providerPaymentId ?? `CASH_PAID_${payment.id}`,
+        commissionPercentageSnapshot: commissionPercentage,
+        commissionAmount,
+        driverEarningsAmount,
+        capturedAt,
+      },
+    });
+
+    await tx.paymentAttempt.create({
+      data: {
+        paymentId: payment.id,
+        provider: payment.provider,
+        providerOrderId: payment.providerOrderId,
+        providerPaymentId: `CASH_PAID_${payment.id}`,
+        status: 'SUCCEEDED',
+        responseSnapshot: { source: 'cash_dual_confirmation' },
+      },
+    });
+
+    const postings: LedgerPosting[] = [
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.PAYMENT_PROVIDER_CLEARING,
+        debitAmount: payment.amount.toFixed(4),
+        creditAmount: '0',
+      },
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.PLATFORM_REVENUE_COMMISSION,
+        debitAmount: '0',
+        creditAmount: commissionAmount,
+      },
+      {
+        accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+        debitAmount: '0',
+        creditAmount: driverEarningsAmount,
+      },
+    ];
+    if (isPositive(discountAmount)) {
+      postings.push({
+        accountCode: LEDGER_ACCOUNT_CODES.PROMOTION_DISCOUNT_EXPENSE,
+        debitAmount: discountAmount.toFixed(4),
+        creditAmount: '0',
+      });
+    }
+
+    const financialTransaction = await postFinancialTransaction(
+      {
+        transactionType: 'PAYMENT_CAPTURED',
+        referenceEntityType: 'Payment',
+        referenceEntityId: payment.id,
+        idempotencyKey: `cash_payment_captured:${payment.id}`,
+        description: `Cash payment captured for booking ${payment.bookingId}`,
+        postings,
+      },
+      tx,
+    );
+
+    if (payment.driverProfileId) {
+      const availableDelta = roundMoney(
+        toDecimal(driverEarningsAmount).sub(toDecimal(payment.amount)),
+      ).toFixed(4);
+
+      await applyWalletChange(
+        {
+          driverProfileId: payment.driverProfileId,
+          financialTransactionId: financialTransaction.id,
+          changeType: 'EARNING_RECOGNIZED',
+          availableDelta,
+          totalEarnedDelta: driverEarningsAmount,
+        },
+        tx,
+      );
+    }
+
+    await recordAuditLog(tx, {
+      actorUserId: null,
+      action: 'finance.payment.cash_captured',
+      entityType: 'Payment',
+      entityId: payment.id,
+      beforeState: { status: payment.status },
+      afterState: { status: 'CAPTURED', commissionAmount, driverEarningsAmount },
+      requestMetadata: { source: 'cash_dual_confirmation' },
+    });
+
+    await insertOutboxEvent(tx, {
+      eventType: 'payment.captured',
+      aggregateType: 'Payment',
+      aggregateId: payment.id,
+      payload: {
+        paymentId: payment.id,
+        bookingId: payment.bookingId,
+        amount: payment.amount.toFixed(4),
+        paymentMethod: 'CASH',
+        commissionAmount,
+        driverEarningsAmount,
+      },
+    });
+
+    return mapPaymentToSummary(updated);
+  });
+}
+
+export async function getPostTripPaymentForBooking(
+  bookingId: string,
+  userAccessCheck?: { userId?: string; driverProfileId?: string },
+  db: Db = prisma,
+): Promise<PostTripPaymentDetails> {
+  const booking = await db.booking.findUnique({ where: { id: bookingId } });
+  if (!booking) {
+    throw new PaymentBookingNotFoundError(bookingId);
+  }
+
+  if (userAccessCheck) {
+    const isCustomer = Boolean(
+      userAccessCheck.userId && booking.customerId === userAccessCheck.userId,
+    );
+    const isDriver = Boolean(
+      userAccessCheck.driverProfileId &&
+      booking.driverProfileId === userAccessCheck.driverProfileId,
+    );
+    if (!isCustomer && !isDriver) {
+      throw new PaymentBookingNotFoundError(bookingId);
+    }
+  }
+
+  const { amount: grossAmountStr } = await calculateBookingAmount(booking, db);
+  const currency = await getString('finance.currency', 'INR', db);
+  const discountAmount = booking.discountAmount
+    ? roundMoney(toDecimal(booking.discountAmount)).toFixed(4)
+    : null;
+  const chargeAmount = discountAmount
+    ? roundMoney(toDecimal(grossAmountStr).sub(toDecimal(discountAmount))).toFixed(4)
+    : grossAmountStr;
+
+  const payment = await db.payment.findFirst({
+    where: { bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const upiVpa = env.RAZORPAY_KEY_ID ? 'getapnadriver@razorpay' : 'apnadriver@upi';
+  const qrData = `upi://pay?pa=${upiVpa}&pn=GetApnaDriver&am=${chargeAmount}&cu=${currency}&tn=Booking_${bookingId.substring(0, 8)}`;
+
+  if (!payment) {
+    return {
+      bookingId,
+      status: 'UNPAID',
+      paymentId: null,
+      amount: chargeAmount,
+      grossAmount: grossAmountStr,
+      discountAmount,
+      currency,
+      paymentMethod: null,
+      provider: null,
+      providerOrderId: null,
+      providerPaymentId: null,
+      cashCustomerConfirmedAt: null,
+      cashDriverConfirmedAt: null,
+      capturedAt: null,
+      upiQrPayload: {
+        upiId: upiVpa,
+        qrData,
+      },
+    };
+  }
+
+  return {
+    bookingId,
+    status: payment.status,
+    paymentId: payment.id,
+    amount: payment.amount.toFixed(4),
+    grossAmount: grossAmountStr,
+    discountAmount: payment.discountAmount ? payment.discountAmount.toFixed(4) : discountAmount,
+    currency: payment.currency,
+    paymentMethod: payment.paymentMethod ?? null,
+    provider: payment.provider,
+    providerOrderId: payment.providerOrderId,
+    providerPaymentId: payment.providerPaymentId,
+    cashCustomerConfirmedAt: payment.cashCustomerConfirmedAt
+      ? payment.cashCustomerConfirmedAt.toISOString()
+      : null,
+    cashDriverConfirmedAt: payment.cashDriverConfirmedAt
+      ? payment.cashDriverConfirmedAt.toISOString()
+      : null,
+    capturedAt: payment.capturedAt ? payment.capturedAt.toISOString() : null,
+    upiQrPayload: {
+      upiId: upiVpa,
+      qrData,
+    },
+  };
 }
 
 export { mapPaymentToSummary };

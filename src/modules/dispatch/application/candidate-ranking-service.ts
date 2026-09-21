@@ -21,7 +21,10 @@ const SHORTLIST_ETA_LIMIT = 5;
  * STALE: 121-300 seconds
  * UNAVAILABLE: > 300 seconds or missing
  */
-export function classifyLocationFreshness(capturedAt: Date, now: Date = new Date()): LocationFreshnessClass {
+export function classifyLocationFreshness(
+  capturedAt: Date,
+  now: Date = new Date(),
+): LocationFreshnessClass {
   const diffSec = (now.getTime() - capturedAt.getTime()) / 1000;
   if (diffSec <= 30) return 'LIVE';
   if (diffSec <= 120) return 'RECENT';
@@ -62,7 +65,12 @@ export async function rankCandidateDrivers(
   referenceTime: Date = new Date(),
 ): Promise<RankedCandidate[]> {
   const now = referenceTime;
-  const eligibleCandidates: { candidate: CandidateDriverSignalInput; distanceKm: number; freshnessClass: LocationFreshnessClass; confidenceLevel: LocationConfidenceLevel }[] = [];
+  const eligibleCandidates: {
+    candidate: CandidateDriverSignalInput;
+    distanceKm: number;
+    freshnessClass: LocationFreshnessClass;
+    confidenceLevel: LocationConfidenceLevel;
+  }[] = [];
 
   // 1. Filter out ineligible candidates and stale locations
   for (const candidate of candidates) {
@@ -171,7 +179,11 @@ export async function rankCandidateDrivers(
 
   // Map reliability (completion ratio)
   const reliabilityMap = new Map<string, { completed: number; cancelled: number }>();
-  for (const stat of tripStats as Array<{ driverProfileId: string | null; status: BookingStatus; _count: { _all: number } }>) {
+  for (const stat of tripStats as Array<{
+    driverProfileId: string | null;
+    status: BookingStatus;
+    _count: { _all: number };
+  }>) {
     if (!stat.driverProfileId) continue;
     const current = reliabilityMap.get(stat.driverProfileId) || { completed: 0, cancelled: 0 };
     const count = stat._count?._all ?? 0;
@@ -207,7 +219,7 @@ export async function rankCandidateDrivers(
       etaMinutes = Math.round(distanceKm * 3 + 2);
     }
 
-    const effectiveEta = etaMinutes ?? (distanceKm * 3 + 2);
+    const effectiveEta = etaMinutes ?? distanceKm * 3 + 2;
 
     // Scoring components:
     // A. ETA score: max 30 pts (lower ETA = higher score)

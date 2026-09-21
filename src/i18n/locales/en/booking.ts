@@ -24,7 +24,8 @@ export const bookingEn = {
   selectHireType: 'Select Hire Mode',
   hireDurationTitle: 'Hire Duration',
   requestedStart: 'Requested Start Time (Optional)',
-  noDropoffRequiredHire: 'No drop location required for driver hire. Your driver will stay with you throughout your hire period.',
+  noDropoffRequiredHire:
+    'No drop location required for driver hire. Your driver will stay with you throughout your hire period.',
   addDropoffOptional: 'Specify Drop Location (Optional)',
   destinationLocation: 'Drop Location',
   units: {

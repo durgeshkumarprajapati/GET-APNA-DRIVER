@@ -675,7 +675,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                 <span className="text-xs font-medium text-slate-400 uppercase">
                   {t('customer.booking.destinationLocation', { defaultValue: 'Drop Location' })}
                 </span>
-                <p className="text-sm font-semibold text-white">{booking.dropoffLocation.address}</p>
+                <p className="text-sm font-semibold text-white">
+                  {booking.dropoffLocation.address}
+                </p>
                 <p className="text-xs text-slate-400">
                   {t('customer.tracking.coordsLabel', {
                     lat: booking.dropoffLocation.latitude.toFixed(4),
@@ -693,9 +695,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                     {booking.bookingType}
                   </span>
                   {booking.hireDurationMinutes && (
-                    <span>
-                      ({Math.round(booking.hireDurationMinutes / 60)} Hours Hire)
-                    </span>
+                    <span>({Math.round(booking.hireDurationMinutes / 60)} Hours Hire)</span>
                   )}
                 </p>
                 <p className="text-xs text-slate-400">

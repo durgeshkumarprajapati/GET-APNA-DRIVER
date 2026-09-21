@@ -1,6 +1,12 @@
 import 'server-only';
-import { evaluatePickupProximity, type PickupProximityEvaluation } from '../rules/pickup-proximity-rule';
-import { evaluatePickupZoneIntelligence, type PickupZoneIntelligence } from '../rules/pickup-zone-rule';
+import {
+  evaluatePickupProximity,
+  type PickupProximityEvaluation,
+} from '../rules/pickup-proximity-rule';
+import {
+  evaluatePickupZoneIntelligence,
+  type PickupZoneIntelligence,
+} from '../rules/pickup-zone-rule';
 import { evaluateDriverArrivalCandidate } from '../rules/driver-arrival-rule';
 import { toKmDisplay } from '@/modules/location/application/distance-service';
 import type { LocationPoint } from '../domain/location-intelligence-types';
@@ -46,7 +52,8 @@ export async function generateDriverPickupGuidance(
 
   return {
     distanceMeters: proximity.distanceMeters,
-    distanceDisplay: proximity.distanceMeters !== 999999 ? toKmDisplay(proximity.distanceMeters) : 'Unknown',
+    distanceDisplay:
+      proximity.distanceMeters !== 999999 ? toKmDisplay(proximity.distanceMeters) : 'Unknown',
     eta,
     proximity,
     zoneInfo,

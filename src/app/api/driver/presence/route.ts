@@ -28,7 +28,9 @@ export const GET = withRole(SYSTEM_ROLE_CODES.DRIVER, async (_req, { principal }
 
   const currentLocation = profile?.currentLocation;
   const now = new Date();
-  const freshness = currentLocation ? classifyLocationFreshness(currentLocation.capturedAt, now) : 'UNAVAILABLE';
+  const freshness = currentLocation
+    ? classifyLocationFreshness(currentLocation.capturedAt, now)
+    : 'UNAVAILABLE';
 
   return NextResponse.json(
     {
@@ -54,16 +56,12 @@ export const POST = withRole(SYSTEM_ROLE_CODES.DRIVER, async (req, { principal }
     const body = await req.json();
     const parsed = presenceSchema.parse(body);
 
-    const profile = await setDriverAvailability(
-      principal.userId,
-      parsed.status,
-      {
-        latitude: parsed.latitude,
-        longitude: parsed.longitude,
-        accuracy: parsed.accuracy,
-        ipAddress: req.headers.get('x-forwarded-for'),
-      },
-    );
+    const profile = await setDriverAvailability(principal.userId, parsed.status, {
+      latitude: parsed.latitude,
+      longitude: parsed.longitude,
+      accuracy: parsed.accuracy,
+      ipAddress: req.headers.get('x-forwarded-for'),
+    });
 
     return NextResponse.json({ success: true, profile }, { status: 200 });
   } catch (err: unknown) {

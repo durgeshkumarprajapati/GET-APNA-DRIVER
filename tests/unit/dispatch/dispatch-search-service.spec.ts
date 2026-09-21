@@ -9,7 +9,7 @@ import {
 describe('Phase 55 — Dispatch Search Service Unit Tests', () => {
   const mockBookingId = 'booking-123';
 
-  it('calculates 120-second server search deadline correctly', async () => {
+  it('calculates 180-second server search deadline correctly', async () => {
     const searchStartedAt = new Date();
     const mockDb = {
       booking: {

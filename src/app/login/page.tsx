@@ -204,7 +204,8 @@ export default function LoginPage() {
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/';
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'An unexpected authentication error occurred.';
+      const msg =
+        err instanceof Error ? err.message : 'An unexpected authentication error occurred.';
       setError(msg);
       showToast(msg, 'error');
       setLoading(false);

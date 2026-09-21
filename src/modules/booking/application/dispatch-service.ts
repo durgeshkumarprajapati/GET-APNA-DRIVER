@@ -240,7 +240,7 @@ export async function reassignBookingDriver(
   const { bookingId, actor, reason } = input;
   requirePermission(actor, PERMISSIONS.DISPATCH_ASSIGNMENT_REASSIGN);
 
-  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 300, db);
+  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 180, db);
 
   const { previousDriverId } = await db.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({ where: { id: bookingId } });
@@ -347,7 +347,7 @@ export async function restartBookingSearch(
   const { bookingId, actor, reason } = input;
   requirePermission(actor, PERMISSIONS.DISPATCH_BOOKING_OVERRIDE);
 
-  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 300, db);
+  const searchTimeoutSeconds = await getInteger('booking.matching.search_timeout_seconds', 180, db);
 
   await db.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({ where: { id: bookingId } });

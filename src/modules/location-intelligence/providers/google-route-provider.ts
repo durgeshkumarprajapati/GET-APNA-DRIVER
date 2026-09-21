@@ -63,7 +63,9 @@ export class GoogleRouteProvider implements RouteProvider {
       };
     } catch (err) {
       clearTimeout(timeoutId);
-      throw new Error(`Google route provider failed: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(
+        `Google route provider failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 }

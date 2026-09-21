@@ -134,7 +134,8 @@ export function registerNotificationEventHandlers(): void {
         {
           userId: recipientUserId,
           type: NotificationType.BOOKING_MESSAGE_RECEIVED,
-          title: recipientRole === 'DRIVER' ? 'New message from customer' : 'New message from driver',
+          title:
+            recipientRole === 'DRIVER' ? 'New message from customer' : 'New message from driver',
           body: bodyPreview,
           data: { bookingId },
           actionUrl:

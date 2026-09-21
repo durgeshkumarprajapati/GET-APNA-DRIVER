@@ -95,8 +95,7 @@ export async function setDriverAvailability(
 
       const now = new Date();
       const isFresh =
-        currentLocation &&
-        now.getTime() - currentLocation.capturedAt.getTime() <= 120 * 1000;
+        currentLocation && now.getTime() - currentLocation.capturedAt.getTime() <= 120 * 1000;
 
       if (!currentLocation || !isFresh) {
         // If developer testing or fallback location, create default active location if missing
@@ -143,7 +142,10 @@ export async function setDriverAvailability(
     });
 
     await insertOutboxEvent(tx, {
-      eventType: targetStatus === DriverAvailabilityStatus.AVAILABLE ? 'driver.presence.available' : 'driver.availability.changed',
+      eventType:
+        targetStatus === DriverAvailabilityStatus.AVAILABLE
+          ? 'driver.presence.available'
+          : 'driver.availability.changed',
       aggregateType: 'DriverProfile',
       aggregateId: profile.id,
       payload: {

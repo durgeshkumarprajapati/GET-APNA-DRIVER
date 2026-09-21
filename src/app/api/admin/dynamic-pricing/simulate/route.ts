@@ -14,14 +14,11 @@ const simulateSchema = z.object({
   simulatedDemand: z.number().nonnegative(),
 });
 
-export const POST = withPermission(
-  PERMISSIONS.ADMIN_PRICING_MANAGE,
-  async (req) => {
-    const body = await req.json();
-    const parsed = simulateSchema.parse(body);
+export const POST = withPermission(PERMISSIONS.ADMIN_PRICING_MANAGE, async (req) => {
+  const body = await req.json();
+  const parsed = simulateSchema.parse(body);
 
-    const simulation = await simulateDynamicPricing(parsed);
+  const simulation = await simulateDynamicPricing(parsed);
 
-    return NextResponse.json({ simulation }, { status: 200 });
-  },
-);
+  return NextResponse.json({ simulation }, { status: 200 });
+});

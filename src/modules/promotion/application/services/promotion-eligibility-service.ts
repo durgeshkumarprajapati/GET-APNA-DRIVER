@@ -364,3 +364,200 @@ export async function getCustomerOffers(
 
   return { available, used, expired };
 }
+
+export type CouponValidationErrorCode =
+  | 'COUPON_NOT_FOUND'
+  | 'COUPON_NOT_STARTED'
+  | 'COUPON_NOT_ACTIVE'
+  | 'COUPON_EXPIRED'
+  | 'MINIMUM_AMOUNT_NOT_MET'
+  | 'CUSTOMER_NOT_ELIGIBLE'
+  | 'USAGE_LIMIT_REACHED'
+  | 'ALREADY_USED'
+  | 'BOOKING_TYPE_NOT_SUPPORTED';
+
+export interface CouponPreviewInput {
+  code: string;
+  fareAmount: string;
+  userId: string;
+  bookingType?: string | null;
+}
+
+export interface CouponPreviewResult {
+  valid: boolean;
+  errorCode: CouponValidationErrorCode | null;
+  errorMessage: string | null;
+  promotionId?: string;
+  code?: string;
+  discountType?: Promotion['discountType'];
+  discountValue?: string;
+  discountAmount?: string;
+  originalFare?: string;
+  finalFare?: string;
+}
+
+const claimedOffersStore = new Map<string, Set<string>>();
+
+/**
+ * Validates a coupon code for preview in booking creation without locking rows or reserving usage.
+ */
+export async function validateCouponForPreview(
+  input: CouponPreviewInput,
+  db: Db = prisma,
+): Promise<CouponPreviewResult> {
+  const codeTrimmed = input.code.trim().toUpperCase();
+  if (!codeTrimmed) {
+    return {
+      valid: false,
+      errorCode: 'COUPON_NOT_FOUND',
+      errorMessage: 'Coupon code cannot be empty.',
+    };
+  }
+
+  const promotion = await db.promotion.findFirst({
+    where: {
+      code: {
+        equals: codeTrimmed,
+        mode: 'insensitive',
+      },
+    },
+  });
+
+  if (!promotion) {
+    return {
+      valid: false,
+      errorCode: 'COUPON_NOT_FOUND',
+      errorMessage: `Coupon code '${codeTrimmed}' not found.`,
+    };
+  }
+
+  const now = new Date();
+  if (now < promotion.startsAt) {
+    return {
+      valid: false,
+      errorCode: 'COUPON_NOT_STARTED',
+      errorMessage: 'This promotion has not started yet.',
+    };
+  }
+
+  if (promotion.status !== 'ACTIVE') {
+    return {
+      valid: false,
+      errorCode: 'COUPON_NOT_ACTIVE',
+      errorMessage: 'This coupon is currently inactive.',
+    };
+  }
+
+  if (promotion.endsAt && now > promotion.endsAt) {
+    return {
+      valid: false,
+      errorCode: 'COUPON_EXPIRED',
+      errorMessage: 'This coupon has expired.',
+    };
+  }
+
+  const fareDecimal = toDecimal(input.fareAmount);
+  if (promotion.minBookingValue && fareDecimal.lessThan(toDecimal(promotion.minBookingValue))) {
+    return {
+      valid: false,
+      errorCode: 'MINIMUM_AMOUNT_NOT_MET',
+      errorMessage: `Minimum booking fare of ₹${promotion.minBookingValue.toFixed(0)} required to use this coupon.`,
+    };
+  }
+
+  if (promotion.firstRideOnly) {
+    const firstRide = await isFirstRideCustomer(input.userId, db);
+    if (!firstRide) {
+      return {
+        valid: false,
+        errorCode: 'CUSTOMER_NOT_ELIGIBLE',
+        errorMessage: 'This coupon is valid for your first ride only.',
+      };
+    }
+  }
+
+  if (
+    promotion.totalUsageLimit !== null &&
+    promotion.totalUsageCount >= promotion.totalUsageLimit
+  ) {
+    return {
+      valid: false,
+      errorCode: 'USAGE_LIMIT_REACHED',
+      errorMessage: 'Total usage limit for this coupon has been reached.',
+    };
+  }
+
+  if (promotion.perUserUsageLimit !== null) {
+    const usedCount = await db.promotionUsage.count({
+      where: { promotionId: promotion.id, userId: input.userId },
+    });
+    if (usedCount >= promotion.perUserUsageLimit) {
+      return {
+        valid: false,
+        errorCode: 'ALREADY_USED',
+        errorMessage: 'You have already reached the maximum usage limit for this coupon.',
+      };
+    }
+  }
+
+  const discountAmount = calculateDiscountAmount({
+    discountType: promotion.discountType,
+    discountValue: promotion.discountValue,
+    maxDiscountAmount: promotion.maxDiscountAmount,
+    fareAmount: input.fareAmount,
+  });
+
+  const discountDecimal = toDecimal(discountAmount);
+  const finalFareDecimal = fareDecimal.minus(discountDecimal);
+  const finalFare = finalFareDecimal.greaterThan(ZERO) ? finalFareDecimal.toFixed(4) : '0.0000';
+
+  return {
+    valid: true,
+    errorCode: null,
+    errorMessage: null,
+    promotionId: promotion.id,
+    code: promotion.code ?? codeTrimmed,
+    discountType: promotion.discountType,
+    discountValue: promotion.discountValue.toFixed(4),
+    discountAmount,
+    originalFare: fareDecimal.toFixed(4),
+    finalFare,
+  };
+}
+
+/**
+ * Claims an offer for the customer account for quick access during checkout.
+ */
+export async function claimCustomerOffer(
+  customerId: string,
+  promotionId: string,
+  db: Db = prisma,
+): Promise<{ success: boolean; promotionId: string; code: string | null }> {
+  const promotion = await db.promotion.findUnique({
+    where: { id: promotionId },
+  });
+
+  if (!promotion) {
+    throw new Error(`Promotion not found: ${promotionId}`);
+  }
+
+  if (!claimedOffersStore.has(customerId)) {
+    claimedOffersStore.set(customerId, new Set());
+  }
+
+  claimedOffersStore.get(customerId)!.add(promotionId);
+
+  return {
+    success: true,
+    promotionId: promotion.id,
+    code: promotion.code,
+  };
+}
+
+/**
+ * Gets claimed offer promotion IDs for a customer.
+ */
+export async function getClaimedCustomerOffers(customerId: string): Promise<string[]> {
+  const set = claimedOffersStore.get(customerId);
+  return set ? Array.from(set) : [];
+}
