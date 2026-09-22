@@ -91,26 +91,28 @@ export default function WorkerHealthPage() {
 
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-bold mb-4">Background Queues</h3>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="pb-2">Queue Name</th>
-                  <th className="pb-2">Waiting</th>
-                  <th className="pb-2">Active</th>
-                  <th className="pb-2">Failed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.queueStats.map((q, idx) => (
-                  <tr key={idx} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="py-2.5 font-medium">{q.queueName}</td>
-                    <td className="py-2.5">{q.waitingCount}</td>
-                    <td className="py-2.5">{q.activeCount}</td>
-                    <td className="py-2.5 text-rose-600 font-bold">{q.failedCount}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="pb-2">Queue Name</th>
+                    <th className="pb-2">Waiting</th>
+                    <th className="pb-2">Active</th>
+                    <th className="pb-2">Failed</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.queueStats.map((q, idx) => (
+                    <tr key={idx} className="border-b border-gray-100 dark:border-gray-800">
+                      <td className="py-2.5 font-medium">{q.queueName}</td>
+                      <td className="py-2.5">{q.waitingCount}</td>
+                      <td className="py-2.5">{q.activeCount}</td>
+                      <td className="py-2.5 text-rose-600 font-bold">{q.failedCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

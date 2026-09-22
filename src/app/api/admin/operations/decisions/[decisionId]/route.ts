@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getOperationsDecisionById } from '@/modules/operations';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(
   PERMISSIONS.ADMIN_OPERATIONS_READ,
   async (
-    _req: NextRequest,
+    req: NextRequest,
     _context,
     routeContext?: { params: Promise<{ decisionId: string }> },
   ) => {
@@ -26,13 +27,7 @@ export const GET = withPermission(
 
       return NextResponse.json({ success: true, decision });
     } catch (err: unknown) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: err instanceof Error ? err.message : 'Failed to fetch operations decision detail',
-        },
-        { status: 500 },
-      );
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

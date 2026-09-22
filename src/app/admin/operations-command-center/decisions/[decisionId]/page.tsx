@@ -188,7 +188,7 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 pt-3 border-t border-[#262a33] text-xs font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#262a33] text-xs font-mono">
                   <div>
                     <span className="text-[#87948b] block text-[10px] uppercase">
                       Decision Type

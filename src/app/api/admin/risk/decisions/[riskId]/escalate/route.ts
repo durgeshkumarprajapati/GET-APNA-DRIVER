@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { RiskDecisionService } from '@/modules/risk';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_RISK_MANAGE,
@@ -29,13 +30,7 @@ export const POST = withPermission(
         decision: updated,
       });
     } catch (err: unknown) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: err instanceof Error ? err.message : 'Failed to escalate risk decision',
-        },
-        { status: 500 },
-      );
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

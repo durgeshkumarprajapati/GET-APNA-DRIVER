@@ -24,6 +24,7 @@ jest.mock('@/shared/database/prisma', () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
       findMany: jest.fn().mockResolvedValue([]),
+      findFirst: jest.fn().mockResolvedValue(null),
     },
     bookingAssignmentAttempt: {
       updateMany: jest.fn(),
@@ -37,7 +38,19 @@ jest.mock('@/shared/database/prisma', () => ({
           availabilityStatus: 'AVAILABLE',
           verificationStatus: 'VERIFIED',
           onboardingStatus: 'COMPLETED',
-          documents: [],
+          firstName: 'Test',
+          lastName: 'Driver',
+          dateOfBirth: new Date('1990-01-01'),
+          primaryServiceArea: 'Delhi NCR',
+          drivingExperienceYears: 5,
+          // A genuinely-eligible driver per evaluateDriverEligibilityFromProfile's
+          // document-verification requirement — needed now that
+          // isDriverDispatchEligible (which runs this same check) is
+          // actually exercised in the dispatch-eligibility-gate tests below.
+          documents: [
+            { documentType: 'DRIVING_LICENSE', status: 'VERIFIED', expiresAt: null },
+            { documentType: 'AADHAAR_CARD', status: 'VERIFIED', expiresAt: null },
+          ],
         }),
       ),
     },
@@ -66,6 +79,19 @@ jest.mock('@/modules/location/application/nearby-driver-service', () => ({
   findNearbyDrivers: jest.fn(),
 }));
 
+// isDriverDispatchEligible (called for real, not mocked, to actually exercise
+// the new dispatch-eligibility gate) transitively calls
+// driverScheduleService.isDriverWithinSchedule — a real DB-touching method
+// this file's mocked prisma object has no matching models for. Only this one
+// method is stubbed; isDriverDispatchEligible's compliance/availability/
+// active-booking checks still run against the real driverProfile/booking
+// mocks above.
+jest.mock('@/modules/driver/application/services/driver-schedule-service', () => ({
+  driverScheduleService: {
+    isDriverWithinSchedule: jest.fn().mockResolvedValue(true),
+  },
+}));
+
 jest.mock('@/shared/audit/audit-service', () => ({
   recordAuditLog: jest.fn(),
 }));
@@ -77,6 +103,7 @@ jest.mock('@/shared/outbox/outbox-service', () => ({
 import { prisma } from '@/shared/database/prisma';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { driverScheduleService } from '@/modules/driver/application/services/driver-schedule-service';
 
 describe('MatchingService', () => {
   const mockFindUniqueBooking = prisma.booking.findUnique as jest.Mock;
@@ -84,6 +111,8 @@ describe('MatchingService', () => {
   const mockFindNearby = findNearbyDrivers as jest.Mock;
   const mockInsertOutboxEvent = insertOutboxEvent as jest.Mock;
   const mockDriverProfileFindUnique = prisma.driverProfile.findUnique as jest.Mock;
+  const mockIsDriverWithinSchedule = driverScheduleService.isDriverWithinSchedule as jest.Mock;
+  const mockFindFirstBooking = prisma.booking.findFirst as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -144,7 +173,15 @@ describe('MatchingService', () => {
         availabilityStatus: 'AVAILABLE',
         verificationStatus: 'VERIFIED',
         onboardingStatus: 'COMPLETED',
-        documents: [],
+        firstName: 'Test',
+        lastName: 'Driver',
+        dateOfBirth: new Date('1990-01-01'),
+        primaryServiceArea: 'Delhi NCR',
+        drivingExperienceYears: 5,
+        documents: [
+          { documentType: 'DRIVING_LICENSE', status: 'VERIFIED', expiresAt: null },
+          { documentType: 'AADHAAR_CARD', status: 'VERIFIED', expiresAt: null },
+        ],
       }),
     );
     mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
@@ -494,6 +531,89 @@ describe('MatchingService', () => {
 
       expect(result.status).toBe('NO_DRIVERS_FOUND');
       expect(mockFindNearby).not.toHaveBeenCalled();
+      expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('dispatch eligibility gate (Phase 70)', () => {
+    it('skips a top-ranked candidate who is outside their shift schedule and offers the next eligible nearby candidate instead', async () => {
+      const candidates = [
+        { driverId: 'dp-off-shift', displayName: 'Off Shift Driver', distanceMeters: 500 },
+        { driverId: 'dp-on-shift', displayName: 'On Shift Driver', distanceMeters: 900 },
+      ];
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue(candidates);
+      mockIsDriverWithinSchedule.mockImplementation((driverProfileId: string) =>
+        Promise.resolve(driverProfileId !== 'dp-off-shift'),
+      );
+      mockTx.bookingAssignmentAttempt.create.mockResolvedValue({
+        id: 'att-1',
+        driverProfileId: 'dp-on-shift',
+        attemptNumber: 1,
+        status: AssignmentAttemptStatus.PENDING,
+      });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('OFFERED');
+      expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ driverProfileId: 'dp-on-shift' }),
+        }),
+      );
+    });
+
+    it('reports NO_DRIVERS_FOUND when every nearby candidate fails the dispatch-eligibility gate (e.g. all off-shift)', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        assignmentAttempts: [],
+      });
+      mockFindNearby.mockResolvedValue([
+        { driverId: 'dp-1', displayName: 'Driver One', distanceMeters: 500 },
+      ]);
+      mockIsDriverWithinSchedule.mockResolvedValue(false);
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('NO_DRIVERS_FOUND');
+      expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
+    });
+
+    it("blocks offering the customer's selected DAILY/WEEKLY/MONTHLY driver when they have an undetected active-booking conflict (active-booking check, not just availabilityStatus)", async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.WEEKLY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt: new Date('2026-10-01T10:00:00Z'),
+        hireEndAt: new Date('2026-10-08T10:00:00Z'),
+        preferredDriverProfileId: 'dp-selected',
+        assignmentAttempts: [],
+      });
+      mockFindManyBooking.mockResolvedValue([]); // no overlapping hire-window conflict
+      // availabilityStatus says AVAILABLE (default mock), but the driver
+      // still has an active booking in progress — the authoritative
+      // active-booking check inside isDriverDispatchEligible must catch
+      // this even though the shallower availabilityStatus check above it
+      // would not.
+      mockFindFirstBooking.mockResolvedValue({ id: 'bk-other-active' });
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('NO_DRIVERS_FOUND');
       expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
     });
   });

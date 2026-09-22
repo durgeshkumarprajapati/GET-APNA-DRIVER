@@ -282,7 +282,7 @@ export default function AdminReferralGrowthPage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
                     Customer Referral Growth
                   </span>
-                  <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-center">
                     <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
                       <span className="text-[10px] text-[#87948b] uppercase block font-bold">
                         Total
@@ -314,7 +314,7 @@ export default function AdminReferralGrowthPage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-[#70baff] font-['Space_Grotesk']">
                     Driver Partner Referral Growth
                   </span>
-                  <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-center">
                     <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
                       <span className="text-[10px] text-[#87948b] uppercase block font-bold">
                         Total

@@ -104,7 +104,7 @@ export function RidePinModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-6">
+      <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-2xl space-y-6">
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#68dba9] bg-[#00311f] px-2.5 py-1 rounded-full border border-[#25a475]">
             <span className="material-symbols-outlined text-[14px]">lock</span>
@@ -130,7 +130,7 @@ export function RidePinModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
             {pinDigits.map((digit, index) => (
               <input
                 key={index}
@@ -143,7 +143,7 @@ export function RidePinModal({
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 disabled={loading}
-                className="w-11 h-13 text-center text-xl font-bold font-mono bg-[#181c24] border border-[#262a33] text-[#dfe2ee] rounded-xl focus:outline-none focus:border-[#68dba9] focus:ring-1 focus:ring-[#68dba9] disabled:opacity-50 transition-all"
+                className="w-9 h-11 sm:w-11 sm:h-12 text-center text-xl font-bold font-mono bg-[#181c24] border border-[#262a33] text-[#dfe2ee] rounded-xl focus:outline-none focus:border-[#68dba9] focus:ring-1 focus:ring-[#68dba9] disabled:opacity-50 transition-all"
               />
             ))}
           </div>

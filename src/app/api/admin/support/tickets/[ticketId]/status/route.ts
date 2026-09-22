@@ -9,6 +9,7 @@ import {
   SupportTicketNotFoundError,
   InvalidSupportTicketStateTransitionError,
 } from '@/modules/support/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ ticketId: string }>;
@@ -52,8 +53,7 @@ export const PATCH = withPermission<RouteParams>(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to update ticket status.';
-      return NextResponse.json({ error: 'UPDATE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

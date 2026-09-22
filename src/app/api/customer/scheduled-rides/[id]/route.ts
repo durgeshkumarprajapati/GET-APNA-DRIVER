@@ -6,6 +6,7 @@ import {
   getScheduledRideById,
   cancelScheduledRide,
 } from '@/modules/scheduled-rides/application/scheduled-ride-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -24,8 +25,7 @@ export const GET = withPermission<RouteParams>(
       const ride = await getScheduledRideById(id, principal.userId);
       return NextResponse.json({ success: true, data: ride }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Scheduled ride not found';
-      return NextResponse.json({ success: false, error: message }, { status: 404 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );
@@ -48,8 +48,7 @@ export const DELETE = withPermission<RouteParams>(
       const ride = await cancelScheduledRide(id, principal.userId, reason);
       return NextResponse.json({ success: true, data: ride }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to cancel scheduled ride';
-      return NextResponse.json({ success: false, error: message }, { status: 400 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

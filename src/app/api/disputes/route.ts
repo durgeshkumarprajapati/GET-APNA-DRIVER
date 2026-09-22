@@ -5,6 +5,7 @@ import { DisputeCategory } from '@prisma/client';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { createDispute, listDisputes } from '@/modules/dispute/application/dispute-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const createDisputeSchema = z.object({
   bookingId: z.string().uuid(),
@@ -25,8 +26,7 @@ export const POST = withPermission(PERMISSIONS.DISPUTE_CREATE, async (req, { pri
 
     return NextResponse.json({ dispute }, { status: 201 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to create dispute';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });
 

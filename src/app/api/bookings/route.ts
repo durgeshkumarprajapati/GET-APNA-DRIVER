@@ -5,7 +5,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { createBooking, listCustomerBookings } from '@/modules/booking/application/booking-service';
 import { DuplicateBookingIdempotencyError } from '@/modules/booking/domain/errors';
-import { AppError } from '@/shared/errors/app-error';
+import { AppError, toErrorResponse } from '@/shared/errors/app-error';
 
 const locationSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -83,8 +83,7 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
         { status: err.statusCode },
       );
     }
-    const message = err instanceof Error ? err.message : 'Failed to create booking.';
-    return NextResponse.json({ error: 'BOOKING_CREATION_FAILED', message }, { status: 400 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });
 
@@ -93,7 +92,6 @@ export const GET = withPermission(PERMISSIONS.BOOKINGS_READ, async (_req, { prin
     const bookings = await listCustomerBookings(principal.userId);
     return NextResponse.json({ bookings }, { status: 200 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch bookings.';
-    return NextResponse.json({ error: 'FETCH_BOOKINGS_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });

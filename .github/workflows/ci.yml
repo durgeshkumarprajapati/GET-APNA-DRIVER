@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  checks:
+    name: Format, lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    env:
+      # No real database is needed for this job — unit tests mock Prisma —
+      # but `next build`/`prisma generate` still need a syntactically valid
+      # DATABASE_URL to resolve the schema's datasource block.
+      DATABASE_URL: postgresql://test:test@localhost:5432/test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run format:check
+
+      - run: npm run lint
+
+      - run: npx prisma generate
+
+      - run: npx tsc --noEmit
+
+      - name: Unit tests (tests/unit — no database required)
+        run: npm test
+
+      - run: npm run build
+
+  integration:
+    name: Integration tests (real PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # Matches docker-compose.yml's local dev image exactly — the schema/
+        # queries rely on PostGIS (see nearby-driver-service.ts's PostGIS
+        # fallback path), which plain postgres:16 does not provide.
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma generate
+
+      - run: npx prisma migrate deploy
+
+      - name: Integration tests (tests/integration — requires the Postgres service above)
+        run: npm run test:integration

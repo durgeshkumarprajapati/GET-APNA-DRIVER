@@ -7,6 +7,7 @@ import {
   listCustomerLoyaltyRewards,
   listAllLoyaltyRewardsForAdmin,
 } from '@/modules/loyalty/application/services/loyalty-reward-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(PERMISSIONS.ADMIN_LOYALTY_READ, async (req) => {
   try {
@@ -21,12 +22,7 @@ export const GET = withPermission(PERMISSIONS.ADMIN_LOYALTY_READ, async (req) =>
     const rewards = await listAllLoyaltyRewardsForAdmin();
     return NextResponse.json({ success: true, rewards, data: rewards }, { status: 200 });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to load customer rewards catalog';
-    return NextResponse.json(
-      { success: false, error: 'REWARDS_FETCH_FAILED', message },
-      { status: 500 },
-    );
+    return toErrorResponse(error, req.nextUrl.pathname);
   }
 });
 
@@ -36,10 +32,6 @@ export const POST = withPermission(PERMISSIONS.ADMIN_LOYALTY_MANAGE, async (req)
     const reward = await createLoyaltyReward(body);
     return NextResponse.json({ success: true, reward, data: reward }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create reward';
-    return NextResponse.json(
-      { success: false, error: 'REWARD_CREATE_FAILED', message },
-      { status: 500 },
-    );
+    return toErrorResponse(error, req.nextUrl.pathname);
   }
 });

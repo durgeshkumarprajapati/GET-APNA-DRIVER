@@ -7,6 +7,7 @@ import {
   CustomerNotFoundError,
   InvalidCustomerStatusError,
 } from '@/modules/customer/application/customer-approval-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ customerId: string }>;
@@ -14,7 +15,7 @@ interface RouteParams {
 
 export const POST = withPermission<RouteParams>(
   PERMISSIONS.ADMIN_CUSTOMER_APPROVE,
-  async (_req, { principal }, routeContext) => {
+  async (req, { principal }, routeContext) => {
     try {
       const { customerId } = await routeContext!.params;
       const result = await approveCustomer({ customerId, actor: principal });
@@ -39,8 +40,7 @@ export const POST = withPermission<RouteParams>(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to approve customer.';
-      return NextResponse.json({ error: 'APPROVAL_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

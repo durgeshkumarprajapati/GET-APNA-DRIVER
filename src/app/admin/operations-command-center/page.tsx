@@ -222,7 +222,7 @@ export default function OperationsCommandCenterPage() {
               dispatch
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/admin/experience-orchestration"
               className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"

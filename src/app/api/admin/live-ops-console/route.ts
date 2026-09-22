@@ -10,8 +10,9 @@ import {
   SafetyIncidentStatus,
 } from '@prisma/client';
 import { getCommissionPolicy } from '@/modules/finance/application/services/commission-policy-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
-export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
+export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async (req) => {
   try {
     const now = new Date();
     const past24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -261,8 +262,6 @@ export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_READ, async () => {
       })),
     });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : 'Failed to fetch live ops console telemetry.';
-    return NextResponse.json({ error: 'LIVE_OPS_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

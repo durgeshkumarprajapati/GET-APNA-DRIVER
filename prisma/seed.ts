@@ -574,6 +574,36 @@ async function main(): Promise<void> {
       description: 'Base daily package rate in INR for FULL_DAY and MULTI_DAY booking types',
       isPublic: true,
     },
+    // weekly_rate/monthly_rate were missing here even though every other
+    // getActivePricingRules key is seeded — getString's code-level default
+    // (10000.0000/35000.0000, matching the values below) covered for it,
+    // but admins had no /admin/system-config row to see or edit for WEEKLY/
+    // MONTHLY hire pricing at all.
+    {
+      key: 'pricing.weekly_rate',
+      value: '10000.0000',
+      valueType: 'DECIMAL' as const,
+      category: 'finance',
+      description: 'Base weekly package rate in INR for WEEKLY booking types',
+      isPublic: true,
+    },
+    {
+      key: 'pricing.monthly_rate',
+      value: '35000.0000',
+      valueType: 'DECIMAL' as const,
+      category: 'finance',
+      description: 'Base monthly package rate in INR for MONTHLY booking types',
+      isPublic: true,
+    },
+    {
+      key: 'pricing.pickup_only_completion_location_max_age_seconds',
+      value: '300',
+      valueType: 'INTEGER' as const,
+      category: 'finance',
+      description:
+        'How fresh a driver\'s live GPS ping must be to stand in for a missing dropoff when billing a completed pickup-only ONE_WAY/POINT_TO_POINT trip by real distance',
+      isPublic: false,
+    },
   ];
 
   for (const config of defaultConfigs) {

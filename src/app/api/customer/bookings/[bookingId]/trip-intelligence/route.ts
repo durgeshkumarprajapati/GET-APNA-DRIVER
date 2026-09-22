@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { TripIntelligenceService } from '@/modules/trip-intelligence/trip-intelligence-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 
@@ -24,9 +25,7 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ intelligence }, { status: 200 });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to fetch customer trip intelligence.';
-      return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

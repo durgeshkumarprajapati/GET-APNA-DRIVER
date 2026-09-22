@@ -382,7 +382,7 @@ export default function DriverSchedulePage() {
                 </div>
 
                 {entry.isActive ? (
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-[#87948b] font-mono">Start:</span>
                       <input

@@ -1,5 +1,6 @@
 import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface ResolvedAddress {
   addressLine1: string;
@@ -127,9 +128,6 @@ export async function GET(req: NextRequest) {
     // endpoint must not have). The caller keeps whatever it already had.
     return NextResponse.json({ address: unresolvedAddress(lat, lng) }, { status: 200 });
   } catch (err: unknown) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Reverse geocoding failed' },
-      { status: 500 },
-    );
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 }
