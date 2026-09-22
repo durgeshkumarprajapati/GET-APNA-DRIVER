@@ -9,7 +9,7 @@ import {
 import { getInteger } from '@/shared/config/configuration-service';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
 import { validateBookingStatusTransition } from '../domain/booking-state-machine';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { BookingNotFoundError } from '../domain/errors';
 import { rankCandidateDrivers } from '@/modules/dispatch/application/candidate-ranking-service';
@@ -161,6 +161,10 @@ export async function findAndOfferNextDriver(
 
       return createdAttempt;
     });
+
+    // Notifies the driver immediately rather than waiting for the separate
+    // background worker's next poll (which may not even be running).
+    await triggerImmediateOutboxDispatch(db);
 
     await recordAuditLog(db, {
       actorUserId: null,

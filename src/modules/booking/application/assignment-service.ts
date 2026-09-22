@@ -5,7 +5,7 @@ import { getOrCreateDriverProfile } from '@/modules/driver/application/services/
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
 import { removeDriverFromLiveIndex } from '@/modules/location/application/driver-location-service';
 import { validateBookingStatusTransition } from '../domain/booking-state-machine';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { findAndOfferNextDriver } from './matching-service';
 import {
@@ -238,6 +238,10 @@ export async function acceptAssignmentOffer(
       },
     });
   });
+
+  // Notifies the customer (and driver) immediately rather than waiting for
+  // the separate background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
 
   // 3. Remove driver from Redis GEO live available-driver index
   await removeDriverFromLiveIndex(profile.id, db);

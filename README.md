@@ -45,6 +45,15 @@ full-stack Next.js application using a modular monolith architecture.
    npm run dev
    ```
 
+   Booking/payment notifications for time-sensitive events (new driver
+   offer, offer accepted, trip status changes, payment captured) are
+   delivered immediately regardless of whether the background worker is
+   running. Everything else that goes through the outbox — scheduled-ride
+   reminders, retention cleanup, and retrying anything the immediate path
+   failed to deliver — still needs the worker (`npm run worker`) running
+   somewhere. Use `npm run dev:all` (or `npm run start:all` in production)
+   to run the Next.js server and the worker together in one command.
+
 6. Verify health:
 
    ```bash
@@ -74,8 +83,11 @@ respective phases are implemented — see phase reports for what currently exist
 | Script                            | Purpose                                     |
 | --------------------------------- | ------------------------------------------- |
 | `npm run dev`                     | Start the Next.js dev server                |
+| `npm run worker`                  | Start the background outbox/notification worker |
+| `npm run dev:all`                 | Dev server + worker together                |
 | `npm run build`                   | Production build                            |
 | `npm run start`                   | Run the production build                    |
+| `npm run start:all`               | Production server + worker together         |
 | `npm run lint` / `lint:fix`       | ESLint                                      |
 | `npm run format` / `format:check` | Prettier                                    |
 | `npm run typecheck`               | `tsc --noEmit`                              |

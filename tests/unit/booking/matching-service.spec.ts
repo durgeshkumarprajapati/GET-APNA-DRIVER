@@ -98,11 +98,12 @@ jest.mock('@/shared/audit/audit-service', () => ({
 
 jest.mock('@/shared/outbox/outbox-service', () => ({
   insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn(),
 }));
 
 import { prisma } from '@/shared/database/prisma';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { driverScheduleService } from '@/modules/driver/application/services/driver-schedule-service';
 
 describe('MatchingService', () => {
@@ -110,6 +111,7 @@ describe('MatchingService', () => {
   const mockFindManyBooking = prisma.booking.findMany as jest.Mock;
   const mockFindNearby = findNearbyDrivers as jest.Mock;
   const mockInsertOutboxEvent = insertOutboxEvent as jest.Mock;
+  const mockTriggerImmediateOutboxDispatch = triggerImmediateOutboxDispatch as jest.Mock;
   const mockDriverProfileFindUnique = prisma.driverProfile.findUnique as jest.Mock;
   const mockIsDriverWithinSchedule = driverScheduleService.isDriverWithinSchedule as jest.Mock;
   const mockFindFirstBooking = prisma.booking.findFirst as jest.Mock;
@@ -150,6 +152,9 @@ describe('MatchingService', () => {
 
     expect(result.status).toBe('OFFERED');
     expect(result.attemptId).toBe('att-1');
+    // Regression: the driver must be notified of the new offer immediately
+    // rather than only whenever the separate background worker next polls.
+    expect(mockTriggerImmediateOutboxDispatch).toHaveBeenCalled();
   });
 
   it("includes the offered driver's userId in the outbox payload, so the driver actually gets notified (regression: payload previously only carried driverProfileId)", async () => {

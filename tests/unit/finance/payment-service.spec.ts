@@ -12,7 +12,7 @@ jest.mock('@/shared/config/configuration-service', () => ({
 }));
 
 jest.mock('@/shared/audit/audit-service', () => ({ recordAuditLog: jest.fn() }));
-jest.mock('@/shared/outbox/outbox-service', () => ({ insertOutboxEvent: jest.fn() }));
+jest.mock('@/shared/outbox/outbox-service', () => ({ insertOutboxEvent: jest.fn(), triggerImmediateOutboxDispatch: jest.fn() }));
 
 jest.mock('@/modules/finance/infrastructure/payment-provider', () => ({
   paymentProvider: {
@@ -59,6 +59,7 @@ import { paymentProvider } from '@/modules/finance/infrastructure/payment-provid
 import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
 import { calculateCommission } from '@/modules/finance/application/services/pricing-service';
 import { createTaxInvoiceForBooking } from '@/modules/tax-invoices/invoice-service';
+import { triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import {
   BookingNotEligibleForPaymentError,
   PaymentAlreadyInProgressError,
@@ -402,6 +403,40 @@ describe('capturePayment', () => {
     });
 
     expect(createTaxInvoiceForBooking).toHaveBeenCalledWith('booking-1');
+  });
+
+  it('triggers immediate outbox dispatch after a successful capture, so the driver is notified of payment without depending on the separate background worker', async () => {
+    mockTx.payment.findUnique.mockResolvedValue({
+      id: 'payment-1',
+      status: 'PROCESSING',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('150.0000'),
+      currency: 'INR',
+      provider: 'razorpay',
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-1',
+      status: 'CAPTURED',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('150.0000'),
+      currency: 'INR',
+      provider: 'razorpay',
+      commissionAmount: new Prisma.Decimal('30.0000'),
+      driverEarningsAmount: new Prisma.Decimal('120.0000'),
+      capturedAt: new Date(),
+      createdAt: new Date(),
+    });
+
+    await capturePayment({
+      paymentId: 'payment-1',
+      providerPaymentId: 'pay_1',
+      amountMinorUnits: 15000,
+      source: 'client_verify',
+    });
+
+    expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
   });
 
   it('does not fail the capture when tax-invoice generation throws', async () => {

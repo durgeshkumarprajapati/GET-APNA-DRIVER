@@ -14,7 +14,7 @@ import {
   isBookingCancellable,
 } from '../domain/booking-state-machine';
 import { getBoolean, getInteger } from '@/shared/config/configuration-service';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
@@ -135,6 +135,10 @@ export async function startEnRoute(
     });
   });
 
+  // Notifies the customer immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
+
   await recordAuditLog(db, {
     actorUserId: driverUserId,
     action: 'booking.driver.en_route',
@@ -200,6 +204,10 @@ export async function markArrived(
       },
     });
   });
+
+  // Notifies the customer immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
 
   await recordAuditLog(db, {
     actorUserId: driverUserId,
@@ -452,6 +460,10 @@ export async function startTrip(
     });
   });
 
+  // Notifies the customer immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
+
   await recordAuditLog(db, {
     actorUserId: driverUserId,
     action: 'RIDE_PIN_VERIFIED',
@@ -679,6 +691,12 @@ export async function completeTrip(
   if (eligibility.isEligible && profile.availabilityStatus !== DriverAvailabilityStatus.OFFLINE) {
     await addDriverToLiveIndex(profile.id, db);
   }
+
+  // Notifies the customer (rate-your-driver prompt) and driver (earnings
+  // credited) immediately, and picks up any referral/incentive/loyalty
+  // events queued just above, rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
 
   await recordAuditLog(db, {
     actorUserId: driverUserId,

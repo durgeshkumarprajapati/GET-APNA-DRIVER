@@ -26,6 +26,7 @@ jest.mock('@/shared/audit/audit-service', () => ({
 
 jest.mock('@/shared/outbox/outbox-service', () => ({
   insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn(),
 }));
 
 jest.mock('@/shared/realtime/realtime-provider', () => ({

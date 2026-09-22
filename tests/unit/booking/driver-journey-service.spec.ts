@@ -53,6 +53,7 @@ jest.mock('@/shared/audit/audit-service', () => ({
 
 jest.mock('@/shared/outbox/outbox-service', () => ({
   insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn(),
 }));
 
 jest.mock('@/shared/realtime/realtime-provider', () => ({
@@ -128,7 +129,7 @@ jest.mock('@/modules/dynamic-pricing/application/dynamic-pricing-service', () =>
 import { prisma } from '@/shared/database/prisma';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { getBoolean } from '@/shared/config/configuration-service';
 import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
 import { createNotification } from '@/modules/notification/application/notification-service';
@@ -193,6 +194,9 @@ describe('DriverJourneyService', () => {
           data: expect.objectContaining({ status: BookingStatus.DRIVER_EN_ROUTE }),
         }),
       );
+      // Regression: the customer must be notified immediately rather than
+      // only whenever the separate background worker next polls.
+      expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
     });
   });
 
@@ -211,6 +215,7 @@ describe('DriverJourneyService', () => {
 
       const result = await markArrived('user-drv-1', 'bk-100');
       expect(result.status).toBe(BookingStatus.DRIVER_ARRIVED);
+      expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
     });
   });
 
@@ -235,6 +240,7 @@ describe('DriverJourneyService', () => {
 
       const result = await startTrip('user-drv-1', 'bk-100', '729104');
       expect(result.status).toBe(BookingStatus.TRIP_IN_PROGRESS);
+      expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
     });
   });
 
@@ -259,6 +265,10 @@ describe('DriverJourneyService', () => {
         data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
       });
       expect(addDriverToLiveIndex).toHaveBeenCalledWith('drv-prof-1', expect.anything());
+      // Regression: the customer (rate-your-driver prompt) and driver
+      // (earnings credited) must be notified immediately rather than only
+      // whenever the separate background worker next polls.
+      expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
     });
 
     it("includes customerId and driverUserId in the 'booking.trip.completed' outbox payload, so the trip-completed notifications (including the customer's rate-your-driver prompt) actually get created", async () => {

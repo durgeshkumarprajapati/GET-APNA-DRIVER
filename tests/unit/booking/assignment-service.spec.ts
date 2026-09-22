@@ -1,6 +1,7 @@
 import { acceptAssignmentOffer } from '@/modules/booking/application/assignment-service';
 import { BookingStatus, AssignmentAttemptStatus, DriverAvailabilityStatus } from '@prisma/client';
 import { AssignmentOfferExpiredError } from '@/modules/booking/domain/errors';
+import { triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 
 const mockTx = {
   bookingAssignmentAttempt: {
@@ -49,6 +50,7 @@ jest.mock('@/shared/audit/audit-service', () => ({
 
 jest.mock('@/shared/outbox/outbox-service', () => ({
   insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn(),
 }));
 
 jest.mock('@/modules/booking/application/matching-service', () => ({
@@ -93,6 +95,11 @@ describe('AssignmentService', () => {
       where: { id: 'dp-1' },
       data: { availabilityStatus: DriverAvailabilityStatus.BUSY },
     });
+
+    // Regression: the customer (and driver) must be notified of the
+    // acceptance immediately rather than only whenever the separate
+    // background worker next polls.
+    expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
   });
 
   it('rejects expired offer attempt', async () => {
