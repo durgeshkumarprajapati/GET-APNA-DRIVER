@@ -25,6 +25,9 @@ import { evaluateDriverEligibility } from '@/modules/driver/application/services
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
+import { initiateRefund } from '@/modules/finance/application/services/refund-service';
+import { createNotification } from '@/modules/notification/application/notification-service';
+import { logger } from '@/shared/logging/logger';
 import { CreateBookingInput } from '../domain/types';
 import {
   BookingNotFoundError,
@@ -604,6 +607,40 @@ export async function cancelBooking(
     const eligibility = await evaluateDriverEligibility(assignedDriverId, db);
     if (eligibility.isEligible) {
       await addDriverToLiveIndex(assignedDriverId, db);
+    }
+  }
+
+  // Automatic refund if booking was paid prior to cancellation
+  const dbClient = db ?? prisma;
+  const capturedPayment = dbClient?.payment
+    ? await dbClient.payment.findFirst({
+        where: { bookingId: booking.id, status: { in: ['CAPTURED', 'PARTIALLY_REFUNDED'] } },
+      })
+    : null;
+  if (capturedPayment) {
+    try {
+      await initiateRefund(
+        booking.customerId,
+        {
+          paymentId: capturedPayment.id,
+          reason: cancellationReason || 'Automatic refund for cancelled booking',
+          idempotencyKey: `auto_refund_cancel:${booking.id}`,
+        },
+        db,
+      );
+      await createNotification({
+        userId: booking.customerId,
+        category: 'BOOKING',
+        type: 'PAYMENT_REFUNDED',
+        title: 'Refund Initiated',
+        body: `A refund has been initiated for your cancelled booking ${booking.id.slice(0, 8)}.`,
+        data: { bookingId: booking.id, paymentId: capturedPayment.id },
+      });
+    } catch (refundErr: unknown) {
+      logger.error(
+        { refundErr, bookingId: booking.id, paymentId: capturedPayment.id },
+        'Automatic refund initiation failed on cancellation',
+      );
     }
   }
 

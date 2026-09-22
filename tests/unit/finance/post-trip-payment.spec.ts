@@ -269,12 +269,12 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
       expect(result.status).toBe('CAPTURED');
     });
 
-    it('rejects cash confirmation for non-completed trip', async () => {
+    it('rejects cash confirmation for cancelled trip', async () => {
       mockedPrisma.booking.findUnique.mockResolvedValue({
         id: bookingId,
         customerId,
         driverProfileId,
-        status: 'TRIP_IN_PROGRESS',
+        status: 'CANCELLED',
       });
 
       await expect(confirmCashPaymentByCustomer(customerId, bookingId)).rejects.toThrow(

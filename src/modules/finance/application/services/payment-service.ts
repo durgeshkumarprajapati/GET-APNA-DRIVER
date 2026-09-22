@@ -10,6 +10,7 @@ import { calculateBookingAmount, calculateCommission } from './pricing-service';
 import { postFinancialTransaction } from './ledger-service';
 import { applyWalletChange } from './wallet-service';
 import { createTaxInvoiceForBooking } from '@/modules/tax-invoices/invoice-service';
+import { createNotification } from '@/modules/notification/application/notification-service';
 import { logger } from '@/shared/logging/logger';
 import { validatePaymentStatusTransition } from '../../domain/payment-state-machine';
 import { LEDGER_ACCOUNT_CODES } from '../../domain/ledger-accounts';
@@ -200,7 +201,14 @@ export async function createPaymentForBooking(
   if (!booking || booking.customerId !== customerUserId) {
     throw new PaymentBookingNotFoundError(input.bookingId);
   }
-  if (booking.status !== 'TRIP_COMPLETED') {
+  const PAYABLE_BOOKING_STATUSES = [
+    'DRIVER_ASSIGNED',
+    'DRIVER_EN_ROUTE',
+    'DRIVER_ARRIVED',
+    'TRIP_IN_PROGRESS',
+    'TRIP_COMPLETED',
+  ];
+  if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
     throw new BookingNotEligibleForPaymentError(input.bookingId, booking.status);
   }
 
@@ -589,6 +597,28 @@ export async function capturePayment(
         'Failed to generate tax invoice for booking',
       );
     }
+
+    try {
+      const booking = await db.booking.findUnique({
+        where: { id: result.bookingId },
+        include: { driverProfile: true },
+      });
+      if (booking?.driverProfile?.userId) {
+        await createNotification({
+          userId: booking.driverProfile.userId,
+          category: 'BOOKING',
+          type: 'PAYMENT_CAPTURED',
+          title: 'Payment Received',
+          body: `Customer has completed payment for booking ${result.bookingId}.`,
+          data: { bookingId: result.bookingId, paymentId: result.id },
+        });
+      }
+    } catch (notifErr: unknown) {
+      logger.warn(
+        { notifErr, paymentId: result.id, bookingId: result.bookingId },
+        'Best-effort driver payment notification failed',
+      );
+    }
   }
 
   return result;
@@ -708,7 +738,14 @@ export async function confirmCashPaymentByCustomer(
   if (!booking || booking.customerId !== customerUserId) {
     throw new PaymentBookingNotFoundError(bookingId);
   }
-  if (booking.status !== 'TRIP_COMPLETED') {
+  const PAYABLE_BOOKING_STATUSES = [
+    'DRIVER_ASSIGNED',
+    'DRIVER_EN_ROUTE',
+    'DRIVER_ARRIVED',
+    'TRIP_IN_PROGRESS',
+    'TRIP_COMPLETED',
+  ];
+  if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
     throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
   }
 
@@ -787,7 +824,14 @@ export async function confirmCashPaymentByDriver(
   if (!booking || booking.driverProfileId !== driverProfileId) {
     throw new CashPaymentConfirmationForbiddenError('Driver is not assigned to this booking');
   }
-  if (booking.status !== 'TRIP_COMPLETED') {
+  const PAYABLE_BOOKING_STATUSES = [
+    'DRIVER_ASSIGNED',
+    'DRIVER_EN_ROUTE',
+    'DRIVER_ARRIVED',
+    'TRIP_IN_PROGRESS',
+    'TRIP_COMPLETED',
+  ];
+  if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
     throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
   }
 

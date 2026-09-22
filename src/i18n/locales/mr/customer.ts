@@ -142,6 +142,7 @@ export const customerMr = {
     preferredDriverUnavailableNote:
       'आम्ही तुमचा आवडता ड्रायव्हर नियुक्त करू शकलो नाही. सर्वोत्तम उपलब्ध ड्रायव्हर शोधला जाईल.',
     pendingOfferWaiting: '{{driverName}} यांना विनंती पाठवली — त्यांच्या पुष्टीची वाट पाहत आहोत.',
+    offerExpiredRefreshing: 'ऑफर संपली — पुढील उपलब्ध ड्रायव्हर शोधत आहे…',
     messagesTitle: 'संदेश',
     yourReviewTitle: 'तुमचे पुनरावलोकन',
     rateYourDriverTitle: 'ड्रायव्हरला रेटिंग द्या',

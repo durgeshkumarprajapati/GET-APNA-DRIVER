@@ -142,6 +142,7 @@ export const customerEn = {
     preferredDriverUnavailableNote:
       "We couldn't assign your preferred driver. We'll find the best available driver.",
     pendingOfferWaiting: 'Request sent to {{driverName}} — waiting for their confirmation.',
+    offerExpiredRefreshing: 'Offer expired — searching next available driver…',
     messagesTitle: 'Messages',
     yourReviewTitle: 'Your Review',
     rateYourDriverTitle: 'Rate Your Driver',

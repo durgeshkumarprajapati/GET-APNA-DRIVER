@@ -107,7 +107,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNowTime(Date.now()), 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [callingDriver, setCallingDriver] = useState(false);
   const [driverCallData, setDriverCallData] = useState<DirectCallResponse | null>(null);
@@ -431,11 +437,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
               <p className="text-xs text-amber-200">
-                {t('customer.tracking.pendingOfferWaiting', {
-                  driverName:
-                    booking.pendingOffer.driverName ||
-                    t('customer.bookingsList.professionalDriverFallback'),
-                })}
+                {new Date(booking.pendingOffer.expiresAt).getTime() <= nowTime
+                  ? t('customer.tracking.offerExpiredRefreshing')
+                  : t('customer.tracking.pendingOfferWaiting', {
+                      driverName:
+                        booking.pendingOffer.driverName ||
+                        t('customer.bookingsList.professionalDriverFallback'),
+                    })}
               </p>
             </div>
           )}

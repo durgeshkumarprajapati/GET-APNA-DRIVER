@@ -145,6 +145,7 @@ export const customerBn = {
       'আপনার পছন্দের ড্রাইভার উপলব্ধ ছিলেন না। উপলব্ধ সেরা ড্রাইভার নির্ধারণ করা হয়েছে।',
     pendingOfferWaiting:
       '{{driverName}} কে অনুরোধ পাঠানো হয়েছে — তাদের নিশ্চিতকরণের জন্য অপেক্ষা করা হচ্ছে।',
+    offerExpiredRefreshing: 'অফার মেয়াদোত্তীর্ণ — পরবর্তী উপলব্ধ ড্রাইভার খোজা হচ্ছে…',
     messagesTitle: 'বার্তা',
     yourReviewTitle: 'আপনার প্রতিক্রিয়া',
     rateYourDriverTitle: 'ড্রাইভারকে রেটিং দিন',

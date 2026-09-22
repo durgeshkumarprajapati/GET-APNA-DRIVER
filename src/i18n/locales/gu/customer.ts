@@ -143,6 +143,7 @@ export const customerGu = {
       'અમે તમારા મનપસંદ ડ્રાઇવરને સોંપી શક્યા નહીં. અમે શ્રેષ્ઠ ઉપલબ્ધ ડ્રાઇવર શોધીશું.',
     pendingOfferWaiting:
       '{{driverName}} ને વિનંતી મોકલવામાં આવી — તેમની પુષ્ટિની રાહ જોવાઈ રહી છે.',
+    offerExpiredRefreshing: 'ઓફર સમાપ્ત — આગામી ઉપલબ્ધ ડ્રાઇવર શોધી રહ્યાં છીએ…',
     messagesTitle: 'સંદેશા',
     yourReviewTitle: 'તમારી સમીક્ષા',
     rateYourDriverTitle: 'તમારા ડ્રાઇવરને રેટ કરો',

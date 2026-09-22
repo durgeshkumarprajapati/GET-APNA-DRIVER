@@ -10,6 +10,9 @@ import { getInteger } from '@/shared/config/configuration-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
+import { initiateRefund } from '@/modules/finance/application/services/refund-service';
+import { createNotification } from '@/modules/notification/application/notification-service';
+import { logger } from '@/shared/logging/logger';
 import { requirePermission } from '@/modules/identity/authorization/authorization-service';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import type { AuthenticatedPrincipal } from '@/modules/identity/domain/types';
@@ -693,5 +696,40 @@ export async function cancelBookingByOperator(
   if (!detail) {
     throw new BookingNotFoundError(bookingId);
   }
+
+  // Automatic refund if booking was paid prior to operator cancellation
+  const dbClient = db ?? prisma;
+  const capturedPayment = dbClient?.payment
+    ? await dbClient.payment.findFirst({
+        where: { bookingId, status: { in: ['CAPTURED', 'PARTIALLY_REFUNDED'] } },
+      })
+    : null;
+  if (capturedPayment) {
+    try {
+      await initiateRefund(
+        actor.userId,
+        {
+          paymentId: capturedPayment.id,
+          reason: reason || 'Automatic refund for operator cancelled booking',
+          idempotencyKey: `auto_refund_cancel:${bookingId}`,
+        },
+        db,
+      );
+      await createNotification({
+        userId: detail.customer.id,
+        category: 'BOOKING',
+        type: 'PAYMENT_REFUNDED',
+        title: 'Refund Initiated',
+        body: `A refund has been initiated for your cancelled booking ${bookingId.slice(0, 8)}.`,
+        data: { bookingId, paymentId: capturedPayment.id },
+      });
+    } catch (refundErr: unknown) {
+      logger.error(
+        { refundErr, bookingId, paymentId: capturedPayment.id },
+        'Automatic refund initiation failed on operator cancellation',
+      );
+    }
+  }
+
   return detail;
 }

@@ -144,6 +144,7 @@ export const customerKn = {
       'ನೀವು ಕೋರಿದ ಚಾಲಕರು ಲಭ್ಯವಿಲ್ಲ. ಲಭ್ಯವಿರುವ ಉತ್ತಮ ಚಾಲಕರನ್ನು ನಿಯೋಜಿಸಲಾಗುತ್ತದೆ.',
     pendingOfferWaiting:
       '{{driverName}} ಗೆ ವಿನಂತಿ ಕಳುಹಿಸಲಾಗಿದೆ — ಅವರ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದ್ದೇವೆ.',
+    offerExpiredRefreshing: 'ಆಫರ್ ಅವಧಿ ಮುಗಿದಿದೆ — ಮುಂದಿನ ಲಭ್ಯವಿರುವ ಚಾಲಕನನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…',
     messagesTitle: 'ಸಂದೇಶಗಳು',
     yourReviewTitle: 'ನಿಮ್ಮ ವಿಮರ್ಶೆ',
     rateYourDriverTitle: 'ಚಾಲಕರಿಗೆ ರೇಟಿಂಗ್ ನೀಡಿ',

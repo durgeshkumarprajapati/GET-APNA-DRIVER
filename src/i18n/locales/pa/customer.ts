@@ -141,6 +141,7 @@ export const customerPa = {
     preferredDriverUnavailableNote:
       'ਤੁਹਾਡਾ ਮਨਪਸੰਦ ਡਰਾਈਵਰ ਉਪਲਬਧ ਨਹੀਂ ਸੀ। ਸਭ ਤੋਂ ਵਧੀਆ ਉਪਲਬਧ ਡਰਾਈਵਰ ਦਿੱਤਾ ਜਾਵੇਗਾ।',
     pendingOfferWaiting: '{{driverName}} ਨੂੰ ਬੇਨਤੀ ਭੇਜੀ ਗਈ — ਉਨ੍ਹਾਂ ਦੀ ਪੁਸ਼ਟੀ ਦੀ ਉਡੀਕ ਹੈ।',
+    offerExpiredRefreshing: 'ਆਫਰ ਦੀ ਮਿਆਦ ਲੰਘ ਗਈ — ਅਗਲੇ ਉਪਲਬਧ ਡਰਾਈਵਰ ਦੀ ਭਾਲ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…',
     messagesTitle: 'ਸੁਨੇਹੇ',
     yourReviewTitle: 'ਤੁਹਾਡੀ ਸਮੀਖਿਆ',
     rateYourDriverTitle: 'ਡਰਾਈਵਰ ਨੂੰ ਰੇਟਿੰਗ ਦਿਓ',

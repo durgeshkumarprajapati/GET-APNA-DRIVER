@@ -142,6 +142,7 @@ export const customerTe = {
     preferredDriverUnavailableNote:
       'మీరు కోరిన డ్రైవర్ అందుబాటులో లేరు. వేరొక ఉత్తమ డ్రైవర్ కేటాయించబడతారు.',
     pendingOfferWaiting: '{{driverName}} కు అభ్యర్థన పంపబడింది — వారి నిర్ధారణ కోసం వేచి ఉన్నాము.',
+    offerExpiredRefreshing: 'ఆఫర్ గడువు ముగిసింది — తర్వాత అందుబాటులో ఉన్న డ్రైవర్‌ను వెతుకుతోంది…',
     messagesTitle: 'సందేశాలు',
     yourReviewTitle: 'మీ సమీక్ష',
     rateYourDriverTitle: 'డ్రైవర్‌కు రేటింగ్ ఇవ్వండి',

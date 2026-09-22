@@ -142,6 +142,7 @@ export const customerHi = {
     preferredDriverUnavailableNote:
       'हम आपके पसंदीदा ड्राइवर को नियुक्त नहीं कर सके। हम सबसे अच्छा उपलब्ध ड्राइवर खोजेंगे।',
     pendingOfferWaiting: '{{driverName}} को अनुरोध भेजा गया — उनकी पुष्टि का इंतज़ार है।',
+    offerExpiredRefreshing: 'ऑफ़र समाप्त — अगला उपलब्ध ड्राइवर खोजा जा रहा है…',
     messagesTitle: 'संदेश',
     yourReviewTitle: 'आपकी समीक्षा',
     rateYourDriverTitle: 'अपने ड्राइवर को रेट करें',

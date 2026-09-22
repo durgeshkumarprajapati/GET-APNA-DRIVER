@@ -87,11 +87,11 @@ describe('createPaymentForBooking', () => {
     );
   });
 
-  it('rejects a booking that has not reached TRIP_COMPLETED', async () => {
+  it('rejects a booking that is not eligible for payment (e.g. SEARCHING_DRIVER)', async () => {
     mockedPrisma.booking.findUnique.mockResolvedValue({
       id: 'booking-1',
       customerId: 'customer-1',
-      status: 'TRIP_IN_PROGRESS',
+      status: 'SEARCHING_DRIVER',
     });
 
     await expect(createPaymentForBooking('customer-1', { bookingId: 'booking-1' })).rejects.toThrow(
