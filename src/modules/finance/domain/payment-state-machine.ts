@@ -23,10 +23,14 @@ const VALID_TRANSITIONS: Record<PaymentStatus, readonly PaymentStatus[]> = {
   REFUNDED: [],
 };
 
-const TERMINAL_STATUSES: readonly PaymentStatus[] = ['FAILED', 'CANCELLED', 'REFUNDED'];
+export const TERMINAL_PAYMENT_STATUSES: readonly PaymentStatus[] = [
+  'FAILED',
+  'CANCELLED',
+  'REFUNDED',
+];
 
 export function isTerminalPaymentStatus(status: PaymentStatus): boolean {
-  return TERMINAL_STATUSES.includes(status);
+  return TERMINAL_PAYMENT_STATUSES.includes(status);
 }
 
 export function validatePaymentStatusTransition(

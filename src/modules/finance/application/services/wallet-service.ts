@@ -47,12 +47,19 @@ export async function applyWalletChange(
   input: ApplyWalletChangeInput,
   db: Db,
 ): Promise<DriverWallet> {
-  const existing = await db.driverWallet.findUnique({
+  // Atomic get-or-create — a plain findUnique-then-create here would race
+  // whenever two callers apply a wallet change for the same driver's very
+  // first transaction concurrently (the docstring above already calls out
+  // exactly this: a webhook and a client-verify call capturing the same
+  // payment at once). Both would see no existing wallet and both attempt
+  // create(), and since driverProfileId is unique on DriverWallet, the
+  // loser would crash on a P2002 constraint violation instead of just
+  // proceeding with the wallet the winner created.
+  const wallet = await db.driverWallet.upsert({
     where: { driverProfileId: input.driverProfileId },
+    create: { driverProfileId: input.driverProfileId },
+    update: {},
   });
-  const wallet =
-    existing ??
-    (await db.driverWallet.create({ data: { driverProfileId: input.driverProfileId } }));
 
   const alreadyApplied = await db.walletTransaction.findUnique({
     where: {

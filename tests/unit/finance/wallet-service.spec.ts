@@ -14,6 +14,7 @@ function buildDb(overrides: Record<string, unknown> = {}) {
     driverWallet: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      upsert: jest.fn(),
       update: jest.fn(),
     },
     walletTransaction: {
@@ -25,10 +26,9 @@ function buildDb(overrides: Record<string, unknown> = {}) {
 }
 
 describe('applyWalletChange', () => {
-  it('creates the wallet on first use and credits available balance for a recognized earning', async () => {
+  it('creates the wallet on first use (atomically via upsert, not a racy findUnique-then-create) and credits available balance for a recognized earning', async () => {
     const db = buildDb();
-    db.driverWallet.findUnique.mockResolvedValue(null);
-    db.driverWallet.create.mockResolvedValue({
+    db.driverWallet.upsert.mockResolvedValue({
       id: 'wallet-1',
       driverProfileId: 'driver-1',
       availableBalance: '0.0000',
@@ -60,6 +60,12 @@ describe('applyWalletChange', () => {
     );
 
     expect(result.availableBalance).toBe('120.0000');
+    expect(db.driverWallet.upsert).toHaveBeenCalledWith({
+      where: { driverProfileId: 'driver-1' },
+      create: { driverProfileId: 'driver-1' },
+      update: {},
+    });
+    expect(db.driverWallet.create).not.toHaveBeenCalled();
     expect(db.walletTransaction.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -81,7 +87,7 @@ describe('applyWalletChange', () => {
       totalEarned: '120.0000',
       totalSettled: '0.0000',
     };
-    db.driverWallet.findUnique.mockResolvedValue(existingWallet);
+    db.driverWallet.upsert.mockResolvedValue(existingWallet);
     db.walletTransaction.findUnique.mockResolvedValue({ id: 'already-applied' });
 
     const result = await applyWalletChange(
@@ -101,7 +107,7 @@ describe('applyWalletChange', () => {
 
   it('correctly separates a bucket-transfer change (available -> reserved) instead of netting it to zero', async () => {
     const db = buildDb();
-    db.driverWallet.findUnique.mockResolvedValue({
+    db.driverWallet.upsert.mockResolvedValue({
       id: 'wallet-1',
       driverProfileId: 'driver-1',
       availableBalance: '500.0000',
