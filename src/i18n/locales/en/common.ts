@@ -1,4 +1,5 @@
 export const commonEn = {
+  loading: 'Loading...',
   actions: {
     save: 'Save',
     cancel: 'Cancel',

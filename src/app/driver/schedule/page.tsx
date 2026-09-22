@@ -251,16 +251,16 @@ export default function DriverSchedulePage() {
         {/* Toast Alert */}
         {toast && (
           <div
-            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border text-sm font-bold font-['Space_Grotesk'] ${
+            className={`fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border text-sm font-bold font-['Space_Grotesk'] ${
               toast.type === 'success'
                 ? 'bg-[#25a475] text-[#00311f] border-[#68dba9]'
                 : 'bg-[#93000a] text-[#ffdad6] border-[#ffb4ab]'
             }`}
           >
-            <span className="material-symbols-outlined text-lg">
+            <span className="material-symbols-outlined text-lg shrink-0">
               {toast.type === 'success' ? 'check_circle' : 'error'}
             </span>
-            <span>{toast.message}</span>
+            <span className="break-words">{toast.message}</span>
           </div>
         )}
 

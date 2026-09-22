@@ -1,4 +1,5 @@
 export const commonGu = {
+  loading: 'લોડ થઈ રહ્યું છે...',
   actions: {
     save: 'સાચવો',
     cancel: 'રદ કરો',

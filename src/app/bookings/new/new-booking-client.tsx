@@ -1135,7 +1135,7 @@ function BookDriverPageInner() {
                   {t('customer.booking.vehicleProfileLabel')}
                 </span>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {vehicleTiers.map((tier) => (
                     <button
                       key={tier.key}

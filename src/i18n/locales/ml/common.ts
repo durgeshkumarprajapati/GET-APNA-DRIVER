@@ -1,4 +1,5 @@
 export const commonMl = {
+  loading: 'ലോഡ് ചെയ്യുന്നു...',
   actions: {
     save: 'സേവ് ചെയ്യുക',
     cancel: 'റദ്ദാക്കുക',

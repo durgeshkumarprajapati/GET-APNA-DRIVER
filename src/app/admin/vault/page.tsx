@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AdminLayout } from '@/components/admin-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { FinanceAmount } from '@/components/ui/finance-amount';
@@ -57,34 +56,32 @@ export default function AdminVaultPage() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full">
-        <PageHeader
-          eyebrow="Finance"
-          title="Vault — Ledger Account Balances"
-          subtitle="Real-time balances computed directly from posted ledger entries. The double-entry ledger remains the sole accounting authority — this is a read-only view of it, not a second source of truth."
-        />
+    <div className="flex flex-col gap-6 w-full">
+      <PageHeader
+        eyebrow="Finance"
+        title="Vault — Ledger Account Balances"
+        subtitle="Real-time balances computed directly from posted ledger entries. The double-entry ledger remains the sole accounting authority — this is a read-only view of it, not a second source of truth."
+      />
 
-        {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          {error}
+        </div>
+      )}
 
-        {loading ? (
-          <LoadingState message="Loading ledger balances…" />
-        ) : (
-          <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
-            <DataTable
-              columns={columns}
-              data={accounts}
-              keyExtractor={(a) => a.accountCode}
-              emptyIcon="account_balance"
-              emptyMessage="No ledger accounts found."
-            />
-          </div>
-        )}
-      </div>
-    </AdminLayout>
+      {loading ? (
+        <LoadingState message="Loading ledger balances…" />
+      ) : (
+        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+          <DataTable
+            columns={columns}
+            data={accounts}
+            keyExtractor={(a) => a.accountCode}
+            emptyIcon="account_balance"
+            emptyMessage="No ledger accounts found."
+          />
+        </div>
+      )}
+    </div>
   );
 }

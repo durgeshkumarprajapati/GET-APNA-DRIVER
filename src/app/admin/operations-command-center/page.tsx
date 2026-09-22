@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/admin-layout';
 import type {
   OperationsCommandSummary,
   OperationsDecision,
@@ -206,396 +205,391 @@ export default function OperationsCommandCenterPage() {
   const activeSummary = summary ?? DEFAULT_SUMMARY;
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header Title Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262a33] pb-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#68dba9] text-2xl">terminal</span>
-              <h1 className="text-2xl font-bold text-[#dfe2ee] tracking-tight font-['Space_Grotesk']">
-                Operations Command & Decision Engine
-              </h1>
-            </div>
-            <p className="text-xs text-[#87948b] mt-1 font-mono">
-              Real-time cross-domain orchestration, deterministic decision evaluation & action
-              dispatch
-            </p>
+    <div className="space-y-6">
+      {/* Header Title Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262a33] pb-5">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[#68dba9] text-2xl">terminal</span>
+            <h1 className="text-2xl font-bold text-[#dfe2ee] tracking-tight font-['Space_Grotesk']">
+              Operations Command & Decision Engine
+            </h1>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/admin/experience-orchestration"
-              className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
-            >
-              <span className="material-symbols-outlined text-sm">psychology</span>
-              Experience Engine
-            </Link>
-            <Link
-              href="/admin/risk-and-trust"
-              className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
-            >
-              <span className="material-symbols-outlined text-sm">shield</span>
-              Risk & Trust Console
-            </Link>
-            <button
-              onClick={() => void fetchOperationsData()}
-              className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#dfe2ee] text-xs font-mono flex items-center gap-2 transition-all"
-            >
-              <span className="material-symbols-outlined text-sm">refresh</span>
-              Refresh Signals
-            </button>
-            <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 font-mono text-xs">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" />
-              <span className="text-[#68dba9] font-bold">ORCHESTRATOR ONLINE</span>
-            </div>
+          <p className="text-xs text-[#87948b] mt-1 font-mono">
+            Real-time cross-domain orchestration, deterministic decision evaluation & action
+            dispatch
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/admin/experience-orchestration"
+            className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">psychology</span>
+            Experience Engine
+          </Link>
+          <Link
+            href="/admin/risk-and-trust"
+            className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#68dba9] text-xs font-mono flex items-center gap-1.5 transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">shield</span>
+            Risk & Trust Console
+          </Link>
+          <button
+            onClick={() => void fetchOperationsData()}
+            className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#dfe2ee] text-xs font-mono flex items-center gap-2 transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">refresh</span>
+            Refresh Signals
+          </button>
+          <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 font-mono text-xs">
+            <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" />
+            <span className="text-[#68dba9] font-bold">ORCHESTRATOR ONLINE</span>
           </div>
         </div>
+      </div>
 
-        {error && (
-          <div className="p-4 rounded-xl bg-[#3b0909] border border-[#93000a] text-[#ff8e8e] text-xs font-mono flex items-center justify-between">
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="text-xs underline ml-4">
-              Dismiss
-            </button>
-          </div>
-        )}
+      {error && (
+        <div className="p-4 rounded-xl bg-[#3b0909] border border-[#93000a] text-[#ff8e8e] text-xs font-mono flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-xs underline ml-4">
+            Dismiss
+          </button>
+        </div>
+      )}
 
-        {/* Top Metrics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-              System Status
-            </span>
-            <div className="text-sm font-bold font-mono text-[#68dba9] mt-2">
-              {activeSummary.systemStatus}
-            </div>
-            <span className="text-[10px] text-[#87948b] mt-1">
-              Health Score: {activeSummary.platformHealthScore}/100
-            </span>
+      {/* Top Metrics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+          <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+            System Status
+          </span>
+          <div className="text-sm font-bold font-mono text-[#68dba9] mt-2">
+            {activeSummary.systemStatus}
           </div>
-
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-              Active Decisions
-            </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1">
-              {activeSummary.activeDecisionsCount}
-            </div>
-            <span className="text-[10px] text-[#87948b] mt-1">Evaluated Real-Time</span>
-          </div>
-
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-              Critical / High
-            </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ff8e8e] mt-1">
-              {activeSummary.criticalCount + activeSummary.highCount}
-            </div>
-            <span className="text-[10px] text-[#87948b] mt-1">Requires Operator Action</span>
-          </div>
-
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-              Searching Bookings
-            </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1">
-              {activeSummary.searchingBookingsCount}
-            </div>
-            <span className="text-[10px] text-[#87948b] mt-1">
-              Available Drivers: {activeSummary.availableDriversCount}
-            </span>
-          </div>
-
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-              Active Trips
-            </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#70d2ff] mt-1">
-              {activeSummary.activeTripsCount}
-            </div>
-            <span className="text-[10px] text-[#87948b] mt-1">On-trip fleet</span>
-          </div>
-
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-              Safety Incidents
-            </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffb957] mt-1">
-              {activeSummary.activeSafetyIncidentsCount}
-            </div>
-            <span className="text-[10px] text-[#87948b] mt-1">
-              Open Support: {activeSummary.openSupportTicketsCount}
-            </span>
-          </div>
+          <span className="text-[10px] text-[#87948b] mt-1">
+            Health Score: {activeSummary.platformHealthScore}/100
+          </span>
         </div>
 
-        {/* Filter Controls Bar */}
-        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-[#87948b]">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="DETECTED">Detected</option>
-              <option value="ACKNOWLEDGED">Acknowledged</option>
-              <option value="RESOLVED">Resolved</option>
-              <option value="DISMISSED">Dismissed</option>
-            </select>
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+          <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+            Active Decisions
+          </span>
+          <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1">
+            {activeSummary.activeDecisionsCount}
           </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-[#87948b]">Severity:</span>
-            <select
-              value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)}
-              className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-            >
-              <option value="ALL">All Severities</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-[#87948b]">Decision Type:</span>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-            >
-              <option value="ALL">All Types</option>
-              <option value="SAFETY_PRESSURE">Safety Pressure</option>
-              <option value="DRIVER_SHORTAGE">Driver Shortage</option>
-              <option value="TRIP_RELIABILITY_PRESSURE">Trip Reliability Pressure</option>
-              <option value="SCHEDULED_RIDE_RISK">Scheduled Ride Risk</option>
-              <option value="SUPPORT_BACKLOG">Support Backlog</option>
-              <option value="PLATFORM_DEGRADATION">Platform Degradation</option>
-            </select>
-          </div>
-
-          <div className="ml-auto text-xs font-mono text-[#87948b]">
-            Showing <span className="text-[#dfe2ee] font-bold">{decisions.length}</span> decision
-            records
-          </div>
+          <span className="text-[10px] text-[#87948b] mt-1">Evaluated Real-Time</span>
         </div>
 
-        {/* Decision Records Feed */}
-        {loading ? (
-          <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
-            Evaluating operational decisions across network domains...
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+          <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+            Critical / High
+          </span>
+          <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ff8e8e] mt-1">
+            {activeSummary.criticalCount + activeSummary.highCount}
           </div>
-        ) : decisions.length === 0 ? (
-          <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center space-y-2">
-            <span className="material-symbols-outlined text-3xl text-[#68dba9]">check_circle</span>
-            <p className="text-sm font-bold text-[#dfe2ee]">No decisions match selected criteria</p>
-            <p className="text-xs text-[#87948b] font-mono">
-              System is operating within nominal baseline parameters.
-            </p>
+          <span className="text-[10px] text-[#87948b] mt-1">Requires Operator Action</span>
+        </div>
+
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+          <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+            Searching Bookings
+          </span>
+          <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1">
+            {activeSummary.searchingBookingsCount}
           </div>
-        ) : (
-          <div className="space-y-4">
-            {decisions.map((decision) => (
-              <div
-                key={decision.id}
-                className="bg-[#181c24] rounded-xl border border-[#262a33] p-5 hover:border-[#363b47] transition-all space-y-4"
-              >
-                {/* Decision Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getSeverityBadgeClass(
-                        decision.severity,
-                      )}`}
-                    >
-                      {decision.severity}
-                    </span>
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getStatusBadgeClass(
-                        decision.status,
-                      )}`}
-                    >
-                      {decision.status}
-                    </span>
-                    <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      {decision.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs font-mono text-[#87948b]">
-                    <span>
-                      Zone:{' '}
-                      <strong className="text-[#dfe2ee]">{decision.zoneId ?? 'SYSTEM'}</strong>
-                    </span>
-                    <span>
-                      Confidence: <strong className="text-[#68dba9]">{decision.confidence}</strong>
-                    </span>
-                    <span>Evaluated: {new Date(decision.createdAt).toLocaleTimeString()}</span>
-                  </div>
-                </div>
+          <span className="text-[10px] text-[#87948b] mt-1">
+            Available Drivers: {activeSummary.availableDriversCount}
+          </span>
+        </div>
 
-                {/* Explanation & Evidence */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs font-mono">
-                  <div className="lg:col-span-2 space-y-2">
-                    <p className="text-[#bccac0]">{decision.summary || decision.why}</p>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {decision.evidence.map((ev, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 rounded bg-[#0f131c] border border-[#262a33] text-[11px] text-[#87948b]"
-                        >
-                          <strong className="text-[#dfe2ee]">{ev.label || ev.key}:</strong>{' '}
-                          {String(ev.value)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Actions & Dispatch Options */}
-                  <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] flex flex-col justify-between space-y-3">
-                    <div className="text-[11px] text-[#87948b]">
-                      <span className="text-[#dfe2ee] font-bold block mb-1">
-                        Recommended Action
-                      </span>
-                      {decision.recommendedActions[0]?.label ?? 'No automated action needed'}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#262a33]">
-                      <Link
-                        href={`/admin/operations-command-center/decisions/${decision.id}`}
-                        className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#363b47] text-[#dfe2ee] text-xs font-mono transition-colors"
-                      >
-                        Inspect Evidence
-                      </Link>
-
-                      {decision.status === 'DETECTED' && (
-                        <>
-                          <button
-                            onClick={() => handleAcknowledge(decision.id)}
-                            className="px-3 py-1.5 rounded-lg bg-[#00344d] hover:bg-[#004d73] text-[#70d2ff] border border-[#004d73] text-xs font-mono transition-colors"
-                          >
-                            Acknowledge
-                          </button>
-                          <button
-                            onClick={() => handleDismiss(decision.id)}
-                            className="px-3 py-1.5 rounded-lg bg-[#181c24] hover:bg-[#222630] text-[#87948b] border border-[#262a33] text-xs font-mono transition-colors"
-                          >
-                            Dismiss
-                          </button>
-                        </>
-                      )}
-
-                      {decision.recommendedActions.length > 0 && decision.status !== 'RESOLVED' && (
-                        <button
-                          onClick={() => {
-                            const act = decision.recommendedActions[0];
-                            setSelectedAction({
-                              decisionId: decision.id,
-                              action: act,
-                            });
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono transition-colors flex items-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-sm">bolt</span>
-                          Execute Action
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+          <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+            Active Trips
+          </span>
+          <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#70d2ff] mt-1">
+            {activeSummary.activeTripsCount}
           </div>
-        )}
+          <span className="text-[10px] text-[#87948b] mt-1">On-trip fleet</span>
+        </div>
 
-        {/* Action Confirmation Modal */}
-        {selectedAction && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-            <div className="bg-[#181c24] border border-[#262a33] rounded-xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#ffb957] text-xl">warning</span>
-                  <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    Confirm Operational Action Dispatch
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
+          <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+            Safety Incidents
+          </span>
+          <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffb957] mt-1">
+            {activeSummary.activeSafetyIncidentsCount}
+          </div>
+          <span className="text-[10px] text-[#87948b] mt-1">
+            Open Support: {activeSummary.openSupportTicketsCount}
+          </span>
+        </div>
+      </div>
+
+      {/* Filter Controls Bar */}
+      <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-[#87948b]">Status:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="DETECTED">Detected</option>
+            <option value="ACKNOWLEDGED">Acknowledged</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="DISMISSED">Dismissed</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-[#87948b]">Severity:</span>
+          <select
+            value={severityFilter}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+            className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          >
+            <option value="ALL">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-[#87948b]">Decision Type:</span>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          >
+            <option value="ALL">All Types</option>
+            <option value="SAFETY_PRESSURE">Safety Pressure</option>
+            <option value="DRIVER_SHORTAGE">Driver Shortage</option>
+            <option value="TRIP_RELIABILITY_PRESSURE">Trip Reliability Pressure</option>
+            <option value="SCHEDULED_RIDE_RISK">Scheduled Ride Risk</option>
+            <option value="SUPPORT_BACKLOG">Support Backlog</option>
+            <option value="PLATFORM_DEGRADATION">Platform Degradation</option>
+          </select>
+        </div>
+
+        <div className="ml-auto text-xs font-mono text-[#87948b]">
+          Showing <span className="text-[#dfe2ee] font-bold">{decisions.length}</span> decision
+          records
+        </div>
+      </div>
+
+      {/* Decision Records Feed */}
+      {loading ? (
+        <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
+          Evaluating operational decisions across network domains...
+        </div>
+      ) : decisions.length === 0 ? (
+        <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center space-y-2">
+          <span className="material-symbols-outlined text-3xl text-[#68dba9]">check_circle</span>
+          <p className="text-sm font-bold text-[#dfe2ee]">No decisions match selected criteria</p>
+          <p className="text-xs text-[#87948b] font-mono">
+            System is operating within nominal baseline parameters.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {decisions.map((decision) => (
+            <div
+              key={decision.id}
+              className="bg-[#181c24] rounded-xl border border-[#262a33] p-5 hover:border-[#363b47] transition-all space-y-4"
+            >
+              {/* Decision Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getSeverityBadgeClass(
+                      decision.severity,
+                    )}`}
+                  >
+                    {decision.severity}
+                  </span>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${getStatusBadgeClass(
+                      decision.status,
+                    )}`}
+                  >
+                    {decision.status}
+                  </span>
+                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    {decision.title}
                   </h3>
                 </div>
-                <button
-                  onClick={() => setSelectedAction(null)}
-                  className="text-[#87948b] hover:text-[#dfe2ee] text-sm font-mono"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-4 text-xs font-mono text-[#87948b]">
+                  <span>
+                    Zone: <strong className="text-[#dfe2ee]">{decision.zoneId ?? 'SYSTEM'}</strong>
+                  </span>
+                  <span>
+                    Confidence: <strong className="text-[#68dba9]">{decision.confidence}</strong>
+                  </span>
+                  <span>Evaluated: {new Date(decision.createdAt).toLocaleTimeString()}</span>
+                </div>
               </div>
 
-              {actionSuccess ? (
-                <div className="p-4 rounded-lg bg-[#1b2b00] border border-[#3f6300] text-[#a4f542] text-xs font-mono flex items-center gap-2">
-                  <span className="material-symbols-outlined text-base">check_circle</span>
-                  <span>{actionSuccess}</span>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-3 text-xs font-mono">
-                    <p className="text-[#dfe2ee] font-bold">{selectedAction.action.label}</p>
-                    <p className="text-[#bccac0]">{selectedAction.action.impactSummary}</p>
-
-                    <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-2">
-                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
-                        Action Type & Lock Guard
+              {/* Explanation & Evidence */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs font-mono">
+                <div className="lg:col-span-2 space-y-2">
+                  <p className="text-[#bccac0]">{decision.summary || decision.why}</p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {decision.evidence.map((ev, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 rounded bg-[#0f131c] border border-[#262a33] text-[11px] text-[#87948b]"
+                      >
+                        <strong className="text-[#dfe2ee]">{ev.label || ev.key}:</strong>{' '}
+                        {String(ev.value)}
                       </span>
-                      <div className="text-[#68dba9] font-bold">{selectedAction.action.type}</div>
-                      <div className="text-[11px] text-[#87948b]">
-                        Guarded by Redis Distributed Lock (`lock:action:${selectedAction.action.id}
-                        `)
-                      </div>
-                    </div>
+                    ))}
+                  </div>
+                </div>
 
-                    {selectedAction.action.params && (
-                      <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-2">
-                        <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
-                          Execution Parameters
-                        </span>
-                        <pre className="text-[11px] text-[#dfe2ee] overflow-x-auto">
-                          {JSON.stringify(selectedAction.action.params, null, 2)}
-                        </pre>
-                      </div>
+                {/* Actions & Dispatch Options */}
+                <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] flex flex-col justify-between space-y-3">
+                  <div className="text-[11px] text-[#87948b]">
+                    <span className="text-[#dfe2ee] font-bold block mb-1">Recommended Action</span>
+                    {decision.recommendedActions[0]?.label ?? 'No automated action needed'}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#262a33]">
+                    <Link
+                      href={`/admin/operations-command-center/decisions/${decision.id}`}
+                      className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#363b47] text-[#dfe2ee] text-xs font-mono transition-colors"
+                    >
+                      Inspect Evidence
+                    </Link>
+
+                    {decision.status === 'DETECTED' && (
+                      <>
+                        <button
+                          onClick={() => handleAcknowledge(decision.id)}
+                          className="px-3 py-1.5 rounded-lg bg-[#00344d] hover:bg-[#004d73] text-[#70d2ff] border border-[#004d73] text-xs font-mono transition-colors"
+                        >
+                          Acknowledge
+                        </button>
+                        <button
+                          onClick={() => handleDismiss(decision.id)}
+                          className="px-3 py-1.5 rounded-lg bg-[#181c24] hover:bg-[#222630] text-[#87948b] border border-[#262a33] text-xs font-mono transition-colors"
+                        >
+                          Dismiss
+                        </button>
+                      </>
+                    )}
+
+                    {decision.recommendedActions.length > 0 && decision.status !== 'RESOLVED' && (
+                      <button
+                        onClick={() => {
+                          const act = decision.recommendedActions[0];
+                          setSelectedAction({
+                            decisionId: decision.id,
+                            action: act,
+                          });
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono transition-colors flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-sm">bolt</span>
+                        Execute Action
+                      </button>
                     )}
                   </div>
-
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#262a33]">
-                    <button
-                      onClick={() => setSelectedAction(null)}
-                      disabled={executingAction}
-                      className="px-4 py-2 rounded-lg bg-[#0f131c] border border-[#262a33] text-[#dfe2ee] text-xs font-mono hover:bg-[#262a33]"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleExecuteAction}
-                      disabled={executingAction}
-                      className="px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono flex items-center gap-2 disabled:opacity-50"
-                    >
-                      {executingAction ? (
-                        <>
-                          <span className="w-3 h-3 border-2 border-[#00311f] border-t-transparent rounded-full animate-spin" />
-                          Acquiring Lock & Executing...
-                        </>
-                      ) : (
-                        <>
-                          <span className="material-symbols-outlined text-sm">bolt</span>
-                          Authorize & Execute
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Action Confirmation Modal */}
+      {selectedAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-[#181c24] border border-[#262a33] rounded-xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#ffb957] text-xl">warning</span>
+                <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  Confirm Operational Action Dispatch
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedAction(null)}
+                className="text-[#87948b] hover:text-[#dfe2ee] text-sm font-mono"
+              >
+                ✕
+              </button>
+            </div>
+
+            {actionSuccess ? (
+              <div className="p-4 rounded-lg bg-[#1b2b00] border border-[#3f6300] text-[#a4f542] text-xs font-mono flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                <span>{actionSuccess}</span>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-3 text-xs font-mono">
+                  <p className="text-[#dfe2ee] font-bold">{selectedAction.action.label}</p>
+                  <p className="text-[#bccac0]">{selectedAction.action.impactSummary}</p>
+
+                  <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-2">
+                    <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                      Action Type & Lock Guard
+                    </span>
+                    <div className="text-[#68dba9] font-bold">{selectedAction.action.type}</div>
+                    <div className="text-[11px] text-[#87948b]">
+                      Guarded by Redis Distributed Lock (`lock:action:${selectedAction.action.id}
+                      `)
+                    </div>
+                  </div>
+
+                  {selectedAction.action.params && (
+                    <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-2">
+                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                        Execution Parameters
+                      </span>
+                      <pre className="text-[11px] text-[#dfe2ee] overflow-x-auto">
+                        {JSON.stringify(selectedAction.action.params, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#262a33]">
+                  <button
+                    onClick={() => setSelectedAction(null)}
+                    disabled={executingAction}
+                    className="px-4 py-2 rounded-lg bg-[#0f131c] border border-[#262a33] text-[#dfe2ee] text-xs font-mono hover:bg-[#262a33]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleExecuteAction}
+                    disabled={executingAction}
+                    className="px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {executingAction ? (
+                      <>
+                        <span className="w-3 h-3 border-2 border-[#00311f] border-t-transparent rounded-full animate-spin" />
+                        Acquiring Lock & Executing...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-sm">bolt</span>
+                        Authorize & Execute
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        )}
-      </div>
-    </AdminLayout>
+        </div>
+      )}
+    </div>
   );
 }

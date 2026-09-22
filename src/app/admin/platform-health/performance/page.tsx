@@ -94,10 +94,10 @@ export default function PerformanceMetricsPage() {
                   .map((b) => (
                     <div
                       key={b.id}
-                      className="p-3 bg-gray-50 dark:bg-gray-900 rounded flex justify-between items-center text-xs"
+                      className="p-3 bg-gray-50 dark:bg-gray-900 rounded flex flex-wrap justify-between items-center gap-2 text-xs"
                     >
                       <div>{new Date(b.bucketStart).toLocaleString()}</div>
-                      <div className="flex gap-4">
+                      <div className="flex flex-wrap gap-4">
                         <span>
                           Requests: <strong>{b.count}</strong>
                         </span>

@@ -26,7 +26,7 @@ export const POST = withPermission(
         actionId,
         decisionId,
         actionType,
-        adminUserId: context.principal.userId,
+        actor: context.principal,
         bookingId,
         incidentId,
         driverId,

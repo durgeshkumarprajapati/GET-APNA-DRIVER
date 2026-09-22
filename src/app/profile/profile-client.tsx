@@ -424,6 +424,8 @@ export default function ProfilePage() {
             gap: '1rem',
             marginBottom: '2rem',
             borderBottom: '1px solid var(--color-border)',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           <button
@@ -436,6 +438,8 @@ export default function ProfilePage() {
               border: 'none',
               background: 'none',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               color:
                 activeTab === 'profile' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               borderBottom:
@@ -456,6 +460,8 @@ export default function ProfilePage() {
               border: 'none',
               background: 'none',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               color:
                 activeTab === 'locations' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               borderBottom:
@@ -476,6 +482,8 @@ export default function ProfilePage() {
               border: 'none',
               background: 'none',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               color:
                 activeTab === 'preferences'
                   ? 'var(--color-primary)'
@@ -498,6 +506,8 @@ export default function ProfilePage() {
               border: 'none',
               background: 'none',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
               color:
                 activeTab === 'security' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               borderBottom:
@@ -552,7 +562,7 @@ export default function ProfilePage() {
                 onSubmit={handleSaveProfile}
                 style={{ display: 'grid', gap: '1.25rem', maxWidth: '600px' }}
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label
                       htmlFor="firstName"
@@ -1183,7 +1193,7 @@ export default function ProfilePage() {
                         }}
                       />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label
                           style={{

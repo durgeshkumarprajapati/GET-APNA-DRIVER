@@ -625,9 +625,20 @@ export function registerNotificationEventHandlers(): void {
   // Driver Onboarding Events
   // -------------------------------------------------------------------------
   eventHandlerRegistry.register(
-    'driver.application.approved',
+    'driver.approved',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
-      const driverUserId = payload.userId as string;
+      const client = db ?? prisma;
+      let driverUserId = payload.userId as string | undefined;
+      const driverProfileId = payload.driverProfileId as string | undefined;
+
+      if (!driverUserId && driverProfileId && client.driverProfile?.findUnique) {
+        const dp = await client.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        driverUserId = dp?.userId;
+      }
+
       if (driverUserId) {
         await createNotification(
           {
@@ -638,7 +649,41 @@ export function registerNotificationEventHandlers(): void {
             data: payload,
             idempotencyKey: `${event.id}-app-approved`,
           },
-          db ?? prisma,
+          client,
+        );
+      }
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'driver.rejected',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const client = db ?? prisma;
+      let driverUserId = payload.userId as string | undefined;
+      const driverProfileId = payload.driverProfileId as string | undefined;
+      const reason = payload.reason as string | undefined;
+
+      if (!driverUserId && driverProfileId && client.driverProfile?.findUnique) {
+        const dp = await client.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        driverUserId = dp?.userId;
+      }
+
+      if (driverUserId) {
+        await createNotification(
+          {
+            userId: driverUserId,
+            type: NotificationType.DRIVER_APPLICATION_REJECTED,
+            title: 'Application Update',
+            body: reason
+              ? `Your driver application was not approved: ${reason}`
+              : 'Your driver application was not approved. Please review your documents and resubmit.',
+            data: payload,
+            idempotencyKey: `${event.id}-app-rejected`,
+          },
+          client,
         );
       }
     },
@@ -1197,7 +1242,7 @@ export function registerNotificationEventHandlers(): void {
   // Scheduled Rides Events
   // -------------------------------------------------------------------------
   eventHandlerRegistry.register(
-    'scheduled_ride.created',
+    'scheduled-ride.created',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const time = payload.scheduledTime as string;
@@ -1219,7 +1264,7 @@ export function registerNotificationEventHandlers(): void {
   );
 
   eventHandlerRegistry.register(
-    'scheduled_ride.reminder',
+    'scheduled-ride.reminder_due',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       if (!customerId) return;

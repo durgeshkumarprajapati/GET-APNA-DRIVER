@@ -177,16 +177,16 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
         {notificationMsg && (
           <div
             role="status"
-            className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border ${
+            className={`fixed top-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border ${
               notificationMsg.tone === 'error'
                 ? 'bg-[#93000a]/20 text-[#ffb4ab] border-[#93000a]'
                 : 'bg-[#25a475] text-[#00311f] border-[#68dba9]'
             }`}
           >
-            <span className="material-symbols-outlined">
+            <span className="material-symbols-outlined shrink-0">
               {notificationMsg.tone === 'error' ? 'error' : 'check_circle'}
             </span>
-            <span>{notificationMsg.text}</span>
+            <span className="break-words">{notificationMsg.text}</span>
           </div>
         )}
 
