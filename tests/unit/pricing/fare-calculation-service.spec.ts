@@ -93,4 +93,24 @@ describe('Pricing Module - Fare Calculation Rules', () => {
     expect(breakdown.subtotalAmount).toBe('5400.0000');
     expect(breakdown.totalFareAmount).toBe('5425.0000');
   });
+
+  it('does not add a stray distance charge on top of the MULTI_DAY package price when a route-estimated distance is present', () => {
+    // Regression test: the route provider falls back to a fixed 10km
+    // estimate for non-single-leg booking types with no dropoff (e.g. a
+    // pickup-only MULTI_DAY hire). MULTI_DAY is package-priced — like
+    // HOURLY/DAILY/FULL_DAY/WEEKLY/MONTHLY — so that estimated distance
+    // must never be billed on top of the day-rate package.
+    // 3 days @ 1800/day = 5400, total 5425 — identical to the no-distance case.
+    const breakdown = calculateFareBreakdown({
+      bookingType: BookingType.MULTI_DAY,
+      numberOfDays: 3,
+      estimatedDistanceKm: 10,
+      config: defaultRules,
+    });
+
+    expect(breakdown.distanceFareAmount).toBe('0.0000');
+    expect(breakdown.packageAdjustmentAmount).toBe('5400.0000');
+    expect(breakdown.subtotalAmount).toBe('5400.0000');
+    expect(breakdown.totalFareAmount).toBe('5425.0000');
+  });
 });

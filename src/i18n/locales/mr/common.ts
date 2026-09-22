@@ -1,4 +1,5 @@
 export const commonMr = {
+  loading: 'लोड होत आहे...',
   actions: {
     save: 'तनजवा',
     cancel: 'रद्द करा',

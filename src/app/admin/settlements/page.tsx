@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/admin-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { FinanceAmount } from '@/components/ui/finance-amount';
@@ -214,93 +213,91 @@ export default function AdminSettlementsPage() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full">
-        <PageHeader
-          eyebrow="Finance"
-          title="Settlement Operations"
-          subtitle="Driver payout reservations, settlement lifecycle, and retries."
-        />
+    <div className="flex flex-col gap-6 w-full">
+      <PageHeader
+        eyebrow="Finance"
+        title="Settlement Operations"
+        subtitle="Driver payout reservations, settlement lifecycle, and retries."
+      />
 
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-            Create Settlement
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input
-              type="text"
-              value={driverProfileId}
-              onChange={(e) => setDriverProfileId(e.target.value)}
-              placeholder="Driver profile ID"
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-            />
-            <input
-              type="text"
-              value={createAmount}
-              onChange={(e) => setCreateAmount(e.target.value)}
-              placeholder="Amount (blank = full available)"
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-            />
-            <button
-              type="button"
-              onClick={() => void createSettlement()}
-              disabled={creating}
-              className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
-            >
-              {creating ? 'Creating...' : 'Create'}
-            </button>
-          </div>
-          {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
-        </div>
-
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-          >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt === '' ? 'All Statuses' : opt}
-              </option>
-            ))}
-          </select>
+      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
+        <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          Create Settlement
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             type="text"
-            value={driverProfileIdFilter}
-            onChange={(e) => {
-              setDriverProfileIdFilter(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Filter by driver profile ID"
-            className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            value={driverProfileId}
+            onChange={(e) => setDriverProfileId(e.target.value)}
+            placeholder="Driver profile ID"
+            className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
           />
+          <input
+            type="text"
+            value={createAmount}
+            onChange={(e) => setCreateAmount(e.target.value)}
+            placeholder="Amount (blank = full available)"
+            className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          />
+          <button
+            type="button"
+            onClick={() => void createSettlement()}
+            disabled={creating}
+            className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+          >
+            {creating ? 'Creating...' : 'Create'}
+          </button>
         </div>
-
-        {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <LoadingState message="Loading settlements…" />
-        ) : (
-          <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
-            <DataTable
-              columns={columns}
-              data={settlements}
-              keyExtractor={(s) => s.id}
-              emptyIcon="payments"
-              emptyMessage="No settlements match these filters."
-            />
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
-          </div>
-        )}
+        {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
       </div>
-    </AdminLayout>
+
+      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt === '' ? 'All Statuses' : opt}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          value={driverProfileIdFilter}
+          onChange={(e) => {
+            setDriverProfileIdFilter(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Filter by driver profile ID"
+          className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+        />
+      </div>
+
+      {error && (
+        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <LoadingState message="Loading settlements…" />
+      ) : (
+        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+          <DataTable
+            columns={columns}
+            data={settlements}
+            keyExtractor={(s) => s.id}
+            emptyIcon="payments"
+            emptyMessage="No settlements match these filters."
+          />
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+        </div>
+      )}
+    </div>
   );
 }

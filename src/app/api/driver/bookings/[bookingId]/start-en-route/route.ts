@@ -6,6 +6,7 @@ import {
   BookingNotFoundError,
   InvalidBookingStatusTransitionError,
 } from '@/modules/booking/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 
@@ -29,8 +30,7 @@ export const POST = withPermission<RouteParams>(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to start en route.';
-      return NextResponse.json({ error: 'JOURNEY_ACTION_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

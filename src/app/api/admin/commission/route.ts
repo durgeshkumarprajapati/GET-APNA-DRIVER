@@ -8,6 +8,7 @@ import {
   getCommissionPolicyHistory,
   updateCommissionPolicy,
 } from '@/modules/finance/application/services/commission-policy-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(PERMISSIONS.FINANCE_COMMISSION_MANAGE, async (req) => {
   try {
@@ -46,11 +47,7 @@ export const GET = withPermission(PERMISSIONS.FINANCE_COMMISSION_MANAGE, async (
 
     return NextResponse.json({ success: true, policy, history }, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to load commission policy.';
-    return NextResponse.json(
-      { success: false, error: 'COMMISSION_FETCH_FAILED', message },
-      { status: 500 },
-    );
+    return toErrorResponse(error, req.nextUrl.pathname);
   }
 });
 

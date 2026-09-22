@@ -477,21 +477,61 @@ export class DriverScheduleService {
       }
     }
 
-    // 2. Weekly Schedule Check
+    // 2. Weekly Schedule Check for today. Note: for an overnight shift
+    // (endMin <= startMin), only the "evening" portion (currentMinutes >=
+    // startMin) can belong to *today's* entry — the "early morning" portion
+    // actually belongs to *yesterday's* shift rolling past midnight, and is
+    // handled by the midnight-rollover check below. Evaluating currentMinutes
+    // < endMin against today's own entry here would be wrong whenever
+    // yesterday has a different (or no) schedule than today.
     const daySchedule = profile.schedules.find((s) => s.dayOfWeek === dayOfWeek);
-    if (!daySchedule || !daySchedule.isActive) {
-      return false;
+    if (daySchedule && daySchedule.isActive) {
+      const startMin = parseTimeMinutes(daySchedule.startTime);
+      const endMin = parseTimeMinutes(daySchedule.endTime);
+      const isOvernight = daySchedule.isOvernight || endMin <= startMin;
+
+      if (isOvernight) {
+        if (currentMinutes >= startMin) return true;
+      } else if (currentMinutes >= startMin && currentMinutes < endMin) {
+        return true;
+      }
     }
 
-    const startMin = parseTimeMinutes(daySchedule.startTime);
-    const endMin = parseTimeMinutes(daySchedule.endTime);
+    // 3. Midnight-rollover check: an overnight shift that started *yesterday*
+    // (e.g. Mon 22:00-06:00) is still active during today's early morning
+    // hours, even if today has no schedule entry of its own (or a different
+    // one). Yesterday's exception takes priority over yesterday's weekly
+    // schedule, mirroring the precedence rule applied to today above.
+    const yesterday = new Date(targetTime.getTime() - 24 * 60 * 60 * 1000);
+    const yesterdayDateStr = getLocalDateString(yesterday, timezone);
+    const yesterdayDayOfWeek = getDayOfWeekFromDate(yesterday, timezone);
 
-    if (daySchedule.isOvernight || endMin <= startMin) {
-      // Overnight shift e.g. 22:00 - 06:00
-      return currentMinutes >= startMin || currentMinutes < endMin;
+    const yesterdayException = profile.scheduleExceptions.find(
+      (e) => e.date.toISOString().split('T')[0] === yesterdayDateStr,
+    );
+
+    if (yesterdayException) {
+      if (
+        yesterdayException.exceptionType === ScheduleExceptionType.CUSTOM_HOURS &&
+        yesterdayException.startTime &&
+        yesterdayException.endTime
+      ) {
+        const startMin = parseTimeMinutes(yesterdayException.startTime);
+        const endMin = parseTimeMinutes(yesterdayException.endTime);
+        if (endMin <= startMin && currentMinutes < endMin) return true;
+      }
+      // OFF / HOLIDAY / LEAVE yesterday: no shift to roll over from.
+    } else {
+      const yesterdaySchedule = profile.schedules.find((s) => s.dayOfWeek === yesterdayDayOfWeek);
+      if (yesterdaySchedule && yesterdaySchedule.isActive) {
+        const startMin = parseTimeMinutes(yesterdaySchedule.startTime);
+        const endMin = parseTimeMinutes(yesterdaySchedule.endTime);
+        const isOvernight = yesterdaySchedule.isOvernight || endMin <= startMin;
+        if (isOvernight && currentMinutes < endMin) return true;
+      }
     }
 
-    return currentMinutes >= startMin && currentMinutes < endMin;
+    return false;
   }
 }
 

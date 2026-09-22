@@ -131,7 +131,15 @@ export async function evaluateDriverIncentivesForCompletedTrip(
         tx,
       );
 
-      return db.driverIncentiveProgress.update({
+      // Must use `tx`, not the outer `db` — this write finalizes the same
+      // reward whose ledger posting and wallet credit were just made inside
+      // this transaction. Using `db` here would run it as a separate,
+      // already-committed statement outside the transaction: if the
+      // enclosing transaction's deferred ledger-balance trigger then failed
+      // at commit and rolled back the postFinancialTransaction/
+      // applyWalletChange writes, this progress row would be left pointing
+      // at a financialTransactionId that no longer exists.
+      return tx.driverIncentiveProgress.update({
         where: { id: progress!.id },
         data: {
           currentValue: newCurrentValue,

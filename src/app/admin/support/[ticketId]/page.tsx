@@ -270,11 +270,11 @@ export default function AdminTicketDetailPage({
         {/* Left Column: Messages & Form (8 cols) */}
         <div className="lg:col-span-8 flex flex-col gap-5">
           {/* Tabs */}
-          <div className="flex items-center gap-2 border-b border-gray-800 pb-2">
+          <div className="flex items-center gap-2 border-b border-gray-800 pb-2 overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab('PUBLIC')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
+              className={`shrink-0 px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
                 activeTab === 'PUBLIC'
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                   : 'text-gray-400 hover:text-gray-200'
@@ -286,7 +286,7 @@ export default function AdminTicketDetailPage({
             <button
               type="button"
               onClick={() => setActiveTab('INTERNAL')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
+              className={`shrink-0 px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
                 activeTab === 'INTERNAL'
                   ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40'
                   : 'text-gray-400 hover:text-gray-200'
@@ -298,7 +298,7 @@ export default function AdminTicketDetailPage({
             <button
               type="button"
               onClick={() => setActiveTab('AUDIT')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
+              className={`shrink-0 px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
                 activeTab === 'AUDIT'
                   ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
                   : 'text-gray-400 hover:text-gray-200'

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { ObservabilityService } from '@/modules/observability';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(
   PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
@@ -24,12 +25,7 @@ export const GET = withPermission(
 
       return NextResponse.json({ success: true, data });
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to fetch performance metrics';
-      return NextResponse.json(
-        { success: false, error: 'PERFORMANCE_METRICS_FETCH_FAILED', message },
-        { status: 500 },
-      );
+      return toErrorResponse(error, request.nextUrl.pathname);
     }
   },
 );

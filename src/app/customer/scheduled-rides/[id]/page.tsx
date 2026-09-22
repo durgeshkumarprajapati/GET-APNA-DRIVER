@@ -111,8 +111,7 @@ export default function ScheduledRideDetailPage() {
       }
     } catch {
       alert('Error pausing schedule.');
-    }
-    fontally: {
+    } finally {
       setActionLoading(false);
     }
   };

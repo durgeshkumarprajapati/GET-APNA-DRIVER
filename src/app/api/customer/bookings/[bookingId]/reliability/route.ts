@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { TripReliabilityService } from '@/modules/trip-reliability/trip-reliability-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 const service = new TripReliabilityService();
@@ -19,9 +20,7 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ reliability }, { status: 200 });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to fetch customer trip reliability.';
-      return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

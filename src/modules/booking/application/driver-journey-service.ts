@@ -1,6 +1,11 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
-import { BookingStatus, DriverAvailabilityStatus, AssignmentAttemptStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  BookingType,
+  DriverAvailabilityStatus,
+  AssignmentAttemptStatus,
+} from '@prisma/client';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
@@ -8,7 +13,7 @@ import {
   validateBookingStatusTransition,
   isBookingCancellable,
 } from '../domain/booking-state-machine';
-import { getBoolean } from '@/shared/config/configuration-service';
+import { getBoolean, getInteger } from '@/shared/config/configuration-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
@@ -123,6 +128,7 @@ export async function startEnRoute(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
         driverProfileId: profile.id,
         enRouteAt: now.toISOString(),
       },
@@ -188,6 +194,7 @@ export async function markArrived(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
         driverProfileId: profile.id,
         arrivedAt: now.toISOString(),
       },
@@ -437,6 +444,7 @@ export async function startTrip(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
         driverProfileId: profile.id,
         tripStartedAt: now.toISOString(),
         ridePinVerifiedAt: now.toISOString(),
@@ -469,6 +477,19 @@ export async function startTrip(
 }
 
 /**
+ * These are the only two BookingType values priced by real distance/duration
+ * (see pricing-rules.ts's `calculateFareBreakdown` switch — every other
+ * type is either explicitly package-priced or ROUND_TRIP's fixed distance
+ * multiplier). A pickup-only trip of one of these types has no dropoff to
+ * measure real distance from, which would otherwise silently bill only the
+ * base fare + elapsed-time component (then the minimum-fare floor).
+ */
+const DISTANCE_PRICED_BOOKING_TYPES: BookingType[] = [
+  BookingType.POINT_TO_POINT,
+  BookingType.ONE_WAY,
+];
+
+/**
  * Driver completes the trip and handles post-trip driver availability restoration.
  */
 export async function completeTrip(
@@ -489,6 +510,47 @@ export async function completeTrip(
     actualDurationMinutes = Math.max(5, Math.ceil(elapsedMs / (1000 * 60)));
   }
 
+  let effectiveDropoff =
+    booking.dropoffLatitude && booking.dropoffLongitude && booking.dropoffAddress
+      ? {
+          latitude: booking.dropoffLatitude,
+          longitude: booking.dropoffLongitude,
+          address: booking.dropoffAddress,
+          label: booking.dropoffLabel,
+        }
+      : null;
+
+  // Pickup-only trip (no dropoff was ever captured) on a distance-priced
+  // booking type: the deterministic route provider would otherwise report
+  // 0km, silently billing only base fare + elapsed time (then the minimum-
+  // fare floor). Use the driver's own live GPS ping as a server-authoritative
+  // stand-in for where the trip actually ended, so distance is billed for
+  // real — same freshness discipline as trip-reliability's stale-location
+  // rule, just a separate config key since this is the pricing module.
+  let capturedCompletionDropoff: typeof effectiveDropoff = null;
+  if (!effectiveDropoff && DISTANCE_PRICED_BOOKING_TYPES.includes(booking.bookingType)) {
+    const maxAgeSeconds = await getInteger(
+      'pricing.pickup_only_completion_location_max_age_seconds',
+      300,
+      db,
+    );
+    const liveLocation = await db.driverCurrentLocation?.findUnique?.({
+      where: { driverProfileId: profile.id },
+    });
+    if (liveLocation) {
+      const ageSeconds = (now.getTime() - new Date(liveLocation.capturedAt).getTime()) / 1000;
+      if (ageSeconds <= maxAgeSeconds) {
+        capturedCompletionDropoff = {
+          latitude: liveLocation.latitude,
+          longitude: liveLocation.longitude,
+          address: 'Trip end location (auto-captured from driver GPS)',
+          label: null,
+        };
+        effectiveDropoff = capturedCompletionDropoff;
+      }
+    }
+  }
+
   const finalFareResult = await calculateFinalFare(
     {
       bookingType: booking.bookingType,
@@ -498,15 +560,7 @@ export async function completeTrip(
         address: booking.pickupAddress,
         label: booking.pickupLabel,
       },
-      dropoff:
-        booking.dropoffLatitude && booking.dropoffLongitude && booking.dropoffAddress
-          ? {
-              latitude: booking.dropoffLatitude,
-              longitude: booking.dropoffLongitude,
-              address: booking.dropoffAddress,
-              label: booking.dropoffLabel,
-            }
-          : null,
+      dropoff: effectiveDropoff,
       actualDurationMinutes,
       numberOfDays: booking.numberOfDays,
       hourlyPackageHours: booking.hourlyPackageHours,
@@ -528,6 +582,13 @@ export async function completeTrip(
         status: BookingStatus.TRIP_COMPLETED,
         tripCompletedAt: now,
         finalFareAmount: finalFareResult.breakdown.totalFareAmount,
+        ...(capturedCompletionDropoff
+          ? {
+              dropoffLatitude: capturedCompletionDropoff.latitude,
+              dropoffLongitude: capturedCompletionDropoff.longitude,
+              dropoffAddress: capturedCompletionDropoff.address,
+            }
+          : {}),
       },
     });
 

@@ -2,6 +2,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import { getJourneyDetails } from '@/modules/trip-execution/application/journey-orchestration-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withAuth(async (_req, { principal }, routeContext?: unknown) => {
   try {
@@ -23,6 +24,6 @@ export const GET = withAuth(async (_req, { principal }, routeContext?: unknown) 
     if (message.includes('Unauthorized')) {
       return NextResponse.json({ error: 'UNAUTHORIZED_JOURNEY_ACCESS', message }, { status: 403 });
     }
-    return NextResponse.json({ error: 'FETCH_DRIVER_JOURNEY_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });

@@ -9,6 +9,7 @@ import {
   BookingAlreadyAssignedError,
 } from '@/modules/booking/domain/errors';
 import { DriverNotEligibleError } from '@/modules/driver/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ attemptId: string }> };
 
@@ -44,8 +45,7 @@ export const POST = withPermission<RouteParams>(
       if (err instanceof DriverNotEligibleError) {
         return NextResponse.json({ error: 'NOT_ELIGIBLE', message: err.message }, { status: 403 });
       }
-      const message = err instanceof Error ? err.message : 'Failed to accept assignment offer.';
-      return NextResponse.json({ error: 'ACCEPT_OFFER_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

@@ -256,7 +256,7 @@ export default function NewCorporateBookingPage() {
               />
             </div>
 
-            <div className="p-4 bg-[#1c2028] border border-[#262a33] rounded-xl flex items-center justify-between">
+            <div className="p-4 bg-[#1c2028] border border-[#262a33] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-xs text-[#bccac0] block font-mono">
                   Estimated Fare Billed To Corporate

@@ -24,6 +24,9 @@ interface MockDb {
   systemConfiguration: {
     findUnique: jest.Mock;
   };
+  driverProfile: {
+    findUnique: jest.Mock;
+  };
 }
 
 describe('Notification Integration Flow', () => {
@@ -54,6 +57,9 @@ describe('Notification Integration Flow', () => {
         findMany: jest.fn().mockResolvedValue([]),
       },
       systemConfiguration: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
+      driverProfile: {
         findUnique: jest.fn().mockResolvedValue(null),
       },
     };
@@ -148,6 +154,100 @@ describe('Notification Integration Flow', () => {
           userId: 'cust-10',
           type: NotificationType.PAYMENT_CAPTURED,
           title: 'Payment Successful',
+        }),
+      }),
+    );
+  });
+
+  // Regression: the outbox emitters use hyphenated 'scheduled-ride.*' event
+  // types, but the handler registry previously registered mismatched
+  // underscored keys ('scheduled_ride.created' / 'scheduled_ride.reminder'),
+  // so no scheduled-ride notification was ever created.
+  it('processes scheduled-ride.created outbox event and creates a customer notification', async () => {
+    const outboxEvent = {
+      id: 'outbox-scheduled-ride-1',
+      eventType: 'scheduled-ride.created',
+      aggregateType: 'SCHEDULED_RIDE',
+      aggregateId: 'ride-1',
+      payload: {
+        scheduledRideId: 'ride-1',
+        customerId: 'cust-10',
+        scheduleType: 'RECURRING',
+      },
+      status: OutboxEventStatus.PROCESSING,
+      attempts: 1,
+      availableAt: new Date(),
+      lastAttemptAt: null,
+      lockedAt: new Date(),
+      lockedBy: 'integration-test-worker',
+      lastError: null,
+      processedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as unknown as OutboxEvent;
+
+    const success = await dispatcher.processEvent(
+      outboxEvent,
+      { maxAttempts: 3 },
+      mockDb as unknown as Parameters<typeof dispatcher.processEvent>[2],
+    );
+
+    expect(success).toBe(true);
+    expect(mockDb.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: 'cust-10',
+          type: NotificationType.SCHEDULED_RIDE_CREATED,
+          title: 'Scheduled Ride Set',
+        }),
+      }),
+    );
+  });
+
+  // Regression: the outbox emitter uses 'driver.approved' with only
+  // { driverProfileId, approvedBy } in the payload, but the handler
+  // registry previously registered a mismatched 'driver.application.approved'
+  // key expecting payload.userId, so no approval notification was ever sent.
+  it('processes driver.approved outbox event, resolving the userId via driverProfileId', async () => {
+    mockDb.driverProfile.findUnique.mockResolvedValue({ userId: 'driver-user-5' });
+
+    const outboxEvent = {
+      id: 'outbox-driver-approved-1',
+      eventType: 'driver.approved',
+      aggregateType: 'DriverProfile',
+      aggregateId: 'driver-profile-5',
+      payload: {
+        driverProfileId: 'driver-profile-5',
+        approvedBy: 'admin-1',
+      },
+      status: OutboxEventStatus.PROCESSING,
+      attempts: 1,
+      availableAt: new Date(),
+      lastAttemptAt: null,
+      lockedAt: new Date(),
+      lockedBy: 'integration-test-worker',
+      lastError: null,
+      processedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as unknown as OutboxEvent;
+
+    const success = await dispatcher.processEvent(
+      outboxEvent,
+      { maxAttempts: 3 },
+      mockDb as unknown as Parameters<typeof dispatcher.processEvent>[2],
+    );
+
+    expect(success).toBe(true);
+    expect(mockDb.driverProfile.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'driver-profile-5' } }),
+    );
+    expect(mockDb.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: 'driver-user-5',
+          type: NotificationType.DRIVER_APPLICATION_APPROVED,
+          title: 'Application Approved!',
         }),
       }),
     );

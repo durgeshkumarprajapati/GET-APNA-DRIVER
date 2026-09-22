@@ -6,6 +6,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { triggerSos } from '@/modules/safety/application/safety-incident-service';
 import { checkRateLimit } from '@/shared/rate-limit/rate-limiter';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const triggerSosSchema = z.object({
   bookingId: z.string().uuid().optional(),
@@ -50,8 +51,7 @@ export const POST = withPermission(
 
       return NextResponse.json({ incident }, { status: 201 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to trigger SOS emergency';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

@@ -173,7 +173,7 @@ export default function AdminIncidentDetailPage({
     <ControlStationLayout activePersona="admin">
       <div className="space-y-6 max-w-6xl mx-auto">
         {/* Breadcrumb & Navigation Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/admin/incidents"
@@ -224,7 +224,7 @@ export default function AdminIncidentDetailPage({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleTriggerRecovery}
               disabled={actionPending || incident.status === 'RESOLVED'}

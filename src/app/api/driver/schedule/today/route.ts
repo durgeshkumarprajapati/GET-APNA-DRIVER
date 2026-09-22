@@ -5,6 +5,7 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { driverScheduleService } from '@/modules/driver/application/services/driver-schedule-service';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { isDriverDispatchEligible } from '@/modules/driver/application/services/driver-eligibility-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(PERMISSIONS.DRIVER_SCHEDULE_READ, async (_req, { principal }) => {
   try {
@@ -24,7 +25,6 @@ export const GET = withPermission(PERMISSIONS.DRIVER_SCHEDULE_READ, async (_req,
       },
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch today shift overview.';
-    return NextResponse.json({ error: 'TODAY_SHIFT_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });

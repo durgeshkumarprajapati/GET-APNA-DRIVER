@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { claimCustomerOffer } from '@/modules/promotion/application/services/promotion-eligibility-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ promotionId: string }> };
 
@@ -19,7 +20,7 @@ export const POST = withPermission<RouteParams>(
       if (message.includes('not found')) {
         return NextResponse.json({ error: 'PROMOTION_NOT_FOUND', message }, { status: 404 });
       }
-      return NextResponse.json({ error: 'CLAIM_OFFER_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

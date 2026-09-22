@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { executeOperationsAction } from '@/modules/operations';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_OPERATIONS_ACTION,
@@ -25,7 +26,7 @@ export const POST = withPermission(
         actionId,
         decisionId,
         actionType,
-        adminUserId: context.principal.userId,
+        actor: context.principal,
         bookingId,
         incidentId,
         driverId,
@@ -34,13 +35,7 @@ export const POST = withPermission(
 
       return NextResponse.json({ success: true, result });
     } catch (err: unknown) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: err instanceof Error ? err.message : 'Failed to execute operational action',
-        },
-        { status: 500 },
-      );
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

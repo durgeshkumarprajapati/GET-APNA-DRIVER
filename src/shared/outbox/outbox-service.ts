@@ -1,5 +1,5 @@
 import 'server-only';
-import { prisma, type Db } from '../database/prisma';
+import { type Db } from '../database/prisma';
 
 import type { Prisma } from '@prisma/client';
 
@@ -28,21 +28,4 @@ export async function insertOutboxEvent(db: Db, input: InsertOutboxEventInput): 
       payload: input.payload as Prisma.InputJsonValue,
     },
   });
-}
-
-/**
- * Triggers an immediate inline processing cycle for pending outbox events.
- * Registers notification handlers and executes outboxDispatcherService.runBatch().
- */
-export async function dispatchOutboxEventsInline(db: Db = prisma): Promise<number> {
-  try {
-    const { registerNotificationEventHandlers } =
-      await import('../../worker/jobs/notification-event-handlers');
-    registerNotificationEventHandlers();
-    const { outboxDispatcherService } =
-      await import('../../worker/outbox/outbox-dispatcher-service');
-    return await outboxDispatcherService.runBatch({}, db);
-  } catch {
-    return 0;
-  }
 }

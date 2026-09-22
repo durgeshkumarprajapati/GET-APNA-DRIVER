@@ -7,6 +7,7 @@ import {
   SupportTicketNotFoundError,
   SupportTicketAccessDeniedError,
 } from '@/modules/support/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ ticketId: string }>;
@@ -29,8 +30,7 @@ export const GET = withPermission<RouteParams>(
       if (err instanceof SupportTicketAccessDeniedError) {
         return NextResponse.json({ error: 'ACCESS_DENIED', message: err.message }, { status: 403 });
       }
-      const message = err instanceof Error ? err.message : 'Failed to retrieve ticket details.';
-      return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

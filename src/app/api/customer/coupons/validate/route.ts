@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { validateCouponForPreview } from '@/modules/promotion/application/services/promotion-eligibility-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const validateCouponSchema = z.object({
   code: z.string().trim().min(1, 'Coupon code is required').max(50),
@@ -31,7 +32,6 @@ export const POST = withPermission(PERMISSIONS.PROMOTIONS_READ, async (req, { pr
         { status: 400 },
       );
     }
-    const message = err instanceof Error ? err.message : 'Failed to validate coupon.';
-    return NextResponse.json({ error: 'COUPON_VALIDATION_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

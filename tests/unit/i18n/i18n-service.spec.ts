@@ -96,4 +96,51 @@ describe('i18n Architecture Unit Tests', () => {
       expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'gu')).toBe('મુસાફરી ચાલુ છે');
     });
   });
+
+  describe('Regression: flat keys called by the UI without a namespace prefix', () => {
+    // The scheduled-rides screens (customer + admin) and the new-booking
+    // scheduler call t('scheduledRides.pauseBtn'), t('scheduledRides.oneTime'),
+    // t('scheduledRides.frequency.daily'), etc. — flat/lowercase key names
+    // that never matched the catalog's nested actions.*/tabs.*/uppercase
+    // frequency.* structure, so translate() fell all the way through to
+    // returning the raw key string. Asserts each of those exact call-site
+    // keys now resolves to real text instead of echoing the key back.
+    const flatKeys = [
+      'scheduledRides.pauseBtn',
+      'scheduledRides.resumeBtn',
+      'scheduledRides.cancelBtn',
+      'scheduledRides.viewDetails',
+      'scheduledRides.confirmSchedule',
+      'scheduledRides.oneTime',
+      'scheduledRides.recurring',
+      'scheduledRides.createTitle',
+      'scheduledRides.adminTitle',
+      'scheduledRides.confirmCancel',
+      'scheduledRides.occurrenceHistory',
+      'scheduledRides.failedCreate',
+      'scheduledRides.frequency.daily',
+      'scheduledRides.frequency.weekly',
+      'scheduledRides.frequency.custom_days',
+    ];
+
+    it.each(flatKeys)('resolves %s to real text in English (not the raw key)', (key) => {
+      const result = translate('en', key);
+      expect(result).not.toBe(key);
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it.each(flatKeys)('resolves %s to real text in every supported locale', (key) => {
+      for (const locale of SUPPORTED_LOCALES) {
+        const result = translate(locale, key);
+        expect(result).not.toBe(key);
+      }
+    });
+
+    it("resolves common.loading (called without the '.labels.' segment)", () => {
+      for (const locale of SUPPORTED_LOCALES) {
+        expect(translate(locale, 'common.loading')).not.toBe('common.loading');
+      }
+      expect(translate('en', 'common.loading')).toBe('Loading...');
+    });
+  });
 });

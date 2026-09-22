@@ -96,7 +96,7 @@ export default function AdminIncidentsListPage() {
     <ControlStationLayout activePersona="admin">
       <div className="space-y-6 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-100">
               Trip Reliability Incident Management

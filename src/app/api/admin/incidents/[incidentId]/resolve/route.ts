@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { TripReliabilityService } from '@/modules/trip-reliability/trip-reliability-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ incidentId: string }> };
 const service = new TripReliabilityService();
@@ -20,8 +21,7 @@ export const POST = withPermission<RouteParams>(
 
       return NextResponse.json({ success: true, data: updated }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to resolve incident.';
-      return NextResponse.json({ error: 'RESOLUTION_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

@@ -1,4 +1,5 @@
 export const commonTa = {
+  loading: 'ஏற்றப்படுகிறது...',
   actions: {
     save: 'சேமி',
     cancel: 'ரத்து செய்',

@@ -345,16 +345,36 @@ export function registerNotificationEventHandlers(): void {
     'payment.captured',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       let customerId = payload.customerId as string | undefined;
+      let driverUserId = payload.driverUserId as string | undefined;
       const paymentId = payload.paymentId as string | undefined;
       const amount = payload.amount as string | number;
       const client = db ?? prisma;
 
-      if (!customerId && paymentId) {
+      if ((!customerId || !driverUserId) && paymentId && client.payment?.findUnique) {
         const payment = await client.payment.findUnique({
           where: { id: paymentId },
-          select: { customerId: true, booking: { select: { customerId: true } } },
+          select: {
+            customerId: true,
+            driverProfileId: true,
+            booking: {
+              select: {
+                customerId: true,
+                driverProfile: { select: { userId: true } },
+              },
+            },
+          },
         });
-        customerId = payment?.customerId ?? payment?.booking?.customerId;
+        if (!customerId) customerId = payment?.customerId ?? payment?.booking?.customerId;
+        if (!driverUserId) {
+          driverUserId = payment?.booking?.driverProfile?.userId;
+          if (!driverUserId && payment?.driverProfileId && client.driverProfile?.findUnique) {
+            const dp = await client.driverProfile.findUnique({
+              where: { id: payment.driverProfileId },
+              select: { userId: true },
+            });
+            driverUserId = dp?.userId;
+          }
+        }
       }
 
       if (customerId) {
@@ -366,6 +386,20 @@ export function registerNotificationEventHandlers(): void {
             body: `Payment of ₹${amount} received successfully. Receipt generated.`,
             data: { paymentId },
             idempotencyKey: `${event.id}-payment-captured`,
+          },
+          client,
+        );
+      }
+
+      if (driverUserId) {
+        await createNotification(
+          {
+            userId: driverUserId,
+            type: NotificationType.PAYMENT_CAPTURED,
+            title: 'Payment Received!',
+            body: `Payment of ₹${amount} for your trip has been confirmed.`,
+            data: { paymentId, bookingId: payload.bookingId },
+            idempotencyKey: `${event.id}-driver-payment-captured`,
           },
           client,
         );
@@ -591,9 +625,20 @@ export function registerNotificationEventHandlers(): void {
   // Driver Onboarding Events
   // -------------------------------------------------------------------------
   eventHandlerRegistry.register(
-    'driver.application.approved',
+    'driver.approved',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
-      const driverUserId = payload.userId as string;
+      const client = db ?? prisma;
+      let driverUserId = payload.userId as string | undefined;
+      const driverProfileId = payload.driverProfileId as string | undefined;
+
+      if (!driverUserId && driverProfileId && client.driverProfile?.findUnique) {
+        const dp = await client.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        driverUserId = dp?.userId;
+      }
+
       if (driverUserId) {
         await createNotification(
           {
@@ -604,7 +649,41 @@ export function registerNotificationEventHandlers(): void {
             data: payload,
             idempotencyKey: `${event.id}-app-approved`,
           },
-          db ?? prisma,
+          client,
+        );
+      }
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'driver.rejected',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const client = db ?? prisma;
+      let driverUserId = payload.userId as string | undefined;
+      const driverProfileId = payload.driverProfileId as string | undefined;
+      const reason = payload.reason as string | undefined;
+
+      if (!driverUserId && driverProfileId && client.driverProfile?.findUnique) {
+        const dp = await client.driverProfile.findUnique({
+          where: { id: driverProfileId },
+          select: { userId: true },
+        });
+        driverUserId = dp?.userId;
+      }
+
+      if (driverUserId) {
+        await createNotification(
+          {
+            userId: driverUserId,
+            type: NotificationType.DRIVER_APPLICATION_REJECTED,
+            title: 'Application Update',
+            body: reason
+              ? `Your driver application was not approved: ${reason}`
+              : 'Your driver application was not approved. Please review your documents and resubmit.',
+            data: payload,
+            idempotencyKey: `${event.id}-app-rejected`,
+          },
+          client,
         );
       }
     },
@@ -1163,7 +1242,7 @@ export function registerNotificationEventHandlers(): void {
   // Scheduled Rides Events
   // -------------------------------------------------------------------------
   eventHandlerRegistry.register(
-    'scheduled_ride.created',
+    'scheduled-ride.created',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const time = payload.scheduledTime as string;
@@ -1185,7 +1264,7 @@ export function registerNotificationEventHandlers(): void {
   );
 
   eventHandlerRegistry.register(
-    'scheduled_ride.reminder',
+    'scheduled-ride.reminder_due',
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       if (!customerId) return;

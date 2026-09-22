@@ -9,6 +9,7 @@ import {
   calculateHireEndTimestamp,
 } from '@/modules/booking/domain/booking-policy';
 import { listActiveDriversForHire } from '@/modules/booking/application/driver-hire-availability-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const querySchema = z.object({
   bookingType: z.nativeEnum(BookingType),
@@ -59,7 +60,6 @@ export const GET = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req: NextR
         { status: 400 },
       );
     }
-    const message = err instanceof Error ? err.message : 'Failed to fetch available drivers.';
-    return NextResponse.json({ error: 'FETCH_DRIVERS_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

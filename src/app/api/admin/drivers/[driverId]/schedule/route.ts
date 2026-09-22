@@ -6,6 +6,7 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { driverScheduleService } from '@/modules/driver/application/services/driver-schedule-service';
 import { DayOfWeek } from '@prisma/client';
 import { prisma } from '@/shared/database/prisma';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ driverId: string }>;
@@ -28,7 +29,7 @@ const adminUpdateScheduleSchema = z.object({
 
 export const GET = withPermission<RouteParams>(
   PERMISSIONS.ADMIN_DRIVER_SCHEDULE_READ,
-  async (_req, { principal: _principal }, routeContext) => {
+  async (req, { principal: _principal }, routeContext) => {
     try {
       const { driverId } = await routeContext!.params;
       const profile = await prisma.driverProfile.findUnique({
@@ -45,8 +46,7 @@ export const GET = withPermission<RouteParams>(
       const schedule = await driverScheduleService.getDriverSchedule(profile.id);
       return NextResponse.json({ success: true, data: schedule });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch admin driver schedule.';
-      return NextResponse.json({ error: 'ADMIN_SCHEDULE_FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );
@@ -83,8 +83,7 @@ export const PATCH = withPermission<RouteParams>(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to update driver schedule.';
-      return NextResponse.json({ error: 'ADMIN_SCHEDULE_UPDATE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

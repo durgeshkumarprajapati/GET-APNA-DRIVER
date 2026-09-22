@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { RiskDecisionService, RiskExplanationService } from '@/modules/risk';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(
   PERMISSIONS.ADMIN_RISK_READ,
-  async (_req: NextRequest, _context, routeContext?: { params: Promise<{ riskId: string }> }) => {
+  async (req: NextRequest, _context, routeContext?: { params: Promise<{ riskId: string }> }) => {
     try {
       if (!routeContext) {
         return NextResponse.json({ success: false, error: 'Missing parameters' }, { status: 400 });
@@ -24,13 +25,7 @@ export const GET = withPermission(
 
       return NextResponse.json({ success: true, decision, explanation });
     } catch (err: unknown) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: err instanceof Error ? err.message : 'Failed to fetch risk decision detail',
-        },
-        { status: 500 },
-      );
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

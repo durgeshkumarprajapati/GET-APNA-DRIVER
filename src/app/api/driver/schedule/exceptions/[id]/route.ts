@@ -4,6 +4,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { driverScheduleService } from '@/modules/driver/application/services/driver-schedule-service';
 import { ScheduleExceptionNotFoundError } from '@/modules/driver/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -30,8 +31,7 @@ export const DELETE = withPermission<RouteParams>(
       if (err instanceof ScheduleExceptionNotFoundError) {
         return NextResponse.json({ error: 'NOT_FOUND', message: err.message }, { status: 404 });
       }
-      const message = err instanceof Error ? err.message : 'Failed to delete schedule exception.';
-      return NextResponse.json({ error: 'EXCEPTION_DELETE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

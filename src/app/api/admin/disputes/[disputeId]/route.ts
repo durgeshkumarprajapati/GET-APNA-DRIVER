@@ -9,6 +9,7 @@ import {
   updateDisputeStatus,
   resolveDispute,
 } from '@/modules/dispute/application/dispute-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ disputeId: string }> };
 
@@ -85,8 +86,7 @@ export const PATCH = withPermission<RouteParams>(
 
       return NextResponse.json({ dispute: updated }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update dispute';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

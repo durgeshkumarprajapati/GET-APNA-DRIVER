@@ -4,6 +4,7 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { AIService } from '@/modules/ai/ai-service';
 import { prisma } from '@/shared/database/prisma';
 import { z } from 'zod';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const MessageInputSchema = z.object({
   message: z.string().trim().min(1).max(1000),
@@ -33,8 +34,7 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_READ, async (req, { prin
 
     return NextResponse.json(response, { status: 200 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to process AI request.';
-    return NextResponse.json({ error: 'AI_PROCESSING_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });
 
@@ -47,7 +47,6 @@ export const GET = withPermission(PERMISSIONS.BOOKINGS_READ, async (_req, { prin
     });
     return NextResponse.json({ conversations }, { status: 200 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch AI conversations.';
-    return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });

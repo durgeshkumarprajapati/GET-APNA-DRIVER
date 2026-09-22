@@ -7,6 +7,7 @@ import { driverScheduleService } from '@/modules/driver/application/services/dri
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { ScheduleExceptionType } from '@prisma/client';
 import { InvalidScheduleTimeError } from '@/modules/driver/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const createExceptionSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be in YYYY-MM-DD format'),
@@ -30,8 +31,7 @@ export const GET = withPermission(PERMISSIONS.DRIVER_SCHEDULE_READ, async (_req,
     const overview = await driverScheduleService.getDriverSchedule(profile.id);
     return NextResponse.json({ success: true, data: overview.exceptions });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch schedule exceptions.';
-    return NextResponse.json({ error: 'EXCEPTIONS_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });
 
@@ -61,8 +61,7 @@ export const POST = withPermission(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to create schedule exception.';
-      return NextResponse.json({ error: 'EXCEPTION_CREATE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

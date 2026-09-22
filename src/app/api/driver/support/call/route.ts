@@ -5,6 +5,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { callingService } from '@/modules/calling/application/services/calling-service';
 import { CallAuthorizationError } from '@/modules/calling/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const callSupportSchema = z.object({
   supportTicketId: z.string().uuid().optional().nullable(),
@@ -35,8 +36,7 @@ export const POST = withPermission(
       if (err instanceof CallAuthorizationError) {
         return NextResponse.json({ error: 'FORBIDDEN', message: err.message }, { status: 403 });
       }
-      const message = err instanceof Error ? err.message : 'Failed to initiate support call.';
-      return NextResponse.json({ error: 'CALL_INITIATION_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

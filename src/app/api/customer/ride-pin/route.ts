@@ -8,6 +8,7 @@ import {
   setCustomerRidePin,
   InvalidRidePinFormatError,
 } from '@/modules/customer/application/services/ride-pin-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const setPinSchema = z.object({
   pin: z.string().regex(/^\d{6}$/, 'PIN must be exactly 6 numeric digits'),
@@ -46,7 +47,6 @@ export const POST = withPermission(PERMISSIONS.USERS_PROFILE_UPDATE, async (req,
         { status: 400 },
       );
     }
-    const message = err instanceof Error ? err.message : 'Failed to set Ride PIN.';
-    return NextResponse.json({ error: 'RIDE_PIN_UPDATE_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

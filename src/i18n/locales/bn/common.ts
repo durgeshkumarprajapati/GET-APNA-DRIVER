@@ -1,4 +1,5 @@
 export const commonBn = {
+  loading: 'লোড হচ্ছে...',
   actions: {
     save: 'সংরক্ষণ করুন',
     cancel: 'বাতিল করুন',

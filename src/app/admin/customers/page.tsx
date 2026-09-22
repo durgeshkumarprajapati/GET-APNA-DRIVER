@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/admin-layout';
 
 interface CustomerRow {
   id: string;
@@ -133,7 +132,7 @@ export default function AdminCustomersPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <AdminLayout>
+    <>
       <div className="flex flex-col gap-6 w-full">
         {successMsg && (
           <div className="bg-[#00311f] border border-[#25a475] text-[#68dba9] px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
@@ -173,7 +172,7 @@ export default function AdminCustomersPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               type="text"
               value={search}
@@ -347,6 +346,6 @@ export default function AdminCustomersPage() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

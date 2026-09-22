@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AdminLayout } from '@/components/admin-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { MetricCard } from '@/components/ui/metric-card';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
@@ -105,103 +104,96 @@ export default function AdminPromotionDetailPage() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full max-w-4xl">
-        <PageHeader
-          eyebrow="Growth"
-          title="Promotion Detail"
-          subtitle={promotion?.name}
-          actions={
-            <button
-              type="button"
-              onClick={() => router.push('/admin/coupons')}
-              className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
-            >
-              ← Back to Coupons
-            </button>
-          }
-        />
+    <div className="flex flex-col gap-6 w-full max-w-4xl">
+      <PageHeader
+        eyebrow="Growth"
+        title="Promotion Detail"
+        subtitle={promotion?.name}
+        actions={
+          <button
+            type="button"
+            onClick={() => router.push('/admin/coupons')}
+            className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+          >
+            ← Back to Coupons
+          </button>
+        }
+      />
 
-        {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          {error}
+        </div>
+      )}
 
-        {loading ? (
-          <LoadingState message="Loading promotion…" />
-        ) : (
-          promotion && (
-            <>
-              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {promotion.code && (
-                      <span className="font-mono text-sm px-3 py-1 rounded bg-[#25a475] text-[#00311f] font-bold">
-                        {promotion.code}
-                      </span>
-                    )}
-                    <DiscountLabel
-                      discountType={promotion.discountType}
-                      discountValue={promotion.discountValue}
-                      maxDiscountAmount={promotion.maxDiscountAmount}
-                      className="text-sm font-bold text-[#68dba9]"
-                    />
-                  </div>
-                  <PromotionStatusBadge status={promotion.status} isExpired={promotion.isExpired} />
-                </div>
-                {promotion.description && (
-                  <p className="text-sm text-[#bccac0]">{promotion.description}</p>
-                )}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[#262a33]">
-                  <MetricCard label="Total Redemptions" value={promotion.totalUsageCount} />
-                  <MetricCard label="Usage Limit" value={promotion.totalUsageLimit ?? '∞'} />
-                  <MetricCard label="Per-User Limit" value={promotion.perUserUsageLimit ?? '∞'} />
-                  <MetricCard
-                    label="Min. Booking Value"
-                    value={
-                      promotion.minBookingValue ? (
-                        <FinanceAmount value={promotion.minBookingValue} />
-                      ) : (
-                        '—'
-                      )
-                    }
+      {loading ? (
+        <LoadingState message="Loading promotion…" />
+      ) : (
+        promotion && (
+          <>
+            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {promotion.code && (
+                    <span className="font-mono text-sm px-3 py-1 rounded bg-[#25a475] text-[#00311f] font-bold">
+                      {promotion.code}
+                    </span>
+                  )}
+                  <DiscountLabel
+                    discountType={promotion.discountType}
+                    discountValue={promotion.discountValue}
+                    maxDiscountAmount={promotion.maxDiscountAmount}
+                    className="text-sm font-bold text-[#68dba9]"
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#87948b]">
-                  <span>Starts: {formatDateTime(promotion.startsAt)}</span>
-                  <span>
-                    Ends: {promotion.endsAt ? formatDateTime(promotion.endsAt) : 'No expiry'}
-                  </span>
-                  <span>First ride only: {promotion.firstRideOnly ? 'Yes' : 'No'}</span>
-                  <span>Automatic: {promotion.isAutomatic ? 'Yes' : 'No'}</span>
-                </div>
+                <PromotionStatusBadge status={promotion.status} isExpired={promotion.isExpired} />
               </div>
-
-              <div className="flex flex-col gap-3">
-                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  Redemption History
-                </h2>
-                <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
-                  <DataTable
-                    columns={columns}
-                    data={usages}
-                    keyExtractor={(u) => u.id}
-                    emptyIcon="receipt_long"
-                    emptyMessage="This promotion has not been redeemed yet."
-                  />
-                  <Pagination
-                    page={page}
-                    pageSize={PAGE_SIZE}
-                    total={total}
-                    onPageChange={setPage}
-                  />
-                </div>
+              {promotion.description && (
+                <p className="text-sm text-[#bccac0]">{promotion.description}</p>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[#262a33]">
+                <MetricCard label="Total Redemptions" value={promotion.totalUsageCount} />
+                <MetricCard label="Usage Limit" value={promotion.totalUsageLimit ?? '∞'} />
+                <MetricCard label="Per-User Limit" value={promotion.perUserUsageLimit ?? '∞'} />
+                <MetricCard
+                  label="Min. Booking Value"
+                  value={
+                    promotion.minBookingValue ? (
+                      <FinanceAmount value={promotion.minBookingValue} />
+                    ) : (
+                      '—'
+                    )
+                  }
+                />
               </div>
-            </>
-          )
-        )}
-      </div>
-    </AdminLayout>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#87948b]">
+                <span>Starts: {formatDateTime(promotion.startsAt)}</span>
+                <span>
+                  Ends: {promotion.endsAt ? formatDateTime(promotion.endsAt) : 'No expiry'}
+                </span>
+                <span>First ride only: {promotion.firstRideOnly ? 'Yes' : 'No'}</span>
+                <span>Automatic: {promotion.isAutomatic ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                Redemption History
+              </h2>
+              <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+                <DataTable
+                  columns={columns}
+                  data={usages}
+                  keyExtractor={(u) => u.id}
+                  emptyIcon="receipt_long"
+                  emptyMessage="This promotion has not been redeemed yet."
+                />
+                <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+              </div>
+            </div>
+          </>
+        )
+      )}
+    </div>
   );
 }
