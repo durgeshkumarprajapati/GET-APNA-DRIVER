@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
+import { useAutoWebPush } from './use-auto-web-push';
 import { useGeolocationCapture } from './use-geolocation-capture';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
@@ -39,6 +40,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('DRIVER');
+  useAutoWebPush();
   const { capture: captureDeviceLocation } = useGeolocationCapture();
 
   // Restore sidebar scroll position and scroll active item into view if out of bounds
