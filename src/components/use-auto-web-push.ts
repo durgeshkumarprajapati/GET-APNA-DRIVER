@@ -2,15 +2,37 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
+function safeAtob(base64: string): string {
+  if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+    try {
+      return window.atob(base64);
+    } catch {
+      return Buffer.from(base64, 'base64').toString('binary');
+    }
+  }
+  return Buffer.from(base64, 'base64').toString('binary');
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
+  const rawData = safeAtob(base64);
   const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; i++) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+    return window.btoa(String.fromCharCode(...bytes));
+  }
+  if (typeof btoa === 'function') {
+    return btoa(String.fromCharCode(...bytes));
+  }
+  return Buffer.from(bytes).toString('base64');
 }
 
 export const GAD_WEB_PUSH_ENABLED_KEY = 'gad_web_push_enabled';
@@ -21,7 +43,11 @@ export const GAD_WEB_PUSH_ENABLED_KEY = 'gad_web_push_enabled';
  */
 export async function syncWebPush(options?: { promptIfDefault?: boolean }): Promise<boolean> {
   if (typeof window === 'undefined') return false;
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+  if (
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window) ||
+    !('Notification' in window)
+  ) {
     return false;
   }
 
@@ -68,8 +94,8 @@ export async function syncWebPush(options?: { promptIfDefault?: boolean }): Prom
       body: JSON.stringify({
         endpoint: sub.endpoint,
         keys: {
-          p256dh: btoa(String.fromCharCode(...new Uint8Array(p256dhKey))),
-          auth: btoa(String.fromCharCode(...new Uint8Array(authKey))),
+          p256dh: arrayBufferToBase64(p256dhKey),
+          auth: arrayBufferToBase64(authKey),
         },
         userAgent: navigator.userAgent,
       }),
@@ -101,20 +127,23 @@ export function useAutoWebPush(): {
   const [isPushActive, setIsPushActive] = useState(false);
 
   useEffect(() => {
-    if (
+    const supported =
       typeof window !== 'undefined' &&
       'serviceWorker' in navigator &&
       'PushManager' in window &&
-      'Notification' in window
-    ) {
-      setIsSupported(true);
+      'Notification' in window;
+
+    if (supported) {
       const isGranted = Notification.permission === 'granted';
       const wasEnabled = localStorage.getItem(GAD_WEB_PUSH_ENABLED_KEY) === 'true';
 
       if (isGranted || wasEnabled) {
         void syncWebPush().then((active) => {
+          setIsSupported(true);
           setIsPushActive(active);
         });
+      } else {
+        queueMicrotask(() => setIsSupported(true));
       }
     }
   }, []);

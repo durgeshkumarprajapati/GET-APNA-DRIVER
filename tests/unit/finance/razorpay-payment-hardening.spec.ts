@@ -20,7 +20,10 @@ const mockTx = {
     }),
   },
   paymentAttempt: { create: jest.fn().mockResolvedValue({}) },
-  paymentWebhookEvent: { create: jest.fn().mockResolvedValue({}), update: jest.fn().mockResolvedValue({}) },
+  paymentWebhookEvent: {
+    create: jest.fn().mockResolvedValue({}),
+    update: jest.fn().mockResolvedValue({}),
+  },
 };
 
 jest.mock('@/shared/database/prisma', () => ({

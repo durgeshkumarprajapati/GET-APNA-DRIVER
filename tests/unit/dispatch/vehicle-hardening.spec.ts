@@ -38,9 +38,11 @@ describe('Phase 67: Dispatch Vehicle Capability Hardening', () => {
       $transaction: jest.fn((cb: (tx: unknown) => unknown) =>
         cb({
           bookingAssignmentAttempt: {
-            create: jest.fn().mockImplementation(({ data }: { data: { driverProfileId: string } }) =>
-              Promise.resolve({ id: `att-${data.driverProfileId}`, ...data }),
-            ),
+            create: jest
+              .fn()
+              .mockImplementation(({ data }: { data: { driverProfileId: string } }) =>
+                Promise.resolve({ id: `att-${data.driverProfileId}`, ...data }),
+              ),
           },
           booking: { update: jest.fn() },
           outboxEvent: { create: jest.fn().mockResolvedValue({}) },
@@ -65,12 +67,12 @@ describe('Phase 67: Dispatch Vehicle Capability Hardening', () => {
         update: jest.fn(),
       },
       driverVehicleCapability: {
-        findMany: jest.fn().mockResolvedValue([
-          { driverProfileId: 'driver-suv-only' },
-        ]),
-        count: jest.fn().mockImplementation((args?: { where?: { driverProfileId?: string } }) =>
-          Promise.resolve(args?.where?.driverProfileId === 'driver-suv-only' ? 1 : 0),
-        ),
+        findMany: jest.fn().mockResolvedValue([{ driverProfileId: 'driver-suv-only' }]),
+        count: jest
+          .fn()
+          .mockImplementation((args?: { where?: { driverProfileId?: string } }) =>
+            Promise.resolve(args?.where?.driverProfileId === 'driver-suv-only' ? 1 : 0),
+          ),
       },
       driverCurrentLocation: {
         findMany: jest.fn().mockResolvedValue([
@@ -107,9 +109,11 @@ describe('Phase 67: Dispatch Vehicle Capability Hardening', () => {
       $transaction: jest.fn((cb: (tx: unknown) => unknown) =>
         cb({
           bookingAssignmentAttempt: {
-            create: jest.fn().mockImplementation(({ data }: { data: { driverProfileId: string } }) =>
-              Promise.resolve({ id: `att-${data.driverProfileId}`, ...data }),
-            ),
+            create: jest
+              .fn()
+              .mockImplementation(({ data }: { data: { driverProfileId: string } }) =>
+                Promise.resolve({ id: `att-${data.driverProfileId}`, ...data }),
+              ),
           },
           booking: { update: jest.fn() },
           outboxEvent: { create: jest.fn().mockResolvedValue({}) },
