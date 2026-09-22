@@ -128,6 +128,7 @@ export async function startEnRoute(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
         driverProfileId: profile.id,
         enRouteAt: now.toISOString(),
       },
@@ -193,6 +194,7 @@ export async function markArrived(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
         driverProfileId: profile.id,
         arrivedAt: now.toISOString(),
       },
@@ -442,6 +444,7 @@ export async function startTrip(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
         driverProfileId: profile.id,
         tripStartedAt: now.toISOString(),
         ridePinVerifiedAt: now.toISOString(),

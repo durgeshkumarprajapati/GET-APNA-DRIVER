@@ -288,7 +288,7 @@ describe('DriverJourneyService', () => {
       );
     });
 
-    it('bills real distance for a pickup-only ONE_WAY trip using the driver\'s fresh live GPS location, and persists it as the trip dropoff', async () => {
+    it("bills real distance for a pickup-only ONE_WAY trip using the driver's fresh live GPS location, and persists it as the trip dropoff", async () => {
       const mockInProgressBooking = {
         ...mockBookingAssigned,
         status: BookingStatus.TRIP_IN_PROGRESS,

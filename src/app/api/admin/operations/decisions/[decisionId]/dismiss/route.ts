@@ -6,11 +6,7 @@ import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_OPERATIONS_MANAGE,
-  async (
-    req: NextRequest,
-    context,
-    routeContext?: { params: Promise<{ decisionId: string }> },
-  ) => {
+  async (req: NextRequest, context, routeContext?: { params: Promise<{ decisionId: string }> }) => {
     try {
       if (!routeContext) {
         return NextResponse.json({ success: false, error: 'Missing parameters' }, { status: 400 });

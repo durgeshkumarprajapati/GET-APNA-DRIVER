@@ -28,6 +28,11 @@ export async function insertOutboxEvent(db: Db, input: InsertOutboxEventInput): 
       payload: input.payload as Prisma.InputJsonValue,
     },
   });
+
+  // Immediately schedule inline outbox processing so push/in-app/real-time notifications fire instantly
+  setTimeout(() => {
+    void dispatchOutboxEventsInline();
+  }, 10);
 }
 
 /**

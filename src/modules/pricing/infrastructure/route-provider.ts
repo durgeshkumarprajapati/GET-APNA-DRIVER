@@ -30,10 +30,10 @@ export class DeterministicRouteProvider implements RouteProvider {
     ) {
       if (input.bookingType === 'POINT_TO_POINT' || input.bookingType === 'ONE_WAY') {
         return {
-          distanceMeters: 0,
-          distanceKm: 0,
-          durationSeconds: 0,
-          durationMinutes: 0,
+          distanceMeters: 5000,
+          distanceKm: 5.0,
+          durationSeconds: 900,
+          durationMinutes: 15,
           provider: 'DETERMINISTIC_DEVELOPMENT',
           isEstimate: true,
         };

@@ -23,7 +23,12 @@ const mockTx = {
   driverIncentiveProgress: { update: jest.fn() },
 };
 
-import { Prisma, IncentiveCampaignStatus, IncentiveProgressStatus, IncentiveType } from '@prisma/client';
+import {
+  Prisma,
+  IncentiveCampaignStatus,
+  IncentiveProgressStatus,
+  IncentiveType,
+} from '@prisma/client';
 import { evaluateDriverIncentivesForCompletedTrip } from '@/modules/incentive/application/services/incentive-evaluator-service';
 import { prisma } from '@/shared/database/prisma';
 import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
@@ -90,6 +95,6 @@ describe('evaluateDriverIncentivesForCompletedTrip — reward transaction integr
         financialTransactionId: 'financial-txn-incentive-1',
       }),
     });
-    expect(result[0].status).toBe(IncentiveProgressStatus.REWARDED);
+    expect(result[0]?.status).toBe(IncentiveProgressStatus.REWARDED);
   });
 });

@@ -230,6 +230,8 @@ export async function acceptAssignmentOffer(
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
+        customerId: booking.customerId,
+        driverUserId,
         driverProfileId: profile.id,
         attemptId: attempt.id,
         assignedAt: now.toISOString(),

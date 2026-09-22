@@ -601,7 +601,7 @@ async function main(): Promise<void> {
       valueType: 'INTEGER' as const,
       category: 'finance',
       description:
-        'How fresh a driver\'s live GPS ping must be to stand in for a missing dropoff when billing a completed pickup-only ONE_WAY/POINT_TO_POINT trip by real distance',
+        "How fresh a driver's live GPS ping must be to stand in for a missing dropoff when billing a completed pickup-only ONE_WAY/POINT_TO_POINT trip by real distance",
       isPublic: false,
     },
   ];
