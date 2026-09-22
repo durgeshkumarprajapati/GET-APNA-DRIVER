@@ -101,6 +101,12 @@ export const customerKn = {
     preferredDriverSectionTitle: 'ನೆಚ್ಚಿನ ಚಾಲಕರನ್ನು ಆಯ್ಕೆಮಾಡಿ',
     preferredDriverSubtitle: 'ಲಭ್ಯವಿದ್ದರೆ ಅವರನ್ನೇ ಜೋಡಿಸಲು ಪ್ರಯತ್ನಿಸುತ್ತೇವೆ.',
     preferredDriverNone: 'ಯಾರಾದರೂ ಪರವಾಗಿಲ್ಲ — ಸಮೀಪದ ಚಾಲಕರನ್ನು ಜೋಡಿಸಿ',
+    nearbyAvailableDriversTitle: 'ಹತ್ತಿರದ ಲಭ್ಯವಿರುವ ಚಾಲಕರನ್ನು ನೋಡಿ',
+    nearbyAvailableDriversSubtitle:
+      'ಐಚ್ಛಿಕ — ನಿಮ್ಮ ಪಿಕಪ್ ಹತ್ತಿರ ಯಾವುದೇ ಬುಕಿಂಗ್ ಸಂಘರ್ಷವಿಲ್ಲದ ಪ್ರತಿ ಆನ್‌ಲೈನ್ ಚಾಲಕ. ಒಬ್ಬರನ್ನು ನೇರವಾಗಿ ಆಯ್ಕೆಮಾಡಿ, ಅಥವಾ ಇದನ್ನು ಬಿಟ್ಟುಬಿಡಿ ಮತ್ತು ನಾವು ನಿಮ್ಮನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಹೊಂದಿಸುತ್ತೇವೆ.',
+    setPickupToSeeDrivers: 'ಹತ್ತಿರದ ಲಭ್ಯವಿರುವ ಚಾಲಕರನ್ನು ನೋಡಲು ನಿಮ್ಮ ಪಿಕಪ್ ಸ್ಥಳವನ್ನು ಹೊಂದಿಸಿ.',
+    noDriversAvailableNearby:
+      'ನಿಮ್ಮ ಪಿಕಪ್ ಸ್ಥಳದ ಹತ್ತಿರ ಈಗ ಯಾವುದೇ ಚಾಲಕರು ಲಭ್ಯವಿಲ್ಲ. ನೀವು ಇನ್ನೂ ಬುಕ್ ಮಾಡಬಹುದು — ನಾವು ಹುಡುಕುತ್ತಲೇ ಇರುತ್ತೇವೆ.',
     fareBreakdownLabel: 'ದರದ ವಿವರಗಳು',
     guaranteedRateTag: 'ಖಾತರಿ ದರ',
     baseFareLabel: 'ಮೂಲ ಶುಲ್ಕ',

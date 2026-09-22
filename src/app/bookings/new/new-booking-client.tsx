@@ -70,6 +70,16 @@ interface HireDriverRecord {
   rate: string;
 }
 
+interface NearbyAvailableDriverRecord {
+  driverProfileId: string;
+  displayName: string;
+  profileImageUrl: string | null;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  distanceMeters: number;
+  distanceFormatted: string;
+}
+
 interface DriverReviewRecord {
   rating: number;
   comment: string | null;
@@ -191,6 +201,10 @@ function BookDriverPageInner() {
   const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverRecord[]>([]);
   const [hireDrivers, setHireDrivers] = useState<HireDriverRecord[]>([]);
   const [hireDriversLoading, setHireDriversLoading] = useState(false);
+  const [nearbyAvailableDrivers, setNearbyAvailableDrivers] = useState<
+    NearbyAvailableDriverRecord[]
+  >([]);
+  const [nearbyAvailableDriversLoading, setNearbyAvailableDriversLoading] = useState(false);
   const [viewingDriverId, setViewingDriverId] = useState<string | null>(null);
   const [viewingDriverProfile, setViewingDriverProfile] = useState<DriverProfileDetail | null>(
     null,
@@ -378,6 +392,67 @@ function BookDriverPageInner() {
       isMounted = false;
     };
   }, [selectedBookingType, hireDurationValue, hireStartTime, selectedVehicleCategoryId]);
+
+  // POINT_TO_POINT/HOURLY: browsable list of every currently available,
+  // non-conflicting nearby driver — purely optional (sets the same soft
+  // preferredDriverProfileId preference as the favorites list above), and
+  // deliberately does NOT wait on a dropoff location, since neither of
+  // these booking types requires one. Only needs the pickup location to be
+  // resolved, so it can run before the customer has decided on (or even
+  // needs) a destination.
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const isImmediateBrowsableType =
+        selectedBookingType === BookingType.POINT_TO_POINT ||
+        selectedBookingType === BookingType.HOURLY;
+      if (!isImmediateBrowsableType || !pickupReady) {
+        if (isMounted) setNearbyAvailableDrivers([]);
+        return;
+      }
+
+      if (isMounted) setNearbyAvailableDriversLoading(true);
+      try {
+        const params = new URLSearchParams({
+          bookingType: selectedBookingType,
+          pickupLatitude: String(pickup.latitude),
+          pickupLongitude: String(pickup.longitude),
+        });
+        if (selectedBookingType === BookingType.HOURLY) {
+          const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
+          if (hireMins) params.set('hireDurationMinutes', String(hireMins));
+        }
+        if (selectedVehicleCategoryId) {
+          params.set('vehicleCategoryId', selectedVehicleCategoryId);
+        }
+        const res = await fetch(`/api/customer/drivers/available-for-hire?${params.toString()}`);
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          const drivers: NearbyAvailableDriverRecord[] = data.drivers ?? [];
+          setNearbyAvailableDrivers(drivers);
+          setPreferredDriverProfileId((prev) =>
+            prev && !drivers.some((d) => d.driverProfileId === prev) ? null : prev,
+          );
+        }
+      } catch {
+        // List just stays empty — selection here is optional anyway, so
+        // booking still works fine via normal auto-dispatch matching.
+      } finally {
+        if (isMounted) setNearbyAvailableDriversLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    selectedBookingType,
+    pickupReady,
+    pickup.latitude,
+    pickup.longitude,
+    hireDurationValue,
+    selectedVehicleCategoryId,
+  ]);
 
   // Loads the full profile (bio, rating breakdown, recent reviews, rate for
   // this hire type) for whichever driver the customer just tapped in the
@@ -1234,6 +1309,102 @@ function BookDriverPageInner() {
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Browse all available drivers — POINT_TO_POINT/HOURLY only.
+                Purely optional (sets the same soft preferredDriverProfileId
+                as the favorites list above); booking still works fine via
+                normal auto-dispatch matching if nobody is picked here. Does
+                not require a dropoff location — only the pickup point. */}
+            {(selectedBookingType === BookingType.POINT_TO_POINT ||
+              selectedBookingType === BookingType.HOURLY) && (
+              <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  {t('customer.booking.nearbyAvailableDriversTitle', {
+                    defaultValue: 'Browse Available Drivers Nearby',
+                  })}
+                </span>
+                <p className="text-[10px] text-[#87948b]">
+                  {t('customer.booking.nearbyAvailableDriversSubtitle', {
+                    defaultValue:
+                      "Optional — every online driver near your pickup with no booking conflict. Pick one to request them directly, or skip this and we'll match you automatically.",
+                  })}
+                </p>
+
+                {!pickupReady ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.setPickupToSeeDrivers', {
+                      defaultValue: 'Set your pickup location to see nearby available drivers.',
+                    })}
+                  </p>
+                ) : nearbyAvailableDriversLoading ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.loadingAvailableDrivers')}
+                  </p>
+                ) : nearbyAvailableDrivers.length === 0 ? (
+                  <p className="text-[11px] text-[#87948b] py-2">
+                    {t('customer.booking.noDriversAvailableNearby', {
+                      defaultValue:
+                        'No drivers are currently available near your pickup location. You can still book — we will keep searching.',
+                    })}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+                    <button
+                      type="button"
+                      onClick={() => setPreferredDriverProfileId(null)}
+                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] self-start transition-colors ${
+                        preferredDriverProfileId === null ||
+                        !nearbyAvailableDrivers.some(
+                          (d) => d.driverProfileId === preferredDriverProfileId,
+                        )
+                          ? 'bg-[#68dba9] text-[#003825] font-bold'
+                          : 'bg-[#262a33] text-[#dfe2ee]'
+                      }`}
+                    >
+                      {t('customer.booking.preferredDriverNone')}
+                    </button>
+                    {nearbyAvailableDrivers.map((driver) => (
+                      <button
+                        key={driver.driverProfileId}
+                        type="button"
+                        onClick={() =>
+                          setPreferredDriverProfileId((prev) =>
+                            prev === driver.driverProfileId ? null : driver.driverProfileId,
+                          )
+                        }
+                        className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                          preferredDriverProfileId === driver.driverProfileId
+                            ? 'bg-[#00311f] border-[#25a475]'
+                            : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {preferredDriverProfileId === driver.driverProfileId && (
+                            <span className="material-symbols-outlined text-[#25a475] text-base shrink-0">
+                              check_circle
+                            </span>
+                          )}
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-xs font-semibold text-[#dfe2ee] truncate">
+                              {driver.displayName}
+                            </span>
+                            <span className="text-[10px] text-[#87948b] font-mono">
+                              {t('customer.booking.experienceYears', {
+                                years: driver.drivingExperienceYears,
+                              })}
+                              {driver.primaryServiceArea ? ` · ${driver.primaryServiceArea}` : ''}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-[#68dba9] font-mono shrink-0">
+                          {driver.distanceFormatted}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

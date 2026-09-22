@@ -6,8 +6,9 @@ import {
   DriverAvailabilityStatus,
 } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
-import { hireRateFieldFor } from '../domain/booking-policy';
+import { hireRateFieldFor, isDriverHireBooking } from '../domain/booking-policy';
 import { SelectedDriverUnavailableError } from '../domain/errors';
+import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
 
 const ACTIVE_HIRE_CONFLICT_STATUSES: BookingStatus[] = [
   BookingStatus.DRIVER_ASSIGNED,
@@ -18,10 +19,18 @@ const ACTIVE_HIRE_CONFLICT_STATUSES: BookingStatus[] = [
 
 /**
  * Given candidate driver profile ids, returns the subset already committed
- * to another active hire whose window overlaps [hireStartAt, hireEndAt].
+ * to another active booking whose interval overlaps [hireStartAt, hireEndAt].
  * Shared by matching-service.ts (candidate pool narrowing), the
  * customer-facing browsable driver list, and required-driver validation at
  * booking creation, so the same conflict definition is used everywhere.
+ *
+ * Computes each existing booking's own interval rather than filtering by its
+ * raw hireStartAt/hireEndAt columns in the query — a plain POINT_TO_POINT/
+ * ONE_WAY/ROUND_TRIP booking never sets those columns at all, so a driver
+ * mid-trip on one of those would previously never show up as conflicting
+ * for a new hire offer. Mirrors the single-driver interval logic in
+ * driver-hire-conflict-service.ts's getDriverHireConflicts exactly, just
+ * batched across many candidate driver ids in one query instead of one.
  */
 export async function findConflictingDriverIds(
   driverProfileIds: string[],
@@ -31,17 +40,50 @@ export async function findConflictingDriverIds(
 ): Promise<Set<string>> {
   if (driverProfileIds.length === 0) return new Set();
 
-  const conflicts = await db.booking.findMany({
+  const candidateBookings = await db.booking.findMany({
     where: {
       driverProfileId: { in: driverProfileIds },
       status: { in: ACTIVE_HIRE_CONFLICT_STATUSES },
-      hireStartAt: { lt: hireEndAt },
-      hireEndAt: { gt: hireStartAt },
     },
-    select: { driverProfileId: true },
+    select: {
+      driverProfileId: true,
+      bookingType: true,
+      requestedStartTime: true,
+      requestedAt: true,
+      hireStartAt: true,
+      hireEndAt: true,
+      estimatedDurationMinutes: true,
+      hireDurationMinutes: true,
+    },
   });
 
-  return new Set(conflicts.map((c) => c.driverProfileId).filter((id): id is string => id !== null));
+  const conflicting = new Set<string>();
+  for (const b of candidateBookings) {
+    if (!b.driverProfileId) continue;
+
+    let existingStart: Date;
+    let existingEnd: Date;
+    if (isDriverHireBooking(b.bookingType)) {
+      existingStart = b.hireStartAt ?? b.requestedStartTime ?? b.requestedAt;
+      existingEnd = b.hireEndAt
+        ? b.hireEndAt
+        : new Date(existingStart.getTime() + (b.hireDurationMinutes ?? 60) * 60 * 1000);
+    } else {
+      // Point-to-point / one-way / round-trip — never sets hireStartAt/
+      // hireEndAt, so its own trip window must be derived from the
+      // estimated duration instead (+ a turnover buffer), matching
+      // getDriverHireConflicts' identical fallback for the same case.
+      existingStart = b.requestedStartTime ?? b.requestedAt;
+      const tripMins = (b.estimatedDurationMinutes ?? 60) + 30;
+      existingEnd = new Date(existingStart.getTime() + tripMins * 60 * 1000);
+    }
+
+    if (existingStart < hireEndAt && existingEnd > hireStartAt) {
+      conflicting.add(b.driverProfileId);
+    }
+  }
+
+  return conflicting;
 }
 
 export interface DriverHireListing {
@@ -107,6 +149,92 @@ export async function listActiveDriversForHire(
       drivingExperienceYears: c.drivingExperienceYears,
       primaryServiceArea: c.primaryServiceArea,
       rate: c[rateField] != null ? String(c[rateField]) : '0',
+    }));
+}
+
+export interface AvailableDriverListing {
+  driverProfileId: string;
+  displayName: string;
+  profileImageUrl: string | null;
+  drivingExperienceYears: number;
+  primaryServiceArea: string | null;
+  distanceMeters: number;
+  distanceFormatted: string;
+}
+
+/**
+ * Browsable list of currently available, non-conflicting nearby drivers for
+ * a POINT_TO_POINT ride or an HOURLY hire — unlike listActiveDriversForHire
+ * (DAILY/WEEKLY/MONTHLY), these two booking types are priced at the
+ * platform-standard rate regardless of which driver is picked, so this
+ * intentionally does NOT require a driver-set rate field, and it filters by
+ * pickup-location proximity (via the same live geo index findNearbyDrivers
+ * already uses for auto-dispatch) since physical distance is what actually
+ * matters for an immediate ride or same-day hire — unlike a week/month-long
+ * hire where it doesn't. Selecting a driver from this list is always
+ * optional: it only sets a soft preferredDriverProfileId (same as the
+ * existing favorite-driver picker), never a hard requirement — booking
+ * without picking anyone still falls back to normal auto-dispatch matching.
+ */
+export async function listAvailableDriversForImmediateBooking(
+  bookingType: BookingType,
+  pickup: { latitude: number; longitude: number; radiusMeters?: number },
+  vehicleCategoryId?: string,
+  hireDurationMinutes?: number | null,
+  db: Db = prisma,
+): Promise<AvailableDriverListing[]> {
+  if (bookingType !== BookingType.POINT_TO_POINT && bookingType !== BookingType.HOURLY) {
+    return [];
+  }
+
+  const nearby = await findNearbyDrivers(
+    {
+      latitude: pickup.latitude,
+      longitude: pickup.longitude,
+      radiusMeters: pickup.radiusMeters,
+    },
+    db,
+  );
+  if (nearby.length === 0) return [];
+
+  let candidates = nearby;
+  if (vehicleCategoryId) {
+    const capable = await db.driverVehicleCapability.findMany({
+      where: {
+        driverProfileId: { in: nearby.map((c) => c.driverId) },
+        vehicleCategoryId,
+        vehicleCategory: { isActive: true },
+      },
+      select: { driverProfileId: true },
+    });
+    const capableSet = new Set(capable.map((c) => c.driverProfileId));
+    candidates = nearby.filter((c) => capableSet.has(c.driverId));
+  }
+  if (candidates.length === 0) return [];
+
+  const now = new Date();
+  const windowEnd =
+    bookingType === BookingType.HOURLY
+      ? new Date(now.getTime() + Math.max(1, hireDurationMinutes ?? 60) * 60 * 1000)
+      : now;
+
+  const conflicting = await findConflictingDriverIds(
+    candidates.map((c) => c.driverId),
+    now,
+    windowEnd,
+    db,
+  );
+
+  return candidates
+    .filter((c) => !conflicting.has(c.driverId))
+    .map((c) => ({
+      driverProfileId: c.driverId,
+      displayName: c.displayName,
+      profileImageUrl: c.profileImageUrl,
+      drivingExperienceYears: c.drivingExperienceYears,
+      primaryServiceArea: c.primaryServiceArea,
+      distanceMeters: c.distanceMeters,
+      distanceFormatted: c.distanceFormatted,
     }));
 }
 
