@@ -342,10 +342,7 @@ describe('DriverScheduleService Unit Tests', () => {
 
       // 07:00 IST on Tuesday 2026-09-15 == 2026-09-15T01:30:00Z.
       const tuesdayMorning = new Date('2026-09-15T01:30:00Z');
-      const isWithin = await driverScheduleService.isDriverWithinSchedule(
-        'prof-1',
-        tuesdayMorning,
-      );
+      const isWithin = await driverScheduleService.isDriverWithinSchedule('prof-1', tuesdayMorning);
       expect(isWithin).toBe(false);
     });
 
