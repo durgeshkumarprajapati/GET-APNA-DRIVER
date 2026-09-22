@@ -20,6 +20,7 @@ jest.mock('@/modules/notification/application/notification-service', () => ({
 const mockTx = {
   payment: {
     findUnique: jest.fn(),
+    findUniqueOrThrow: jest.fn(),
     findFirst: jest.fn(),
     findMany: jest.fn(),
     create: jest.fn(),
@@ -49,10 +50,28 @@ const mockTx = {
   ledgerAccount: {
     findUnique: jest.fn(),
   },
+  // postFinancialTransaction (ledger-service.ts) writes one LedgerEntry row
+  // per posting — financialPosting above is a vestige of an earlier,
+  // buggy version of that function (see the comment in ledger-service.ts);
+  // the real, current code path uses ledgerEntry.create exclusively. Both
+  // capturePayment and initiateRefund go through it, so without this mock
+  // every capture/refund test call throws
+  // "Cannot read properties of undefined (reading 'create')" partway
+  // through — silently, since both callers wrap the ledger-posting call in
+  // a try/catch for unrelated reasons (best-effort notification, no-throw
+  // cancellation), which masked this as "notification never fired" rather
+  // than surfacing the real TypeError.
+  ledgerEntry: {
+    create: jest.fn(),
+  },
   driverWallet: {
     findUnique: jest.fn(),
     upsert: jest.fn(),
     update: jest.fn(),
+  },
+  walletTransaction: {
+    findUnique: jest.fn(),
+    create: jest.fn(),
   },
   driverProfile: {
     update: jest.fn(),
@@ -79,6 +98,7 @@ jest.mock('@/shared/database/prisma', () => ({
     $transaction: jest.fn((cb: (tx: unknown) => unknown) => cb(mockTx)),
     payment: {
       findUnique: (...args: unknown[]) => mockTx.payment.findUnique(...args),
+      findUniqueOrThrow: (...args: unknown[]) => mockTx.payment.findUniqueOrThrow(...args),
       findFirst: (...args: unknown[]) => mockTx.payment.findFirst(...args),
       findMany: (...args: unknown[]) => mockTx.payment.findMany(...args),
       create: (...args: unknown[]) => mockTx.payment.create(...args),
@@ -112,6 +132,18 @@ jest.mock('@/shared/database/prisma', () => ({
     },
     configurationSetting: {
       findUnique: (...args: unknown[]) => mockTx.configurationSetting.findUnique(...args),
+    },
+    ledgerEntry: {
+      create: (...args: unknown[]) => mockTx.ledgerEntry.create(...args),
+    },
+    driverWallet: {
+      findUnique: (...args: unknown[]) => mockTx.driverWallet.findUnique(...args),
+      upsert: (...args: unknown[]) => mockTx.driverWallet.upsert(...args),
+      update: (...args: unknown[]) => mockTx.driverWallet.update(...args),
+    },
+    walletTransaction: {
+      findUnique: (...args: unknown[]) => mockTx.walletTransaction.findUnique(...args),
+      create: (...args: unknown[]) => mockTx.walletTransaction.create(...args),
     },
   },
 }));
@@ -315,7 +347,18 @@ describe('Phase 69: Flexible Customer Payment & Automatic Refund on Cancellation
       mockTx.financialTransaction.create.mockResolvedValue({ id: 'ft-100' });
       mockTx.ledgerAccount.findUnique.mockResolvedValue({ id: 'acc-1', code: '1000' });
       mockTx.financialPosting.createMany.mockResolvedValue({});
-      mockTx.driverWallet.upsert.mockResolvedValue({});
+      mockTx.driverWallet.upsert.mockResolvedValue({
+        id: 'wallet-1',
+        driverProfileId,
+        availableBalance: new Prisma.Decimal(0),
+        pendingBalance: new Prisma.Decimal(0),
+        reservedBalance: new Prisma.Decimal(0),
+        totalEarned: new Prisma.Decimal(0),
+        totalSettled: new Prisma.Decimal(0),
+        currency: 'INR',
+      });
+      mockTx.walletTransaction.findUnique.mockResolvedValue(null);
+      mockTx.walletTransaction.create.mockResolvedValue({ id: 'wtx-1' });
       mockTx.driverWallet.update.mockResolvedValue({});
       mockTx.auditLog.create.mockResolvedValue({});
       mockTx.outboxEvent.create.mockResolvedValue({});
@@ -392,7 +435,50 @@ describe('Phase 69: Flexible Customer Payment & Automatic Refund on Cancellation
         capturedAt: new Date(),
         createdAt: new Date(),
       });
-      mockTx.refund.findUnique.mockResolvedValue(null);
+      // completeRefund (called synchronously once the provider confirms the
+      // refund as 'processed', which this test's mock below does) reads the
+      // payment via findUniqueOrThrow, not findUnique — a separate mock
+      // method that must be set up independently.
+      mockTx.payment.findUniqueOrThrow.mockResolvedValue({
+        id: 'pay-captured-1',
+        bookingId,
+        customerId,
+        driverProfileId,
+        amount: new Prisma.Decimal(500),
+        currency: 'INR',
+        status: 'CAPTURED',
+        provider: 'razorpay',
+        providerPaymentId: 'pay_rzp_live',
+        commissionPercentageSnapshot: new Prisma.Decimal(20),
+        commissionAmount: new Prisma.Decimal(100),
+        discountAmount: null,
+        capturedAt: new Date(),
+        createdAt: new Date(),
+      });
+      // findUnique is called twice for two different purposes here: once by
+      // initiateRefund's idempotency check (by idempotencyKey — must be
+      // null, there's no prior refund yet) and once by completeRefund
+      // re-fetching the refund it needs to finalize (by id — must resolve
+      // the just-created refund, in its pre-completion PENDING state, or
+      // completeRefund throws RefundNotFoundError and the whole thing gets
+      // silently swallowed by cancelBooking's catch, which is exactly what
+      // made this failure look like "no notification" instead of the real
+      // underlying error).
+      mockTx.refund.findUnique.mockImplementation(({ where }: { where: Record<string, unknown> }) =>
+        Promise.resolve(
+          'id' in where
+            ? {
+                id: 'ref-1',
+                paymentId: 'pay-captured-1',
+                amount: new Prisma.Decimal(500),
+                currency: 'INR',
+                status: 'PENDING',
+                reason: 'Cancelled by customer',
+                createdAt: new Date(),
+              }
+            : null,
+        ),
+      );
       mockTx.refund.findMany.mockResolvedValue([]);
       mockTx.refund.create.mockResolvedValue({
         id: 'ref-1',

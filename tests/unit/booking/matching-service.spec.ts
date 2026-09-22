@@ -41,6 +41,9 @@ jest.mock('@/shared/database/prisma', () => ({
         }),
       ),
     },
+    driverVehicleCapability: {
+      findFirst: jest.fn(),
+    },
   },
 }));
 
@@ -404,6 +407,46 @@ describe('MatchingService', () => {
       expect(mockTx.bookingAssignmentAttempt.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ driverProfileId: 'dp-selected' }),
+        }),
+      );
+    });
+
+    it('expires the search instead of offering the selected driver when their only vehicle capability is for a deactivated category', async () => {
+      const hireStartAt = new Date('2026-10-01T10:00:00Z');
+      const hireEndAt = new Date('2026-10-08T10:00:00Z');
+      mockFindUniqueBooking.mockResolvedValue({
+        id: 'bk-1',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.WEEKLY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        expiresAt: new Date(Date.now() + 300000),
+        hireStartAt,
+        hireEndAt,
+        preferredDriverProfileId: 'dp-selected',
+        vehicleCategoryId: 'vc-suv',
+        assignmentAttempts: [],
+      });
+      mockFindManyBooking.mockResolvedValue([]);
+      // The driver has a capability row for this category, but the
+      // category itself has since been deactivated — must not count as
+      // capable (matches the geo-pool path's `vehicleCategory: { isActive:
+      // true }` filter, which this required-single-driver path previously
+      // omitted).
+      (prisma.driverVehicleCapability.findFirst as jest.Mock).mockResolvedValue(null);
+
+      const result = await findAndOfferNextDriver('bk-1');
+
+      expect(result.status).toBe('NO_DRIVERS_FOUND');
+      expect(mockFindNearby).not.toHaveBeenCalled();
+      expect(mockTx.bookingAssignmentAttempt.create).not.toHaveBeenCalled();
+      expect(prisma.driverVehicleCapability.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            driverProfileId: 'dp-selected',
+            vehicleCategoryId: 'vc-suv',
+            vehicleCategory: { isActive: true },
+          }),
         }),
       );
     });

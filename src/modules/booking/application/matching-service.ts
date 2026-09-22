@@ -210,12 +210,16 @@ export async function findAndOfferNextDriver(
       }
 
       if (isStillAvailable && booking.vehicleCategoryId) {
-        const cap = await db.driverVehicleCapability.findUnique({
+        // Must agree with the geo-pool path's equivalent check below
+        // (vehicleCategory: { isActive: true }) — a capability row for a
+        // category an admin has since deactivated must not count as
+        // "capable" here either, or a required-single-driver hire could
+        // bypass a restriction the general dispatch path already enforces.
+        const cap = await db.driverVehicleCapability.findFirst({
           where: {
-            driverProfileId_vehicleCategoryId: {
-              driverProfileId: chosenDriverId,
-              vehicleCategoryId: booking.vehicleCategoryId,
-            },
+            driverProfileId: chosenDriverId,
+            vehicleCategoryId: booking.vehicleCategoryId,
+            vehicleCategory: { isActive: true },
           },
         });
         if (!cap) {

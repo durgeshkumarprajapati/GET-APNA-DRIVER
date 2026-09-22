@@ -1,21 +1,28 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
-import { BookingStatus, DriverAvailabilityStatus } from '@prisma/client';
+import { BookingStatus, DriverAvailabilityStatus, AssignmentAttemptStatus } from '@prisma/client';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
-import { validateBookingStatusTransition } from '../domain/booking-state-machine';
+import {
+  validateBookingStatusTransition,
+  isBookingCancellable,
+} from '../domain/booking-state-machine';
+import { getBoolean } from '@/shared/config/configuration-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
+import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
 import { evaluateAndQualifyReferral } from '@/modules/identity/application/services/referral-service';
 import { evaluateDriverIncentivesForCompletedTrip } from '@/modules/incentive/application/services/incentive-evaluator-service';
 import { evaluateCustomerLoyaltyForCompletedTrip } from '@/modules/loyalty/application/services/loyalty-evaluator-service';
 import { verifyPassword } from '@/modules/identity/security/password';
 import { CustomerPinNotSetError } from '@/modules/customer/application/services/ride-pin-service';
+import { createNotification } from '@/modules/notification/application/notification-service';
 import {
   BookingNotFoundError,
+  BookingNotCancellableError,
   InvalidRidePinError,
   MaxRidePinAttemptsExceededError,
 } from '../domain/errors';
@@ -201,6 +208,150 @@ export async function markArrived(
     status: BookingStatus.DRIVER_ARRIVED,
     arrivedAt: now.toISOString(),
   });
+
+  const updated = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
+  return mapBookingToDriverSummary(updated);
+}
+
+/**
+ * Driver cancels a trip they were assigned to (before it starts) — the
+ * driver-initiated counterpart to booking-service.ts's cancelBooking
+ * (customer) and dispatch-service.ts's cancelBookingByOperator (admin).
+ * Reuses the exact same cancellability policy as customer self-cancellation
+ * (isBookingCancellable + the same booking.lifecycle.allow_*_cancellation_*
+ * config flags) — there is no separate driver cancellation policy, by
+ * design, so ops can't end up with three different cancellation windows
+ * for the same trip depending on who cancels.
+ */
+export async function cancelBookingByDriver(
+  driverUserId: string,
+  bookingId: string,
+  cancellationReason?: string,
+  db: Db = prisma,
+): Promise<DriverBookingSummary> {
+  const { profile, booking } = await getAuthorizedDriverBooking(driverUserId, bookingId, db);
+
+  const allowAfterAssignment = await getBoolean(
+    'booking.lifecycle.allow_customer_cancellation_after_assignment',
+    true,
+    db,
+  );
+  const allowEnRoute = await getBoolean(
+    'booking.lifecycle.allow_customer_cancellation_en_route',
+    true,
+    db,
+  );
+  const allowAfterArrival = await getBoolean(
+    'booking.lifecycle.allow_customer_cancellation_after_arrival',
+    false,
+    db,
+  );
+
+  if (
+    !isBookingCancellable(booking.status, {
+      allowAfterAssignment,
+      allowEnRoute,
+      allowAfterArrival,
+    })
+  ) {
+    throw new BookingNotCancellableError(bookingId, booking.status);
+  }
+
+  validateBookingStatusTransition(booking.status, BookingStatus.CANCELLED);
+
+  const now = new Date();
+
+  await db.$transaction(async (tx) => {
+    await tx.booking.update({
+      where: { id: booking.id },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancelledAt: now,
+        cancelledBy: driverUserId,
+        cancellationReason: cancellationReason || 'Cancelled by driver',
+        driverProfileId: null,
+      },
+    });
+
+    await tx.bookingAssignmentAttempt.updateMany({
+      where: { bookingId: booking.id, status: AssignmentAttemptStatus.PENDING },
+      data: { status: AssignmentAttemptStatus.CANCELLED },
+    });
+
+    await tx.driverProfile.update({
+      where: { id: profile.id },
+      data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
+    });
+
+    await tx.bookingLog.create({
+      data: {
+        bookingId: booking.id,
+        actorUserId: driverUserId,
+        fromStatus: booking.status,
+        toStatus: BookingStatus.CANCELLED,
+        action: 'booking.driver.cancelled',
+        reason: cancellationReason || 'Cancelled by driver',
+      },
+    });
+
+    await insertOutboxEvent(tx, {
+      eventType: 'booking.driver.cancelled',
+      aggregateType: 'Booking',
+      aggregateId: booking.id,
+      payload: {
+        bookingId: booking.id,
+        customerId: booking.customerId,
+        driverProfileId: profile.id,
+        cancelledAt: now.toISOString(),
+        reason: cancellationReason,
+      },
+    });
+  });
+
+  const eligibility = await evaluateDriverEligibility(profile.id, db);
+  if (eligibility.isEligible) {
+    await addDriverToLiveIndex(profile.id, db);
+  }
+
+  await recordAuditLog(db, {
+    actorUserId: driverUserId,
+    action: 'booking.driver.cancelled',
+    entityType: 'Booking',
+    entityId: bookingId,
+    beforeState: { status: booking.status },
+    afterState: { status: BookingStatus.CANCELLED, cancellationReason },
+  });
+
+  realtime.publishBookingUpdate(bookingId, 'booking.driver.cancelled', {
+    bookingId,
+    status: BookingStatus.CANCELLED,
+    cancelledBy: driverUserId,
+  });
+
+  // Let the customer know their driver — not them — cancelled, distinct
+  // from the copy self-cancellation would show them.
+  await createNotification({
+    userId: booking.customerId,
+    category: 'BOOKING',
+    type: 'BOOKING_CANCELLED',
+    title: 'Trip Cancelled by Driver',
+    body: 'Your driver had to cancel this trip. We are sorry for the inconvenience — please book again to find another driver.',
+    data: { bookingId },
+  });
+
+  // Automatic refund if booking was paid prior to driver cancellation —
+  // shared with the customer-cancel and admin/operator-cancel paths (see
+  // refund-service.ts) so all three apply the exact same refund policy.
+  await autoRefundCapturedPaymentOnCancellation(
+    {
+      bookingId,
+      customerId: booking.customerId,
+      actorUserId: driverUserId,
+      cancellationReason,
+      defaultReason: 'Automatic refund for driver-cancelled booking',
+    },
+    db,
+  );
 
   const updated = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
   return mapBookingToDriverSummary(updated);

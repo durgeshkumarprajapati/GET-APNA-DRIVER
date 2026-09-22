@@ -12,7 +12,10 @@ import { applyWalletChange } from './wallet-service';
 import { createTaxInvoiceForBooking } from '@/modules/tax-invoices/invoice-service';
 import { createNotification } from '@/modules/notification/application/notification-service';
 import { logger } from '@/shared/logging/logger';
-import { validatePaymentStatusTransition } from '../../domain/payment-state-machine';
+import {
+  validatePaymentStatusTransition,
+  TERMINAL_PAYMENT_STATUSES,
+} from '../../domain/payment-state-machine';
 import { LEDGER_ACCOUNT_CODES } from '../../domain/ledger-accounts';
 import type { LedgerPosting } from '../../domain/types';
 import {
@@ -170,10 +173,11 @@ function toCheckoutInit(payment: Payment): PaymentCheckoutInit {
  * safe checkout-initialization data (order id, amount, currency, public
  * key — never a secret) to the client.
  *
- * Payment is only created once a booking has actually completed
- * (TRIP_COMPLETED) — booking completion and payment success are independent
- * state machines, but this phase's marketplace flow charges post-trip, not
- * pre-trip, so payment creation is deliberately gated on that booking state.
+ * Payment can be created any time from the moment a driver accepts
+ * (DRIVER_ASSIGNED) through trip completion (TRIP_COMPLETED) — booking
+ * status and payment status are independent state machines, and this
+ * flexible-payment flow deliberately does not force the customer to wait
+ * until the trip ends (see PAYABLE_BOOKING_STATUSES below).
  *
  * The external Razorpay call happens outside any DB transaction (a slow
  * network call must never hold a DB transaction open) — the Payment row is
@@ -213,7 +217,7 @@ export async function createPaymentForBooking(
   }
 
   const activePayment = await db.payment.findFirst({
-    where: { bookingId: input.bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+    where: { bookingId: input.bookingId, status: { notIn: [...TERMINAL_PAYMENT_STATUSES] } },
   });
   if (activePayment) {
     throw new PaymentAlreadyInProgressError(input.bookingId);
@@ -750,7 +754,7 @@ export async function confirmCashPaymentByCustomer(
   }
 
   let payment = await db.payment.findFirst({
-    where: { bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+    where: { bookingId, status: { notIn: [...TERMINAL_PAYMENT_STATUSES] } },
   });
 
   const now = new Date();
@@ -836,7 +840,7 @@ export async function confirmCashPaymentByDriver(
   }
 
   let payment = await db.payment.findFirst({
-    where: { bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+    where: { bookingId, status: { notIn: [...TERMINAL_PAYMENT_STATUSES] } },
   });
 
   const now = new Date();
@@ -1063,7 +1067,7 @@ export async function getPostTripPaymentForBooking(
     : grossAmountStr;
 
   const payment = await db.payment.findFirst({
-    where: { bookingId, status: { notIn: ['FAILED', 'CANCELLED'] } },
+    where: { bookingId, status: { notIn: [...TERMINAL_PAYMENT_STATUSES] } },
     orderBy: { createdAt: 'desc' },
   });
 

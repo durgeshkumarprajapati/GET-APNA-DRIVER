@@ -4,6 +4,8 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { getBoolean, getInteger } from '@/shared/config/configuration-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { createNotification } from '@/modules/notification/application/notification-service';
+import { logger } from '@/shared/logging/logger';
 import { paymentProvider } from '../../infrastructure/payment-provider';
 import { postFinancialTransaction } from './ledger-service';
 import { applyWalletChange } from './wallet-service';
@@ -120,17 +122,41 @@ export async function initiateRefund(
     );
   }
 
-  const refund = await db.refund.create({
-    data: {
-      paymentId: payment.id,
-      amount: roundMoney(requestedAmount).toFixed(4),
-      currency: payment.currency,
-      status: 'PENDING',
-      reason: input.reason ?? null,
-      idempotencyKey: input.idempotencyKey ?? null,
-      initiatedBy: actorUserId,
-    },
-  });
+  let refund: Refund;
+  try {
+    refund = await db.refund.create({
+      data: {
+        paymentId: payment.id,
+        amount: roundMoney(requestedAmount).toFixed(4),
+        currency: payment.currency,
+        status: 'PENDING',
+        reason: input.reason ?? null,
+        idempotencyKey: input.idempotencyKey ?? null,
+        initiatedBy: actorUserId,
+      },
+    });
+  } catch (error: unknown) {
+    // Same race class as wallet-service.ts's upsert fix: two concurrent
+    // initiateRefund calls with the same idempotencyKey (e.g. a retried
+    // API request) both pass the findUnique check above before either has
+    // created a row, then race on create(). Refund.idempotencyKey is
+    // @unique, so the loser hits P2002 here — recover by returning the
+    // winner's row instead of crashing, which is what the findUnique check
+    // above was already trying to guarantee for the non-racing case.
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002' &&
+      input.idempotencyKey
+    ) {
+      const winner = await db.refund.findUnique({
+        where: { idempotencyKey: input.idempotencyKey },
+      });
+      if (winner) {
+        return mapRefundToSummary(winner);
+      }
+    }
+    throw error;
+  }
 
   await recordAuditLog(db, {
     actorUserId,
@@ -175,6 +201,64 @@ export async function initiateRefund(
   }
 
   return mapRefundToSummary(afterProviderCall);
+}
+
+export interface AutoRefundOnCancellationInput {
+  bookingId: string;
+  /** Who to notify — always the booking's customer, regardless of who cancelled. */
+  customerId: string;
+  /** Who triggered this cancellation (customer, driver, or admin/operator) — recorded as the refund's initiator. */
+  actorUserId: string;
+  cancellationReason?: string | null;
+  /** Used when no explicit cancellationReason was given, e.g. "Automatic refund for driver-cancelled booking". */
+  defaultReason: string;
+}
+
+/**
+ * The one place that decides "does this cancelled booking need an automatic
+ * refund, and does the customer get told about it" — shared by every
+ * cancellation path (customer self-cancel, driver-cancel, admin/operator
+ * cancel) so they can never drift into three slightly different refund
+ * policies. A no-op if the booking was never paid (no CAPTURED/
+ * PARTIALLY_REFUNDED payment). Never throws — a refund failure (window
+ * elapsed, provider error, etc.) is logged and swallowed, since the
+ * cancellation itself must always succeed regardless of refund outcome.
+ */
+export async function autoRefundCapturedPaymentOnCancellation(
+  input: AutoRefundOnCancellationInput,
+  db: Db = prisma,
+): Promise<void> {
+  const capturedPayment = db.payment?.findFirst
+    ? await db.payment.findFirst({
+        where: { bookingId: input.bookingId, status: { in: ['CAPTURED', 'PARTIALLY_REFUNDED'] } },
+      })
+    : null;
+  if (!capturedPayment) return;
+
+  try {
+    await initiateRefund(
+      input.actorUserId,
+      {
+        paymentId: capturedPayment.id,
+        reason: input.cancellationReason || input.defaultReason,
+        idempotencyKey: `auto_refund_cancel:${input.bookingId}`,
+      },
+      db,
+    );
+    await createNotification({
+      userId: input.customerId,
+      category: 'BOOKING',
+      type: 'PAYMENT_REFUNDED',
+      title: 'Refund Initiated',
+      body: `A refund has been initiated for your cancelled booking ${input.bookingId.slice(0, 8)}.`,
+      data: { bookingId: input.bookingId, paymentId: capturedPayment.id },
+    });
+  } catch (refundErr: unknown) {
+    logger.error(
+      { refundErr, bookingId: input.bookingId, paymentId: capturedPayment.id },
+      'Automatic refund initiation failed on cancellation',
+    );
+  }
 }
 
 export interface CompleteRefundInput {
