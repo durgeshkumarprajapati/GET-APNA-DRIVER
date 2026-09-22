@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getDriverPortfolio } from '@/modules/review/application/driver-portfolio-service';
 import { peekDriverHireRate } from '@/modules/booking/application/driver-hire-availability-service';
 import { isRateSelectableHireBooking } from '@/modules/booking/domain/booking-policy';
-import { AppError } from '@/shared/errors/app-error';
+import { AppError, toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ driverId: string }> };
 
@@ -76,8 +76,7 @@ export const GET = withPermission<RouteParams>(
           { status: err.statusCode },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to load driver profile.';
-      return NextResponse.json({ error: 'DRIVER_PROFILE_FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

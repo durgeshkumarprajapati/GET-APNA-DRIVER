@@ -7,17 +7,7 @@ import { useRouter } from 'next/navigation';
 import { CustomerLayout } from '@/components/customer-layout';
 import { DriverLayout } from '@/components/driver-layout';
 import { AdminLayout } from '@/components/admin-layout';
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
+import { useAutoWebPush } from '@/components/use-auto-web-push';
 
 interface NotificationItem {
   id: string;
@@ -84,7 +74,7 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [pushStatus, setPushStatus] = useState<string>('Check Status');
+  const { isSupported, isPushActive, enablePush } = useAutoWebPush();
   const [notificationMsg, setNotificationMsg] = useState<{
     text: string;
     tone: 'success' | 'error';
@@ -139,70 +129,16 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
   }, [fetchNotifications, fetchUnreadCount]);
 
   const enablePushNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      showToast('Browser does not support Web Push');
+    if (!isSupported) {
+      showToast('Browser does not support Web Push', 'error');
       return;
     }
 
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        showToast('Push permission denied by browser');
-        return;
-      }
-
-      const keyRes = await fetch('/api/push/vapid-public-key');
-      const keyData = await keyRes.json();
-      if (!keyRes.ok || !keyData.publicKey) {
-        showToast('Push notifications are not configured on this server yet.', 'error');
-        return;
-      }
-
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      let sub = await reg.pushManager.getSubscription();
-
-      if (!sub) {
-        sub = await reg.pushManager
-          .subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(keyData.publicKey) as BufferSource,
-          })
-          .catch(() => null);
-      }
-
-      if (!sub) {
-        showToast('Could not enable push notifications on this device.', 'error');
-        return;
-      }
-
-      const p256dhKey = sub.getKey('p256dh');
-      const authKey = sub.getKey('auth');
-      if (!p256dhKey || !authKey) {
-        showToast('Could not enable push notifications on this device.', 'error');
-        return;
-      }
-
-      const res = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endpoint: sub.endpoint,
-          keys: {
-            p256dh: btoa(String.fromCharCode(...new Uint8Array(p256dhKey))),
-            auth: btoa(String.fromCharCode(...new Uint8Array(authKey))),
-          },
-          userAgent: navigator.userAgent,
-        }),
-      });
-
-      if (res.ok) {
-        setPushStatus('ACTIVE');
-        showToast('Browser Web Push Enabled Successfully!');
-      } else {
-        showToast('Failed to register push subscription with the server.', 'error');
-      }
-    } catch {
-      showToast('Error enabling push notifications.', 'error');
+    const success = await enablePush();
+    if (success) {
+      showToast('Browser Web Push Enabled & Synchronized!');
+    } else {
+      showToast('Could not enable push notifications. Check browser permissions.', 'error');
     }
   };
 
@@ -241,16 +177,16 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
         {notificationMsg && (
           <div
             role="status"
-            className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border ${
+            className={`fixed top-6 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-50 px-4 py-3 rounded-xl shadow-2xl font-bold text-sm flex items-center gap-2 border ${
               notificationMsg.tone === 'error'
                 ? 'bg-[#93000a]/20 text-[#ffb4ab] border-[#93000a]'
                 : 'bg-[#25a475] text-[#00311f] border-[#68dba9]'
             }`}
           >
-            <span className="material-symbols-outlined">
+            <span className="material-symbols-outlined shrink-0">
               {notificationMsg.tone === 'error' ? 'error' : 'check_circle'}
             </span>
-            <span>{notificationMsg.text}</span>
+            <span className="break-words">{notificationMsg.text}</span>
           </div>
         )}
 
@@ -272,7 +208,7 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
               className="px-4 py-2.5 rounded-xl bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs font-['Space_Grotesk'] flex items-center gap-2 transition-all min-h-[44px]"
             >
               <span className="material-symbols-outlined text-[18px]">sensors</span>
-              {pushStatus === 'ACTIVE' ? 'Push Active' : 'Enable Web Push'}
+              {isPushActive ? 'Web Push Active' : 'Enable Web Push'}
             </button>
             <Link
               href={PORTAL_HOME[portal]}

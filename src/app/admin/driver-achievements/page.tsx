@@ -334,7 +334,7 @@ export default function AdminDriverAchievementsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[#87948b] block mb-1">
                     {t('driverEngagement.admin.categoryLabel')}
@@ -371,7 +371,7 @@ export default function AdminDriverAchievementsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[#87948b] block mb-1">
                     {t('driverEngagement.admin.iconLabel')}

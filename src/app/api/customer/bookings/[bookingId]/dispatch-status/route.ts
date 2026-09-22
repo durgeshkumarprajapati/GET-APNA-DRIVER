@@ -5,6 +5,7 @@ import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getDispatchSearchState } from '@/modules/dispatch/application/dispatch-search-service';
 import { getBookingById } from '@/modules/booking/application/booking-service';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 
@@ -33,8 +34,7 @@ export const GET = withPermission<RouteParams>(
           { status: 404 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to fetch dispatch status.';
-      return NextResponse.json({ error: 'FETCH_DISPATCH_STATUS_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

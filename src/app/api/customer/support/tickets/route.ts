@@ -9,6 +9,7 @@ import {
   listCustomerTickets,
 } from '@/modules/support/application/services/customer-support-service';
 import { InvalidBookingAssociationError } from '@/modules/support/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const createTicketSchema = z.object({
   category: z.nativeEnum(SupportTicketCategory),
@@ -46,8 +47,7 @@ export const POST = withPermission(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to create support ticket.';
-      return NextResponse.json({ error: 'CREATE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

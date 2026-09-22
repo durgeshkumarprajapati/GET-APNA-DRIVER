@@ -225,6 +225,8 @@ export default function PhoneAuthPage() {
               <input
                 id="otp"
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
                 maxLength={6}
                 placeholder="123456"

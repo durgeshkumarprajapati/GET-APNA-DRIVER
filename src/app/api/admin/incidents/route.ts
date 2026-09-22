@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { prisma } from '@/shared/database/prisma';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 import type { Prisma } from '@prisma/client';
 
@@ -96,7 +97,6 @@ export const GET = withPermission(PERMISSIONS.ADMIN_INCIDENT_READ, async (reques
       },
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to list incidents.';
-    return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, request.nextUrl.pathname);
   }
 });

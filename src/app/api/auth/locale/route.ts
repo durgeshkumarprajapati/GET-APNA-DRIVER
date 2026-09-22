@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import { isValidLocale } from '@/i18n/config';
 import { prisma } from '@/shared/database/prisma';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const localeSchema = z.object({
   locale: z.string().refine(isValidLocale, { message: 'Invalid locale' }),
@@ -34,7 +35,6 @@ export const POST = withAuth(async (req: NextRequest, { principal }) => {
         { status: 400 },
       );
     }
-    const message = err instanceof Error ? err.message : 'Failed to save locale preference.';
-    return NextResponse.json({ error: 'LOCALE_UPDATE_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

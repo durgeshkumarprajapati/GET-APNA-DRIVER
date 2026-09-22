@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { adjustCustomerPoints } from '@/modules/loyalty/application/services/loyalty-account-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const POST = withPermission(PERMISSIONS.ADMIN_LOYALTY_ADJUST, async (req, { principal }) => {
   try {
@@ -38,10 +39,6 @@ export const POST = withPermission(PERMISSIONS.ADMIN_LOYALTY_ADJUST, async (req,
       { status: 200 },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to adjust points';
-    return NextResponse.json(
-      { success: false, error: 'POINTS_ADJUST_FAILED', message },
-      { status: 500 },
-    );
+    return toErrorResponse(error, req.nextUrl.pathname);
   }
 });

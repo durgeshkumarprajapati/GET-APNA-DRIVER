@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/admin-layout';
 import { RatingStars } from '@/components/ui/rating-stars';
 
 interface DriverRow {
@@ -88,222 +87,215 @@ export default function AdminDriverDirectoryPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
-              <span className="material-symbols-outlined text-[16px]">id_card</span>
-              <span>CHAUFFEUR DIRECTORY &amp; ROSTER</span>
-            </div>
-            <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
-              Driver Directory
-            </h1>
-            <p className="text-xs text-[#87948b] mt-0.5">
-              {data ? `${data.total} driver application${data.total === 1 ? '' : 's'}` : '—'}
-            </p>
+    <div className="flex flex-col gap-6 w-full">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+            <span className="material-symbols-outlined text-[16px]">id_card</span>
+            <span>CHAUFFEUR DIRECTORY &amp; ROSTER</span>
           </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search by name..."
-              className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
-            />
-            <select
-              value={approvalStatus}
-              onChange={(e) => {
-                setApprovalStatus(e.target.value as (typeof APPROVAL_FILTERS)[number]);
-                setPage(1);
-              }}
-              className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-            >
-              {APPROVAL_FILTERS.map((status) => (
-                <option key={status} value={status}>
-                  {status === 'ALL' ? 'All Approval Statuses' : status}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+            Driver Directory
+          </h1>
+          <p className="text-xs text-[#87948b] mt-0.5">
+            {data ? `${data.total} driver application${data.total === 1 ? '' : 's'}` : '—'}
+          </p>
         </div>
 
-        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
-          {loading ? (
-            <div className="py-16 text-center text-[#87948b] text-sm">Loading drivers…</div>
-          ) : !data || data.drivers.length === 0 ? (
-            <div className="py-16 text-center text-[#87948b] text-sm">
-              No drivers match the current filters.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-sans text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
-                    <th className="py-3 px-4">Driver</th>
-                    <th className="py-3 px-4">Contact</th>
-                    <th className="py-3 px-4">License</th>
-                    <th className="py-3 px-4">Experience</th>
-                    <th className="py-3 px-4">Rating</th>
-                    <th className="py-3 px-4">Onboarding</th>
-                    <th className="py-3 px-4">Approval</th>
-                    <th className="py-3 px-4">Availability</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#262a33] font-mono">
-                  {data.drivers.map((driver) => (
-                    <tr key={driver.id} className="hover:bg-[#181c24]/60 transition-colors">
-                      <td className="py-3 px-4">
-                        <Link
-                          href={`/admin/drivers/${driver.id}`}
-                          className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors flex items-center gap-1.5 group"
-                        >
-                          <span>{driverDisplayName(driver)}</span>
-                          <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity text-[#68dba9]">
-                            open_in_new
-                          </span>
-                        </Link>
-                      </td>
-                      <td className="py-3 px-4 text-[#bccac0]">
-                        <span className="block">{driver.user.email ?? '—'}</span>
-                        {driver.user.phoneNumber && (
-                          <span className="block text-[10px] text-[#87948b]">
-                            {driver.user.phoneNumber}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-[#bccac0]">{driver.drivingLicenseNumber}</td>
-                      <td className="py-3 px-4 text-[#bccac0]">
-                        {driver.drivingExperienceYears} yrs
-                      </td>
-                      <td className="py-3 px-4">
-                        {driver.rating.totalReviews > 0 ? (
-                          <div className="flex items-center gap-1.5">
-                            <RatingStars value={driver.rating.averageRating} size="sm" />
-                            <span className="text-[10px] text-[#87948b]">
-                              ({driver.rating.totalReviews})
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-[#87948b]">No reviews</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.onboardingStatus)}`}
-                        >
-                          {driver.onboardingStatus}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.approvalStatus)}`}
-                        >
-                          {driver.approvalStatus}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.availabilityStatus)}`}
-                        >
-                          {driver.availabilityStatus}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link
-                            href={`/admin/drivers/${driver.id}`}
-                            className="px-2.5 py-1 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] hover:border-[#68dba9] hover:text-[#68dba9] transition-all text-[11px] font-mono flex items-center gap-1"
-                          >
-                            <span className="material-symbols-outlined text-xs">visibility</span>
-                            <span>Review</span>
-                          </Link>
-                          {driver.approvalStatus !== 'APPROVED' && (
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                try {
-                                  const res = await fetch(
-                                    `/api/admin/drivers/${driver.id}/approve`,
-                                    {
-                                      method: 'POST',
-                                    },
-                                  );
-                                  if (res.ok) {
-                                    // Refresh directory data
-                                    const params = new URLSearchParams({
-                                      page: String(page),
-                                      pageSize: String(PAGE_SIZE),
-                                    });
-                                    if (search.trim()) params.set('search', search.trim());
-                                    if (approvalStatus !== 'ALL')
-                                      params.set('approvalStatus', approvalStatus);
-                                    const refreshRes = await fetch(
-                                      `/api/admin/drivers?${params.toString()}`,
-                                    );
-                                    if (refreshRes.ok) {
-                                      setData(await refreshRes.json());
-                                    }
-                                  } else {
-                                    const errData = await res.json();
-                                    alert(
-                                      errData.message ||
-                                        'Driver approval failed. Ensure documents are uploaded and verified.',
-                                    );
-                                  }
-                                } catch {
-                                  alert('Approval failed. Please check driver documents.');
-                                }
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-[#25a475] text-[#00311f] font-bold hover:bg-[#208b63] transition-all text-[11px] font-mono flex items-center gap-1 shadow-sm"
-                            >
-                              <span className="material-symbols-outlined text-xs">
-                                check_circle
-                              </span>
-                              <span>Approve</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {data && data.total > 0 && (
-            <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
-              <span>
-                Page {data.page} of {totalPages}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search by name..."
+            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+          />
+          <select
+            value={approvalStatus}
+            onChange={(e) => {
+              setApprovalStatus(e.target.value as (typeof APPROVAL_FILTERS)[number]);
+              setPage(1);
+            }}
+            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          >
+            {APPROVAL_FILTERS.map((status) => (
+              <option key={status} value={status}>
+                {status === 'ALL' ? 'All Approval Statuses' : status}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
-    </AdminLayout>
+
+      <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+        {loading ? (
+          <div className="py-16 text-center text-[#87948b] text-sm">Loading drivers…</div>
+        ) : !data || data.drivers.length === 0 ? (
+          <div className="py-16 text-center text-[#87948b] text-sm">
+            No drivers match the current filters.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-sans text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                  <th className="py-3 px-4">Driver</th>
+                  <th className="py-3 px-4">Contact</th>
+                  <th className="py-3 px-4">License</th>
+                  <th className="py-3 px-4">Experience</th>
+                  <th className="py-3 px-4">Rating</th>
+                  <th className="py-3 px-4">Onboarding</th>
+                  <th className="py-3 px-4">Approval</th>
+                  <th className="py-3 px-4">Availability</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#262a33] font-mono">
+                {data.drivers.map((driver) => (
+                  <tr key={driver.id} className="hover:bg-[#181c24]/60 transition-colors">
+                    <td className="py-3 px-4">
+                      <Link
+                        href={`/admin/drivers/${driver.id}`}
+                        className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors flex items-center gap-1.5 group"
+                      >
+                        <span>{driverDisplayName(driver)}</span>
+                        <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity text-[#68dba9]">
+                          open_in_new
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4 text-[#bccac0]">
+                      <span className="block">{driver.user.email ?? '—'}</span>
+                      {driver.user.phoneNumber && (
+                        <span className="block text-[10px] text-[#87948b]">
+                          {driver.user.phoneNumber}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-[#bccac0]">{driver.drivingLicenseNumber}</td>
+                    <td className="py-3 px-4 text-[#bccac0]">
+                      {driver.drivingExperienceYears} yrs
+                    </td>
+                    <td className="py-3 px-4">
+                      {driver.rating.totalReviews > 0 ? (
+                        <div className="flex items-center gap-1.5">
+                          <RatingStars value={driver.rating.averageRating} size="sm" />
+                          <span className="text-[10px] text-[#87948b]">
+                            ({driver.rating.totalReviews})
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-[#87948b]">No reviews</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.onboardingStatus)}`}
+                      >
+                        {driver.onboardingStatus}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.approvalStatus)}`}
+                      >
+                        {driver.approvalStatus}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(driver.availabilityStatus)}`}
+                      >
+                        {driver.availabilityStatus}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/drivers/${driver.id}`}
+                          className="px-2.5 py-1 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] hover:border-[#68dba9] hover:text-[#68dba9] transition-all text-[11px] font-mono flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-xs">visibility</span>
+                          <span>Review</span>
+                        </Link>
+                        {driver.approvalStatus !== 'APPROVED' && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const res = await fetch(`/api/admin/drivers/${driver.id}/approve`, {
+                                  method: 'POST',
+                                });
+                                if (res.ok) {
+                                  // Refresh directory data
+                                  const params = new URLSearchParams({
+                                    page: String(page),
+                                    pageSize: String(PAGE_SIZE),
+                                  });
+                                  if (search.trim()) params.set('search', search.trim());
+                                  if (approvalStatus !== 'ALL')
+                                    params.set('approvalStatus', approvalStatus);
+                                  const refreshRes = await fetch(
+                                    `/api/admin/drivers?${params.toString()}`,
+                                  );
+                                  if (refreshRes.ok) {
+                                    setData(await refreshRes.json());
+                                  }
+                                } else {
+                                  const errData = await res.json();
+                                  alert(
+                                    errData.message ||
+                                      'Driver approval failed. Ensure documents are uploaded and verified.',
+                                  );
+                                }
+                              } catch {
+                                alert('Approval failed. Please check driver documents.');
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-[#25a475] text-[#00311f] font-bold hover:bg-[#208b63] transition-all text-[11px] font-mono flex items-center gap-1 shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-xs">check_circle</span>
+                            <span>Approve</span>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {data && data.total > 0 && (
+          <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+            <span>
+              Page {data.page} of {totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

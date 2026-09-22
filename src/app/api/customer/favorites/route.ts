@@ -6,6 +6,7 @@ import {
   addFavoriteDriver,
   getCustomerFavoriteDrivers,
 } from '@/modules/favorites/favorites-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const addFavoriteSchema = z.object({
   driverProfileId: z.string().uuid({ message: 'Invalid driverProfileId UUID' }),
@@ -19,8 +20,7 @@ export const GET = withAuth(async (_req: NextRequest, { principal }) => {
       favorites,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch favorite drivers.';
-    return NextResponse.json({ error: 'FAVORITES_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });
 
@@ -54,6 +54,6 @@ export const POST = withAuth(async (req: NextRequest, { principal }) => {
         { status: 400 },
       );
     }
-    return NextResponse.json({ error: 'ADD_FAVORITE_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

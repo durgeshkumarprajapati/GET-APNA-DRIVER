@@ -80,6 +80,19 @@ export async function rankCandidateDrivers(
       continue;
     }
 
+    if (options.requestedVehicleCategory) {
+      const capCount = await db.driverVehicleCapability.count({
+        where: {
+          driverProfileId: candidate.driverProfileId,
+          vehicleCategoryId: options.requestedVehicleCategory,
+          vehicleCategory: { isActive: true },
+        },
+      });
+      if (capCount === 0) {
+        continue;
+      }
+    }
+
     const freshnessClass = classifyLocationFreshness(candidate.capturedAt, now);
     // Exclude STALE and UNAVAILABLE locations from candidate pool
     if (freshnessClass === 'STALE' || freshnessClass === 'UNAVAILABLE') {

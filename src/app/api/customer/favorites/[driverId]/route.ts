@@ -2,6 +2,7 @@ import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import { removeFavoriteDriver } from '@/modules/favorites/favorites-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const DELETE = withAuth(async (_req: NextRequest, { principal }, routeContext?: unknown) => {
   try {
@@ -21,7 +22,6 @@ export const DELETE = withAuth(async (_req: NextRequest, { principal }, routeCon
       message: 'Driver removed from favorites',
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to remove favorite driver.';
-    return NextResponse.json({ error: 'REMOVE_FAVORITE_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });

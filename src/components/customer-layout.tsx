@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
 import { useAutoLocation } from './use-auto-location';
+import { useAutoWebPush } from './use-auto-web-push';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
 import { UserAvatar } from './ui/user-avatar';
@@ -35,6 +36,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('CUSTOMER');
+  useAutoWebPush();
 
   // Restore sidebar scroll position and scroll active item into view if out of bounds
   useEffect(() => {

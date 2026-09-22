@@ -7,7 +7,7 @@ import {
   sendBookingMessage,
   listBookingMessages,
 } from '@/modules/booking/application/booking-messaging-service';
-import { AppError } from '@/shared/errors/app-error';
+import { AppError, toErrorResponse } from '@/shared/errors/app-error';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
@@ -36,8 +36,7 @@ export const GET = withPermission<RouteParams>(
           { status: err.statusCode },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to load messages.';
-      return NextResponse.json({ error: 'MESSAGES_FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );
@@ -70,8 +69,7 @@ export const POST = withPermission<RouteParams>(
           { status: err.statusCode },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to send message.';
-      return NextResponse.json({ error: 'MESSAGE_SEND_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

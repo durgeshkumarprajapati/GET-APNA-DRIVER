@@ -9,6 +9,7 @@ import {
   updateSafetyIncidentStatus,
   assignSafetyOperator,
 } from '@/modules/safety/application/safety-incident-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ incidentId: string }> };
 
@@ -81,8 +82,7 @@ export const PATCH = withPermission<RouteParams>(
 
       return NextResponse.json({ incident: updated }, { status: 200 });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update safety incident';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

@@ -319,7 +319,7 @@ export default function DriverOnboardingPage() {
             <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
               1. Personal & Profile Information
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="text-xs text-[#87948b] flex flex-col gap-1">
                 First Name
                 <input

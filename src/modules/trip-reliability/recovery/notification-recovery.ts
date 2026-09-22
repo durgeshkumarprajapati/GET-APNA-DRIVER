@@ -13,7 +13,7 @@ export class NotificationRecoveryHandler {
       userId,
       title,
       message,
-      category: 'RELIABILITY_ALERT',
+      category: 'TRIP',
     });
 
     return {

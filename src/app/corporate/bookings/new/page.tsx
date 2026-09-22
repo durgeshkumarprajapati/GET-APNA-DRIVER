@@ -27,9 +27,10 @@ export default function NewCorporateBookingPage() {
 
   // Form State
   const [pickupAddress, setPickupAddress] = useState('Bandra Kurla Complex, Mumbai');
-  const [dropoffAddress, setDropoffAddress] = useState(
-    'Chhatrapati Shivaji Maharaj International Airport T2',
-  );
+  // Optional — drop location is not required for any booking type (see
+  // supportsDropLocation/requiresDropLocation in booking-policy.ts). Empty
+  // means the customer hasn't specified a destination yet.
+  const [dropoffAddress, setDropoffAddress] = useState('');
   const [vehicleCategory, setVehicleCategory] = useState('SEDAN');
   const [departmentId, setDepartmentId] = useState('');
   const [costCenterId, setCostCenterId] = useState('');
@@ -80,12 +81,14 @@ export default function NewCorporateBookingPage() {
               address: pickupAddress,
               label: 'Office / BKC',
             },
-            dropoffLocation: {
-              latitude: 19.0896,
-              longitude: 72.8656,
-              address: dropoffAddress,
-              label: 'Airport Terminal 2',
-            },
+            dropoffLocation: dropoffAddress.trim()
+              ? {
+                  latitude: 19.0896,
+                  longitude: 72.8656,
+                  address: dropoffAddress,
+                  label: 'Airport Terminal 2',
+                }
+              : null,
             bookingType: 'ONE_WAY',
           },
         }),
@@ -167,14 +170,14 @@ export default function NewCorporateBookingPage() {
 
               <div className="space-y-1">
                 <label className="text-xs font-mono text-[#bccac0] uppercase font-bold">
-                  Dropoff Address
+                  Dropoff Address (Optional)
                 </label>
                 <input
                   type="text"
                   value={dropoffAddress}
                   onChange={(e) => setDropoffAddress(e.target.value)}
+                  placeholder="Leave blank if not yet known"
                   className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
-                  required
                 />
               </div>
             </div>
@@ -253,7 +256,7 @@ export default function NewCorporateBookingPage() {
               />
             </div>
 
-            <div className="p-4 bg-[#1c2028] border border-[#262a33] rounded-xl flex items-center justify-between">
+            <div className="p-4 bg-[#1c2028] border border-[#262a33] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-xs text-[#bccac0] block font-mono">
                   Estimated Fare Billed To Corporate

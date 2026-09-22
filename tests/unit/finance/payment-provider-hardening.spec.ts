@@ -61,7 +61,10 @@ import {
   MockPaymentProvider,
 } from '@/modules/finance/infrastructure/payment-provider';
 import { prisma } from '@/shared/database/prisma';
-import { capturePayment, markPaymentFailed } from '@/modules/finance/application/services/payment-service';
+import {
+  capturePayment,
+  markPaymentFailed,
+} from '@/modules/finance/application/services/payment-service';
 
 const mockedPrisma = prisma as unknown as {
   payment: {

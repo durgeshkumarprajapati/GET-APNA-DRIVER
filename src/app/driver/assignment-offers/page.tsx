@@ -247,36 +247,38 @@ export default function DriverAssignmentOffersPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                       <button
                         onClick={() => handleAccept(offer.id)}
                         disabled={actioningId === offer.id || isExpired}
-                        className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2"
+                        className="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2"
                       >
                         {actioningId === offer.id && (
                           <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                         )}
                         Accept Assignment Offer
                       </button>
-                      <button
-                        onClick={() => setRejectModalId(offer.id)}
-                        disabled={actioningId === offer.id || isExpired}
-                        className="px-5 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 font-semibold text-sm rounded-xl transition-colors"
-                      >
-                        Reject
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setMessagingBookingId((prev) =>
-                            prev === offer.bookingId ? null : offer.bookingId,
-                          )
-                        }
-                        className="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-base">chat</span>
-                        Message Customer
-                      </button>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setRejectModalId(offer.id)}
+                          disabled={actioningId === offer.id || isExpired}
+                          className="flex-1 sm:flex-initial px-5 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 font-semibold text-sm rounded-xl transition-colors"
+                        >
+                          Reject
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMessagingBookingId((prev) =>
+                              prev === offer.bookingId ? null : offer.bookingId,
+                            )
+                          }
+                          className="flex-1 sm:flex-initial px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <span className="material-symbols-outlined text-base">chat</span>
+                          Message Customer
+                        </button>
+                      </div>
                     </div>
 
                     {messagingBookingId === offer.bookingId && (

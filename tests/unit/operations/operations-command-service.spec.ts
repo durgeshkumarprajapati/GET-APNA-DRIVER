@@ -6,6 +6,28 @@ import {
   executeOperationsAction,
   getOperationsCommandSummary,
 } from '@/modules/operations';
+import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
+import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
+import type { AuthenticatedPrincipal } from '@/modules/identity/domain/types';
+import { restartBookingSearch } from '@/modules/booking/application/dispatch-service';
+
+// RESTART_DISPATCH/CANCEL_BOOKING delegate to dispatch-service.ts's own
+// permission-checked, state-machine-validated functions (see
+// tests/unit/operations/operations-action-service.spec.ts for the
+// regression test covering that delegation itself) — mocked here so this
+// file stays focused on executeOperationsAction's own orchestration
+// (locking, decision-status update, result shape).
+jest.mock('@/modules/booking/application/dispatch-service', () => ({
+  restartBookingSearch: jest.fn().mockResolvedValue({ id: 'booking-1' }),
+  cancelBookingByOperator: jest.fn().mockResolvedValue({ id: 'booking-1' }),
+}));
+
+const adminPrincipal: AuthenticatedPrincipal = {
+  userId: 'admin-1',
+  accountStatus: 'ACTIVE',
+  roles: [SYSTEM_ROLE_CODES.ADMINISTRATOR],
+  permissions: [PERMISSIONS.DISPATCH_BOOKING_OVERRIDE, PERMISSIONS.BOOKINGS_CANCEL],
+};
 
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
@@ -99,13 +121,17 @@ describe('Operations Command & Decision Engine Spec', () => {
       actionId: 'act-1',
       decisionId: decId,
       actionType: 'RESTART_DISPATCH',
-      adminUserId: 'admin-1',
+      actor: adminPrincipal,
       bookingId: 'booking-1',
     });
 
     expect(result.success).toBe(true);
     expect(result.actionType).toBe('RESTART_DISPATCH');
     expect(result.message).toContain('booking-1');
+    expect(restartBookingSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: 'booking-1', actor: adminPrincipal }),
+      expect.anything(),
+    );
   });
 
   it('getOperationsCommandSummary returns top metrics and system status', async () => {

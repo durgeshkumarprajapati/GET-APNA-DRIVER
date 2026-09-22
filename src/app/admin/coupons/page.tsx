@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/admin-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { MetricCard } from '@/components/ui/metric-card';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
@@ -262,212 +261,206 @@ export default function AdminCouponsPage() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full">
-        <PageHeader
-          eyebrow="Growth"
-          title="Coupons & Promotions"
-          subtitle="Manage customer promotions, coupon codes, and automatic offers."
-          actions={
-            <button
-              type="button"
-              onClick={() => setShowCreate((v) => !v)}
-              className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
-            >
-              {showCreate ? 'Cancel' : '+ New Promotion'}
-            </button>
-          }
-        />
-
-        {analytics && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard label="Total Promotions" value={analytics.totalPromotions} />
-            <MetricCard
-              label="Active Promotions"
-              value={analytics.activePromotions}
-              accent="positive"
-            />
-            <MetricCard label="Total Redemptions" value={analytics.totalRedemptions} />
-            <MetricCard
-              label="Total Discount Granted"
-              value={<FinanceAmount value={analytics.totalDiscountAmount} />}
-            />
-          </div>
-        )}
-
-        {showCreate && (
-          <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
-            <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-              New Promotion
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                type="text"
-                placeholder="Name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <input
-                type="text"
-                placeholder="Code (blank = automatic)"
-                value={form.code}
-                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] font-mono"
-              />
-              <select
-                value={form.discountType}
-                onChange={(e) => setForm({ ...form, discountType: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              >
-                <option value="PERCENTAGE">Percentage</option>
-                <option value="FIXED">Fixed Amount</option>
-              </select>
-              <input
-                type="text"
-                placeholder={
-                  form.discountType === 'PERCENTAGE'
-                    ? 'Discount % (e.g. 20)'
-                    : 'Discount ₹ (e.g. 100)'
-                }
-                value={form.discountValue}
-                onChange={(e) => setForm({ ...form, discountValue: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <input
-                type="text"
-                placeholder="Max discount ₹ (optional cap)"
-                value={form.maxDiscountAmount}
-                onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <input
-                type="text"
-                placeholder="Minimum booking value (optional)"
-                value={form.minBookingValue}
-                onChange={(e) => setForm({ ...form, minBookingValue: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <label className="flex items-center gap-2 text-xs text-[#bccac0]">
-                <input
-                  type="datetime-local"
-                  value={form.startsAt}
-                  onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
-                  className="flex-1 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-                />
-              </label>
-              <input
-                type="datetime-local"
-                placeholder="Ends at (optional)"
-                value={form.endsAt}
-                onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <input
-                type="number"
-                placeholder="Total usage limit (blank = unlimited)"
-                value={form.totalUsageLimit}
-                onChange={(e) => setForm({ ...form, totalUsageLimit: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <input
-                type="number"
-                placeholder="Per-user usage limit"
-                value={form.perUserUsageLimit}
-                onChange={(e) => setForm({ ...form, perUserUsageLimit: e.target.value })}
-                className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <textarea
-                placeholder="Description (optional)"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="md:col-span-3 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-              />
-              <label className="flex items-center gap-2 text-xs text-[#bccac0]">
-                <input
-                  type="checkbox"
-                  checked={form.firstRideOnly}
-                  onChange={(e) => setForm({ ...form, firstRideOnly: e.target.checked })}
-                />
-                First ride only
-              </label>
-              <label className="flex items-center gap-2 text-xs text-[#bccac0]">
-                <input
-                  type="checkbox"
-                  checked={form.isAutomatic}
-                  onChange={(e) => setForm({ ...form, isAutomatic: e.target.checked })}
-                />
-                Auto-apply (no code needed)
-              </label>
-            </div>
-            <button
-              type="button"
-              disabled={
-                creating || !form.name.trim() || !form.discountValue.trim() || !form.startsAt
-              }
-              onClick={() => void handleCreate()}
-              className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
-            >
-              {creating ? 'Creating…' : 'Create Promotion (as Draft)'}
-            </button>
-            <p className="text-[10px] text-[#87948b]">
-              A new promotion is always created as DRAFT — activate it once ready. Only DRAFT
-              promotions can still be edited; once activated, its terms are locked to keep
-              historical redemptions correct.
-            </p>
-          </div>
-        )}
-
-        {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
-
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+    <div className="flex flex-col gap-6 w-full">
+      <PageHeader
+        eyebrow="Growth"
+        title="Coupons & Promotions"
+        subtitle="Manage customer promotions, coupon codes, and automatic offers."
+        actions={
+          <button
+            type="button"
+            onClick={() => setShowCreate((v) => !v)}
+            className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
           >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt === '' ? 'All Statuses' : opt}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search by name or code"
-            className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            {showCreate ? 'Cancel' : '+ New Promotion'}
+          </button>
+        }
+      />
+
+      {analytics && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard label="Total Promotions" value={analytics.totalPromotions} />
+          <MetricCard
+            label="Active Promotions"
+            value={analytics.activePromotions}
+            accent="positive"
+          />
+          <MetricCard label="Total Redemptions" value={analytics.totalRedemptions} />
+          <MetricCard
+            label="Total Discount Granted"
+            value={<FinanceAmount value={analytics.totalDiscountAmount} />}
           />
         </div>
+      )}
 
-        {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <LoadingState message="Loading promotions…" />
-        ) : (
-          <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
-            <DataTable
-              columns={columns}
-              data={promotions}
-              keyExtractor={(p) => p.id}
-              emptyIcon="confirmation_number"
-              emptyMessage="No promotions match these filters."
+      {showCreate && (
+        <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
+          <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">New Promotion</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              type="text"
+              placeholder="Name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
             />
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+            <input
+              type="text"
+              placeholder="Code (blank = automatic)"
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] font-mono"
+            />
+            <select
+              value={form.discountType}
+              onChange={(e) => setForm({ ...form, discountType: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            >
+              <option value="PERCENTAGE">Percentage</option>
+              <option value="FIXED">Fixed Amount</option>
+            </select>
+            <input
+              type="text"
+              placeholder={
+                form.discountType === 'PERCENTAGE'
+                  ? 'Discount % (e.g. 20)'
+                  : 'Discount ₹ (e.g. 100)'
+              }
+              value={form.discountValue}
+              onChange={(e) => setForm({ ...form, discountValue: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <input
+              type="text"
+              placeholder="Max discount ₹ (optional cap)"
+              value={form.maxDiscountAmount}
+              onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <input
+              type="text"
+              placeholder="Minimum booking value (optional)"
+              value={form.minBookingValue}
+              onChange={(e) => setForm({ ...form, minBookingValue: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <label className="flex items-center gap-2 text-xs text-[#bccac0]">
+              <input
+                type="datetime-local"
+                value={form.startsAt}
+                onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                className="flex-1 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              />
+            </label>
+            <input
+              type="datetime-local"
+              placeholder="Ends at (optional)"
+              value={form.endsAt}
+              onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <input
+              type="number"
+              placeholder="Total usage limit (blank = unlimited)"
+              value={form.totalUsageLimit}
+              onChange={(e) => setForm({ ...form, totalUsageLimit: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <input
+              type="number"
+              placeholder="Per-user usage limit"
+              value={form.perUserUsageLimit}
+              onChange={(e) => setForm({ ...form, perUserUsageLimit: e.target.value })}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <textarea
+              placeholder="Description (optional)"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="md:col-span-3 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+            <label className="flex items-center gap-2 text-xs text-[#bccac0]">
+              <input
+                type="checkbox"
+                checked={form.firstRideOnly}
+                onChange={(e) => setForm({ ...form, firstRideOnly: e.target.checked })}
+              />
+              First ride only
+            </label>
+            <label className="flex items-center gap-2 text-xs text-[#bccac0]">
+              <input
+                type="checkbox"
+                checked={form.isAutomatic}
+                onChange={(e) => setForm({ ...form, isAutomatic: e.target.checked })}
+              />
+              Auto-apply (no code needed)
+            </label>
           </div>
-        )}
+          <button
+            type="button"
+            disabled={creating || !form.name.trim() || !form.discountValue.trim() || !form.startsAt}
+            onClick={() => void handleCreate()}
+            className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+          >
+            {creating ? 'Creating…' : 'Create Promotion (as Draft)'}
+          </button>
+          <p className="text-[10px] text-[#87948b]">
+            A new promotion is always created as DRAFT — activate it once ready. Only DRAFT
+            promotions can still be edited; once activated, its terms are locked to keep historical
+            redemptions correct.
+          </p>
+        </div>
+      )}
+
+      {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
+
+      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt === '' ? 'All Statuses' : opt}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          placeholder="Search by name or code"
+          className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+        />
       </div>
-    </AdminLayout>
+
+      {error && (
+        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <LoadingState message="Loading promotions…" />
+      ) : (
+        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+          <DataTable
+            columns={columns}
+            data={promotions}
+            keyExtractor={(p) => p.id}
+            emptyIcon="confirmation_number"
+            emptyMessage="No promotions match these filters."
+          />
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+        </div>
+      )}
+    </div>
   );
 }

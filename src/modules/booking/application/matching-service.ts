@@ -19,6 +19,7 @@ import {
 } from '@/modules/dispatch/application/dispatch-search-service';
 import { isDriverHireBooking, isRateSelectableHireBooking } from '../domain/booking-policy';
 import { findConflictingDriverIds } from './driver-hire-availability-service';
+import { isDriverDispatchEligible } from '@/modules/driver/application/services/driver-eligibility-service';
 
 export interface MatchingResult {
   attemptId: string | null;
@@ -208,6 +209,37 @@ export async function findAndOfferNextDriver(
         );
         isStillAvailable = !conflicting.has(chosenDriverId);
       }
+
+      if (isStillAvailable && booking.vehicleCategoryId) {
+        // Must agree with the geo-pool path's equivalent check below
+        // (vehicleCategory: { isActive: true }) — a capability row for a
+        // category an admin has since deactivated must not count as
+        // "capable" here either, or a required-single-driver hire could
+        // bypass a restriction the general dispatch path already enforces.
+        const cap = await db.driverVehicleCapability.findFirst({
+          where: {
+            driverProfileId: chosenDriverId,
+            vehicleCategoryId: booking.vehicleCategoryId,
+            vehicleCategory: { isActive: true },
+          },
+        });
+        if (!cap) {
+          isStillAvailable = false;
+        }
+      }
+
+      if (isStillAvailable) {
+        // Final authoritative gate: shift-schedule window + active-booking
+        // conflict, on top of the approval/availability/vehicle checks
+        // above — this is the one existing eligibility engine
+        // (driver-eligibility-service.ts), reused verbatim, not a second
+        // one. A chosen driver technically AVAILABLE but off-shift or with
+        // an undetected active-booking conflict must not receive an offer.
+        const dispatchEligibility = await isDriverDispatchEligible(chosenDriverId, now, db);
+        if (!dispatchEligibility.isEligible) {
+          isStillAvailable = false;
+        }
+      }
     }
 
     if (!chosenDriverId || !isStillAvailable) {
@@ -216,7 +248,7 @@ export async function findAndOfferNextDriver(
         attemptId: null,
         status: 'NO_DRIVERS_FOUND',
         message:
-          'The selected driver is no longer available; this booking type does not fall back to another driver.',
+          'The selected driver is no longer available or does not possess the requested vehicle capability; this booking type does not fall back to another driver.',
       };
     }
 
@@ -241,6 +273,21 @@ export async function findAndOfferNextDriver(
 
   // Filter out drivers already attempted
   let unattempted = candidates.filter((c) => !attemptedDriverIds.has(c.driverId));
+
+  // Filter out drivers lacking requested vehicle category capability
+  if (booking.vehicleCategoryId && unattempted.length > 0) {
+    const candidateIds = unattempted.map((c) => c.driverId);
+    const capable = await db.driverVehicleCapability.findMany({
+      where: {
+        driverProfileId: { in: candidateIds },
+        vehicleCategoryId: booking.vehicleCategoryId,
+        vehicleCategory: { isActive: true },
+      },
+      select: { driverProfileId: true },
+    });
+    const capableSet = new Set(capable.map((c) => c.driverProfileId));
+    unattempted = unattempted.filter((c) => capableSet.has(c.driverId));
+  }
 
   // For duration-based driver hire (HOURLY/FULL_DAY/MULTI_DAY — the hire
   // types that still use the geo-proximity pool rather than the required
@@ -318,12 +365,15 @@ export async function findAndOfferNextDriver(
       preferredDriverProfileId: booking.preferredDriverProfileId,
       customerId: booking.customerId,
       bookingType: booking.bookingType,
+      requestedVehicleCategory: booking.vehicleCategoryId,
     },
     db,
   );
 
-  // Authoritative selection: prioritize explicitly requested preferred driver if in unattempted pool, else top-ranked candidate
-  let targetDriver = null;
+  // Authoritative selection order: explicitly requested preferred driver
+  // first (if in the unattempted pool), then the rest of the pool in
+  // rankCandidateDrivers' own order — ranking itself is untouched.
+  const preferenceOrdered: typeof unattempted = [];
   if (
     booking.preferredDriverProfileId &&
     !attemptedDriverIds.has(booking.preferredDriverProfileId)
@@ -332,15 +382,44 @@ export async function findAndOfferNextDriver(
       (c) => c.driverId === booking.preferredDriverProfileId,
     );
     if (preferredCandidate) {
-      targetDriver = preferredCandidate;
+      preferenceOrdered.push(preferredCandidate);
+    }
+  }
+  for (const r of ranked) {
+    const candidate = unattempted.find((c) => c.driverId === r.driverProfileId);
+    if (candidate && !preferenceOrdered.includes(candidate)) {
+      preferenceOrdered.push(candidate);
+    }
+  }
+  // Defensive: cover any unattempted candidate the ranker omitted, so a
+  // ranking gap never shrinks the pool this eligibility gate considers.
+  for (const candidate of unattempted) {
+    if (!preferenceOrdered.includes(candidate)) {
+      preferenceOrdered.push(candidate);
+    }
+  }
+
+  // Final authoritative gate: shift-schedule window + active-booking
+  // conflict, enforced before any offer is sent. Walks the preference
+  // order (unchanged from above) and offers the first candidate who
+  // actually clears it, rather than failing the whole search just because
+  // the top-ranked candidate is off-shift or has an undetected conflict.
+  let targetDriver: (typeof unattempted)[number] | null = null;
+  for (const candidate of preferenceOrdered) {
+    const dispatchEligibility = await isDriverDispatchEligible(candidate.driverId, now, db);
+    if (dispatchEligibility.isEligible) {
+      targetDriver = candidate;
+      break;
     }
   }
 
   if (!targetDriver) {
-    const topRankedCandidate = ranked.length > 0 ? ranked[0] : null;
-    targetDriver = topRankedCandidate
-      ? unattempted.find((c) => c.driverId === topRankedCandidate.driverProfileId) || unattempted[0]
-      : unattempted[0];
+    return {
+      attemptId: null,
+      status: 'NO_DRIVERS_FOUND',
+      message:
+        'No dispatch-eligible drivers found in current radius (schedule or conflict checks failed for all nearby candidates).',
+    };
   }
 
   return createOffer(

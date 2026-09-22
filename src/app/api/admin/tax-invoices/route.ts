@@ -4,6 +4,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getAdminInvoices } from '@/modules/tax-invoices/invoice-service';
 import { TaxInvoiceStatus } from '@prisma/client';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 // Was gated by ADMIN_DASHBOARD_READ — an overly broad, mismatched
 // permission for financial documents. FINANCE_READ (already used by
@@ -27,7 +28,6 @@ export const GET = withPermission(PERMISSIONS.FINANCE_READ, async (req: NextRequ
       ...result,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch tax invoices.';
-    return NextResponse.json({ error: 'ADMIN_INVOICES_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

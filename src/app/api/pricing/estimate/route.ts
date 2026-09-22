@@ -7,6 +7,7 @@ import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calcu
 import { evaluateEligiblePromotions } from '@/modules/promotion/application/services/promotion-eligibility-service';
 import { isRateSelectableHireBooking } from '@/modules/booking/domain/booking-policy';
 import { peekDriverHireRate } from '@/modules/booking/application/driver-hire-availability-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const coordinatesSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -74,7 +75,6 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
         { status: 400 },
       );
     }
-    const message = err instanceof Error ? err.message : 'Failed to calculate fare estimate.';
-    return NextResponse.json({ error: 'PRICING_ESTIMATE_FAILED', message }, { status: 400 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

@@ -6,6 +6,7 @@ import { DriverLayout } from '@/components/driver-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
+import { DriverCapabilitySelector } from '@/components/driver/DriverCapabilitySelector';
 
 interface DriverProfileData {
   firstName: string;
@@ -185,8 +186,10 @@ export default function DriverProfileEditPage() {
         <header
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             justifyContent: 'space-between',
             alignItems: 'center',
+            gap: '1rem',
             marginBottom: '2rem',
             paddingBottom: '1rem',
             borderBottom: '1px solid var(--color-border)',
@@ -259,7 +262,7 @@ export default function DriverProfileEditPage() {
             <p style={{ color: 'var(--color-text-secondary)' }}>Loading profile data...</p>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1rem' }}>
                 <div>
                   <label
                     style={{
@@ -341,7 +344,7 @@ export default function DriverProfileEditPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1rem' }}>
                 <div>
                   <label
                     style={{
@@ -526,7 +529,7 @@ export default function DriverProfileEditPage() {
                   drivers for these bookings will see this rate and pick you directly at it. Leave a
                   field blank to opt out of that hire type.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: '1rem' }}>
                   <div>
                     <label
                       style={{
@@ -631,6 +634,10 @@ export default function DriverProfileEditPage() {
               </div>
             </form>
           )}
+
+          <div style={{ marginTop: '2rem' }}>
+            <DriverCapabilitySelector />
+          </div>
         </div>
       </div>
     </DriverLayout>

@@ -2,6 +2,7 @@ import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/modules/identity/authorization/route-guard';
 import { getCustomerInvoices } from '@/modules/tax-invoices/invoice-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withAuth(async (_req: NextRequest, { principal }) => {
   try {
@@ -11,7 +12,6 @@ export const GET = withAuth(async (_req: NextRequest, { principal }) => {
       invoices,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch tax invoices.';
-    return NextResponse.json({ error: 'INVOICES_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });

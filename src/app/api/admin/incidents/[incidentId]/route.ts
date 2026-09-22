@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { prisma } from '@/shared/database/prisma';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ incidentId: string }> };
 
 export const GET = withPermission<RouteParams>(
   PERMISSIONS.ADMIN_INCIDENT_READ,
-  async (_req, _ctx, routeContext) => {
+  async (req, _ctx, routeContext) => {
     try {
       const { incidentId } = await routeContext!.params;
 
@@ -46,8 +47,7 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ success: true, data: incident });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch incident details.';
-      return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

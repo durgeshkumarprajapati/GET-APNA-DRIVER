@@ -5,6 +5,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { addAdminMessage } from '@/modules/support/application/services/admin-support-service';
 import { SupportTicketNotFoundError } from '@/modules/support/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ ticketId: string }>;
@@ -44,8 +45,7 @@ export const POST = withPermission<RouteParams>(
           { status: 404 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to post admin response.';
-      return NextResponse.json({ error: 'MESSAGE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

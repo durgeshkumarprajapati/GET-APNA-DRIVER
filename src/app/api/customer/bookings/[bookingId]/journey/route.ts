@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getJourneyDetails } from '@/modules/trip-execution/application/journey-orchestration-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 
@@ -26,7 +27,7 @@ export const GET = withPermission<RouteParams>(
           { status: 403 },
         );
       }
-      return NextResponse.json({ error: 'FETCH_JOURNEY_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

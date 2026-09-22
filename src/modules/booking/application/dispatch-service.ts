@@ -10,6 +10,7 @@ import { getInteger } from '@/shared/config/configuration-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
+import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
 import { requirePermission } from '@/modules/identity/authorization/authorization-service';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import type { AuthenticatedPrincipal } from '@/modules/identity/domain/types';
@@ -693,5 +694,20 @@ export async function cancelBookingByOperator(
   if (!detail) {
     throw new BookingNotFoundError(bookingId);
   }
+
+  // Automatic refund if booking was paid prior to operator cancellation —
+  // shared with the customer-cancel and driver-cancel paths (see
+  // refund-service.ts) so all three apply the exact same refund policy.
+  await autoRefundCapturedPaymentOnCancellation(
+    {
+      bookingId,
+      customerId: detail.customer.id,
+      actorUserId: actor.userId,
+      cancellationReason: reason,
+      defaultReason: 'Automatic refund for operator cancelled booking',
+    },
+    db,
+  );
+
   return detail;
 }

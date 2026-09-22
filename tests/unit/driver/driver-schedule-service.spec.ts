@@ -294,5 +294,87 @@ describe('DriverScheduleService Unit Tests', () => {
       const isWithin = await driverScheduleService.isDriverWithinSchedule('prof-1', lateNight);
       expect(isWithin).toBe(true);
     });
+
+    it('treats an overnight shift as active past midnight even when the next day has no schedule of its own', async () => {
+      // Driver only works Monday 22:00-06:00 (Asia/Kolkata). Tuesday has no
+      // configured schedule entry at all. At Tuesday 02:00 local time the
+      // driver is still mid-shift, continuing Monday's overnight window.
+      (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue({
+        id: 'prof-1',
+        schedules: [
+          {
+            dayOfWeek: DayOfWeek.MONDAY,
+            startTime: '22:00',
+            endTime: '06:00',
+            timezone: 'Asia/Kolkata',
+            isActive: true,
+            isOvernight: true,
+          },
+        ],
+        scheduleExceptions: [],
+      });
+      (prisma.driverSchedule.count as jest.Mock).mockResolvedValue(1);
+
+      // 2026-09-15 is Tuesday. 02:00 IST == 2026-09-14T20:30:00Z.
+      const earlyTuesday = new Date('2026-09-14T20:30:00Z');
+      const isWithin = await driverScheduleService.isDriverWithinSchedule('prof-1', earlyTuesday);
+      expect(isWithin).toBe(true);
+    });
+
+    it('does not roll an overnight shift over into the day after it ends', async () => {
+      // Same Monday-only overnight shift, but checked at Tuesday 07:00 IST —
+      // after the 06:00 shift end — must be considered off-shift.
+      (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue({
+        id: 'prof-1',
+        schedules: [
+          {
+            dayOfWeek: DayOfWeek.MONDAY,
+            startTime: '22:00',
+            endTime: '06:00',
+            timezone: 'Asia/Kolkata',
+            isActive: true,
+            isOvernight: true,
+          },
+        ],
+        scheduleExceptions: [],
+      });
+      (prisma.driverSchedule.count as jest.Mock).mockResolvedValue(1);
+
+      // 07:00 IST on Tuesday 2026-09-15 == 2026-09-15T01:30:00Z.
+      const tuesdayMorning = new Date('2026-09-15T01:30:00Z');
+      const isWithin = await driverScheduleService.isDriverWithinSchedule('prof-1', tuesdayMorning);
+      expect(isWithin).toBe(false);
+    });
+
+    it('an explicit OFF exception for the rollover day blocks the driver despite the prior overnight shift', async () => {
+      // Monday 22:00-06:00 overnight shift, but Tuesday has an explicit OFF
+      // exception — the exception must win even during what would otherwise
+      // be the rollover window from Monday's shift.
+      (prisma.driverProfile.findUnique as jest.Mock).mockResolvedValue({
+        id: 'prof-1',
+        schedules: [
+          {
+            dayOfWeek: DayOfWeek.MONDAY,
+            startTime: '22:00',
+            endTime: '06:00',
+            timezone: 'Asia/Kolkata',
+            isActive: true,
+            isOvernight: true,
+          },
+        ],
+        scheduleExceptions: [
+          {
+            date: new Date('2026-09-15T00:00:00Z'),
+            exceptionType: ScheduleExceptionType.OFF,
+          },
+        ],
+      });
+      (prisma.driverSchedule.count as jest.Mock).mockResolvedValue(1);
+
+      // 02:00 IST on Tuesday 2026-09-15 == 2026-09-14T20:30:00Z.
+      const earlyTuesday = new Date('2026-09-14T20:30:00Z');
+      const isWithin = await driverScheduleService.isDriverWithinSchedule('prof-1', earlyTuesday);
+      expect(isWithin).toBe(false);
+    });
   });
 });

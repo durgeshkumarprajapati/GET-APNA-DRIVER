@@ -7,6 +7,7 @@ import { driverScheduleService } from '@/modules/driver/application/services/dri
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { DayOfWeek } from '@prisma/client';
 import { InvalidScheduleTimeError } from '@/modules/driver/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const upsertWeeklyScheduleSchema = z.object({
   entries: z
@@ -33,8 +34,7 @@ export const GET = withPermission(PERMISSIONS.DRIVER_SCHEDULE_READ, async (_req,
     const scheduleOverview = await driverScheduleService.getDriverSchedule(profile.id);
     return NextResponse.json({ success: true, data: scheduleOverview });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to fetch schedule.';
-    return NextResponse.json({ error: 'SCHEDULE_FETCH_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, _req.nextUrl.pathname);
   }
 });
 
@@ -68,8 +68,7 @@ export const POST = withPermission(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to save weekly schedule.';
-      return NextResponse.json({ error: 'SCHEDULE_SAVE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

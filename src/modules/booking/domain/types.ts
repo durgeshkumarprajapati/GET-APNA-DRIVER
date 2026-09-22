@@ -33,6 +33,10 @@ export interface CreateBookingInput {
   promotionCode?: string | null;
   /** Optional non-binding preference for one of the customer's own favorite drivers. Always re-validated server-side — see booking-service.ts. */
   preferredDriverProfileId?: string | null;
+  /** Optional customer vehicle requirement ID. Validated server-side — see booking-service.ts. */
+  vehicleCategoryId?: string | null;
+  /** Optional customer vehicle requirement code. Validated server-side — see booking-service.ts. */
+  vehicleCategoryCode?: string | null;
 }
 
 export interface CandidateDriverRanked {

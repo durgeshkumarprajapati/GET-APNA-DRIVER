@@ -4,9 +4,11 @@ import {
   markArrived,
   startTrip,
   completeTrip,
+  cancelBookingByDriver,
   listDriverBookings,
 } from '@/modules/booking/application/driver-journey-service';
 import { hashPassword } from '@/modules/identity/security/password';
+import { BookingNotFoundError, BookingNotCancellableError } from '@/modules/booking/domain/errors';
 
 const mockTx = {
   booking: {
@@ -18,6 +20,9 @@ const mockTx = {
   },
   driverProfile: {
     update: jest.fn(),
+  },
+  bookingAssignmentAttempt: {
+    updateMany: jest.fn(),
   },
 };
 
@@ -35,6 +40,9 @@ jest.mock('@/shared/database/prisma', () => ({
       findUnique: jest.fn(),
       findUniqueOrThrow: jest.fn(),
       findMany: jest.fn(),
+    },
+    driverCurrentLocation: {
+      findUnique: jest.fn(),
     },
   },
 }));
@@ -63,6 +71,25 @@ jest.mock('@/modules/driver/application/services/driver-eligibility-service', ()
 
 jest.mock('@/modules/location/application/driver-location-service', () => ({
   addDriverToLiveIndex: jest.fn().mockResolvedValue(undefined),
+}));
+
+// cancelBookingByDriver calls getBoolean 3x for cancellation-policy flags,
+// autoRefundCapturedPaymentOnCancellation (which touches real ledger/wallet
+// models this file's mocked prisma object doesn't define) and
+// createNotification (which touches real notification-preference models) —
+// all mocked here to keep these tests isolated to driver-journey-service
+// itself, per the same lesson as the referral/incentive mocks above.
+jest.mock('@/shared/config/configuration-service', () => ({
+  ...jest.requireActual('@/shared/config/configuration-service'),
+  getBoolean: jest.fn().mockResolvedValue(true),
+}));
+
+jest.mock('@/modules/finance/application/services/refund-service', () => ({
+  autoRefundCapturedPaymentOnCancellation: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('@/modules/notification/application/notification-service', () => ({
+  createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
 }));
 
 // completeTrip calls both of these for post-trip milestone/incentive
@@ -102,12 +129,19 @@ import { prisma } from '@/shared/database/prisma';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { getBoolean } from '@/shared/config/configuration-service';
+import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
+import { createNotification } from '@/modules/notification/application/notification-service';
 
 describe('DriverJourneyService', () => {
   const mockGetOrCreateProfile = getOrCreateDriverProfile as jest.Mock;
   const mockFindUniqueBooking = prisma.booking.findUnique as jest.Mock;
   const mockFindUniqueOrThrowBooking = prisma.booking.findUniqueOrThrow as jest.Mock;
   const mockFindManyBooking = prisma.booking.findMany as jest.Mock;
+  const mockGetBoolean = getBoolean as jest.Mock;
+  const mockAutoRefund = autoRefundCapturedPaymentOnCancellation as jest.Mock;
+  const mockCreateNotification = createNotification as jest.Mock;
+  const mockFindUniqueDriverCurrentLocation = prisma.driverCurrentLocation.findUnique as jest.Mock;
 
   const mockDriverProfile = {
     id: 'drv-prof-1',
@@ -252,6 +286,153 @@ describe('DriverJourneyService', () => {
           }),
         }),
       );
+    });
+
+    it("bills real distance for a pickup-only ONE_WAY trip using the driver's fresh live GPS location, and persists it as the trip dropoff", async () => {
+      const mockInProgressBooking = {
+        ...mockBookingAssigned,
+        status: BookingStatus.TRIP_IN_PROGRESS,
+        tripStartedAt: new Date(Date.now() - 20 * 60 * 1000),
+      };
+      mockFindUniqueBooking.mockResolvedValue(mockInProgressBooking);
+      mockFindUniqueOrThrowBooking.mockResolvedValue({
+        ...mockInProgressBooking,
+        status: BookingStatus.TRIP_COMPLETED,
+        tripCompletedAt: new Date(),
+      });
+      mockFindUniqueDriverCurrentLocation.mockResolvedValue({
+        latitude: 28.63,
+        longitude: 77.22,
+        capturedAt: new Date(Date.now() - 10 * 1000),
+      });
+
+      await completeTrip('user-drv-1', 'bk-100');
+
+      expect(mockFindUniqueDriverCurrentLocation).toHaveBeenCalledWith({
+        where: { driverProfileId: 'drv-prof-1' },
+      });
+      expect(mockTx.booking.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'bk-100' },
+          data: expect.objectContaining({
+            dropoffLatitude: 28.63,
+            dropoffLongitude: 77.22,
+            dropoffAddress: expect.stringContaining('auto-captured'),
+          }),
+        }),
+      );
+    });
+
+    it('falls back to the existing base-fare-plus-duration billing (no fabricated dropoff) when no fresh driver location exists for a pickup-only trip', async () => {
+      const mockInProgressBooking = {
+        ...mockBookingAssigned,
+        status: BookingStatus.TRIP_IN_PROGRESS,
+      };
+      mockFindUniqueBooking.mockResolvedValue(mockInProgressBooking);
+      mockFindUniqueOrThrowBooking.mockResolvedValue({
+        ...mockInProgressBooking,
+        status: BookingStatus.TRIP_COMPLETED,
+        tripCompletedAt: new Date(),
+      });
+      mockFindUniqueDriverCurrentLocation.mockResolvedValue(null);
+
+      await completeTrip('user-drv-1', 'bk-100');
+
+      expect(mockTx.booking.update).toHaveBeenCalledWith({
+        where: { id: 'bk-100' },
+        data: {
+          status: BookingStatus.TRIP_COMPLETED,
+          tripCompletedAt: expect.any(Date),
+          finalFareAmount: expect.any(String),
+        },
+      });
+    });
+  });
+
+  describe('cancelBookingByDriver', () => {
+    it('cancels an assigned booking, restores driver availability, notifies the customer, triggers auto-refund, and fires the booking.driver.cancelled outbox event', async () => {
+      mockFindUniqueBooking.mockResolvedValue(mockBookingAssigned);
+      mockFindUniqueOrThrowBooking.mockResolvedValue({
+        ...mockBookingAssigned,
+        status: BookingStatus.CANCELLED,
+        cancelledAt: new Date(),
+        cancelledBy: 'user-drv-1',
+        driverProfileId: null,
+      });
+
+      const result = await cancelBookingByDriver('user-drv-1', 'bk-100', 'Vehicle breakdown');
+
+      expect(result.status).toBe(BookingStatus.CANCELLED);
+      expect(mockTx.booking.update).toHaveBeenCalledWith({
+        where: { id: 'bk-100' },
+        data: expect.objectContaining({
+          status: BookingStatus.CANCELLED,
+          cancelledBy: 'user-drv-1',
+          cancellationReason: 'Vehicle breakdown',
+          driverProfileId: null,
+        }),
+      });
+      expect(mockTx.bookingAssignmentAttempt.updateMany).toHaveBeenCalledWith({
+        where: { bookingId: 'bk-100', status: 'PENDING' },
+        data: { status: 'CANCELLED' },
+      });
+      expect(mockTx.driverProfile.update).toHaveBeenCalledWith({
+        where: { id: 'drv-prof-1' },
+        data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
+      });
+      expect(insertOutboxEvent).toHaveBeenCalledWith(
+        mockTx,
+        expect.objectContaining({
+          eventType: 'booking.driver.cancelled',
+          payload: expect.objectContaining({
+            bookingId: 'bk-100',
+            customerId: 'cust-1',
+            driverProfileId: 'drv-prof-1',
+          }),
+        }),
+      );
+      expect(mockCreateNotification).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'cust-1', category: 'BOOKING' }),
+      );
+      expect(mockAutoRefund).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingId: 'bk-100',
+          customerId: 'cust-1',
+          actorUserId: 'user-drv-1',
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('rejects cancellation once the driver has already arrived and the after-arrival policy flag is disabled', async () => {
+      const mockArrivedBooking = {
+        ...mockBookingAssigned,
+        status: BookingStatus.DRIVER_ARRIVED,
+      };
+      mockFindUniqueBooking.mockResolvedValue(mockArrivedBooking);
+      mockGetBoolean.mockImplementation((key: string, fallback: boolean) =>
+        Promise.resolve(
+          key === 'booking.lifecycle.allow_customer_cancellation_after_arrival' ? false : fallback,
+        ),
+      );
+
+      await expect(cancelBookingByDriver('user-drv-1', 'bk-100')).rejects.toBeInstanceOf(
+        BookingNotCancellableError,
+      );
+      expect(mockTx.booking.update).not.toHaveBeenCalled();
+      expect(mockAutoRefund).not.toHaveBeenCalled();
+    });
+
+    it('throws BookingNotFoundError (not a permission error) when the booking is not assigned to the requesting driver', async () => {
+      mockFindUniqueBooking.mockResolvedValue({
+        ...mockBookingAssigned,
+        driverProfileId: 'some-other-driver-profile',
+      });
+
+      await expect(cancelBookingByDriver('user-drv-1', 'bk-100')).rejects.toBeInstanceOf(
+        BookingNotFoundError,
+      );
+      expect(mockTx.booking.update).not.toHaveBeenCalled();
     });
   });
 

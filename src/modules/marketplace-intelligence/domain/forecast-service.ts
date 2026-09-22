@@ -74,7 +74,7 @@ export class HistoricalBaselineForecastProvider implements ForecastProvider {
             gte: sampleStart,
             lte: sampleEnd,
           },
-          ...(vehicleCategory ? { vehicleCategory } : {}),
+          ...(vehicleCategory ? { vehicleCategory: { code: vehicleCategory } } : {}),
         },
       });
 

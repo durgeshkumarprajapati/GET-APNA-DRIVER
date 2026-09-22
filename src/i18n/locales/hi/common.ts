@@ -1,4 +1,5 @@
 export const commonHi = {
+  loading: 'लोड हो रहा है...',
   actions: {
     save: 'सहेजें',
     cancel: 'रद्द करें',

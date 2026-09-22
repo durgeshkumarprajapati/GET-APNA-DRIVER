@@ -9,6 +9,7 @@ import {
   SupportTicketAccessDeniedError,
   InvalidSupportTicketStateTransitionError,
 } from '@/modules/support/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ ticketId: string }>;
@@ -55,8 +56,7 @@ export const POST = withPermission<RouteParams>(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to post reply.';
-      return NextResponse.json({ error: 'MESSAGE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

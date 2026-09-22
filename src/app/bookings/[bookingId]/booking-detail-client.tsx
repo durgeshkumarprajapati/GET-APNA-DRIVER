@@ -8,6 +8,7 @@ import { useToast, ToastViewport } from '@/components/ui/toast';
 import { DirectCallResponse } from '@/modules/calling/domain/types';
 import { useTranslation } from '@/i18n/context';
 import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
+import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 interface BookingDetail {
   id: string;
@@ -41,6 +42,7 @@ interface BookingDetail {
   cancellationReason: string | null;
   expiresAt: string | null;
   preferredDriverProfileId: string | null;
+  vehicleCategory?: { id: string; code: string; name: string } | null;
   pendingOffer?: { driverName: string | null; expiresAt: string } | null;
   assignedDriver?: {
     id: string;
@@ -105,7 +107,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNowTime(Date.now()), 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [callingDriver, setCallingDriver] = useState(false);
   const [driverCallData, setDriverCallData] = useState<DirectCallResponse | null>(null);
@@ -386,13 +394,19 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
               <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">
                 {t('customer.tracking.currentStateLabel')}
               </span>
-              <div className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="text-2xl font-bold text-white flex flex-wrap items-center gap-3">
                 <span
                   className={`h-3.5 w-3.5 rounded-full ${STATUS_DOT_CLASS[booking.status] ?? 'bg-slate-500'}`}
                 />
                 <span className={STATUS_TEXT_CLASS[booking.status] ?? 'text-slate-400'}>
                   {statusLabel(booking.status)}
                 </span>
+                {booking.vehicleCategory && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 shadow-sm">
+                    <span className="material-symbols-outlined text-sm">directions_car</span>
+                    {booking.vehicleCategory.name}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -423,11 +437,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
               <p className="text-xs text-amber-200">
-                {t('customer.tracking.pendingOfferWaiting', {
-                  driverName:
-                    booking.pendingOffer.driverName ||
-                    t('customer.bookingsList.professionalDriverFallback'),
-                })}
+                {new Date(booking.pendingOffer.expiresAt).getTime() <= nowTime
+                  ? t('customer.tracking.offerExpiredRefreshing')
+                  : t('customer.tracking.pendingOfferWaiting', {
+                      driverName:
+                        booking.pendingOffer.driverName ||
+                        t('customer.bookingsList.professionalDriverFallback'),
+                    })}
               </p>
             </div>
           )}
@@ -508,46 +524,50 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             />
           )}
 
-          {/* Rate Your Driver */}
+          {/* Post-Trip Payment & Rate Your Driver */}
           {booking.status === 'TRIP_COMPLETED' && (
-            <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                {review
-                  ? t('customer.tracking.yourReviewTitle')
-                  : t('customer.tracking.rateYourDriverTitle')}
-              </h3>
-              {review ? (
-                <div className="space-y-2">
-                  <RatingStars value={review.rating} size="md" />
-                  {review.comment && (
-                    <p className="text-sm text-slate-300 italic">&quot;{review.comment}&quot;</p>
-                  )}
-                  <p className="text-[10px] text-slate-500">
-                    {t('customer.tracking.submittedOn', { date: formatDate(review.createdAt) })}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <RatingStars value={reviewRating} size="lg" onChange={setReviewRating} />
-                  <textarea
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder={t('customer.tracking.reviewPlaceholder')}
-                    className="w-full h-20 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                  />
-                  {reviewError && <p className="text-xs text-red-400">{reviewError}</p>}
-                  <button
-                    type="button"
-                    disabled={submittingReview}
-                    onClick={() => void handleSubmitReview()}
-                    className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold text-sm disabled:opacity-50 transition-colors"
-                  >
-                    {submittingReview
-                      ? t('customer.tracking.submitting')
-                      : t('customer.tracking.submitReviewBtn')}
-                  </button>
-                </div>
-              )}
+            <div className="space-y-6">
+              <PostTripPaymentCard bookingId={booking.id} role="CUSTOMER" />
+
+              <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
+                <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                  {review
+                    ? t('customer.tracking.yourReviewTitle')
+                    : t('customer.tracking.rateYourDriverTitle')}
+                </h3>
+                {review ? (
+                  <div className="space-y-2">
+                    <RatingStars value={review.rating} size="md" />
+                    {review.comment && (
+                      <p className="text-sm text-slate-300 italic">&quot;{review.comment}&quot;</p>
+                    )}
+                    <p className="text-[10px] text-slate-500">
+                      {t('customer.tracking.submittedOn', { date: formatDate(review.createdAt) })}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <RatingStars value={reviewRating} size="lg" onChange={setReviewRating} />
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder={t('customer.tracking.reviewPlaceholder')}
+                      className="w-full h-20 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                    {reviewError && <p className="text-xs text-red-400">{reviewError}</p>}
+                    <button
+                      type="button"
+                      disabled={submittingReview}
+                      onClick={() => void handleSubmitReview()}
+                      className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold text-sm disabled:opacity-50 transition-colors"
+                    >
+                      {submittingReview
+                        ? t('customer.tracking.submitting')
+                        : t('customer.tracking.submitReviewBtn')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

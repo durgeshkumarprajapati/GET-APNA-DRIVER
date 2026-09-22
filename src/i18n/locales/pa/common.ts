@@ -1,4 +1,5 @@
 export const commonPa = {
+  loading: 'ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...',
   actions: {
     save: 'ਸੰਭਾਲੋ',
     cancel: 'ਰੱਦ ਕਰੋ',

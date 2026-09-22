@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { RiskActionService } from '@/modules/risk';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_RISK_ACTION,
@@ -32,13 +33,7 @@ export const POST = withPermission(
         result,
       });
     } catch (err: unknown) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: err instanceof Error ? err.message : 'Failed to execute risk action',
-        },
-        { status: 500 },
-      );
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

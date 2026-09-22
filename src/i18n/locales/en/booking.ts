@@ -48,4 +48,9 @@ export const bookingEn = {
   },
   noActiveDriverNearby: 'No active driver found near you.',
   searchingNearbyDrivers: 'Searching for nearby drivers…',
+  vehicleCategory: 'Vehicle Category',
+  vehicleCategoryHint: 'Select the type of vehicle required',
+  anyVehicleCategory: 'Any Vehicle (No Preference)',
+  vehicleCapabilities: 'Vehicle Capabilities',
+  vehicleCapabilitiesHint: 'Vehicle categories you can operate',
 };

@@ -40,7 +40,11 @@ export class IncidentNotificationService {
       userId: customerId,
       title,
       message,
-      category: 'RELIABILITY_ALERT',
+      // SAFETY_ESCALATION always delivers regardless of notification
+      // preferences (see isChannelEnabledForCategory's special-case for
+      // this category) — every other incident type is a routine trip
+      // status update, opt-out-able like any other TRIP notification.
+      category: type === 'SAFETY_ESCALATION' ? 'SAFETY' : 'TRIP',
       metadata: { bookingId, incidentType: type, severity },
     });
   }
@@ -65,7 +69,7 @@ export class IncidentNotificationService {
       userId: driverUserId,
       title,
       message,
-      category: 'RELIABILITY_ALERT',
+      category: 'TRIP',
       metadata: { bookingId, incidentType: type },
     });
   }

@@ -8,6 +8,7 @@ import {
   SupportTicketAccessDeniedError,
   InvalidSupportTicketStateTransitionError,
 } from '@/modules/support/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 interface RouteParams {
   params: Promise<{ ticketId: string }>;
@@ -36,8 +37,7 @@ export const POST = withPermission<RouteParams>(
           { status: 400 },
         );
       }
-      const message = err instanceof Error ? err.message : 'Failed to close ticket.';
-      return NextResponse.json({ error: 'CLOSE_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

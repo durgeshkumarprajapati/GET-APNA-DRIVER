@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { callingService } from '@/modules/calling/application/services/calling-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(
   PERMISSIONS.CALL_SUPPORT_INITIATE,
@@ -31,8 +32,7 @@ export const GET = withPermission(
 
       return NextResponse.json({ success: true, data: result });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch driver call history.';
-      return NextResponse.json({ error: 'FETCH_CALLS_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, req.nextUrl.pathname);
     }
   },
 );

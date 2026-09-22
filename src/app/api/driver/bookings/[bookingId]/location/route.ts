@@ -3,6 +3,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getDriverBookingLocationTelemetry } from '@/modules/location/application/booking-location-service';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 
@@ -20,9 +21,7 @@ export const GET = withPermission<RouteParams>(
           { status: 404 },
         );
       }
-      const message =
-        err instanceof Error ? err.message : 'Failed to fetch driver booking location.';
-      return NextResponse.json({ error: 'LOCATION_FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

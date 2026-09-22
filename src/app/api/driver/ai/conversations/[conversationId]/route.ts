@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { prisma } from '@/shared/database/prisma';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 type RouteParams = { params: Promise<{ conversationId: string }> };
 
@@ -25,9 +26,7 @@ export const GET = withPermission<RouteParams>(
 
       return NextResponse.json({ conversation }, { status: 200 });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to fetch driver conversation details.';
-      return NextResponse.json({ error: 'FETCH_FAILED', message }, { status: 500 });
+      return toErrorResponse(err, _req.nextUrl.pathname);
     }
   },
 );

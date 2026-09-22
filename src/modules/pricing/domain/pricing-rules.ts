@@ -85,6 +85,7 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       packageAdjustment = dailyRate.mul(days);
       calculatedBase = toDecimal(0);
       durationFare = toDecimal(0);
+      distanceFare = toDecimal(0);
       break;
     }
 

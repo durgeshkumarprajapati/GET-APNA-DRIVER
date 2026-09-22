@@ -2,6 +2,7 @@ import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { getTelephonyProvider } from '@/modules/calling/infrastructure/telephony-provider';
 import { callingService } from '@/modules/calling/application/services/calling-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,7 +44,6 @@ export async function POST(req: NextRequest) {
       sessionId: updated?.id || null,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Error processing telephony webhook.';
-    return NextResponse.json({ error: 'WEBHOOK_PROCESSING_FAILED', message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 }

@@ -574,6 +574,36 @@ async function main(): Promise<void> {
       description: 'Base daily package rate in INR for FULL_DAY and MULTI_DAY booking types',
       isPublic: true,
     },
+    // weekly_rate/monthly_rate were missing here even though every other
+    // getActivePricingRules key is seeded — getString's code-level default
+    // (10000.0000/35000.0000, matching the values below) covered for it,
+    // but admins had no /admin/system-config row to see or edit for WEEKLY/
+    // MONTHLY hire pricing at all.
+    {
+      key: 'pricing.weekly_rate',
+      value: '10000.0000',
+      valueType: 'DECIMAL' as const,
+      category: 'finance',
+      description: 'Base weekly package rate in INR for WEEKLY booking types',
+      isPublic: true,
+    },
+    {
+      key: 'pricing.monthly_rate',
+      value: '35000.0000',
+      valueType: 'DECIMAL' as const,
+      category: 'finance',
+      description: 'Base monthly package rate in INR for MONTHLY booking types',
+      isPublic: true,
+    },
+    {
+      key: 'pricing.pickup_only_completion_location_max_age_seconds',
+      value: '300',
+      valueType: 'INTEGER' as const,
+      category: 'finance',
+      description:
+        "How fresh a driver's live GPS ping must be to stand in for a missing dropoff when billing a completed pickup-only ONE_WAY/POINT_TO_POINT trip by real distance",
+      isPublic: false,
+    },
   ];
 
   for (const config of defaultConfigs) {
@@ -1130,9 +1160,77 @@ async function seedMarketplaceZones(): Promise<void> {
   console.log('Phase 42 Marketplace Zones Seeding Completed.');
 }
 
+async function seedVehicleCategories() {
+  const defaultVehicleCategories = [
+    {
+      code: 'MINI_CAR',
+      name: 'Mini / Hatchback',
+      description: 'Compact cars suitable for quick city rides and tight spaces',
+      displayOrder: 1,
+    },
+    {
+      code: 'CAR',
+      name: 'Sedan / Standard Car',
+      description: 'Standard 4-seater sedan for comfortable daily travel',
+      displayOrder: 2,
+    },
+    {
+      code: 'LONG_CAR',
+      name: 'Luxury / Long Sedan',
+      description: 'Premium long-wheelbase sedans and executive vehicles',
+      displayOrder: 3,
+    },
+    {
+      code: 'SUV',
+      name: 'SUV / MUV',
+      description: 'Spacious 6-7 seater sport utility vehicles for families and luggage',
+      displayOrder: 4,
+    },
+    {
+      code: 'TRACTOR',
+      name: 'Tractor / Farm Vehicle',
+      description: 'Agricultural and utility tractor operation capability',
+      displayOrder: 5,
+    },
+    {
+      code: 'TRUCK',
+      name: 'Commercial Truck (LCV)',
+      description: 'Light commercial goods trucks and delivery vehicles',
+      displayOrder: 6,
+    },
+    {
+      code: 'HEAVY_TRUCK',
+      name: 'Heavy Commercial Truck',
+      description: 'Multi-axle heavy transport trucks and freight vehicles',
+      displayOrder: 7,
+    },
+  ];
+
+  for (const cat of defaultVehicleCategories) {
+    await prisma.vehicleCategory.upsert({
+      where: { code: cat.code },
+      create: {
+        code: cat.code,
+        name: cat.name,
+        description: cat.description,
+        displayOrder: cat.displayOrder,
+        isActive: true,
+      },
+      update: {
+        name: cat.name,
+        description: cat.description,
+        displayOrder: cat.displayOrder,
+      },
+    });
+  }
+
+  console.log('Phase 66 Vehicle Categories Seeding Completed.');
+}
+
 async function runAllSeeds() {
   await seedPhase41CorporateData();
   await seedMarketplaceZones();
+  await seedVehicleCategories();
 }
 
 main()

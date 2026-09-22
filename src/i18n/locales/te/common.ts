@@ -1,4 +1,5 @@
 export const commonTe = {
+  loading: 'లోడ్ అవుతోంది...',
   actions: {
     save: 'సేవ్ చేయి',
     cancel: 'రద్దు చేయి',

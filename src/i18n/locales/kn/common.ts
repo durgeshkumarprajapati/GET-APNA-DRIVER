@@ -1,4 +1,5 @@
 export const commonKn = {
+  loading: 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
   actions: {
     save: 'ಉಳಿಸಿ',
     cancel: 'ರದ್ದುಗೊಳಿಸಿ',

@@ -94,6 +94,9 @@ export function PostTripPaymentCard({
         });
         const data = await res.json();
         if (res.ok && data.success) {
+          if (data.checkout?.razorpayPaymentPageUrl) {
+            window.open(data.checkout.razorpayPaymentPageUrl, '_blank');
+          }
           setShowQrModal(true);
           await fetchPaymentDetails();
         } else {

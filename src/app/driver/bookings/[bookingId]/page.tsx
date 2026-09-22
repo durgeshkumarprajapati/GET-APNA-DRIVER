@@ -101,6 +101,9 @@ export default function DriverJourneyControlPage({
 
   const [callingCustomer, setCallingCustomer] = useState(false);
   const [customerCallData, setCustomerCallData] = useState<DirectCallResponse | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
 
   const handleCallCustomer = async () => {
     try {
@@ -206,6 +209,30 @@ export default function DriverJourneyControlPage({
       showToast('Error updating trip status.', 'error');
     } finally {
       setActionPending(false);
+    }
+  };
+
+  const handleCancelTrip = async () => {
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/driver/bookings/${bookingId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelReason || undefined }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBooking(data.booking);
+        setShowCancelModal(false);
+        setCancelReason('');
+        showToast('Trip cancelled. The customer has been notified.', 'success');
+      } else {
+        showToast(data.message || 'Failed to cancel trip.', 'error');
+      }
+    } catch {
+      showToast('Error cancelling trip.', 'error');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -366,6 +393,17 @@ export default function DriverJourneyControlPage({
               </button>
             )}
 
+            {['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE'].includes(booking.status) && (
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(true)}
+                disabled={actionPending}
+                className="w-full py-2.5 bg-slate-800 hover:bg-red-950/60 border border-slate-700 hover:border-red-500/50 disabled:opacity-50 text-slate-300 hover:text-red-300 font-semibold rounded-xl transition-all text-xs"
+              >
+                Cancel Trip
+              </button>
+            )}
+
             {booking.status === 'DRIVER_ARRIVED' && (
               <button
                 onClick={() => setIsPinModalOpen(true)}
@@ -498,6 +536,46 @@ export default function DriverJourneyControlPage({
         onClose={() => setIsPinModalOpen(false)}
         onVerifyAndStart={handleVerifyAndStartPin}
       />
+
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-white">Cancel This Trip?</h3>
+            <p className="text-xs text-slate-300">
+              The customer will be notified immediately, and any payment already captured for this
+              booking will be automatically refunded.
+            </p>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Reason (Optional)</label>
+              <input
+                type="text"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g. Vehicle breakdown, emergency"
+                className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg"
+              >
+                Keep Trip
+              </button>
+              <button
+                onClick={handleCancelTrip}
+                disabled={cancelling}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg flex items-center gap-2"
+              >
+                {cancelling && (
+                  <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                )}
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastViewport toast={toast} onDismiss={dismissToast} />
     </DriverLayout>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AdminLayout } from '@/components/admin-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { MetricCard } from '@/components/ui/metric-card';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -100,89 +99,87 @@ export default function AdminReferralEnginesPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full">
-        <PageHeader
-          eyebrow="Growth"
-          title="Referral Program"
-          subtitle="Configure reward amounts and view referral program performance — single source of truth via System Configuration."
-        />
+    <div className="flex flex-col gap-6 w-full">
+      <PageHeader
+        eyebrow="Growth"
+        title="Referral Program"
+        subtitle="Configure reward amounts and view referral program performance — single source of truth via System Configuration."
+      />
 
-        {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-            {error}
-          </div>
-        )}
-        {message && (
-          <div className="p-4 rounded-xl border border-[#25a475] bg-[#00311f]/40 text-[#68dba9] text-sm">
-            {message}
-          </div>
-        )}
+      {error && (
+        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          {error}
+        </div>
+      )}
+      {message && (
+        <div className="p-4 rounded-xl border border-[#25a475] bg-[#00311f]/40 text-[#68dba9] text-sm">
+          {message}
+        </div>
+      )}
 
-        {loading ? (
-          <LoadingState message="Loading referral program data…" />
-        ) : (
-          <>
-            {metrics && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <MetricCard label="Total Referrals" value={metrics.totalReferrals} />
-                <MetricCard
-                  label="Rewarded"
-                  value={metrics.byStatus.REWARDED ?? 0}
-                  accent="positive"
-                />
-                <MetricCard
-                  label="Total Rewarded Amount"
-                  value={formatCurrency(metrics.totalRewardedAmount)}
-                  accent="positive"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3">
-              <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                Reward Configuration
-              </h2>
-              {configs.map((config) => (
-                <div
-                  key={config.key}
-                  className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4 flex-wrap"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-[#dfe2ee]">
-                      {CONFIG_LABELS[config.key] ?? config.key}
-                    </p>
-                    {config.description && (
-                      <p className="text-[10px] text-[#87948b] mt-0.5">{config.description}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#87948b] text-sm">₹</span>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={editValues[config.key] ?? ''}
-                      onChange={(e) =>
-                        setEditValues((prev) => ({ ...prev, [config.key]: e.target.value }))
-                      }
-                      className="w-28 px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-                    />
-                    <button
-                      type="button"
-                      disabled={savingKey === config.key}
-                      onClick={() => void handleSave(config)}
-                      className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold disabled:opacity-50 transition-colors"
-                    >
-                      {savingKey === config.key ? 'Saving…' : 'Save'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+      {loading ? (
+        <LoadingState message="Loading referral program data…" />
+      ) : (
+        <>
+          {metrics && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <MetricCard label="Total Referrals" value={metrics.totalReferrals} />
+              <MetricCard
+                label="Rewarded"
+                value={metrics.byStatus.REWARDED ?? 0}
+                accent="positive"
+              />
+              <MetricCard
+                label="Total Rewarded Amount"
+                value={formatCurrency(metrics.totalRewardedAmount)}
+                accent="positive"
+              />
             </div>
-          </>
-        )}
-      </div>
-    </AdminLayout>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              Reward Configuration
+            </h2>
+            {configs.map((config) => (
+              <div
+                key={config.key}
+                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4 flex-wrap"
+              >
+                <div>
+                  <p className="text-sm font-bold text-[#dfe2ee]">
+                    {CONFIG_LABELS[config.key] ?? config.key}
+                  </p>
+                  {config.description && (
+                    <p className="text-[10px] text-[#87948b] mt-0.5">{config.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#87948b] text-sm">₹</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editValues[config.key] ?? ''}
+                    onChange={(e) =>
+                      setEditValues((prev) => ({ ...prev, [config.key]: e.target.value }))
+                    }
+                    className="w-28 px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  />
+                  <button
+                    type="button"
+                    disabled={savingKey === config.key}
+                    onClick={() => void handleSave(config)}
+                    className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold disabled:opacity-50 transition-colors"
+                  >
+                    {savingKey === config.key ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AdminLayout } from '@/components/admin-layout';
 
 type ConfigValueType = 'STRING' | 'INTEGER' | 'DECIMAL' | 'BOOLEAN' | 'JSON';
 
@@ -230,276 +229,272 @@ export default function SystemConfigPage() {
   };
 
   return (
-    <AdminLayout>
-      <div className="flex flex-col gap-6 w-full max-w-5xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-surface-variant/40">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-primary">
-              <span className="material-symbols-outlined text-[16px]">tune</span>
-              <span>GLOBAL SYSTEM PARAMETERS</span>
-            </div>
-            <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
-              System Configuration
-            </h1>
-            <p className="text-xs text-on-surface-variant mt-0.5 max-w-lg">
-              Runtime policy values read by the application at request time. Secrets and API keys
-              are never stored here — those remain in environment variables.
-            </p>
+    <div className="flex flex-col gap-6 w-full max-w-5xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-surface-variant/40">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-mono text-primary">
+            <span className="material-symbols-outlined text-[16px]">tune</span>
+            <span>GLOBAL SYSTEM PARAMETERS</span>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setShowAddForm((v) => !v);
-              setMessage(null);
-            }}
-            className="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors flex items-center gap-1.5 shrink-0"
-          >
-            <span className="material-symbols-outlined text-[16px]">
-              {showAddForm ? 'close' : 'add'}
-            </span>
-            <span>{showAddForm ? 'Cancel' : 'Add Configuration'}</span>
-          </button>
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
+            System Configuration
+          </h1>
+          <p className="text-xs text-on-surface-variant mt-0.5 max-w-lg">
+            Runtime policy values read by the application at request time. Secrets and API keys are
+            never stored here — those remain in environment variables.
+          </p>
         </div>
 
-        {message && (
-          <div
-            className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-primary/10 border-primary text-primary' : 'bg-error-container/20 border-error-container text-error'}`}
-          >
-            <p className="text-sm font-medium">{message.text}</p>
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            setShowAddForm((v) => !v);
+            setMessage(null);
+          }}
+          className="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover transition-colors flex items-center gap-1.5 shrink-0"
+        >
+          <span className="material-symbols-outlined text-[16px]">
+            {showAddForm ? 'close' : 'add'}
+          </span>
+          <span>{showAddForm ? 'Cancel' : 'Add Configuration'}</span>
+        </button>
+      </div>
 
-        {error && (
-          <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
-            {error}
-          </div>
-        )}
-
-        {showAddForm && (
-          <div className="bg-surface-container-lowest rounded-xl border border-primary/40 p-5 shadow-xl space-y-4">
-            <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
-              New Configuration Entry
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs uppercase text-on-surface-variant mb-1">
-                  Key (e.g. booking.matching.initial_radius_meters)
-                </label>
-                <input
-                  type="text"
-                  value={addForm.key}
-                  onChange={(e) => setAddForm((f) => ({ ...f, key: e.target.value }))}
-                  className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:border-primary"
-                  placeholder="domain.resource.setting"
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase text-on-surface-variant mb-1">
-                  Value Type
-                </label>
-                <select
-                  value={addForm.valueType}
-                  onChange={(e) =>
-                    setAddForm((f) => ({ ...f, valueType: e.target.value as ConfigValueType }))
-                  }
-                  className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
-                >
-                  {VALUE_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs uppercase text-on-surface-variant mb-1">
-                  Value
-                </label>
-                <ValueEditor
-                  valueType={addForm.valueType}
-                  value={addForm.value}
-                  onChange={(v) => setAddForm((f) => ({ ...f, value: v }))}
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase text-on-surface-variant mb-1">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  value={addForm.category}
-                  onChange={(e) => setAddForm((f) => ({ ...f, category: e.target.value }))}
-                  className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
-                  placeholder="system"
-                />
-              </div>
-              <div className="flex items-end pb-2">
-                <label className="flex items-center gap-2 text-xs text-on-surface-variant">
-                  <input
-                    type="checkbox"
-                    checked={addForm.isPublic}
-                    onChange={(e) => setAddForm((f) => ({ ...f, isPublic: e.target.checked }))}
-                  />
-                  Public (readable by unauthenticated clients)
-                </label>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs uppercase text-on-surface-variant mb-1">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={addForm.description}
-                  onChange={(e) => setAddForm((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
-                  placeholder="What this value controls"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddForm(false);
-                  setAddForm(EMPTY_FORM);
-                }}
-                className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant text-xs font-bold hover:text-on-surface transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={creating}
-                onClick={createConfig}
-                className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover disabled:opacity-50 transition-colors"
-              >
-                {creating ? 'Creating…' : 'Create Configuration'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by key or description..."
-            className="h-9 flex-1 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant/40 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
-          />
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="h-9 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant/40 text-xs text-on-surface focus:outline-none focus:border-primary"
-          >
-            <option value="ALL">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+      {message && (
+        <div
+          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-primary/10 border-primary text-primary' : 'bg-error-container/20 border-error-container text-error'}`}
+        >
+          <p className="text-sm font-medium">{message.text}</p>
         </div>
+      )}
 
-        {loading ? (
-          <div className="py-16 text-center text-on-surface-variant text-sm">
-            Loading configuration…
+      {error && (
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
+          {error}
+        </div>
+      )}
+
+      {showAddForm && (
+        <div className="bg-surface-container-lowest rounded-xl border border-primary/40 p-5 shadow-xl space-y-4">
+          <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
+            New Configuration Entry
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                Key (e.g. booking.matching.initial_radius_meters)
+              </label>
+              <input
+                type="text"
+                value={addForm.key}
+                onChange={(e) => setAddForm((f) => ({ ...f, key: e.target.value }))}
+                className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:border-primary"
+                placeholder="domain.resource.setting"
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                Value Type
+              </label>
+              <select
+                value={addForm.valueType}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, valueType: e.target.value as ConfigValueType }))
+                }
+                className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+              >
+                {VALUE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs uppercase text-on-surface-variant mb-1">Value</label>
+              <ValueEditor
+                valueType={addForm.valueType}
+                value={addForm.value}
+                onChange={(v) => setAddForm((f) => ({ ...f, value: v }))}
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                Category
+              </label>
+              <input
+                type="text"
+                value={addForm.category}
+                onChange={(e) => setAddForm((f) => ({ ...f, category: e.target.value }))}
+                className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                placeholder="system"
+              />
+            </div>
+            <div className="flex items-end pb-2">
+              <label className="flex items-center gap-2 text-xs text-on-surface-variant">
+                <input
+                  type="checkbox"
+                  checked={addForm.isPublic}
+                  onChange={(e) => setAddForm((f) => ({ ...f, isPublic: e.target.checked }))}
+                />
+                Public (readable by unauthenticated clients)
+              </label>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs uppercase text-on-surface-variant mb-1">
+                Description
+              </label>
+              <input
+                type="text"
+                value={addForm.description}
+                onChange={(e) => setAddForm((f) => ({ ...f, description: e.target.value }))}
+                className="w-full rounded-lg bg-surface-container-lowest border border-surface-variant/50 px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+                placeholder="What this value controls"
+              />
+            </div>
           </div>
-        ) : groupedConfigs.length === 0 ? (
-          <div className="py-16 text-center text-on-surface-variant text-sm bg-surface-container-lowest rounded-xl border border-surface-variant/40">
-            No configuration entries match the current filters.
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddForm(false);
+                setAddForm(EMPTY_FORM);
+              }}
+              className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant text-xs font-bold hover:text-on-surface transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={creating}
+              onClick={createConfig}
+              className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-hover disabled:opacity-50 transition-colors"
+            >
+              {creating ? 'Creating…' : 'Create Configuration'}
+            </button>
           </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            {groupedConfigs.map(([groupCategory, entries]) => (
-              <section key={groupCategory} className="flex flex-col gap-3">
-                <h2 className="text-xs uppercase tracking-wider text-primary font-bold px-1">
-                  {groupCategory} · {entries.length}
-                </h2>
-                <div className="flex flex-col gap-2">
-                  {entries.map((entry) => (
-                    <div
-                      key={entry.key}
-                      className="bg-surface-container-lowest rounded-xl border border-surface-variant/40 p-4"
-                    >
-                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono font-bold text-sm text-on-surface break-all">
-                              {entry.key}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by key or description..."
+          className="h-9 flex-1 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant/40 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
+        />
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="h-9 px-3 rounded-lg bg-surface-container-lowest border border-surface-variant/40 text-xs text-on-surface focus:outline-none focus:border-primary"
+        >
+          <option value="ALL">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="py-16 text-center text-on-surface-variant text-sm">
+          Loading configuration…
+        </div>
+      ) : groupedConfigs.length === 0 ? (
+        <div className="py-16 text-center text-on-surface-variant text-sm bg-surface-container-lowest rounded-xl border border-surface-variant/40">
+          No configuration entries match the current filters.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {groupedConfigs.map(([groupCategory, entries]) => (
+            <section key={groupCategory} className="flex flex-col gap-3">
+              <h2 className="text-xs uppercase tracking-wider text-primary font-bold px-1">
+                {groupCategory} · {entries.length}
+              </h2>
+              <div className="flex flex-col gap-2">
+                {entries.map((entry) => (
+                  <div
+                    key={entry.key}
+                    className="bg-surface-container-lowest rounded-xl border border-surface-variant/40 p-4"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-bold text-sm text-on-surface break-all">
+                            {entry.key}
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${valueTypeBadgeClass(entry.valueType)}`}
+                          >
+                            {entry.valueType}
+                          </span>
+                          {entry.isPublic && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary/15 text-secondary">
+                              PUBLIC
                             </span>
-                            <span
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${valueTypeBadgeClass(entry.valueType)}`}
-                            >
-                              {entry.valueType}
-                            </span>
-                            {entry.isPublic && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary/15 text-secondary">
-                                PUBLIC
-                              </span>
-                            )}
-                          </div>
-                          {entry.description && (
-                            <p className="text-xs text-on-surface-variant mt-1.5">
-                              {entry.description}
-                            </p>
                           )}
-                          <p className="text-[10px] text-on-surface-variant/70 mt-1.5 font-mono">
-                            Updated {new Date(entry.updatedAt).toLocaleString()}
-                          </p>
                         </div>
+                        {entry.description && (
+                          <p className="text-xs text-on-surface-variant mt-1.5">
+                            {entry.description}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-on-surface-variant/70 mt-1.5 font-mono">
+                          Updated {new Date(entry.updatedAt).toLocaleString()}
+                        </p>
+                      </div>
 
-                        <div className="w-full md:w-64 shrink-0">
-                          {editingKey === entry.key ? (
-                            <div className="flex flex-col gap-2">
-                              <ValueEditor
-                                valueType={entry.valueType}
-                                value={editValue}
-                                onChange={setEditValue}
-                              />
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingKey(null)}
-                                  className="px-3 py-1.5 bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-lg text-[11px] font-bold transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={saving}
-                                  onClick={() => saveEdit(entry)}
-                                  className="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-[11px] font-bold hover:bg-primary-hover disabled:opacity-50 transition-colors"
-                                >
-                                  {saving ? 'Saving…' : 'Save'}
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-between md:justify-end gap-3">
-                              <span className="font-mono text-sm text-on-surface bg-surface-container-high px-3 py-1.5 rounded-lg break-all">
-                                {entry.value}
-                              </span>
+                      <div className="w-full md:w-64 shrink-0">
+                        {editingKey === entry.key ? (
+                          <div className="flex flex-col gap-2">
+                            <ValueEditor
+                              valueType={entry.valueType}
+                              value={editValue}
+                              onChange={setEditValue}
+                            />
+                            <div className="flex justify-end gap-2">
                               <button
                                 type="button"
-                                onClick={() => startEdit(entry)}
-                                className="px-3 py-1.5 bg-surface-container-high text-on-surface rounded-lg text-[11px] font-bold hover:bg-surface-container-highest transition-colors shrink-0"
+                                onClick={() => setEditingKey(null)}
+                                className="px-3 py-1.5 bg-surface-container-high text-on-surface-variant hover:text-on-surface rounded-lg text-[11px] font-bold transition-colors"
                               >
-                                Edit
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={() => saveEdit(entry)}
+                                className="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-[11px] font-bold hover:bg-primary-hover disabled:opacity-50 transition-colors"
+                              >
+                                {saving ? 'Saving…' : 'Save'}
                               </button>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between md:justify-end gap-3">
+                            <span className="font-mono text-sm text-on-surface bg-surface-container-high px-3 py-1.5 rounded-lg break-all">
+                              {entry.value}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(entry)}
+                              className="px-3 py-1.5 bg-surface-container-high text-on-surface rounded-lg text-[11px] font-bold hover:bg-surface-container-highest transition-colors shrink-0"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-      </div>
-    </AdminLayout>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

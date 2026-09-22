@@ -142,6 +142,7 @@ export const customerEn = {
     preferredDriverUnavailableNote:
       "We couldn't assign your preferred driver. We'll find the best available driver.",
     pendingOfferWaiting: 'Request sent to {{driverName}} — waiting for their confirmation.',
+    offerExpiredRefreshing: 'Offer expired — searching next available driver…',
     messagesTitle: 'Messages',
     yourReviewTitle: 'Your Review',
     rateYourDriverTitle: 'Rate Your Driver',
@@ -407,6 +408,22 @@ export const customerEn = {
     newSchedule: 'Schedule a Ride',
     createBtn: '+ Schedule a Ride',
     noRides: 'No scheduled or recurring rides found.',
+    // Flat aliases below mirror the nested tabs/status/frequency/actions
+    // values above under the exact flat key names the scheduled-rides
+    // screens call with `t('scheduledRides.<key>')` (no `actions.`/`tabs.`
+    // prefix) — kept in sync with those nested values above.
+    createTitle: 'Schedule a Ride',
+    adminTitle: 'Scheduled & Recurring Rides',
+    confirmCancel: 'Are you sure you want to cancel this scheduled ride?',
+    occurrenceHistory: 'Occurrence History',
+    failedCreate: 'Failed to create schedule.',
+    oneTime: 'One-Time',
+    recurring: 'Recurring',
+    pauseBtn: 'Pause',
+    resumeBtn: 'Resume',
+    cancelBtn: 'Cancel',
+    viewDetails: 'View Details',
+    confirmSchedule: 'Confirm Schedule',
     tabs: {
       all: 'All Schedules',
       upcoming: 'Upcoming',
@@ -434,6 +451,9 @@ export const customerEn = {
       WEEKLY: 'Weekly',
       CUSTOM_DAYS: 'Custom Days',
       ONE_TIME: 'One-Time',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      custom_days: 'Custom Days',
     },
     fields: {
       pickup: 'Pickup Location',

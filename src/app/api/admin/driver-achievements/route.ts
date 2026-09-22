@@ -4,6 +4,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { prisma } from '@/shared/database/prisma';
 import { AchievementCategory, Prisma } from '@prisma/client';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 export const GET = withPermission(PERMISSIONS.ADMIN_DRIVER_ACHIEVEMENTS_READ, async () => {
   const [definitions, totalUnlocks, totalDriversWithStreak] = await Promise.all([
@@ -73,7 +74,6 @@ export const POST = withPermission(PERMISSIONS.ADMIN_DRIVER_ACHIEVEMENTS_MANAGE,
 
     return NextResponse.json({ success: true, definition }, { status: 201 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to save achievement definition';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });

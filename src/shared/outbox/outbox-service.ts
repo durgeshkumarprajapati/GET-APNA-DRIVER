@@ -1,5 +1,5 @@
 import 'server-only';
-import type { Db } from '../database/prisma';
+import { type Db } from '../database/prisma';
 
 import type { Prisma } from '@prisma/client';
 

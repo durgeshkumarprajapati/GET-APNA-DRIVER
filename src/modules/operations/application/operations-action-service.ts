@@ -1,13 +1,24 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { RedisLockService } from '@/shared/infrastructure/redis-lock-service';
+import type { AuthenticatedPrincipal } from '@/modules/identity/domain/types';
+import {
+  restartBookingSearch,
+  cancelBookingByOperator,
+} from '@/modules/booking/application/dispatch-service';
 import { updateOperationsDecisionStatus } from './operations-decision-service';
 
 export interface ExecuteOperationsActionInput {
   actionId: string;
   decisionId: string;
   actionType: string;
-  adminUserId: string;
+  /**
+   * The authenticated admin performing this action. RESTART_DISPATCH and
+   * CANCEL_BOOKING delegate to dispatch-service.ts's own permission-checked,
+   * state-machine-validated functions (see below), which require a full
+   * principal, not just a user id.
+   */
+  actor: AuthenticatedPrincipal;
   bookingId?: string;
   incidentId?: string;
   driverId?: string;
@@ -34,7 +45,8 @@ export async function executeOperationsAction(
   input: ExecuteOperationsActionInput,
   db: Db = prisma,
 ): Promise<OperationsActionResult> {
-  const { actionId, decisionId, actionType, adminUserId, bookingId, incidentId, reason } = input;
+  const { actionId, decisionId, actionType, actor, bookingId, incidentId, reason } = input;
+  const adminUserId = actor.userId;
   const lockKey = `lock:ops-action:${decisionId}:${actionType}`;
   const now = new Date();
 
@@ -51,11 +63,20 @@ export async function executeOperationsAction(
     switch (actionType) {
       case 'RESTART_DISPATCH': {
         if (!bookingId) throw new Error('Booking ID is required for RESTART_DISPATCH action.');
-        // Update booking status back to SEARCHING_DRIVER
-        await db.booking.update({
-          where: { id: bookingId },
-          data: { status: 'SEARCHING_DRIVER', updatedAt: now },
-        });
+        // Delegates to dispatch-service.ts's restartBookingSearch rather than
+        // writing the booking row directly: that function is the single
+        // place enforcing that a restart is only valid from EXPIRED (see its
+        // own docstring) and that the driver-release/audit/outbox side
+        // effects a real dispatch restart requires all happen atomically. A
+        // raw `status: 'SEARCHING_DRIVER'` write here (the previous
+        // implementation) would happily force ANY booking — including one
+        // that is DRIVER_ASSIGNED, TRIP_IN_PROGRESS, or already
+        // COMPLETED/CANCELLED — back into an active search, silently
+        // discarding its real state.
+        await restartBookingSearch(
+          { bookingId, actor, reason: reason || 'Restarted via Operations Command Center' },
+          db,
+        );
         resultMessage = `Dispatch search restarted for booking ${bookingId}.`;
         details.bookingId = bookingId;
         break;
@@ -63,14 +84,19 @@ export async function executeOperationsAction(
 
       case 'CANCEL_BOOKING': {
         if (!bookingId) throw new Error('Booking ID is required for CANCEL_BOOKING action.');
-        await db.booking.update({
-          where: { id: bookingId },
-          data: {
-            status: 'CANCELLED',
-            cancellationReason: reason || 'Cancelled by Operations Command',
-            updatedAt: now,
-          },
-        });
+        // Delegates to dispatch-service.ts's cancelBookingByOperator rather
+        // than writing the booking row directly, for the same reason as
+        // RESTART_DISPATCH above: that function is the single place enforcing
+        // that only a non-terminal booking can be operator-cancelled, and
+        // that cancelling one also releases its assigned driver, cancels
+        // pending assignment attempts, and records the audit/outbox trail. A
+        // raw `status: 'CANCELLED'` write here (the previous implementation)
+        // could cancel a booking that is already TRIP_COMPLETED or already
+        // CANCELLED, and would silently strand its assigned driver.
+        await cancelBookingByOperator(
+          { bookingId, actor, reason: reason || 'Cancelled by Operations Command' },
+          db,
+        );
         resultMessage = `Booking ${bookingId} cancelled by Operations Command.`;
         details.bookingId = bookingId;
         break;

@@ -25,6 +25,7 @@ import { evaluateDriverEligibility } from '@/modules/driver/application/services
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
+import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
 import { CreateBookingInput } from '../domain/types';
 import {
   BookingNotFoundError,
@@ -88,6 +89,14 @@ export interface BookingDetail {
   discountAmount?: string | null;
   requestedStartTime: Date | null;
   estimatedDurationMinutes: number | null;
+  vehicleCategoryId?: string | null;
+  vehicleCategory?: {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    iconUrl: string | null;
+  } | null;
   customerNotes: string | null;
   requestedAt: Date;
   searchStartedAt: Date | null;
@@ -153,7 +162,7 @@ export async function createBooking(
   if (idempotencyKey) {
     const existing = await db.booking.findUnique({
       where: { idempotencyKey },
-      include: { driverProfile: true },
+      include: { driverProfile: true, vehicleCategory: true },
     });
     if (existing) {
       if (existing.customerId !== customerUserId) {
@@ -214,6 +223,29 @@ export async function createBooking(
     );
   }
 
+  // 2c. Validate Optional Vehicle Category Requirement
+  let resolvedVehicleCategoryId: string | null = null;
+  const rawCatId = input.vehicleCategoryId;
+  const rawCatCode = input.vehicleCategoryCode;
+
+  if (rawCatId) {
+    const category = await db.vehicleCategory.findUnique({ where: { id: rawCatId } });
+    if (!category || !category.isActive) {
+      throw new Error(`Invalid or inactive vehicle category selection: '${rawCatId}'.`);
+    }
+    resolvedVehicleCategoryId = category.id;
+  } else if (rawCatCode) {
+    const normalizedCode = rawCatCode
+      .trim()
+      .toUpperCase()
+      .replace(/[\s-]+/g, '_');
+    const category = await db.vehicleCategory.findUnique({ where: { code: normalizedCode } });
+    if (!category || !category.isActive) {
+      throw new Error(`Invalid or inactive vehicle category selection: '${rawCatCode}'.`);
+    }
+    resolvedVehicleCategoryId = category.id;
+  }
+
   // 3. Calculate Estimated Fare and Route
   const fareResult = await calculateEstimatedFare(
     {
@@ -268,6 +300,7 @@ export async function createBooking(
         customerNotes: input.customerNotes || null,
         preferredDriverProfileId,
         driverCustomRateSnapshot,
+        vehicleCategoryId: resolvedVehicleCategoryId,
         requestedAt: now,
         searchStartedAt: now,
         expiresAt: searchExpiresAt,
@@ -361,7 +394,7 @@ export async function createBooking(
 
   const freshBooking = await db.booking.findUniqueOrThrow({
     where: { id: booking.id },
-    include: { driverProfile: true },
+    include: { driverProfile: true, vehicleCategory: true },
   });
 
   return mapBookingToDetail(freshBooking);
@@ -383,7 +416,7 @@ export async function getBookingById(
 ): Promise<BookingDetail> {
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { driverProfile: true },
+    include: { driverProfile: true, vehicleCategory: true },
   });
 
   if (!booking) {
@@ -429,7 +462,7 @@ export async function listCustomerBookings(
 ): Promise<BookingDetail[]> {
   const bookings = await db.booking.findMany({
     where: { customerId: customerUserId },
-    include: { driverProfile: true },
+    include: { driverProfile: true, vehicleCategory: true },
     orderBy: { createdAt: 'desc' },
     take: MAX_CUSTOMER_BOOKINGS_RETURNED,
   });
@@ -451,7 +484,7 @@ export async function listRecentCompletedBookings(
 ): Promise<BookingDetail[]> {
   const bookings = await db.booking.findMany({
     where: { customerId: customerUserId, status: BookingStatus.TRIP_COMPLETED },
-    include: { driverProfile: true },
+    include: { driverProfile: true, vehicleCategory: true },
     orderBy: { tripCompletedAt: 'desc' },
     take: MAX_RECENT_BOOKINGS_RETURNED,
   });
@@ -473,7 +506,7 @@ export async function cancelBooking(
 ): Promise<BookingDetail> {
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { driverProfile: true },
+    include: { driverProfile: true, vehicleCategory: true },
   });
 
   if (booking && booking.customerId !== userId) {
@@ -575,6 +608,20 @@ export async function cancelBooking(
     }
   }
 
+  // Automatic refund if booking was paid prior to cancellation — shared
+  // with the driver-cancel and admin/operator-cancel paths so all three
+  // apply the exact same refund policy (see refund-service.ts).
+  await autoRefundCapturedPaymentOnCancellation(
+    {
+      bookingId: booking.id,
+      customerId: booking.customerId,
+      actorUserId: userId,
+      cancellationReason,
+      defaultReason: 'Automatic refund for cancelled booking',
+    },
+    db,
+  );
+
   await recordAuditLog(db, {
     actorUserId: userId,
     action: 'booking.cancelled',
@@ -592,14 +639,14 @@ export async function cancelBooking(
 
   const updatedBooking = await db.booking.findUniqueOrThrow({
     where: { id: booking.id },
-    include: { driverProfile: true },
+    include: { driverProfile: true, vehicleCategory: true },
   });
 
   return mapBookingToDetail(updatedBooking);
 }
 
 function mapBookingToDetail(
-  booking: Prisma.BookingGetPayload<{ include: { driverProfile: true } }>,
+  booking: Prisma.BookingGetPayload<{ include: { driverProfile: true; vehicleCategory?: true } }>,
 ): BookingDetail {
   return {
     id: booking.id,
@@ -647,6 +694,16 @@ function mapBookingToDetail(
     discountAmount: booking.discountAmount ? booking.discountAmount.toString() : null,
     requestedStartTime: booking.requestedStartTime,
     estimatedDurationMinutes: booking.estimatedDurationMinutes,
+    vehicleCategoryId: booking.vehicleCategoryId,
+    vehicleCategory: booking.vehicleCategory
+      ? {
+          id: booking.vehicleCategory.id,
+          code: booking.vehicleCategory.code,
+          name: booking.vehicleCategory.name,
+          description: booking.vehicleCategory.description,
+          iconUrl: booking.vehicleCategory.iconUrl,
+        }
+      : null,
     customerNotes: booking.customerNotes,
     requestedAt: booking.requestedAt,
     searchStartedAt: booking.searchStartedAt,
