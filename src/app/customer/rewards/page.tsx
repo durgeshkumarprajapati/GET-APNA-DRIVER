@@ -62,8 +62,9 @@ export default function CustomerRewardsPage() {
     let ignore = false;
     async function loadLoyaltyData() {
       try {
-        const [accountRes, txRes] = await Promise.all([
+        const [accountRes, rewardsRes, txRes] = await Promise.all([
           fetch('/api/customer/loyalty'),
+          fetch('/api/customer/loyalty/rewards'),
           fetch('/api/customer/loyalty/transactions'),
         ]);
 
@@ -72,13 +73,82 @@ export default function CustomerRewardsPage() {
         }
 
         const accountData = await accountRes.json();
+        const rewardsData = rewardsRes.ok ? await rewardsRes.json() : null;
         const txData = txRes.ok ? await txRes.json() : null;
 
         if (!ignore) {
-          setAccount(accountData.account);
-          setRewards(accountData.catalog || []);
-          if (txData) {
-            setTransactions(txData.transactions || []);
+          const summary = accountData.data || accountData.account || accountData;
+          if (summary) {
+            setAccount({
+              pointsBalance: summary.currentPoints ?? summary.pointsBalance ?? 0,
+              lifetimePoints: summary.lifetimeEarnedPoints ?? summary.lifetimePoints ?? 0,
+              tierCode: summary.currentTier?.code || summary.tierCode || 'BRONZE',
+              currentTier: summary.currentTier
+                ? {
+                    name: summary.currentTier.name,
+                    tierCode: summary.currentTier.code || summary.currentTier.tierCode,
+                    multiplier:
+                      summary.currentTier.pointMultiplier ?? summary.currentTier.multiplier ?? 1,
+                    benefitsSummary:
+                      summary.currentTier.benefitsSummary ||
+                      'Enjoy priority matching and points multiplier on all completed rides.',
+                  }
+                : null,
+              nextTier: summary.nextTier
+                ? {
+                    name: summary.nextTier.name,
+                    tierCode: summary.nextTier.code || summary.nextTier.tierCode,
+                    minPoints:
+                      summary.nextTier.minimumLifetimePoints ?? summary.nextTier.minPoints ?? 0,
+                  }
+                : null,
+              pointsToNextTier: summary.nextTier?.pointsNeeded ?? summary.pointsToNextTier ?? 0,
+              tierProgressPercentage:
+                summary.nextTier?.progressPercentage ?? summary.tierProgressPercentage ?? 100,
+            });
+          }
+
+          const rawRewards =
+            rewardsData?.data || rewardsData?.catalog || rewardsData?.rewards || [];
+          if (Array.isArray(rawRewards)) {
+            setRewards(
+              rawRewards.map((r: Record<string, unknown>) => ({
+                id: String(r.id),
+                rewardCode:
+                  typeof r.rewardCode === 'string'
+                    ? r.rewardCode
+                    : typeof r.code === 'string'
+                      ? r.code
+                      : `RWD-${String(r.id).substring(0, 6)}`,
+                title: typeof r.title === 'string' ? r.title : String(r.name || 'Reward'),
+                rewardType: typeof r.rewardType === 'string' ? r.rewardType : 'PROMOTION',
+                pointsCost:
+                  typeof r.pointsRequired === 'number'
+                    ? r.pointsRequired
+                    : typeof r.pointsCost === 'number'
+                      ? r.pointsCost
+                      : 100,
+                minTierCode:
+                  (r.minimumTier as { code?: string })?.code ||
+                  (typeof r.minTierCode === 'string' ? r.minTierCode : 'BRONZE'),
+                discountType: typeof r.discountType === 'string' ? r.discountType : 'FIXED',
+                discountValue: Number(r.discountValue) || 50,
+                active: r.status === 'ACTIVE' || r.active === true,
+                singleUse: Boolean(r.singleUse),
+                redeemedByCustomer:
+                  r.canRedeem === false &&
+                  typeof r.lockReason === 'string' &&
+                  r.lockReason.includes('reached'),
+                canRedeem: r.canRedeem !== false,
+                lockReason: typeof r.lockReason === 'string' ? r.lockReason : null,
+              })),
+            );
+          }
+
+          const rawTx =
+            txData?.data || txData?.transactions || (Array.isArray(txData) ? txData : []);
+          if (Array.isArray(rawTx)) {
+            setTransactions(rawTx);
           }
         }
       } catch (err: unknown) {
