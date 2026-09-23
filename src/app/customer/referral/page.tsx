@@ -149,7 +149,7 @@ export default function CustomerReferralPage() {
               type="button"
               onClick={shareReferral}
               disabled={loading || !dashboard?.referralCode}
-              className="px-5 py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="min-h-[48px] px-5 py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               <span className="material-symbols-outlined text-lg">share</span>
               {shared ? t('customer.referral.shared') : t('customer.referral.shareBtn')}
@@ -158,7 +158,7 @@ export default function CustomerReferralPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
           <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
               {t('customer.referral.yourCode')}
@@ -171,7 +171,7 @@ export default function CustomerReferralPage() {
                 type="button"
                 onClick={copyReferralCode}
                 title={t('customer.referral.copyCode')}
-                className="text-[#87948b] hover:text-[#dfe2ee] transition-colors"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 <span className="material-symbols-outlined text-sm">
                   {copied ? 'check' : 'content_copy'}
@@ -270,7 +270,7 @@ export default function CustomerReferralPage() {
               type="button"
               onClick={copyReferralCode}
               disabled={loading || !dashboard?.referralCode}
-              className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors disabled:opacity-50"
+              className="min-h-[48px] px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               {copied ? '✓' : t('customer.referral.copyCode')}
             </button>

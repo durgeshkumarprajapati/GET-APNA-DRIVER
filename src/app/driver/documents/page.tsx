@@ -233,7 +233,7 @@ export default function DriverDocumentsPage() {
           </div>
           <Link
             href="/driver/onboarding"
-            className="inline-flex items-center justify-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg border border-slate-700 transition-colors"
+            className="inline-flex items-center justify-center min-h-[48px] px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-sm font-medium rounded-lg border border-slate-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             Back to Onboarding
           </Link>
@@ -311,7 +311,7 @@ export default function DriverDocumentsPage() {
               <button
                 type="submit"
                 disabled={uploading || !selectedFile}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium rounded-lg text-sm shadow-md transition-colors flex items-center gap-2"
+                className="min-h-[48px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg text-sm shadow-md transition-colors flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
               >
                 {uploading && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -337,7 +337,7 @@ export default function DriverDocumentsPage() {
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="py-4 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className="py-4 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
@@ -368,7 +368,7 @@ export default function DriverDocumentsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleDownload(doc.id)}
-                      className="px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg border border-slate-600 transition-colors"
+                      className="min-h-[48px] px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 rounded-lg border border-slate-600 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                     >
                       View / Download
                     </button>

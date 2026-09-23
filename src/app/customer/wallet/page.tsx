@@ -153,7 +153,7 @@ export default function CustomerWalletPage() {
             <button
               type="button"
               onClick={() => setRetryToken((t) => t + 1)}
-              className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] text-xs font-bold shrink-0"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#181c24] hover:bg-[#262a33] active:bg-[#31353e] border border-[#262a33] text-[#dfe2ee] text-xs font-bold shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               Retry
             </button>
@@ -197,10 +197,10 @@ export default function CustomerWalletPage() {
                       key={f.value}
                       type="button"
                       onClick={() => handleFilterChange(f.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
+                      className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                         filter === f.value
-                          ? 'bg-[#68dba9] text-[#00311f]'
-                          : 'bg-[#181c24] border border-[#262a33] text-[#bccac0] hover:bg-[#262a33]'
+                          ? 'bg-[#68dba9] active:bg-[#4fc890] text-[#00311f]'
+                          : 'bg-[#181c24] border border-[#262a33] text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e]'
                       }`}
                     >
                       {f.label}

@@ -16,7 +16,7 @@ export default function DriverSettingsPage() {
           actions={
             <Link
               href="/driver/profile"
-              className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+              className="min-h-[48px] flex items-center px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               Go to Profile →
             </Link>

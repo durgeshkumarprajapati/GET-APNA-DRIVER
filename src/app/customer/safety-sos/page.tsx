@@ -70,7 +70,7 @@ export default function CustomerSafetySosPage() {
               <button
                 type="button"
                 onClick={sos.reset}
-                className="text-xs text-[#68dba9] hover:underline"
+                className="min-h-[40px] px-2 text-xs text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 Done
               </button>
@@ -81,7 +81,7 @@ export default function CustomerSafetySosPage() {
                 type="button"
                 disabled={sos.status === 'submitting'}
                 onClick={sos.requestConfirmation}
-                className="w-32 h-32 rounded-full bg-[#93000a] hover:bg-[#b3000d] disabled:opacity-60 text-[#ffdad6] font-bold text-xl font-['Space_Grotesk'] shadow-[0_0_40px_rgba(147,0,10,0.5)] transition-colors flex items-center justify-center"
+                className="w-32 h-32 rounded-full bg-[#93000a] hover:bg-[#b3000d] active:bg-[#7a0008] disabled:opacity-60 disabled:cursor-not-allowed text-[#ffdad6] font-bold text-xl font-['Space_Grotesk'] shadow-[0_0_40px_rgba(147,0,10,0.5)] transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
               >
                 {sos.status === 'submitting' ? 'Sending…' : 'SOS'}
               </button>
@@ -142,7 +142,7 @@ export default function CustomerSafetySosPage() {
           ) : incidents.length === 0 ? (
             <EmptyState icon="shield" message="No safety incidents on record." />
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 animate-fade-in-up">
               {incidents.map((incident) => (
                 <div
                   key={incident.id}

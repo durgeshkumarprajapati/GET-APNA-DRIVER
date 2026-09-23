@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
+import { LoadingState } from '@/components/ui/loading-state';
 
 interface DriverBooking {
   id: string;
@@ -97,10 +98,7 @@ export default function DriverBookingsListPage() {
     return (
       <DriverLayout>
         <div className="flex items-center justify-center py-24">
-          <div className="flex items-center gap-3 text-slate-400">
-            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-            Loading assigned bookings...
-          </div>
+          <LoadingState message="Loading assigned bookings…" />
         </div>
       </DriverLayout>
     );
@@ -122,11 +120,12 @@ export default function DriverBookingsListPage() {
             <h1 className="text-3xl font-bold tracking-tight text-white">Driver Journey Portal</h1>
           </div>
           <button
+            type="button"
             onClick={() => {
               setLoading(true);
               void fetchBookings();
             }}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors self-start md:self-auto"
+            className="min-h-[48px] px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors self-start md:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             Refresh Bookings
           </button>
@@ -151,12 +150,12 @@ export default function DriverBookingsListPage() {
               AVAILABLE.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
               {activeBookings.map((b) => (
                 <Link
                   key={b.id}
                   href={`/driver/bookings/${b.id}`}
-                  className="group bg-slate-800/80 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-6 transition-all shadow-lg space-y-4 block"
+                  className="card-interactive group bg-slate-800/80 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-6 transition-all shadow-lg space-y-4 block"
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -195,7 +194,7 @@ export default function DriverBookingsListPage() {
             <h2 className="text-lg font-bold text-slate-300">
               Completed & Past Bookings ({pastBookings.length})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
               {pastBookings.map((b) => (
                 <div
                   key={b.id}

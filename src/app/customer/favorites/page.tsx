@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { LoadingState } from '@/components/ui/loading-state';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useTranslation } from '@/i18n/context';
 
@@ -84,16 +85,7 @@ export default function CustomerFavoritesPage() {
         />
 
         {/* LOADING STATE */}
-        {loading && (
-          <div className="flex items-center justify-center p-12 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-            <div className="flex flex-col items-center gap-3">
-              <span className="w-8 h-8 rounded-full border-2 border-[#68dba9] border-t-transparent animate-spin" />
-              <span className="text-xs font-mono text-[#bccac0]">
-                Loading favorite chauffeurs...
-              </span>
-            </div>
-          </div>
-        )}
+        {loading && <LoadingState message="Loading favorite chauffeurs..." />}
 
         {/* ERROR STATE */}
         {error && !loading && (
@@ -105,7 +97,7 @@ export default function CustomerFavoritesPage() {
                 setLoading(true);
                 setFavorites([]);
               }}
-              className="px-3 py-1 bg-red-900/60 rounded text-red-100 font-bold hover:bg-red-800"
+              className="min-h-[40px] px-3 py-1 bg-red-900/60 rounded text-red-100 font-bold hover:bg-red-800 active:bg-red-950 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
             >
               Retry
             </button>
@@ -119,7 +111,7 @@ export default function CustomerFavoritesPage() {
 
         {/* FAVORITE DRIVERS GRID */}
         {!loading && !error && favorites.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up">
             {favorites.map((fav) => {
               const driverName =
                 fav.displayName ||
@@ -145,7 +137,7 @@ export default function CustomerFavoritesPage() {
                         <button
                           type="button"
                           onClick={() => setDriverToRemove(fav)}
-                          className="p-1 text-[#ffb4ab] hover:text-red-400 hover:bg-red-950/40 rounded transition-colors"
+                          className="min-w-[40px] min-h-[40px] flex items-center justify-center text-[#ffb4ab] hover:text-red-400 hover:bg-red-950/40 active:bg-red-950/60 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
                           title={t('customer.favorites.removeFavorite')}
                         >
                           <span className="material-symbols-outlined text-lg">star</span>
@@ -173,7 +165,7 @@ export default function CustomerFavoritesPage() {
                   <div className="pt-2 border-t border-[#262a33] flex items-center justify-between gap-2">
                     <Link
                       href={`/customer/find-driver?driverId=${fav.driverProfileId}`}
-                      className="w-full py-2 bg-[#25a475] hover:bg-[#208b63] text-[#00311f] font-bold text-xs font-['Space_Grotesk'] rounded-xl text-center transition-colors block"
+                      className="min-h-[44px] w-full py-2 bg-[#25a475] hover:bg-[#208b63] active:bg-[#1a7455] text-[#00311f] font-bold text-xs font-['Space_Grotesk'] rounded-xl text-center transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       {t('customer.favorites.bookDriver')}
                     </Link>

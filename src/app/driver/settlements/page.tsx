@@ -93,7 +93,7 @@ export default function DriverSettlementsPage() {
             {settlements.map((settlement) => (
               <div
                 key={settlement.id}
-                className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up"
               >
                 <div className="space-y-2">
                   {getStatusBadge(settlement.status)}

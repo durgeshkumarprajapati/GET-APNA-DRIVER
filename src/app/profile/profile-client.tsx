@@ -402,6 +402,7 @@ export default function ProfilePage() {
           </div>
           <Link
             href="/"
+            className="min-h-[40px] inline-flex items-center transition-opacity hover:opacity-80 active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             style={{
               padding: '0.5rem 1rem',
               borderRadius: '0.375rem',
@@ -431,6 +432,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab('profile')}
+            className="min-h-[44px] transition-opacity hover:opacity-80 active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             style={{
               padding: '0.75rem 1.25rem',
               fontSize: '1rem',
@@ -453,6 +455,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab('locations')}
+            className="min-h-[44px] transition-opacity hover:opacity-80 active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             style={{
               padding: '0.75rem 1.25rem',
               fontSize: '1rem',
@@ -475,6 +478,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab('preferences')}
+            className="min-h-[44px] transition-opacity hover:opacity-80 active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             style={{
               padding: '0.75rem 1.25rem',
               fontSize: '1rem',
@@ -499,6 +503,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab('security')}
+            className="min-h-[44px] transition-opacity hover:opacity-80 active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             style={{
               padding: '0.75rem 1.25rem',
               fontSize: '1rem',
@@ -716,6 +721,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={profileSaving}
+                    className="min-h-[48px] min-w-[180px] transition-[filter] hover:brightness-110 active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     style={{
                       padding: '0.75rem 1.5rem',
                       borderRadius: '0.375rem',
@@ -752,6 +758,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowLocationModal(true)}
+                className="min-h-[48px] transition-[filter] hover:brightness-110 active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 style={{
                   padding: '0.625rem 1.25rem',
                   borderRadius: '0.375rem',
@@ -785,6 +792,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setShowLocationModal(true)}
+                  className="min-h-[48px] transition-[filter] hover:brightness-110 active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   style={{
                     padding: '0.5rem 1rem',
                     borderRadius: '0.375rem',
@@ -800,6 +808,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div
+                className="animate-fade-in-up"
                 style={{
                   display: 'grid',
                   gap: '1rem',
@@ -868,6 +877,7 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={() => handleSetDefaultLocation(loc.id)}
+                          className="min-h-[40px] transition-colors hover:bg-[#262a33] active:bg-[#31353e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                           style={{
                             padding: '0.375rem 0.75rem',
                             borderRadius: '0.25rem',
@@ -884,6 +894,7 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteLocation(loc.id)}
+                        className="min-h-[40px] transition-colors hover:bg-red-950/30 active:bg-red-950/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
                         style={{
                           padding: '0.375rem 0.75rem',
                           borderRadius: '0.25rem',
@@ -905,6 +916,7 @@ export default function ProfilePage() {
             {/* Add Location Modal */}
             {showLocationModal && (
               <div
+                className="animate-fade-in"
                 style={{
                   position: 'fixed',
                   top: 0,
@@ -920,6 +932,7 @@ export default function ProfilePage() {
                 }}
               >
                 <div
+                  className="animate-scale-in"
                   style={{
                     backgroundColor: 'var(--color-surface-elevated)',
                     border: '1px solid var(--color-border)',
@@ -1273,6 +1286,7 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => setShowLocationModal(false)}
+                        className="min-h-[44px] transition-colors hover:bg-[#262a33] active:bg-[#31353e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                         style={{
                           padding: '0.5rem 1rem',
                           borderRadius: '0.25rem',
@@ -1287,6 +1301,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={locationSaving}
+                        className="min-h-[44px] transition-[filter] hover:brightness-110 active:brightness-90 disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                         style={{
                           padding: '0.5rem 1rem',
                           borderRadius: '0.25rem',
@@ -1294,7 +1309,7 @@ export default function ProfilePage() {
                           backgroundColor: 'var(--color-primary)',
                           color: '#ffffff',
                           fontWeight: 600,
-                          cursor: 'pointer',
+                          cursor: locationSaving ? 'not-allowed' : 'pointer',
                         }}
                       >
                         {locationSaving ? 'Saving...' : 'Save Location'}
@@ -1488,6 +1503,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={prefSaving}
+                    className="min-h-[48px] min-w-[180px] transition-[filter] hover:brightness-110 active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     style={{
                       padding: '0.75rem 1.5rem',
                       borderRadius: '0.375rem',
@@ -1681,6 +1697,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={pinSaving || newPin.length !== 6 || confirmPin.length !== 6}
+                  className="min-h-[48px] min-w-[180px] transition-[filter] hover:brightness-110 active:brightness-90 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   style={{
                     padding: '0.75rem 1.5rem',
                     borderRadius: '0.375rem',

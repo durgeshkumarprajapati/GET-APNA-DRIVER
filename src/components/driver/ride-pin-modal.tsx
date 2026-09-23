@@ -103,8 +103,8 @@ export function RidePinModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-2xl space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-2xl space-y-6 animate-scale-in">
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#68dba9] bg-[#00311f] px-2.5 py-1 rounded-full border border-[#25a475]">
             <span className="material-symbols-outlined text-[14px]">lock</span>

@@ -111,14 +111,14 @@ export default function CustomerActiveTrackingPage() {
         {loading ? (
           <LoadingState message="Checking for an active booking…" />
         ) : activeBookingError ? (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm animate-fade-in">
             {activeBookingError}
           </div>
         ) : !displayBooking ? (
           <EmptyState icon="near_me" message="No active booking right now.">
             <Link
               href="/bookings/new"
-              className="mt-3 inline-block px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors"
+              className="mt-3 inline-flex items-center justify-center min-h-[48px] px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               Book a Driver
             </Link>
@@ -139,7 +139,7 @@ export default function CustomerActiveTrackingPage() {
 
             {reliability && <SmartTripReliabilityCard reliability={reliability} />}
 
-            <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
+            <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3 animate-fade-in-up">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <StatusBadge
                   label={STATUS_LABEL[displayBooking.status] ?? displayBooking.status}
@@ -147,7 +147,7 @@ export default function CustomerActiveTrackingPage() {
                 />
                 <Link
                   href={`/bookings/${displayBooking.id}`}
-                  className="text-xs text-[#68dba9] hover:underline"
+                  className="text-xs text-[#68dba9] hover:underline rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 >
                   View full booking details →
                 </Link>
@@ -195,7 +195,7 @@ export default function CustomerActiveTrackingPage() {
               </div>
             </section>
 
-            <section className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] space-y-3">
+            <section className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] space-y-3 animate-fade-in-up">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>

@@ -57,10 +57,10 @@ export function MobileNavDrawer({
       <button
         type="button"
         aria-label={t('common.labels.closeNavigationMenu')}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
-      <div className="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0e16] border-r border-[#262a33] shadow-2xl flex flex-col overflow-y-auto">
+      <div className="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0e16] border-r border-[#262a33] shadow-2xl flex flex-col overflow-y-auto animate-drawer-slide-in">
         <div className="h-16 px-4 flex items-center justify-between gap-2 border-b border-[#262a33] shrink-0">
           <Link href={brandHref} onClick={onClose} className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold shrink-0">

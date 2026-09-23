@@ -133,7 +133,7 @@ export function EnhancedOfferCard({ offer }: EnhancedOfferCardProps) {
 
         {/* Expandable Terms & Conditions (Locked State) */}
         {tcOpen && (
-          <div className="p-2 rounded-lg bg-[#0a0e16] border border-slate-800 space-y-1.5 mt-1 text-[10px] text-slate-300 animate-fadeIn">
+          <div className="p-2 rounded-lg bg-[#0a0e16] border border-slate-800 space-y-1.5 mt-1 text-[10px] text-slate-300 animate-fade-in">
             <div className="flex items-center gap-1 text-amber-400 font-bold border-b border-slate-800 pb-1 text-[9.5px]">
               <span className="material-symbols-outlined text-[11px]">lock</span>
               <span>Terms & Conditions — Locked State</span>

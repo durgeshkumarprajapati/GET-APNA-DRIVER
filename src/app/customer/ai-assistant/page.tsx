@@ -5,7 +5,7 @@ import { AIAssistantPanel } from '@/components/ai/AIAssistantPanel';
 export default function CustomerAIAssistantPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 flex flex-col items-center justify-center">
-      <div className="w-full max-w-4xl space-y-6">
+      <div className="w-full max-w-4xl space-y-6 animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-black text-slate-100 tracking-tight">
             Customer AI Concierge

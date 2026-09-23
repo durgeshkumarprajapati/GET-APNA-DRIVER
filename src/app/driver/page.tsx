@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { DriverEngagementWidget } from '@/components/driver/driver-engagement-widget';
 import { DriverExperienceSection } from '@/components/experience/driver-experience-section';
+import { LoadingState } from '@/components/ui/loading-state';
 
 interface AssignmentOffer {
   id: string;
@@ -203,7 +204,7 @@ export default function DriverDashboardPage() {
               </span>
               <Link
                 href="/driver/profile"
-                className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-bold transition-colors"
+                className="min-h-[48px] flex items-center px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] active:bg-[#454f5c] text-[#dfe2ee] text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 Edit Profile
               </Link>
@@ -221,7 +222,7 @@ export default function DriverDashboardPage() {
         )}
 
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">Loading dashboard…</div>
+          <LoadingState message="Loading dashboard…" />
         ) : (
           <>
             {/* Earnings & Incentives Summary Banner */}
@@ -261,7 +262,7 @@ export default function DriverDashboardPage() {
               </div>
               <Link
                 href="/driver/earnings"
-                className="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors shadow-md"
+                className="shrink-0 min-h-[48px] flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
               >
                 View Earnings Hub →
               </Link>
@@ -270,10 +271,10 @@ export default function DriverDashboardPage() {
             {/* Driver Engagement Progress & Streaks Widget */}
             <DriverEngagementWidget />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
               <Link
                 href="/driver/schedule"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
                   Today Shift
@@ -286,7 +287,7 @@ export default function DriverDashboardPage() {
               </Link>
               <Link
                 href="/driver/assignment-offers"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
                   Pending Offers
@@ -298,7 +299,7 @@ export default function DriverDashboardPage() {
 
               <Link
                 href="/driver/bookings"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
                   Active Bookings
@@ -310,7 +311,7 @@ export default function DriverDashboardPage() {
 
               <Link
                 href="/driver/wallet-and-payouts"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
                   Available Balance
@@ -343,7 +344,7 @@ export default function DriverDashboardPage() {
                   No pending assignment offers right now.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 animate-fade-in-up">
                   {pendingOffers.slice(0, 5).map((offer) => (
                     <div
                       key={offer.id}
@@ -381,7 +382,7 @@ export default function DriverDashboardPage() {
                   No active bookings right now.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 animate-fade-in-up">
                   {activeBookings.slice(0, 5).map((booking) => (
                     <div
                       key={booking.id}

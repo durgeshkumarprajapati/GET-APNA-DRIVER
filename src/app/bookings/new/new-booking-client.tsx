@@ -852,7 +852,7 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setBookingMode('NOW')}
-                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all ${
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                     bookingMode === 'NOW'
                       ? 'bg-[#25a475] text-[#00311f] shadow'
                       : 'text-[#87948b] hover:text-[#dfe2ee]'
@@ -864,7 +864,7 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setBookingMode('SCHEDULE')}
-                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all ${
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                     bookingMode === 'SCHEDULE'
                       ? 'bg-[#25a475] text-[#00311f] shadow'
                       : 'text-[#87948b] hover:text-[#dfe2ee]'
@@ -940,7 +940,7 @@ function BookDriverPageInner() {
                                   active ? prev.filter((d) => d !== idx) : [...prev, idx],
                                 );
                               }}
-                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                                 active
                                   ? 'bg-[#25a475] text-[#00311f]'
                                   : 'bg-[#0a0e16] text-[#87948b] border border-[#262a33]'
@@ -1019,7 +1019,7 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={handleEditPickup}
-                  className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42]"
+                  className="bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 >
                   <span className="material-symbols-outlined text-xs">edit_location</span>
                   <span>{t('customer.booking.changeBtn')}</span>
@@ -1045,7 +1045,7 @@ function BookDriverPageInner() {
                           longitude: loc.longitude,
                         })
                       }
-                      className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors"
+                      className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       {loc.label}
                     </button>
@@ -1101,7 +1101,7 @@ function BookDriverPageInner() {
                         <button
                           type="button"
                           onClick={handleEditDropoff}
-                          className="bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42]"
+                          className="bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                         >
                           <span className="material-symbols-outlined text-xs">edit_location</span>
                           <span>{t('customer.booking.changeBtn')}</span>
@@ -1125,7 +1125,7 @@ function BookDriverPageInner() {
                                   longitude: loc.longitude,
                                 })
                               }
-                              className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors"
+                              className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                             >
                               {loc.label}
                             </button>
@@ -1201,7 +1201,7 @@ function BookDriverPageInner() {
                     key={tab.key}
                     type="button"
                     onClick={() => setSelectedTab(tab.key)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded font-mono text-[11px] transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded font-mono text-[11px] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                       selectedTab === tab.key
                         ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow border border-[#3d4a42]'
                         : 'text-[#bccac0] hover:text-[#dfe2ee]'
@@ -1227,7 +1227,7 @@ function BookDriverPageInner() {
                       key={tier.key}
                       type="button"
                       onClick={() => setVehicleClass(tier.key)}
-                      className={`p-2.5 rounded-lg text-left flex flex-col gap-1 transition-all ${
+                      className={`p-2.5 rounded-lg text-left flex flex-col gap-1 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                         vehicleClass === tier.key
                           ? 'bg-[#262a33] text-[#dfe2ee] border border-[#68dba9]/50 shadow'
                           : 'bg-[#1c2028] text-[#bccac0] opacity-80 hover:opacity-100'
@@ -1293,7 +1293,7 @@ function BookDriverPageInner() {
                   <button
                     type="button"
                     onClick={() => setPreferredDriverProfileId(null)}
-                    className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] transition-colors ${
+                    className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                       preferredDriverProfileId === null
                         ? 'bg-[#68dba9] text-[#003825] font-bold'
                         : 'bg-[#262a33] text-[#dfe2ee]'
@@ -1306,7 +1306,7 @@ function BookDriverPageInner() {
                       key={fav.driverProfileId}
                       type="button"
                       onClick={() => setPreferredDriverProfileId(fav.driverProfileId)}
-                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] flex items-center gap-1 transition-colors ${
+                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] flex items-center gap-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                         preferredDriverProfileId === fav.driverProfileId
                           ? 'bg-[#68dba9] text-[#003825] font-bold'
                           : 'bg-[#262a33] text-[#dfe2ee]'
@@ -1359,7 +1359,7 @@ function BookDriverPageInner() {
                     <button
                       type="button"
                       onClick={() => setPreferredDriverProfileId(null)}
-                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] self-start transition-colors ${
+                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] self-start transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                         preferredDriverProfileId === null ||
                         !nearbyAvailableDrivers.some(
                           (d) => d.driverProfileId === preferredDriverProfileId,
@@ -1379,7 +1379,7 @@ function BookDriverPageInner() {
                             prev === driver.driverProfileId ? null : driver.driverProfileId,
                           )
                         }
-                        className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                        className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
                           preferredDriverProfileId === driver.driverProfileId
                             ? 'bg-[#00311f] border-[#25a475]'
                             : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
@@ -1441,7 +1441,7 @@ function BookDriverPageInner() {
                         key={driver.driverProfileId}
                         type="button"
                         onClick={() => setViewingDriverId(driver.driverProfileId)}
-                        className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                        className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
                           preferredDriverProfileId === driver.driverProfileId
                             ? 'bg-[#00311f] border-[#25a475]'
                             : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
@@ -1577,7 +1577,7 @@ function BookDriverPageInner() {
                         setCouponCodeInput('');
                         setCouponError(null);
                       }}
-                      className="text-[11px] text-rose-400 hover:underline"
+                      className="text-[11px] text-rose-400 hover:underline active:text-rose-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
                     >
                       Remove
                     </button>
@@ -1599,7 +1599,7 @@ function BookDriverPageInner() {
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={couponValidating || !couponCodeInput.trim() || !fareEstimate}
-                    className="px-3.5 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50"
+                    className="min-h-[40px] min-w-[72px] px-3.5 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {couponValidating ? 'Checking…' : 'Apply'}
                   </button>
@@ -1645,7 +1645,7 @@ function BookDriverPageInner() {
                   !pickupReady ||
                   (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId)
                 }
-                className="w-full py-3.5 px-4 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#68dba9]/20 font-['Space_Grotesk'] disabled:opacity-50"
+                className="w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#68dba9]/20 font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 {loading ? (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#003825] border-t-transparent" />
@@ -1757,8 +1757,8 @@ function BookDriverPageInner() {
           breakdown, recent reviews, and the rate for this specific hire,
           reviewed before the customer commits to that driver. */}
       {viewingDriverId && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0f1319] border border-[#262a33] rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#0f1319] border border-[#262a33] rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in">
             <div className="p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
@@ -1767,7 +1767,8 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setViewingDriverId(null)}
-                  className="text-[#87948b] hover:text-white transition-colors"
+                  aria-label={t('common.actions.close', { defaultValue: 'Close' })}
+                  className="p-2 -m-1 rounded-lg text-[#87948b] hover:text-white active:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
@@ -1889,7 +1890,7 @@ function BookDriverPageInner() {
                       setPreferredDriverProfileId(viewingDriverProfile.driverProfileId);
                       setViewingDriverId(null);
                     }}
-                    className="w-full py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm transition-all font-['Space_Grotesk']"
+                    className="w-full min-h-[48px] py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-sm transition-all font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {t('customer.booking.selectThisDriverBtn', {
                       defaultValue: 'Select This Driver',

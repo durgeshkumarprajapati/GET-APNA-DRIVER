@@ -365,10 +365,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setAuthMode('otp')}
-                  className={`py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all ${
+                  className={`min-h-[48px] py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                     authMode === 'otp'
-                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm'
-                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm active:bg-[#454f5c]'
+                      : 'text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9]'
                   }`}
                 >
                   {t('auth.login.useOtpTab', { defaultValue: 'Mobile OTP' })}
@@ -376,10 +376,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setAuthMode('email')}
-                  className={`py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all ${
+                  className={`min-h-[48px] py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                     authMode === 'email'
-                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm'
-                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm active:bg-[#454f5c]'
+                      : 'text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9]'
                   }`}
                 >
                   {t('auth.login.usePasswordTab', { defaultValue: 'Email & Password' })}
@@ -452,7 +452,7 @@ export default function LoginPage() {
                       type="button"
                       disabled={!isPhoneValid || sendingOtp}
                       onClick={() => void handleSendOtp()}
-                      className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
+                      className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       <span>
                         {sendingOtp ? t('auth.login.sendingOtp') : t('auth.login.sendOtp')}
@@ -475,7 +475,7 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={handleChangeNumber}
-                            className="font-mono text-[#87948b] hover:text-[#dfe2ee] underline"
+                            className="font-mono text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
                           >
                             {t('auth.login.changeNumber')}
                           </button>
@@ -521,7 +521,7 @@ export default function LoginPage() {
                             type="button"
                             disabled={resendCooldown > 0 || sendingOtp}
                             onClick={() => void handleSendOtp()}
-                            className="text-[#87948b] hover:text-[#dfe2ee] disabled:opacity-50"
+                            className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
                           >
                             {resendCooldown > 0
                               ? t('auth.login.resendIn', { seconds: String(resendCooldown) })
@@ -534,7 +534,7 @@ export default function LoginPage() {
                         type="button"
                         disabled={loading || otpExpired || otpDigits.some((d) => !d)}
                         onClick={() => void handleOtpSubmit()}
-                        className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
+                        className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                       >
                         <span>
                           {loading ? t('auth.login.verifying') : t('auth.login.verifyAndEnter')}
@@ -584,7 +584,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowForgotModal(true)}
-                        className="text-[11px] font-mono text-[#68dba9] hover:underline"
+                        className="text-[11px] font-mono text-[#68dba9] hover:underline active:text-[#4fc890] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
                       >
                         {t('auth.login.forgotPassword')}
                       </button>
@@ -608,7 +608,7 @@ export default function LoginPage() {
                         aria-label={
                           showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')
                         }
-                        className="text-[#87948b] hover:text-[#dfe2ee] ml-2"
+                        className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] ml-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
                       >
                         <span className="material-symbols-outlined text-base">
                           {showPassword ? 'visibility_off' : 'visibility'}
@@ -632,7 +632,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)]"
+                    className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     <span>{loading ? t('auth.login.verifying') : t('auth.login.submit')}</span>
                     <span className="material-symbols-outlined text-sm">login</span>
@@ -655,7 +655,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={connectingToGoogle}
-                className="w-full min-h-[48px] py-3 px-4 bg-[#0a0e16] hover:bg-[#262a33] disabled:opacity-60 disabled:cursor-not-allowed rounded-xl font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33]"
+                className="w-full min-h-[48px] py-3 px-4 bg-[#0a0e16] hover:bg-[#262a33] active:brightness-90 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 {connectingToGoogle ? (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#dfe2ee] border-t-transparent" />
@@ -705,8 +705,8 @@ export default function LoginPage() {
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow-2xl space-y-4 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow-2xl space-y-4 relative animate-scale-in">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[#68dba9]">
                 <span className="material-symbols-outlined text-base">lock_reset</span>
@@ -717,7 +717,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
-                className="text-[#87948b] hover:text-[#dfe2ee]"
+                aria-label={t('common.actions.cancel')}
+                className="min-w-[48px] min-h-[48px] flex items-center justify-center text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded-lg"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
@@ -740,6 +741,7 @@ export default function LoginPage() {
 
             <button
               type="button"
+              disabled={resetSubmitted}
               onClick={() => {
                 setResetSubmitted(true);
                 setTimeout(() => {
@@ -747,7 +749,7 @@ export default function LoginPage() {
                   setResetSubmitted(false);
                 }, 1200);
               }}
-              className="w-full py-2.5 bg-[#68dba9] text-[#003825] font-mono text-xs font-bold rounded-xl uppercase tracking-wider shadow hover:bg-[#85f8c4] transition-all"
+              className="w-full min-h-[48px] py-2.5 bg-[#68dba9] text-[#003825] font-mono text-xs font-bold rounded-xl uppercase tracking-wider shadow hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-70 disabled:cursor-not-allowed transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               {resetSubmitted ? 'Link Dispatched!' : 'Send Recovery Link'}
             </button>

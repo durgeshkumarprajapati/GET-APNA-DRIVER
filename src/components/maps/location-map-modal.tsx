@@ -37,14 +37,14 @@ export function LocationMapModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="map-modal-title"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl bg-[#181c24] border border-[#262a33] rounded-3xl shadow-2xl overflow-hidden flex flex-col space-y-4 p-6"
+        className="relative w-full max-w-3xl bg-[#181c24] border border-[#262a33] rounded-3xl shadow-2xl overflow-hidden flex flex-col space-y-4 p-6 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-3 border-b border-[#262a33]">
