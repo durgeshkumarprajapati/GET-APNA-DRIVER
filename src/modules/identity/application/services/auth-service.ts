@@ -415,15 +415,6 @@ export async function verifyPhoneOtp(
 
       await userRepository.markIdentityVerified(tx, newIdentity.id);
 
-      const customerRole = await rbacRepository.findRoleByCode(tx, SYSTEM_ROLE_CODES.CUSTOMER);
-      if (customerRole) {
-        await rbacRepository.upsertRoleAssignment(tx, {
-          userId: newUser.id,
-          roleId: customerRole.id,
-          assignedBy: null,
-        });
-      }
-
       targetUser = newUser;
       targetIdentity = newIdentity;
     }

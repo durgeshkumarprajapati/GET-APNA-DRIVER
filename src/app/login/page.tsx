@@ -165,7 +165,10 @@ export default function LoginPage() {
       setOtpDigits(Array(OTP_LENGTH).fill(''));
       setOtpExpiresAt(data.expiresAt ? new Date(data.expiresAt) : new Date(Date.now() + 180_000));
       setOtpStep('otp');
-      setResendCooldown(30);
+      setResendCooldown(60);
+      setTimeout(() => {
+        document.getElementById('otp-input-0')?.focus();
+      }, 100);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to send OTP. Please try again.';
       setError(msg);
