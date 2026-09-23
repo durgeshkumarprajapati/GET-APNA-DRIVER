@@ -87,7 +87,7 @@ export default function DriverPublicPortfolioPage() {
         ) : (
           portfolio && (
             <>
-              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-2xl">
+              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-2xl animate-fade-in-up">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-xl bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9] font-bold text-xl">
                     {initials(portfolio.displayName)}
@@ -124,7 +124,7 @@ export default function DriverPublicPortfolioPage() {
                     {portfolio.recentReviews.map((review, index) => (
                       <div
                         key={index}
-                        className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2"
+                        className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2 animate-fade-in-up"
                       >
                         <div className="flex items-center justify-between">
                           <RatingStars value={review.rating} size="sm" />

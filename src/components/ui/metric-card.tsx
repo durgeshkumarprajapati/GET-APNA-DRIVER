@@ -20,7 +20,7 @@ const ACCENT_CLASSES: Record<NonNullable<MetricCardProps['accent']>, string> = {
  */
 export function MetricCard({ label, value, accent = 'default', hint }: MetricCardProps) {
   return (
-    <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1">
+    <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1 animate-fade-in-up">
       <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
         {label}
       </span>

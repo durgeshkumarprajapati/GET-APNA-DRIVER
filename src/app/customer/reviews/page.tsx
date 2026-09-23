@@ -82,7 +82,7 @@ export default function CustomerReviewHistoryPage() {
           <EmptyState icon="reviews" message={t('customer.reviews.emptyBody')} />
         ) : (
           <>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 animate-fade-in-up">
               {data.reviews.map((review) => (
                 <div
                   key={review.id}
@@ -105,7 +105,7 @@ export default function CustomerReviewHistoryPage() {
                   )}
                   <Link
                     href={`/bookings/${review.bookingId}`}
-                    className="text-[10px] text-[#68dba9] hover:underline"
+                    className="text-[10px] text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {t('customer.invoices.viewBooking')} →
                   </Link>

@@ -110,7 +110,7 @@ export default function DriverSosSupportPage() {
               <button
                 type="button"
                 onClick={sos.reset}
-                className="text-xs text-[#68dba9] hover:underline"
+                className="min-h-[48px] px-3 text-xs text-[#68dba9] hover:underline active:text-[#4fc890] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
               >
                 Done
               </button>
@@ -121,7 +121,7 @@ export default function DriverSosSupportPage() {
                 type="button"
                 disabled={sos.status === 'submitting'}
                 onClick={sos.requestConfirmation}
-                className="w-36 h-36 rounded-full bg-[#93000a] hover:bg-[#b3000f] disabled:opacity-60 text-[#ffdad6] font-bold flex flex-col items-center justify-center gap-2 shadow-2xl ring-4 ring-[#ffb4ab]/40 transition-all"
+                className="w-36 h-36 rounded-full bg-[#93000a] hover:bg-[#b3000f] active:bg-[#7a0008] disabled:opacity-60 disabled:cursor-not-allowed text-[#ffdad6] font-bold flex flex-col items-center justify-center gap-2 shadow-2xl ring-4 ring-[#ffb4ab]/40 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
               >
                 <span className="material-symbols-outlined text-4xl">emergency</span>
                 <span className="text-xs uppercase font-['Space_Grotesk']">
@@ -171,7 +171,7 @@ export default function DriverSosSupportPage() {
             type="button"
             disabled={calling}
             onClick={handleCallCustomerCare}
-            className="px-5 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0"
+            className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] active:brightness-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#70a1ff]"
           >
             <span className="material-symbols-outlined text-lg">call</span>
             <span>{calling ? 'Connecting…' : 'Call Support'}</span>

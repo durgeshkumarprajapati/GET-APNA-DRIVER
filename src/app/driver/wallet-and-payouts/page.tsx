@@ -117,7 +117,7 @@ export default function DriverWalletPage() {
         ) : wallet ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm">
+              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
                 <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
                   AVAILABLE BALANCE
                 </span>
@@ -129,7 +129,7 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm">
+              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
                 <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
                   PENDING BALANCE
                 </span>
@@ -141,7 +141,7 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm">
+              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
                 <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
                   RESERVED FOR SETTLEMENT
                 </span>
@@ -153,7 +153,7 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm">
+              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
                 <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
                   TOTAL EARNED
                 </span>
@@ -163,7 +163,7 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm">
+              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
                 <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
                   TOTAL SETTLED
                 </span>
@@ -248,7 +248,7 @@ export default function DriverWalletPage() {
                   {settlements.map((settlement) => (
                     <div
                       key={settlement.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-3"
+                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fade-in-up"
                     >
                       <div className="space-y-1">
                         <span

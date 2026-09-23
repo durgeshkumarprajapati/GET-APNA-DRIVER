@@ -295,8 +295,8 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
 
       {/* SEARCH MODAL */}
       {searchModalOpen && (
-        <div className="fixed inset-0 bg-[#0a0e16]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1c2028] border border-[#3d4a42] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-[#0a0e16]/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#1c2028] border border-[#3d4a42] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
               <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#68dba9]">search</span>

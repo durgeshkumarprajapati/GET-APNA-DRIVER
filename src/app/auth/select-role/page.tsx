@@ -110,7 +110,10 @@ export default function SelectRolePage() {
         )}
 
         <div className="mt-6 pt-4 border-t border-[#262a33] text-center">
-          <Link href="/login" className="text-xs text-[#87948b] hover:text-[#dfe2ee]">
+          <Link
+            href="/login"
+            className="text-xs text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
+          >
             Cancel and return to login
           </Link>
         </div>

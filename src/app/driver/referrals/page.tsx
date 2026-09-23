@@ -136,7 +136,7 @@ export default function DriverReferralPage() {
               type="button"
               onClick={shareReferral}
               disabled={loading || !dashboard?.referralCode}
-              className="px-5 py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="min-h-[48px] px-5 py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-50 disabled:cursor-not-allowed text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               <span className="material-symbols-outlined text-lg">share</span>
               {shared ? t('driver.referrals.shared') : t('driver.referrals.shareBtn')}
@@ -146,7 +146,7 @@ export default function DriverReferralPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
+          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.yourCode')}
             </span>
@@ -158,7 +158,7 @@ export default function DriverReferralPage() {
                 type="button"
                 onClick={copyReferralCode}
                 title={t('driver.referrals.copyCode')}
-                className="text-[#87948b] hover:text-[#dfe2ee] transition-colors"
+                className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 <span className="material-symbols-outlined text-sm">
                   {copied ? 'check' : 'content_copy'}
@@ -167,7 +167,7 @@ export default function DriverReferralPage() {
             </div>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
+          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.statTotalDrivers')}
             </span>
@@ -176,7 +176,7 @@ export default function DriverReferralPage() {
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
+          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.statPending')}
             </span>
@@ -185,7 +185,7 @@ export default function DriverReferralPage() {
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
+          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
             <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.statEarnedIncentives')}
             </span>
@@ -205,7 +205,7 @@ export default function DriverReferralPage() {
               {dashboard.activeCampaigns.map((camp) => (
                 <div
                   key={camp.id}
-                  className="p-5 rounded-2xl bg-gradient-to-br from-[#181c24] to-[#121620] border border-[#262a33] flex flex-col justify-between gap-4"
+                  className="p-5 rounded-2xl bg-gradient-to-br from-[#181c24] to-[#121620] border border-[#262a33] flex flex-col justify-between gap-4 animate-fade-in-up"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2">

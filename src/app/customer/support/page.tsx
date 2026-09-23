@@ -328,7 +328,7 @@ export default function CustomerSupportPage() {
               type="button"
               disabled={callingSupport}
               onClick={handleCallSupport}
-              className="px-4 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk']"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] active:bg-[#003ea8] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#70a1ff]"
             >
               <span className="material-symbols-outlined text-lg">call</span>
               <span>{callingSupport ? 'Connecting…' : 'Call Customer Care'}</span>
@@ -336,7 +336,7 @@ export default function CustomerSupportPage() {
             <button
               type="button"
               onClick={() => setIsCreateOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk']"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               <span className="material-symbols-outlined text-lg">add_comment</span>
               <span>Create New Request</span>
@@ -366,7 +366,7 @@ export default function CustomerSupportPage() {
             <button
               type="button"
               onClick={() => setCallData(null)}
-              className="text-xs text-[#87948b] hover:text-[#dfe2ee]"
+              className="min-h-[40px] px-2 text-xs text-[#87948b] hover:text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               Dismiss
             </button>
@@ -391,7 +391,7 @@ export default function CustomerSupportPage() {
           </div>
           <a
             href="/customer/sos"
-            className="px-3.5 py-2 rounded-lg bg-[#93000a] hover:bg-[#ba1a1a] text-[#ffdad6] font-bold text-xs font-['Space_Grotesk'] flex items-center gap-1.5 transition-colors"
+            className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#93000a] hover:bg-[#ba1a1a] active:bg-[#7a0008] text-[#ffdad6] font-bold text-xs font-['Space_Grotesk'] flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
           >
             <span className="material-symbols-outlined text-base">warning</span>
             <span>Go to Emergency SOS</span>
@@ -409,7 +409,7 @@ export default function CustomerSupportPage() {
               <button
                 type="button"
                 onClick={fetchTickets}
-                className="text-xs text-[#68dba9] hover:underline font-mono"
+                className="min-h-[40px] px-2 text-xs text-[#68dba9] hover:underline font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 Refresh
               </button>
@@ -438,21 +438,29 @@ export default function CustomerSupportPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(true)}
-                  className="mt-2 px-3 py-1.5 rounded-lg bg-[#262a33] text-[#68dba9] border border-[#3d4a42] text-xs font-bold font-['Space_Grotesk'] hover:bg-[#31353e] transition-colors"
+                  className="min-h-[40px] mt-2 px-3 py-1.5 rounded-lg bg-[#262a33] text-[#68dba9] border border-[#3d4a42] text-xs font-bold font-['Space_Grotesk'] hover:bg-[#31353e] active:bg-[#3d4a42] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 >
                   Create Support Request
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 animate-fade-in-up">
                 {tickets.map((t) => (
                   <div
                     key={t.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => loadTicketDetail(t.id)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        loadTicketDetail(t.id);
+                      }
+                    }}
+                    className={`card-interactive p-4 rounded-xl border cursor-pointer flex flex-col gap-2 ${
                       selectedTicket?.id === t.id
                         ? 'bg-[#1c2028] border-[#68dba9] shadow-lg'
-                        : 'bg-[#181c24] border-[#262a33] hover:border-[#3d4a42]'
+                        : 'bg-[#181c24] border-[#262a33]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -531,7 +539,7 @@ export default function CustomerSupportPage() {
                       type="button"
                       onClick={handleCloseTicket}
                       disabled={closing}
-                      className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#31353e] border border-[#3d4a42] text-[#ffb4ab] text-xs font-mono transition-colors disabled:opacity-50"
+                      className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] border border-[#3d4a42] text-[#ffb4ab] text-xs font-mono transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
                     >
                       {closing ? 'Closing...' : 'Close Ticket'}
                     </button>
@@ -614,7 +622,7 @@ export default function CustomerSupportPage() {
                       <button
                         type="submit"
                         disabled={replying || !replyText.trim()}
-                        className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
+                        className="min-h-[44px] px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                       >
                         {replying ? 'Sending...' : 'Send Reply'}
                       </button>
@@ -633,8 +641,8 @@ export default function CustomerSupportPage() {
 
         {/* Create Support Request Modal */}
         {isCreateOpen && (
-          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-[#181c24] border border-[#262a33] p-6 shadow-2xl flex flex-col gap-4">
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="w-full max-w-lg rounded-2xl bg-[#181c24] border border-[#262a33] p-6 shadow-2xl flex flex-col gap-4 animate-scale-in">
               <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                 <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                   Create Support Request
@@ -642,7 +650,8 @@ export default function CustomerSupportPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="text-[#87948b] hover:text-[#dfe2ee] font-bold text-xl"
+                  aria-label="Close"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors font-bold text-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 >
                   ×
                 </button>
@@ -717,14 +726,14 @@ export default function CustomerSupportPage() {
                   <button
                     type="button"
                     onClick={() => setIsCreateOpen(false)}
-                    className="px-4 py-2 rounded-lg bg-[#262a33] text-[#dfe2ee] text-xs font-bold font-['Space_Grotesk']"
+                    className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creating}
-                    className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
+                    className="min-h-[48px] px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {creating ? 'Submitting...' : 'Submit Ticket'}
                   </button>

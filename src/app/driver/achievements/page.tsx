@@ -152,10 +152,10 @@ export default function DriverAchievementsPage() {
             <button
               key={cat.key}
               onClick={() => setSelectedCategory(cat.key)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                 selectedCategory === cat.key
-                  ? 'bg-[#68dba9] text-[#003822]'
-                  : 'bg-[#181c24] text-[#87948b] hover:text-[#dfe2ee] border border-[#262a33]'
+                  ? 'bg-[#68dba9] active:bg-[#4fc890] text-[#003822]'
+                  : 'bg-[#181c24] text-[#87948b] hover:text-[#dfe2ee] hover:border-[#3d4a42] active:bg-[#262a33] border border-[#262a33]'
               }`}
             >
               {cat.label}
@@ -178,7 +178,7 @@ export default function DriverAchievementsPage() {
               return (
                 <div
                   key={ach.id}
-                  className={`p-5 rounded-xl border transition-all flex flex-col justify-between gap-4 ${
+                  className={`animate-fade-in-up p-5 rounded-xl border transition-all flex flex-col justify-between gap-4 ${
                     ach.isUnlocked
                       ? 'bg-gradient-to-b from-[#1c2420] to-[#181c24] border-emerald-500/40 shadow-lg shadow-emerald-950/20'
                       : 'bg-[#181c24] border-[#262a33] opacity-80 hover:opacity-100'

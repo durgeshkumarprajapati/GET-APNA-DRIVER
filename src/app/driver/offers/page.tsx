@@ -38,10 +38,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'ALL'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             All Driver Offers ({DRIVER_OFFERS_CATALOG.length})
@@ -49,10 +49,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('DISCOUNT')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'DISCOUNT'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             Shift & Fuel Subsidies
@@ -60,10 +60,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('SCRATCH_CARD')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'SCRATCH_CARD'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             Reliability Scratch Cards
@@ -71,10 +71,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('GIFT_BOX')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'GIFT_BOX'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             Milestone Gift Boxes
@@ -82,10 +82,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('LOCKED')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 ${
               activeTab === 'LOCKED'
-                ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-rose-950 active:bg-rose-900 text-rose-300 border border-rose-800 focus-visible:outline-rose-400'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee] focus-visible:outline-[#68dba9]'
             }`}
           >
             🔒 Locked Perks ({DRIVER_OFFERS_CATALOG.filter((o) => o.isLocked).length})
@@ -93,7 +93,7 @@ export default function DriverOffersPage() {
         </div>
 
         {/* Offers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 animate-fade-in-up">
           {filteredOffers.map((offer) => (
             <EnhancedOfferCard key={offer.id} offer={offer} />
           ))}

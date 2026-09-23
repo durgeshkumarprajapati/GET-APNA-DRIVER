@@ -37,14 +37,14 @@ export function LocationMapDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="map-drawer-title"
       onClick={onClose}
     >
       <div
-        className="w-full bg-[#181c24] border-t border-[#262a33] rounded-t-3xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+        className="w-full bg-[#181c24] border-t border-[#262a33] rounded-t-3xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto animate-sheet-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-12 h-1.5 bg-[#262a33] rounded-full mx-auto" />

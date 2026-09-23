@@ -106,29 +106,51 @@ const TONE_CONFIG: Record<
   },
 };
 
-export function ToastProvider({ children }: { children: ReactNode }) {
-  const [activeToast, setActiveToast] = useState<ToastItem | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+/** Cap on simultaneously visible toasts — oldest is dropped rather than
+ * letting an unbounded queue build up or overflow the viewport. */
+const MAX_VISIBLE_TOASTS = 3;
 
-  const dismissToast = useCallback(() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setActiveToast(null);
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const dismissToast = useCallback((id?: string) => {
+    setToasts((prev) => {
+      if (!id) {
+        // No id given: dismiss the oldest (first-shown) toast, matching the
+        // single-active-toast API's original "dismiss the current one" intent.
+        const target = prev[0];
+        if (!target) return prev;
+        const t = timeoutsRef.current.get(target.id);
+        if (t) clearTimeout(t);
+        timeoutsRef.current.delete(target.id);
+        return prev.filter((toastItem) => toastItem.id !== target.id);
+      }
+      const t = timeoutsRef.current.get(id);
+      if (t) clearTimeout(t);
+      timeoutsRef.current.delete(id);
+      return prev.filter((toastItem) => toastItem.id !== id);
+    });
   }, []);
 
   const showToast = useCallback(
     (message: string, tone: ToastTone = 'info', title?: string, durationMs = 4000) => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      const item: ToastItem = {
-        id: Math.random().toString(36).substring(2, 9),
-        message,
-        tone,
-        title,
-        durationMs,
-      };
-      setActiveToast(item);
-      timeoutRef.current = setTimeout(() => setActiveToast(null), durationMs);
+      const id = Math.random().toString(36).substring(2, 9);
+      const item: ToastItem = { id, message, tone, title, durationMs };
+      setToasts((prev) => {
+        // Each toast is independently timed and dismissed — a new one never
+        // cancels an earlier one still waiting to be read, it just stacks
+        // above it (capped at MAX_VISIBLE_TOASTS so the viewport never
+        // overflows with a long backlog).
+        const next = [...prev, item];
+        return next.length > MAX_VISIBLE_TOASTS
+          ? next.slice(next.length - MAX_VISIBLE_TOASTS)
+          : next;
+      });
+      const timeoutId = setTimeout(() => dismissToast(id), durationMs);
+      timeoutsRef.current.set(id, timeoutId);
     },
-    [],
+    [dismissToast],
   );
 
   const showSuccess = useCallback(
@@ -158,6 +180,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     };
   }, [showToast]);
 
+  // Clear any pending timers on unmount so a dismiss never fires against an
+  // unmounted provider.
+  useEffect(() => {
+    const timeouts = timeoutsRef.current;
+    return () => {
+      timeouts.forEach((t) => clearTimeout(t));
+      timeouts.clear();
+    };
+  }, []);
+
   return (
     <ToastContext.Provider
       value={{
@@ -167,11 +199,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         showInfo,
         showWarning,
         dismissToast,
-        activeToast,
+        activeToast: toasts[0] ?? null,
       }}
     >
       {children}
-      <ToastViewport toast={activeToast} onDismiss={dismissToast} />
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </ToastContext.Provider>
   );
 }
@@ -231,6 +263,74 @@ export function useToast(durationMs = 4000) {
   };
 }
 
+/**
+ * The visual toast card itself — shared by the single-toast `ToastViewport`
+ * (standalone `useToast()` mode, used by pages not wrapped in a
+ * `ToastProvider`) and the stacking `ToastStack` (provider mode), so both
+ * render identically and pick up motion/fix updates together.
+ */
+function ToastCard({
+  item,
+  onDismiss,
+}: {
+  item: ToastItem | { message: string; tone: ToastTone };
+  onDismiss: () => void;
+}) {
+  const { t } = useTranslation();
+  const tone = item.tone || 'info';
+  const config = TONE_CONFIG[tone] || TONE_CONFIG.info;
+  const title = 'title' in item && item.title ? item.title : null;
+  const durationMs = 'durationMs' in item && item.durationMs ? item.durationMs : 4000;
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`relative overflow-hidden rounded-2xl bg-[#0d121d]/95 backdrop-blur-xl border ${config.border} ${config.glow} p-4 text-sm flex items-start gap-3.5 animate-[toast-in_0.25s_ease-out_both]`}
+    >
+      {/* Glowing tone indicator icon */}
+      <div
+        className={`w-9 h-9 rounded-xl ${config.badgeBg} ${config.badgeText} flex items-center justify-center shrink-0 border border-white/10 shadow-inner mt-0.5`}
+      >
+        <span className="material-symbols-outlined text-xl">{config.icon}</span>
+      </div>
+
+      {/* Text Content */}
+      <div className="flex-1 min-w-0 pr-2">
+        {title && (
+          <h4
+            className={`text-xs font-bold uppercase tracking-wider ${config.titleColor} font-mono mb-0.5`}
+          >
+            {title}
+          </h4>
+        )}
+        <p className="text-xs sm:text-sm text-[#dfe2ee] font-medium leading-relaxed break-words">
+          {item.message}
+        </p>
+      </div>
+
+      {/* Close Button — minimum 44px hit area even though the visible icon is smaller */}
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label={t('common.labels.dismiss', { defaultValue: 'Dismiss' })}
+        className="shrink-0 -m-1.5 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#87948b] hover:text-[#dfe2ee] rounded-lg hover:bg-white/10 transition-colors"
+      >
+        <span className="material-symbols-outlined text-lg">close</span>
+      </button>
+
+      {/* Animated Countdown Bar — shrinks over the toast's real auto-dismiss
+          duration, whatever it was called with, not a hardcoded 4s. */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5 overflow-hidden">
+        <div
+          className={`h-full w-full origin-left ${config.barColor} animate-toast-progress`}
+          style={{ animationDuration: `${durationMs}ms` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function ToastViewport({
   toast: item,
   onDismiss,
@@ -238,60 +338,39 @@ export function ToastViewport({
   toast: ToastItem | { message: string; tone: ToastTone } | null;
   onDismiss: () => void;
 }) {
-  const { t } = useTranslation();
-
   if (!item) return null;
 
-  const tone = item.tone || 'info';
-  const config = TONE_CONFIG[tone] || TONE_CONFIG.info;
-  const title = 'title' in item && item.title ? item.title : null;
-  const message = item.message;
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-md px-4 sm:px-0 pointer-events-none">
+      <div className="pointer-events-auto">
+        <ToastCard item={item} onDismiss={onDismiss} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Stacked variant used by `ToastProvider` — renders every currently-active
+ * toast (capped at MAX_VISIBLE_TOASTS), newest at the bottom, each with its
+ * own independent auto-dismiss timer. `motion-reduce`/prefers-reduced-motion
+ * handling is global (see globals.css), not per-component.
+ */
+function ToastStack({
+  toasts,
+  onDismiss,
+}: {
+  toasts: ToastItem[];
+  onDismiss: (id: string) => void;
+}) {
+  if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-md px-4 sm:px-0 animate-in fade-in slide-in-from-bottom-5 duration-300 pointer-events-auto">
-      <div
-        role="status"
-        aria-live="polite"
-        className={`relative overflow-hidden rounded-2xl bg-[#0d121d]/95 backdrop-blur-xl border ${config.border} ${config.glow} p-4 text-sm flex items-start gap-3.5 transition-all`}
-      >
-        {/* Glowing tone indicator icon */}
-        <div
-          className={`w-9 h-9 rounded-xl ${config.badgeBg} ${config.badgeText} flex items-center justify-center shrink-0 border border-white/10 shadow-inner mt-0.5`}
-        >
-          <span className="material-symbols-outlined text-xl">{config.icon}</span>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-md px-4 sm:px-0 flex flex-col gap-2 pointer-events-none">
+      {toasts.map((item) => (
+        <div key={item.id} className="pointer-events-auto">
+          <ToastCard item={item} onDismiss={() => onDismiss(item.id)} />
         </div>
-
-        {/* Text Content */}
-        <div className="flex-1 min-w-0 pr-2">
-          {title && (
-            <h4
-              className={`text-xs font-bold uppercase tracking-wider ${config.titleColor} font-mono mb-0.5`}
-            >
-              {title}
-            </h4>
-          )}
-          <p className="text-xs sm:text-sm text-[#dfe2ee] font-medium leading-relaxed break-words">
-            {message}
-          </p>
-        </div>
-
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onDismiss}
-          aria-label={t('common.labels.dismiss', { defaultValue: 'Dismiss' })}
-          className="shrink-0 text-[#87948b] hover:text-[#dfe2ee] p-1 rounded-lg hover:bg-white/10 transition-colors"
-        >
-          <span className="material-symbols-outlined text-lg">close</span>
-        </button>
-
-        {/* Animated Countdown Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5 overflow-hidden">
-          <div
-            className={`h-full ${config.barColor} animate-[toast-progress_4s_linear_forwards]`}
-          />
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

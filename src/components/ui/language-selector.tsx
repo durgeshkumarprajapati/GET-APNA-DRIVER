@@ -53,7 +53,7 @@ export function LanguageSelector({ variant = 'dark', className = '' }: LanguageS
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-44 rounded-xl bg-[#181c24] border border-[#262a33] shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute right-0 mt-2 w-44 rounded-xl bg-[#181c24] border border-[#262a33] shadow-2xl z-50 overflow-hidden py-1 animate-scale-in">
           <div className="px-3 py-1.5 text-[10px] font-mono uppercase font-bold text-[#bccac0] border-b border-[#262a33]">
             {t('common.labels.selectLanguage')}
           </div>

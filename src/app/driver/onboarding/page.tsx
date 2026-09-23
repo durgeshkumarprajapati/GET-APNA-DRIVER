@@ -394,7 +394,7 @@ export default function DriverOnboardingPage() {
               type="button"
               disabled={savingProfile}
               onClick={() => void handleSaveProfile()}
-              className="px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-sm font-bold disabled:opacity-50 transition-colors"
+              className="min-h-[48px] px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               {savingProfile ? 'Saving…' : 'Save & Continue'}
             </button>
@@ -435,7 +435,7 @@ export default function DriverOnboardingPage() {
                         </div>
                       )}
                     </div>
-                    <label className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] cursor-pointer transition-colors">
+                    <label className="min-h-[48px] flex items-center px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] cursor-pointer transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#68dba9]">
                       {uploadingType === type ? 'Uploading…' : existing ? 'Replace' : 'Upload'}
                       <input
                         type="file"
@@ -457,7 +457,7 @@ export default function DriverOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+                className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 Back
               </button>
@@ -465,7 +465,7 @@ export default function DriverOnboardingPage() {
                 type="button"
                 disabled={missingRequiredDocs.length > 0}
                 onClick={() => setStep(3)}
-                className="px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-40 text-[#003825] text-sm font-bold transition-colors"
+                className="min-h-[48px] px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 Continue
               </button>
@@ -495,7 +495,7 @@ export default function DriverOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+                className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 Back
               </button>
@@ -503,7 +503,7 @@ export default function DriverOnboardingPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => void handleSubmitOnboarding()}
-                className="px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-50 text-[#003825] text-sm font-bold transition-colors"
+                className="min-h-[48px] px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-50 disabled:cursor-not-allowed text-[#003825] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 {submitting ? 'Submitting…' : 'Submit Application'}
               </button>

@@ -140,7 +140,7 @@ export default function DriverEarningsPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-[#121212] grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
             <span className="text-xs font-medium text-slate-400 block">
               {t('driver.earnings.todayEarnings')}
             </span>
@@ -152,7 +152,7 @@ export default function DriverEarningsPage() {
             </span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
             <span className="text-xs font-medium text-slate-400 block">
               {t('driver.earnings.completedTripsToday')}
             </span>
@@ -164,7 +164,7 @@ export default function DriverEarningsPage() {
             </span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
             <span className="text-xs font-medium text-slate-400 block">
               {t('driver.earnings.averageFarePerTrip')}
             </span>
@@ -174,7 +174,7 @@ export default function DriverEarningsPage() {
             <span className="text-xs text-slate-500 mt-1 block">Per completed service</span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
             <span className="text-xs font-medium text-slate-400 block">
               {t('driver.earnings.periodEarnings')}
             </span>
@@ -201,7 +201,7 @@ export default function DriverEarningsPage() {
                 </div>
                 <button
                   onClick={() => setEditingGoals(!editingGoals)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 transition"
+                  className="min-h-[48px] px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-emerald-400 border border-slate-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                 >
                   {editingGoals ? 'Cancel' : t('driver.earnings.updateGoals')}
                 </button>
@@ -239,7 +239,7 @@ export default function DriverEarningsPage() {
                   <button
                     type="submit"
                     disabled={savingGoals}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition"
+                    className="w-full min-h-[48px] bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold py-2 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                   >
                     {savingGoals ? 'Saving...' : t('driver.earnings.saveGoals')}
                   </button>

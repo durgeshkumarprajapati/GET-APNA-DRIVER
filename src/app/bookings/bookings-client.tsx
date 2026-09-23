@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { PageHeader } from '@/components/ui/page-header';
+import { LoadingState } from '@/components/ui/loading-state';
 import { useTranslation } from '@/i18n/context';
 
 interface Booking {
@@ -77,7 +78,7 @@ export default function BookingsListPage() {
           actions={
             <Link
               href="/bookings/new"
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow transition-colors text-center"
+              className="inline-flex items-center justify-center min-h-[48px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
             >
               {t('customer.bookingsList.createNew')}
             </Link>
@@ -85,16 +86,13 @@ export default function BookingsListPage() {
         />
 
         {loading ? (
-          <div className="flex items-center justify-center p-12 text-slate-400">
-            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent mr-3" />
-            {t('customer.bookingsList.loadingMessage')}
-          </div>
+          <LoadingState message={t('customer.bookingsList.loadingMessage')} />
         ) : error ? (
-          <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm text-center">
+          <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm text-center animate-fade-in">
             {error}
           </div>
         ) : bookings.length === 0 ? (
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-12 text-center space-y-4">
+          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-12 text-center space-y-4 animate-fade-in-up">
             <p className="text-slate-300 font-medium text-lg">
               {t('customer.bookingsList.emptyTitle')}
             </p>
@@ -103,13 +101,13 @@ export default function BookingsListPage() {
             </p>
             <Link
               href="/bookings/new"
-              className="inline-block px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow transition-colors"
+              className="inline-flex items-center justify-center min-h-[48px] px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
             >
               {t('customer.bookingsList.bookNowCta')}
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in-up">
             {bookings.map((booking) => (
               <div
                 key={booking.id}
@@ -154,14 +152,14 @@ export default function BookingsListPage() {
                   {booking.status === 'TRIP_COMPLETED' && (
                     <Link
                       href={`/bookings/new?bookAgain=${booking.id}`}
-                      className="w-full md:w-auto px-4 py-2 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-semibold text-xs rounded-lg transition-colors text-center"
+                      className="w-full md:w-auto inline-flex items-center justify-center min-h-[40px] px-4 py-2 bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] font-semibold text-xs rounded-lg transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       {t('customer.dashboard.bookAgain')}
                     </Link>
                   )}
                   <Link
                     href={`/bookings/${booking.id}`}
-                    className="w-full md:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs rounded-lg transition-colors text-center"
+                    className="w-full md:w-auto inline-flex items-center justify-center min-h-[40px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 font-semibold text-xs rounded-lg transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                   >
                     {t('customer.bookingsList.viewStatusTracker')} →
                   </Link>

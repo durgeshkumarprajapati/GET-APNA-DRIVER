@@ -374,7 +374,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             </p>
             <Link
               href="/bookings"
-              className="inline-block px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
+              className="inline-flex items-center justify-center min-h-[48px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
             >
               {t('customer.tracking.backToBookings')}
             </Link>
@@ -403,7 +403,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/bookings" className="hover:text-emerald-400 transition-colors">
+              <Link
+                href="/bookings"
+                className="hover:text-emerald-400 transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+              >
                 {t('customer.nav.bookings')}
               </Link>
               <span>/</span>
@@ -421,8 +424,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
 
           {isCancellable && (
             <button
+              type="button"
               onClick={() => setShowCancelModal(true)}
-              className="px-4 py-2 bg-red-600/80 hover:bg-red-500 text-white font-semibold text-xs rounded-xl shadow transition-colors"
+              className="min-h-[48px] px-4 py-2 bg-red-600/80 hover:bg-red-500 active:bg-red-700 text-white font-semibold text-xs rounded-xl shadow transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
             >
               {t('customer.booking.cancelBooking')}
             </button>
@@ -543,7 +547,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                   type="button"
                   disabled={callingDriver}
                   onClick={handleCallDriver}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2"
+                  className="min-h-[44px] px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                 >
                   <span className="material-symbols-outlined text-base">call</span>
                   <span>
@@ -619,7 +623,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                       type="button"
                       disabled={submittingReview}
                       onClick={() => void handleSubmitReview()}
-                      className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold text-sm disabled:opacity-50 transition-colors"
+                      className="min-h-[44px] px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-900 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                     >
                       {submittingReview
                         ? t('customer.tracking.submitting')
@@ -819,8 +823,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
 
         {/* Cancel Modal */}
         {showCancelModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
               <h3 className="text-lg font-bold text-white">
                 {t('customer.tracking.confirmCancelModalTitle')}
               </h3>
@@ -842,15 +846,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
+                  type="button"
                   onClick={() => setShowCancelModal(false)}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg"
+                  className="min-h-[48px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                 >
                   {t('customer.tracking.keepBookingBtn')}
                 </button>
                 <button
+                  type="button"
                   onClick={handleCancelBooking}
                   disabled={cancelling}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg flex items-center gap-2"
+                  className="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
                 >
                   {cancelling && (
                     <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
