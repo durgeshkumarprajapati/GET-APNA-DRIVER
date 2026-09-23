@@ -18,8 +18,12 @@ export class DevelopmentOtpDeliveryProvider implements OtpDeliveryProvider {
   async sendOtp(phoneNumber: string, otp: string): Promise<void> {
     const maskedPhone = maskPhoneNumber(phoneNumber);
     logger.info(
-      { phoneNumber: maskedPhone, devOtp: otp },
+      { phoneNumber: maskedPhone },
       '[DEV ONLY] OTP generated for phone number',
+    );
+    // Print unredacted OTP to terminal stdout for dev verification testing
+    console.log(
+      `\n=========================================\n[DEV TEST OTP] Mobile: ${phoneNumber} | VERIFICATION CODE: ${otp}\n=========================================\n`,
     );
   }
 }
