@@ -12,7 +12,10 @@ jest.mock('@/shared/config/configuration-service', () => ({
 }));
 
 jest.mock('@/shared/audit/audit-service', () => ({ recordAuditLog: jest.fn() }));
-jest.mock('@/shared/outbox/outbox-service', () => ({ insertOutboxEvent: jest.fn(), triggerImmediateOutboxDispatch: jest.fn() }));
+jest.mock('@/shared/outbox/outbox-service', () => ({
+  insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn(),
+}));
 
 jest.mock('@/modules/finance/infrastructure/payment-provider', () => ({
   paymentProvider: {

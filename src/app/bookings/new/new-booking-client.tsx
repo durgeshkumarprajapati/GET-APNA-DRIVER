@@ -259,33 +259,59 @@ function BookDriverPageInner() {
     capture: captureDeviceLocation,
   } = useGeolocationCapture();
 
-  // No reverse-geocoding provider is wired up client-side (the only one in
-  // the codebase, src/modules/location/infrastructure/map-provider.ts, is a
-  // server-only dev mock) — rather than fabricate a resolved address, a
-  // successful capture is labeled honestly and the real coordinates are
-  // what's actually sent to /api/bookings.
-  const handleUseCurrentLocation = (location: CapturedLocation) => {
+  const updatePickupWithAddress = useCallback(async (lat: number, lng: number) => {
     setPickup((prev) => ({
       ...prev,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      address: 'Current location selected',
+      latitude: lat,
+      longitude: lng,
+      address:
+        prev.address && prev.address !== 'Current location selected'
+          ? prev.address
+          : 'Fetching address…',
       label: null,
     }));
     setPickupReady(true);
+
+    try {
+      const res = await fetch(`/api/location/reverse-geocode?lat=${lat}&lng=${lng}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.address) {
+          const formatted =
+            data.address.formattedAddress ||
+            [
+              data.address.addressLine1,
+              data.address.city,
+              data.address.state,
+              data.address.postalCode,
+            ]
+              .filter(Boolean)
+              .join(', ');
+          if (formatted) {
+            setPickup((prev) => ({
+              ...prev,
+              address: formatted,
+            }));
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Reverse geocode error:', err);
+    }
+
+    setPickup((prev) => ({
+      ...prev,
+      address: `Location (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`,
+    }));
+  }, []);
+
+  const handleUseCurrentLocation = (location: CapturedLocation) => {
+    updatePickupWithAddress(location.latitude, location.longitude);
   };
 
-  // Auto-detect the customer's real device location on load — this is what
-  // "current location" actually means, so it must never fall back to a
-  // hardcoded city (this page previously defaulted pickup to a fixed New
-  // Delhi address regardless of where the customer actually was). If the
-  // browser denies/can't get a GPS fix, pickup stays unresolved and honestly
-  // prompts the customer to set it themselves, via the same capture button
-  // or manual "Change" entry, rather than silently substituting a fake spot.
-  // Skipped when arriving with an explicit prefill intent (Book Again /
-  // saved-place shortcut / deep-linked address) — those are a deliberate
-  // choice of pickup, not "use my current location", and must not be
-  // clobbered by a live GPS reading that resolves after them.
+  // Auto-detect the customer's real device location on load and reverse-geocode
+  // it into a proper readable address.
   useEffect(() => {
     if (
       searchParams.get('bookAgain') ||
@@ -298,14 +324,7 @@ function BookDriverPageInner() {
     (async () => {
       const result = await captureDeviceLocation();
       if (cancelled || !result) return;
-      setPickup((prev) => ({
-        ...prev,
-        latitude: result.latitude,
-        longitude: result.longitude,
-        address: 'Current location selected',
-        label: null,
-      }));
-      setPickupReady(true);
+      await updatePickupWithAddress(result.latitude, result.longitude);
     })();
     return () => {
       cancelled = true;

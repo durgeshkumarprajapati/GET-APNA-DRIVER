@@ -109,6 +109,46 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [submittingReview, setSubmittingReview] = useState(false);
   const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [resolvedPickupAddress, setResolvedPickupAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (booking?.pickupLocation) {
+      const addr = booking.pickupLocation.address;
+      if (
+        !addr ||
+        addr === 'Current location selected' ||
+        addr.startsWith('Coords:') ||
+        addr.startsWith('Fetching address')
+      ) {
+        fetch(
+          `/api/location/reverse-geocode?lat=${booking.pickupLocation.latitude}&lng=${booking.pickupLocation.longitude}`,
+        )
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (!cancelled && data?.address) {
+              const formatted =
+                data.address.formattedAddress ||
+                [
+                  data.address.addressLine1,
+                  data.address.city,
+                  data.address.state,
+                  data.address.postalCode,
+                ]
+                  .filter(Boolean)
+                  .join(', ');
+              if (formatted) {
+                setResolvedPickupAddress(formatted);
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [booking]);
 
   useEffect(() => {
     const interval = setInterval(() => setNowTime(Date.now()), 2000);
@@ -681,7 +721,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
               <span className="text-xs font-medium text-slate-400 uppercase">
                 {t('customer.booking.pickupLocation')}
               </span>
-              <p className="text-sm font-semibold text-white">{booking.pickupLocation.address}</p>
+              <p className="text-sm font-semibold text-white">
+                {resolvedPickupAddress ||
+                  (booking.pickupLocation.address !== 'Current location selected' &&
+                  !booking.pickupLocation.address.startsWith('Coords:') &&
+                  !booking.pickupLocation.address.startsWith('Fetching address')
+                    ? booking.pickupLocation.address
+                    : t('customer.tracking.coordsLabel', {
+                        lat: booking.pickupLocation.latitude.toFixed(4),
+                        lng: booking.pickupLocation.longitude.toFixed(4),
+                      }))}
+              </p>
               <p className="text-xs text-slate-400">
                 {t('customer.tracking.coordsLabel', {
                   lat: booking.pickupLocation.latitude.toFixed(4),

@@ -164,7 +164,7 @@ describe('Notification Integration Flow', () => {
   // all — the handler must resolve the driver itself via the payment's
   // booking/driverProfile relation (or driverProfileId directly) before it
   // can notify them, or the driver silently never learns a payment came in.
-  it("processes payment.captured outbox event and creates a payment notification for the driver even when the payload carries neither customerId nor driverUserId", async () => {
+  it('processes payment.captured outbox event and creates a payment notification for the driver even when the payload carries neither customerId nor driverUserId', async () => {
     (mockDb as unknown as { payment: { findUnique: jest.Mock } }).payment = {
       findUnique: jest.fn().mockResolvedValue({
         customerId: 'cust-11',

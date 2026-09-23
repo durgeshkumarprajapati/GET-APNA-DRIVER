@@ -13,20 +13,6 @@ interface ResolvedAddress {
   formattedAddress: string;
 }
 
-/** All fields are honestly empty (never a fabricated place name) so a caller's own `field || previousValue` fallback keeps whatever the customer/driver already had rather than silently showing an unrelated real city. */
-function unresolvedAddress(lat: number, lng: number): ResolvedAddress {
-  return {
-    addressLine1: '',
-    city: '',
-    state: '',
-    country: '',
-    postalCode: '',
-    latitude: lat,
-    longitude: lng,
-    formattedAddress: '',
-  };
-}
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -94,11 +80,6 @@ export async function GET(req: NextRequest) {
                   topResult.formatted_address.split(',')[0] ||
                   topResult.formatted_address;
 
-            // Never substitute a real place name (e.g. "Bengaluru") when
-            // Google's response doesn't clearly categorize a component for
-            // these coordinates — an empty field is honest; a hardcoded
-            // fallback city is not, and would misreport wherever the
-            // customer/driver actually is.
             return NextResponse.json(
               {
                 address: {
@@ -117,16 +98,78 @@ export async function GET(req: NextRequest) {
           }
         }
       } catch {
-        // Fall through to the honest "unresolved" response below.
+        // Fall through to OpenStreetMap / fallback below
       }
     }
 
-    // No Google Maps API key configured, or the lookup didn't return a
-    // usable result — never fabricate a resolved address (the previous
-    // behavior silently returned a fixed Bengaluru address for any
-    // coordinates, which is exactly the "wrong location" defect this
-    // endpoint must not have). The caller keeps whatever it already had.
-    return NextResponse.json({ address: unresolvedAddress(lat, lng) }, { status: 200 });
+    // Try OpenStreetMap Nominatim reverse geocoding fallback
+    try {
+      const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+      const osmRes = await fetch(osmUrl, {
+        headers: {
+          'User-Agent': 'GetApnaDriver/1.0 (contact@getapnadriver.com)',
+        },
+      });
+      if (osmRes.ok) {
+        const osmData = await osmRes.json();
+        if (osmData && osmData.address) {
+          const addr = osmData.address;
+          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county || '';
+          const state = addr.state || '';
+          const country = addr.country || '';
+          const postalCode = addr.postcode || '';
+          const streetName =
+            addr.road || addr.pedestrian || addr.suburb || addr.neighbourhood || '';
+          const houseNumber = addr.house_number || '';
+
+          const addressLine1 =
+            houseNumber && streetName
+              ? `${houseNumber} ${streetName}`
+              : streetName || (osmData.display_name ? osmData.display_name.split(',')[0] : '');
+
+          const formattedAddress =
+            osmData.display_name ||
+            [addressLine1, city, state, postalCode, country].filter(Boolean).join(', ');
+
+          if (formattedAddress) {
+            return NextResponse.json(
+              {
+                address: {
+                  addressLine1,
+                  city,
+                  state,
+                  country,
+                  postalCode,
+                  latitude: lat,
+                  longitude: lng,
+                  formattedAddress,
+                } satisfies ResolvedAddress,
+              },
+              { status: 200 },
+            );
+          }
+        }
+      }
+    } catch {
+      // Fall through to coordinate-formatted fallback
+    }
+
+    const fallbackText = `Location (${lat.toFixed(4)}°, ${lng.toFixed(4)}°)`;
+    return NextResponse.json(
+      {
+        address: {
+          addressLine1: fallbackText,
+          city: '',
+          state: '',
+          country: '',
+          postalCode: '',
+          latitude: lat,
+          longitude: lng,
+          formattedAddress: fallbackText,
+        } satisfies ResolvedAddress,
+      },
+      { status: 200 },
+    );
   } catch (err: unknown) {
     return toErrorResponse(err, req.nextUrl.pathname);
   }

@@ -80,18 +80,18 @@ respective phases are implemented — see phase reports for what currently exist
 
 ## Scripts
 
-| Script                            | Purpose                                     |
-| --------------------------------- | ------------------------------------------- |
-| `npm run dev`                     | Start the Next.js dev server                |
+| Script                            | Purpose                                         |
+| --------------------------------- | ----------------------------------------------- |
+| `npm run dev`                     | Start the Next.js dev server                    |
 | `npm run worker`                  | Start the background outbox/notification worker |
-| `npm run dev:all`                 | Dev server + worker together                |
-| `npm run build`                   | Production build                            |
-| `npm run start`                   | Run the production build                    |
-| `npm run start:all`               | Production server + worker together         |
-| `npm run lint` / `lint:fix`       | ESLint                                      |
-| `npm run format` / `format:check` | Prettier                                    |
-| `npm run typecheck`               | `tsc --noEmit`                              |
-| `npm run test` / `test:watch`     | Jest                                        |
-| `npm run prisma:generate`         | Generate the Prisma client                  |
-| `npm run prisma:migrate`          | Create/apply a dev migration                |
-| `npm run db:up` / `db:down`       | Local PostgreSQL + Redis via Docker Compose |
+| `npm run dev:all`                 | Dev server + worker together                    |
+| `npm run build`                   | Production build                                |
+| `npm run start`                   | Run the production build                        |
+| `npm run start:all`               | Production server + worker together             |
+| `npm run lint` / `lint:fix`       | ESLint                                          |
+| `npm run format` / `format:check` | Prettier                                        |
+| `npm run typecheck`               | `tsc --noEmit`                                  |
+| `npm run test` / `test:watch`     | Jest                                            |
+| `npm run prisma:generate`         | Generate the Prisma client                      |
+| `npm run prisma:migrate`          | Create/apply a dev migration                    |
+| `npm run db:up` / `db:down`       | Local PostgreSQL + Redis via Docker Compose     |
