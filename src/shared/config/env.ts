@@ -41,7 +41,10 @@ const envSchema = z.object({
   TELEPHONY_SUPPORT_NUMBER: z.string().optional(),
   DRIVER_CUSTOMER_CALL_WINDOW_MINUTES: z.coerce.number().int().default(30),
   SMS_PROVIDER: z
-    .enum(['mock', 'development', 'twilio', 'msg91', 'fast2sms'])
+    .preprocess(
+      (val) => (typeof val === 'string' ? val.toLowerCase() : val),
+      z.enum(['mock', 'dev', 'development', 'twilio', 'msg91', 'fast2sms']),
+    )
     .default('development'),
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
