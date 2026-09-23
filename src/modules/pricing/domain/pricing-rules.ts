@@ -4,12 +4,22 @@ import type { FareBreakdown, PricingCalculationInput } from './pricing-types';
 
 /**
  * Pure domain function computing exact fare breakdown using Decimal precision.
+ *
+ * GET Apna Driver sells a DRIVER SERVICE, not transportation — the customer
+ * already owns the vehicle the driver operates. The customer therefore pays
+ * for the driver's time/service (base fare + duration, or a package rate),
+ * never for how far the driver's own journey happened to cover. Distance is
+ * still estimated elsewhere (route-estimation-service.ts) for ETA, driver
+ * discovery and matching — it simply never becomes a fare component here,
+ * for any booking type. `distanceFareAmount` stays in FareBreakdown (always
+ * zero) rather than being removed, since removing the field would be a
+ * breaking API/UI change for no benefit — every consumer already renders
+ * it like any other line item.
  */
 export function calculateFareBreakdown(input: PricingCalculationInput): FareBreakdown {
   const { bookingType, config } = input;
 
   const baseFare = toDecimal(config.baseFare);
-  const perKmRate = toDecimal(config.perKilometerRate);
   const perMinRate = toDecimal(config.perMinuteRate);
   const minFare = toDecimal(config.minimumFare);
   const platformFee = toDecimal(config.platformFee);
@@ -18,23 +28,16 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
   const weeklyRate = toDecimal(config.weeklyRate);
   const monthlyRate = toDecimal(config.monthlyRate);
 
-  const distanceKm = toDecimal(input.estimatedDistanceKm ?? 0);
   const durationMins = toDecimal(
     input.actualDurationMinutes ?? input.estimatedDurationMinutes ?? 0,
   );
 
   let calculatedBase = baseFare;
-  let distanceFare = perKmRate.mul(distanceKm);
+  const distanceFare = toDecimal(0);
   let durationFare = perMinRate.mul(durationMins);
   let packageAdjustment = toDecimal(0);
 
   switch (bookingType) {
-    case BookingType.ROUND_TRIP: {
-      // Round trip distance is doubled (outbound + return)
-      distanceFare = distanceFare.mul(1.8); // 10% round trip discount on return leg distance
-      break;
-    }
-
     case BookingType.HOURLY: {
       const mins = input.hireDurationMinutes ?? durationMins.toNumber();
       const calculatedHours = Math.ceil((mins || 120) / 60);
@@ -42,7 +45,6 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       packageAdjustment = hourlyRate.mul(hours);
       calculatedBase = toDecimal(0); // Package replaces base fare
       durationFare = toDecimal(0); // Package includes duration
-      distanceFare = toDecimal(0); // Driver hire includes base distance
       break;
     }
 
@@ -54,7 +56,6 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       packageAdjustment = dailyRate.mul(days);
       calculatedBase = toDecimal(0);
       durationFare = toDecimal(0);
-      distanceFare = toDecimal(0);
       break;
     }
 
@@ -65,7 +66,6 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       packageAdjustment = weeklyRate.mul(weeks);
       calculatedBase = toDecimal(0);
       durationFare = toDecimal(0);
-      distanceFare = toDecimal(0);
       break;
     }
 
@@ -76,7 +76,6 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       packageAdjustment = monthlyRate.mul(months);
       calculatedBase = toDecimal(0);
       durationFare = toDecimal(0);
-      distanceFare = toDecimal(0);
       break;
     }
 
@@ -85,7 +84,6 @@ export function calculateFareBreakdown(input: PricingCalculationInput): FareBrea
       packageAdjustment = dailyRate.mul(days);
       calculatedBase = toDecimal(0);
       durationFare = toDecimal(0);
-      distanceFare = toDecimal(0);
       break;
     }
 

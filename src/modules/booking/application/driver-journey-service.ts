@@ -492,14 +492,17 @@ export async function startTrip(
 }
 
 /**
- * These are the only two BookingType values priced by real distance/duration
- * (see pricing-rules.ts's `calculateFareBreakdown` switch — every other
- * type is either explicitly package-priced or ROUND_TRIP's fixed distance
- * multiplier). A pickup-only trip of one of these types has no dropoff to
- * measure real distance from, which would otherwise silently bill only the
- * base fare + elapsed-time component (then the minimum-fare floor).
+ * The two single-trip (non-package) booking types. GET Apna Driver charges
+ * for the driver's service (base fare + time, or a package rate) — never
+ * for distance, since the customer already owns the vehicle the driver
+ * operates (see pricing-rules.ts's `calculateFareBreakdown`, where
+ * distanceFareAmount is always zero for every booking type). A pickup-only
+ * trip of one of these two types therefore has no fare impact either way;
+ * the live-location capture below exists purely to record where the
+ * service actually ended, for the booking's own audit trail/history and
+ * any future customer-facing "trip summary" — not for billing.
  */
-const DISTANCE_PRICED_BOOKING_TYPES: BookingType[] = [
+const SINGLE_SERVICE_BOOKING_TYPES: BookingType[] = [
   BookingType.POINT_TO_POINT,
   BookingType.ONE_WAY,
 ];
@@ -535,15 +538,15 @@ export async function completeTrip(
         }
       : null;
 
-  // Pickup-only trip (no dropoff was ever captured) on a distance-priced
-  // booking type: the deterministic route provider would otherwise report
-  // 0km, silently billing only base fare + elapsed time (then the minimum-
-  // fare floor). Use the driver's own live GPS ping as a server-authoritative
-  // stand-in for where the trip actually ended, so distance is billed for
-  // real — same freshness discipline as trip-reliability's stale-location
-  // rule, just a separate config key since this is the pricing module.
+  // Pickup-only service (no dropoff was ever captured): use the driver's
+  // own live GPS ping as a server-authoritative record of where the
+  // service actually ended, purely for the booking's audit trail/history —
+  // never for billing, since distance is never a fare component (see
+  // SINGLE_SERVICE_BOOKING_TYPES above). Same freshness discipline as
+  // trip-reliability's stale-location rule, just a separate config key
+  // since this lives in the booking module.
   let capturedCompletionDropoff: typeof effectiveDropoff = null;
-  if (!effectiveDropoff && DISTANCE_PRICED_BOOKING_TYPES.includes(booking.bookingType)) {
+  if (!effectiveDropoff && SINGLE_SERVICE_BOOKING_TYPES.includes(booking.bookingType)) {
     const maxAgeSeconds = await getInteger(
       'pricing.pickup_only_completion_location_max_age_seconds',
       300,

@@ -481,7 +481,7 @@ export default function AdminDriverDetailPage({
             distribution={performance.ratingDistribution}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard label="Completed Trips" value={performance.completedTrips} />
+            <MetricCard label="Completed Bookings" value={performance.completedTrips} />
             <MetricCard
               label="Completion Rate"
               value={`${(Number(performance.completionRate) * 100).toFixed(1)}%`}
@@ -527,7 +527,7 @@ export default function AdminDriverDetailPage({
             {activeModal === 'approve' && (
               <p className="text-[#bccac0] text-sm">
                 Are you sure you want to approve driver <strong>{name}</strong>? Once approved and
-                documents verified, the driver can go AVAILABLE to accept rides.
+                documents verified, the driver can go AVAILABLE to accept bookings.
               </p>
             )}
 

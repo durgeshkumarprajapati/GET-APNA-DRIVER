@@ -171,7 +171,7 @@ export default function AdminPromotionDetailPage() {
                 <span>
                   Ends: {promotion.endsAt ? formatDateTime(promotion.endsAt) : 'No expiry'}
                 </span>
-                <span>First ride only: {promotion.firstRideOnly ? 'Yes' : 'No'}</span>
+                <span>First booking only: {promotion.firstRideOnly ? 'Yes' : 'No'}</span>
                 <span>Automatic: {promotion.isAutomatic ? 'Yes' : 'No'}</span>
               </div>
             </div>

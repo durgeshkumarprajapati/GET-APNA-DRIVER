@@ -306,12 +306,12 @@ export default function OperationsCommandCenterPage() {
 
         <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
           <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
-            Active Trips
+            Active Bookings
           </span>
           <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#70d2ff] mt-1">
             {activeSummary.activeTripsCount}
           </div>
-          <span className="text-[10px] text-[#87948b] mt-1">On-trip fleet</span>
+          <span className="text-[10px] text-[#87948b] mt-1">On-booking fleet</span>
         </div>
 
         <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
@@ -369,8 +369,8 @@ export default function OperationsCommandCenterPage() {
             <option value="ALL">All Types</option>
             <option value="SAFETY_PRESSURE">Safety Pressure</option>
             <option value="DRIVER_SHORTAGE">Driver Shortage</option>
-            <option value="TRIP_RELIABILITY_PRESSURE">Trip Reliability Pressure</option>
-            <option value="SCHEDULED_RIDE_RISK">Scheduled Ride Risk</option>
+            <option value="TRIP_RELIABILITY_PRESSURE">Service Reliability Pressure</option>
+            <option value="SCHEDULED_RIDE_RISK">Scheduled Booking Risk</option>
             <option value="SUPPORT_BACKLOG">Support Backlog</option>
             <option value="PLATFORM_DEGRADATION">Platform Degradation</option>
           </select>

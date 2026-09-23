@@ -112,7 +112,7 @@ describe('Notification Integration Flow', () => {
         data: expect.objectContaining({
           userId: 'driver-20',
           type: NotificationType.BOOKING_DRIVER_ASSIGNED,
-          title: 'Trip Assignment Confirmed',
+          title: 'Booking Assignment Confirmed',
         }),
       }),
     );
@@ -252,7 +252,7 @@ describe('Notification Integration Flow', () => {
         data: expect.objectContaining({
           userId: 'cust-10',
           type: NotificationType.SCHEDULED_RIDE_CREATED,
-          title: 'Scheduled Ride Set',
+          title: 'Scheduled Booking Set',
         }),
       }),
     );

@@ -94,13 +94,13 @@ export default function AdminZoneDetailPage({ params }: { params: Promise<{ zone
               </span>
             </div>
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-              <span className="text-xs text-slate-400 block mb-1">Completed Rides</span>
+              <span className="text-xs text-slate-400 block mb-1">Completed Bookings</span>
               <span className="text-2xl font-bold font-mono text-emerald-400">
                 {data.demand.completedRides}
               </span>
             </div>
             <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-              <span className="text-xs text-slate-400 block mb-1">Cancelled Rides</span>
+              <span className="text-xs text-slate-400 block mb-1">Cancelled Bookings</span>
               <span className="text-2xl font-bold font-mono text-red-400">
                 {data.demand.cancelledRides}
               </span>

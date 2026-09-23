@@ -29,6 +29,22 @@ interface DriverBooking {
   createdAt: string;
 }
 
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  SEARCHING_DRIVER: 'Searching Driver',
+  DRIVER_ASSIGNED: 'Driver Assigned',
+  DRIVER_EN_ROUTE: 'Driver En Route',
+  DRIVER_ARRIVED: 'Driver Arrived',
+  TRIP_IN_PROGRESS: 'Service In Progress',
+  TRIP_COMPLETED: 'Service Completed',
+  CANCELLED: 'Cancelled',
+  EXPIRED: 'Expired',
+};
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
+}
+
 export default function DriverBookingsListPage() {
   const [bookings, setBookings] = useState<DriverBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +99,7 @@ export default function DriverBookingsListPage() {
         <div className="flex items-center justify-center py-24">
           <div className="flex items-center gap-3 text-slate-400">
             <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-            Loading assigned trips...
+            Loading assigned bookings...
           </div>
         </div>
       </DriverLayout>
@@ -112,7 +128,7 @@ export default function DriverBookingsListPage() {
             }}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors self-start md:self-auto"
           >
-            Refresh Trips
+            Refresh Bookings
           </button>
         </div>
 
@@ -131,7 +147,8 @@ export default function DriverBookingsListPage() {
 
           {activeBookings.length === 0 ? (
             <div className="bg-slate-800/40 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
-              No active trip assignments right now. Make sure your availability is set to AVAILABLE.
+              No active booking assignments right now. Make sure your availability is set to
+              AVAILABLE.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,7 +160,7 @@ export default function DriverBookingsListPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      {b.status.replace(/_/g, ' ')}
+                      {bookingStatusLabel(b.status)}
                     </span>
                     <span className="text-xs text-slate-400 font-mono">
                       #{b.id.substring(0, 8)}
@@ -161,7 +178,7 @@ export default function DriverBookingsListPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-700/60">
-                    <span>Manage Trip Controls →</span>
+                    <span>Manage Booking Controls →</span>
                     <span className="text-[10px] text-slate-400">
                       {new Date(b.createdAt).toLocaleTimeString()}
                     </span>
@@ -176,7 +193,7 @@ export default function DriverBookingsListPage() {
         {pastBookings.length > 0 && (
           <div className="space-y-4 pt-6 border-t border-slate-800">
             <h2 className="text-lg font-bold text-slate-300">
-              Completed & Past Trips ({pastBookings.length})
+              Completed & Past Bookings ({pastBookings.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pastBookings.map((b) => (
@@ -186,7 +203,7 @@ export default function DriverBookingsListPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-700 text-slate-300">
-                      {b.status.replace(/_/g, ' ')}
+                      {bookingStatusLabel(b.status)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
                       #{b.id.substring(0, 8)}

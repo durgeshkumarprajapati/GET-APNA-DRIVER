@@ -315,7 +315,7 @@ export default function AdminDriverIncentivesPage() {
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Complete 10 trips over the weekend for ₹500 bonus"
+                  placeholder="Complete 10 bookings over the weekend for ₹500 bonus"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"

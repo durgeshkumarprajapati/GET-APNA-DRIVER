@@ -846,7 +846,7 @@ function BookDriverPageInner() {
               onChangeStartTime={setHireStartTime}
             />
 
-            {/* Booking Mode Selector (Ride Now vs Schedule Ride) */}
+            {/* Booking Mode Selector (Book Now vs Schedule Booking) */}
             <div className="bg-[#181c24] rounded-xl p-3 shadow-sm border border-[#262a33] flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-2 bg-[#0a0e16] p-1 rounded-lg border border-[#262a33]">
                 <button
@@ -859,7 +859,7 @@ function BookDriverPageInner() {
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">directions_car</span>
-                  <span>Ride Now</span>
+                  <span>Book Now</span>
                 </button>
                 <button
                   type="button"
@@ -1508,16 +1508,15 @@ function BookDriverPageInner() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>
-                    {t('customer.booking.distanceDurationLabel', {
-                      km: fareEstimate ? fareEstimate.estimatedDistanceKm : 10,
-                    })}
-                  </span>
+                  {/* GET Apna Driver bills for the driver's service (time or
+                      package), never distance — the customer already owns
+                      the vehicle. distanceFareAmount is always zero and is
+                      deliberately left out of this line. */}
+                  <span>{t('customer.booking.serviceDurationLabel')}</span>
                   <span className="text-[#dfe2ee]">
                     {fareEstimate
                       ? formatCurrency(
-                          Number(fareEstimate.breakdown.distanceFareAmount) +
-                            Number(fareEstimate.breakdown.durationFareAmount) +
+                          Number(fareEstimate.breakdown.durationFareAmount) +
                             Number(fareEstimate.breakdown.packageAdjustmentAmount),
                         )
                       : formatCurrency(210)}
@@ -1656,7 +1655,7 @@ function BookDriverPageInner() {
                 <span>
                   {bookingMode === 'SCHEDULE'
                     ? t('scheduledRides.confirmSchedule', {
-                        defaultValue: 'Confirm & Schedule Ride',
+                        defaultValue: 'Confirm & Schedule Booking',
                       })
                     : t('customer.booking.confirmBookingCta')}
                 </span>
@@ -1837,7 +1836,7 @@ function BookDriverPageInner() {
                       </div>
                       <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
                         {t('customer.booking.tripsCompletedLabel', {
-                          defaultValue: 'Trips Done',
+                          defaultValue: 'Bookings Done',
                         })}
                       </div>
                     </div>

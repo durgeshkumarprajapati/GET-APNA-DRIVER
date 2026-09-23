@@ -96,7 +96,7 @@ export default function CustomerOffersPage() {
           })}
           subtitle={t('customer.offers.subtitle', {
             defaultValue:
-              'Claim ride discounts, reveal lucky scratch cards, and unlock festive surprise gift boxes.',
+              'Claim booking discounts, reveal lucky scratch cards, and unlock festive surprise gift boxes.',
           })}
         />
 
@@ -157,7 +157,7 @@ export default function CustomerOffersPage() {
               <span className="material-symbols-outlined text-[#68dba9] text-base">
                 local_offer
               </span>
-              <span>Available Ride Coupons</span>
+              <span>Available Booking Coupons</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {liveOffers.available.map((promo) => (
@@ -172,7 +172,7 @@ export default function CustomerOffersPage() {
                       </span>
                       {promo.firstRideOnly && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          First Ride Only
+                          First Booking Only
                         </span>
                       )}
                     </div>

@@ -11,7 +11,7 @@ export default function CustomerAIAssistantPage() {
             Customer AI Concierge
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Natural language ride planning, fare estimates, promotion assistance, and reward
+            Natural language booking planning, fare estimates, promotion assistance, and reward
             insights.
           </p>
         </div>

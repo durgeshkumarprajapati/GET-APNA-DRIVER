@@ -102,7 +102,7 @@ export default function AdminLocationIntelligencePage() {
               <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
                 <div className="flex items-center justify-between text-[#bccac0]">
                   <span className="text-xs font-mono uppercase tracking-wider font-semibold">
-                    Active Tracking Trips
+                    Active Tracking Bookings
                   </span>
                   <span className="material-symbols-outlined text-[#68dba9]">directions_car</span>
                 </div>
@@ -110,7 +110,7 @@ export default function AdminLocationIntelligencePage() {
                   {summary.activeBookingsWithDriver}
                 </div>
                 <p className="text-[11px] text-[#87948b] font-mono">
-                  Ongoing trips with live location
+                  Ongoing bookings with live location
                 </p>
               </div>
 

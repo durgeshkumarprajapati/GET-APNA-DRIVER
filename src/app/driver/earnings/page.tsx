@@ -148,7 +148,7 @@ export default function DriverEarningsPage() {
               ₹{summary?.todayEarnings ?? '0.00'}
             </div>
             <span className="text-xs text-slate-500 mt-1 block">
-              {summary?.completedTripsToday ?? 0} trips completed today
+              {summary?.completedTripsToday ?? 0} services completed today
             </span>
           </div>
 
@@ -160,7 +160,7 @@ export default function DriverEarningsPage() {
               {summary?.completedTripsToday ?? 0}
             </div>
             <span className="text-xs text-slate-500 mt-1 block">
-              Target: {goal?.dailyTripGoal ?? 8} trips
+              Target: {goal?.dailyTripGoal ?? 8} services
             </span>
           </div>
 
@@ -171,7 +171,7 @@ export default function DriverEarningsPage() {
             <div className="text-2xl font-bold text-amber-400 mt-1">
               ₹{summary?.averageFarePerTrip ?? '0.00'}
             </div>
-            <span className="text-xs text-slate-500 mt-1 block">Per completed ride</span>
+            <span className="text-xs text-slate-500 mt-1 block">Per completed service</span>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
@@ -182,7 +182,7 @@ export default function DriverEarningsPage() {
               ₹{summary?.periodEarnings ?? '0.00'}
             </div>
             <span className="text-xs text-slate-500 mt-1 block">
-              {summary?.periodTrips ?? 0} trips past 7 days
+              {summary?.periodTrips ?? 0} services past 7 days
             </span>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function DriverEarningsPage() {
                         {t('driver.earnings.dailyGoal')}
                       </span>
                       <span className="text-emerald-400 font-bold">
-                        {goal?.completedTripsToday ?? 0} / {goal?.dailyTripGoal ?? 8} trips
+                        {goal?.completedTripsToday ?? 0} / {goal?.dailyTripGoal ?? 8} services
                       </span>
                     </div>
                     <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">

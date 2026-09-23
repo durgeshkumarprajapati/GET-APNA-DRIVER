@@ -79,7 +79,7 @@ export default function DriverRatingsPage() {
         <PageHeader
           eyebrow="Client Testimonials & Audits"
           title="Ratings & Reviews"
-          subtitle="Verified feedback from your completed trips."
+          subtitle="Verified feedback from your completed services."
         />
 
         {error && (

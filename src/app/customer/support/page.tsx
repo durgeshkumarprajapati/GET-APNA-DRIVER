@@ -319,7 +319,8 @@ export default function CustomerSupportPage() {
               Customer Support Center
             </h1>
             <p className="text-xs md:text-sm text-[#bccac0] mt-1">
-              Track issues, contact operations concierge, and view resolution logs for your rides.
+              Track issues, contact operations concierge, and view resolution logs for your
+              bookings.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -431,7 +432,7 @@ export default function CustomerSupportPage() {
                   No support requests yet
                 </p>
                 <p className="text-xs text-[#bccac0] max-w-xs">
-                  If you need help with a booking, payment, account, or ride discrepancy, open a
+                  If you need help with a booking, payment, account, or service discrepancy, open a
                   request.
                 </p>
                 <button
@@ -544,7 +545,7 @@ export default function CustomerSupportPage() {
                       Associated Booking
                     </span>
                     <div className="flex justify-between text-[#dfe2ee]">
-                      <span>{selectedTicket.booking.bookingType} Ride</span>
+                      <span>{selectedTicket.booking.bookingType} Booking</span>
                       <span className="font-mono">{selectedTicket.booking.status}</span>
                     </div>
                     <p className="text-[#87948b] truncate">

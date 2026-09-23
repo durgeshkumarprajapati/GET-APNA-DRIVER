@@ -15,13 +15,16 @@ describe('Pricing Module - Fare Calculation Rules', () => {
     monthlyRate: '35000.0000',
   };
 
-  it('calculates standard ONE_WAY fare correctly', () => {
-    // 10 km distance, 30 min duration
+  it('calculates standard ONE_WAY fare correctly — driver-service pricing (base + duration), never distance', () => {
+    // The customer already owns the vehicle; they pay for the driver's
+    // service (base + time), never for how far the driver's own journey
+    // covered — distance stays purely an ETA/matching input, at 0 km or
+    // 100 km alike.
     // Base: 100
-    // Distance: 10 * 15 = 150
+    // Distance: never billed, regardless of the 10km estimate below.
     // Duration: 30 * 2 = 60
-    // Subtotal: 100 + 150 + 60 = 310 (>= minimum 150)
-    // Total (incl 25 platform fee): 335
+    // Subtotal: 100 + 0 + 60 = 160 (>= minimum 150)
+    // Total (incl 25 platform fee): 185
     const breakdown = calculateFareBreakdown({
       bookingType: BookingType.ONE_WAY,
       estimatedDistanceKm: 10,
@@ -30,11 +33,44 @@ describe('Pricing Module - Fare Calculation Rules', () => {
     });
 
     expect(breakdown.baseFareAmount).toBe('100.0000');
-    expect(breakdown.distanceFareAmount).toBe('150.0000');
+    expect(breakdown.distanceFareAmount).toBe('0.0000');
     expect(breakdown.durationFareAmount).toBe('60.0000');
-    expect(breakdown.subtotalAmount).toBe('310.0000');
+    expect(breakdown.subtotalAmount).toBe('160.0000');
     expect(breakdown.platformFeeAmount).toBe('25.0000');
-    expect(breakdown.totalFareAmount).toBe('335.0000');
+    expect(breakdown.totalFareAmount).toBe('185.0000');
+  });
+
+  it('never bills distance for ONE_WAY regardless of how far the estimate says the driver travels', () => {
+    const short = calculateFareBreakdown({
+      bookingType: BookingType.ONE_WAY,
+      estimatedDistanceKm: 2,
+      estimatedDurationMinutes: 30,
+      config: defaultRules,
+    });
+    const long = calculateFareBreakdown({
+      bookingType: BookingType.ONE_WAY,
+      estimatedDistanceKm: 200,
+      estimatedDurationMinutes: 30,
+      config: defaultRules,
+    });
+
+    expect(short.distanceFareAmount).toBe('0.0000');
+    expect(long.distanceFareAmount).toBe('0.0000');
+    expect(short.totalFareAmount).toBe(long.totalFareAmount);
+  });
+
+  it('never bills distance for ROUND_TRIP either, and applies no special round-trip multiplier', () => {
+    const breakdown = calculateFareBreakdown({
+      bookingType: BookingType.ROUND_TRIP,
+      estimatedDistanceKm: 20,
+      estimatedDurationMinutes: 40,
+      config: defaultRules,
+    });
+
+    // Base: 100, Distance: 0, Duration: 40 * 2 = 80. Subtotal 180 (>= 150).
+    expect(breakdown.distanceFareAmount).toBe('0.0000');
+    expect(breakdown.durationFareAmount).toBe('80.0000');
+    expect(breakdown.subtotalAmount).toBe('180.0000');
   });
 
   it('enforces minimum fare rule when calculated fare is below minimum', () => {
