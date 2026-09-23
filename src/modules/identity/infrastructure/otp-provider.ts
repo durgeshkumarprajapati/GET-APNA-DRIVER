@@ -264,6 +264,7 @@ export function createOtpDeliveryProvider(): OtpDeliveryProvider {
       return new Fast2SmsProvider();
     case 'mock':
       return new MockOtpDeliveryProvider();
+    case 'dev':
     case 'development':
     default:
       return new DevelopmentOtpDeliveryProvider();
