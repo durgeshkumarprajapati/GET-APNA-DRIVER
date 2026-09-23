@@ -65,6 +65,16 @@
   --color-outline: #87948b;
   --color-outline-variant: #3d4a42;
 
+  /* Aliases for a few pages (profile, phone-auth, verify-email,
+     forgot/reset-password) that reference these names directly via
+     var(--color-*) in inline styles — kept as aliases of the tokens
+     above rather than renaming those call sites, so both naming
+     conventions resolve to the same palette. */
+  --color-text-primary: var(--color-on-surface);
+  --color-text-secondary: var(--color-on-surface-variant);
+  --color-danger: var(--color-error);
+  --color-surface-elevated: var(--color-surface-container-low);
+
   --font-space-grotesk: 'Space Grotesk', sans-serif;
   --font-geist: 'Geist', sans-serif;
 }
@@ -223,4 +233,154 @@ h3,
 .animate-radar-sweep {
   animation: radar-sweep 8s linear infinite;
   transform-origin: bottom right;
+}
+
+/*
+ * Phase 72 — shared motion system. A small, named vocabulary of
+ * transform/opacity-only keyframes (never layout-triggering properties)
+ * used consistently for entrances, toasts and interactive feedback across
+ * the customer/driver portals, instead of ad-hoc one-off animations per
+ * page. Reference these via Tailwind's arbitrary-value animation syntax,
+ * e.g. `animate-[fade-in-up_0.3s_ease-out]` or the .animate-* classes below.
+ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out both;
+}
+
+.animate-drawer-slide-in {
+  animation: drawer-slide-in 0.25s ease-out both;
+}
+
+.animate-sheet-slide-up {
+  animation: sheet-slide-up 0.25s ease-out both;
+}
+
+/* Duration is set inline per-toast (its real auto-dismiss time varies), so
+ * this class only pins the keyframe/timing-function/fill-mode — Tailwind's
+ * arbitrary-value syntax can't pick up a runtime-interpolated duration. */
+.animate-toast-progress {
+  animation-name: toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/*
+ * Cards/list rows that are genuinely interactive (clickable, navigable) —
+ * a subtle lift + border brighten on hover, and a visible focus ring for
+ * keyboard users. Never apply this to a purely informational/static card,
+ * so hover affordance always implies "this does something."
+ */
+.card-interactive {
+  transition:
+    transform 0.15s ease-out,
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.card-interactive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/*
+ * Respect the user's OS-level motion preference globally, rather than
+ * requiring every animated element to opt out individually — the safest
+ * way to guarantee Phase 72's animations never fight this preference.
+ * Durations are shortened to near-zero (not display:none) so elements
+ * still reach their end state instantly instead of getting stuck
+ * mid-transition or never appearing at all.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card-interactive:hover {
+    transform: none;
+  }
 }

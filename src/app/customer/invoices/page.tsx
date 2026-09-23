@@ -75,7 +75,7 @@ export default function CustomerInvoicesPage() {
             <button
               type="button"
               onClick={() => setRetryToken((prev) => prev + 1)}
-              className="px-3 py-1 bg-red-900/60 rounded text-red-100 font-bold hover:bg-red-800 shrink-0"
+              className="min-h-[40px] px-3 py-1 bg-red-900/60 rounded text-red-100 font-bold hover:bg-red-800 active:bg-red-950 transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
             >
               {t('customer.invoices.retry')}
             </button>
@@ -111,7 +111,7 @@ export default function CustomerInvoicesPage() {
                     <td className="py-3 px-4 text-right">
                       <Link
                         href={`/customer/invoices/${inv.id}`}
-                        className="text-[#68dba9] hover:underline font-bold"
+                        className="text-[#68dba9] hover:underline font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                       >
                         {t('customer.invoices.view')}
                       </Link>
@@ -124,12 +124,12 @@ export default function CustomerInvoicesPage() {
         )}
 
         {!loading && !error && invoices.length > 0 && (
-          <div className="flex flex-col gap-3 md:hidden">
+          <div className="flex flex-col gap-3 md:hidden animate-fade-in-up">
             {invoices.map((inv) => (
               <Link
                 key={inv.id}
                 href={`/customer/invoices/${inv.id}`}
-                className="block p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#3d4a42] transition-colors"
+                className="card-interactive block p-4 rounded-xl bg-[#181c24] border border-[#262a33]"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">

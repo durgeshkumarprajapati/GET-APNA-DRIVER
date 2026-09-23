@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
+import { LoadingState } from '@/components/ui/loading-state';
 
 interface AssignmentOffer {
   id: string;
@@ -163,7 +164,7 @@ export default function DriverAssignmentOffersPage() {
 
           <Link
             href="/driver/availability"
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 transition-colors text-center"
+            className="min-h-[48px] flex items-center justify-center px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             Manage Availability & GPS
           </Link>
@@ -185,20 +186,17 @@ export default function DriverAssignmentOffersPage() {
           </h2>
 
           {loading ? (
-            <div className="flex items-center justify-center p-8 text-slate-400">
-              <span className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-emerald-500 border-t-transparent mr-2" />
-              Loading assignment offers...
-            </div>
+            <LoadingState message="Loading assignment offers…" />
           ) : pendingOffers.length === 0 ? (
             <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-8 text-center space-y-2">
               <p className="text-slate-300 font-medium">No pending assignment offers.</p>
               <p className="text-xs text-slate-400">
                 Keep your status set to <strong className="text-emerald-400">AVAILABLE</strong> and
-                send live GPS updates to receive nearby trip requests.
+                send live GPS updates to receive nearby booking requests.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up">
               {pendingOffers.map((offer) => {
                 const expiresDate = new Date(offer.expiresAt);
                 const secondsLeft = Math.max(0, Math.round((expiresDate.getTime() - now) / 1000));
@@ -249,9 +247,10 @@ export default function DriverAssignmentOffersPage() {
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                       <button
+                        type="button"
                         onClick={() => handleAccept(offer.id)}
                         disabled={actioningId === offer.id || isExpired}
-                        className="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2"
+                        className="w-full sm:flex-1 min-h-[48px] py-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
                       >
                         {actioningId === offer.id && (
                           <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -260,9 +259,10 @@ export default function DriverAssignmentOffersPage() {
                       </button>
                       <div className="flex gap-3">
                         <button
+                          type="button"
                           onClick={() => setRejectModalId(offer.id)}
                           disabled={actioningId === offer.id || isExpired}
-                          className="flex-1 sm:flex-initial px-5 py-3 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 font-semibold text-sm rounded-xl transition-colors"
+                          className="flex-1 sm:flex-initial min-h-[48px] px-5 py-3 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 font-semibold text-sm rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                         >
                           Reject
                         </button>
@@ -273,7 +273,7 @@ export default function DriverAssignmentOffersPage() {
                               prev === offer.bookingId ? null : offer.bookingId,
                             )
                           }
-                          className="flex-1 sm:flex-initial px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                          className="flex-1 sm:flex-initial min-h-[48px] px-4 py-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                         >
                           <span className="material-symbols-outlined text-base">chat</span>
                           Message Customer
@@ -301,7 +301,7 @@ export default function DriverAssignmentOffersPage() {
             <h2 className="text-lg font-semibold text-slate-300">
               Past Offer History ({pastOffers.length})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-3 animate-fade-in-up">
               {pastOffers.map((offer) => (
                 <div
                   key={offer.id}
@@ -332,8 +332,8 @@ export default function DriverAssignmentOffersPage() {
 
         {/* Reject Confirmation Modal */}
         {rejectModalId && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
               <h3 className="text-lg font-bold text-white">Reject Assignment Offer</h3>
               <p className="text-xs text-slate-300">
                 Are you sure you want to decline this booking offer? The system will pass the
@@ -354,15 +354,17 @@ export default function DriverAssignmentOffersPage() {
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
+                  type="button"
                   onClick={() => setRejectModalId(null)}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg"
+                  className="min-h-[48px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleReject}
                   disabled={!!actioningId}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg flex items-center gap-2"
+                  className="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
                 >
                   {actioningId && (
                     <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />

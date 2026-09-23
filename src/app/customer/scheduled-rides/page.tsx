@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
+import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useTranslation } from '@/i18n/context';
 
 interface ScheduledRideSummary {
@@ -168,7 +170,7 @@ export default function CustomerScheduledRidesPage() {
           </div>
           <Link
             href="/bookings/new?mode=schedule"
-            className="px-4 py-2.5 rounded-xl bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors shrink-0 flex items-center gap-2 font-['Space_Grotesk']"
+            className="inline-flex items-center justify-center min-h-[48px] px-4 py-2.5 rounded-xl bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold transition-colors shrink-0 gap-2 font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
           >
             <span className="material-symbols-outlined text-base">add_alarm</span>
             {t('scheduledRides.createBtn')}
@@ -176,7 +178,7 @@ export default function CustomerScheduledRidesPage() {
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm animate-fade-in">
             {error}
           </div>
         )}
@@ -186,11 +188,12 @@ export default function CustomerScheduledRidesPage() {
           {(['ALL', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'] as const).map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold font-['Space_Grotesk'] transition-colors whitespace-nowrap ${
+              className={`min-h-[40px] px-4 py-2 rounded-xl text-xs font-semibold font-['Space_Grotesk'] transition-colors whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
                 activeTab === tab
                   ? 'bg-[#25a475] text-[#00311f]'
-                  : 'bg-[#181c24] text-[#87948b] hover:text-[#dfe2ee] border border-[#262a33]'
+                  : 'bg-[#181c24] text-[#87948b] hover:text-[#dfe2ee] active:bg-[#1c2028] border border-[#262a33]'
               }`}
             >
               {tab === 'ALL'
@@ -202,24 +205,18 @@ export default function CustomerScheduledRidesPage() {
 
         {/* List Content */}
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">
-            {t('common.labels.loading')}
-          </div>
+          <LoadingState />
         ) : filteredRides.length === 0 ? (
-          <div className="p-8 rounded-2xl border border-[#262a33] bg-[#181c24] text-center space-y-3">
-            <span className="material-symbols-outlined text-4xl text-[#87948b]">
-              calendar_today
-            </span>
-            <p className="text-sm text-[#87948b]">{t('scheduledRides.noRides')}</p>
+          <EmptyState icon="calendar_today" message={t('scheduledRides.noRides')}>
             <Link
               href="/bookings/new?mode=schedule"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25a475] text-[#00311f] text-xs font-bold font-['Space_Grotesk']"
+              className="inline-flex items-center justify-center min-h-[48px] gap-2 px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               {t('scheduledRides.createBtn')}
             </Link>
-          </div>
+          </EmptyState>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in-up">
             {filteredRides.map((ride) => (
               <div
                 key={ride.id}
@@ -286,7 +283,7 @@ export default function CustomerScheduledRidesPage() {
                 <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 border-[#262a33] pt-3 md:pt-0">
                   <Link
                     href={`/customer/scheduled-rides/${ride.id}`}
-                    className="px-3.5 py-2 rounded-xl bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-bold transition-colors"
+                    className="min-h-[40px] flex items-center px-3.5 py-2 rounded-xl bg-[#262a33] hover:bg-[#353942] active:bg-[#1c2028] text-[#dfe2ee] text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {t('scheduledRides.viewDetails')}
                   </Link>
@@ -296,7 +293,7 @@ export default function CustomerScheduledRidesPage() {
                       type="button"
                       disabled={actionLoadingId === ride.id}
                       onClick={() => handlePause(ride.id)}
-                      className="px-3.5 py-2 rounded-xl bg-[#3a2f00] hover:bg-[#5c4a00] text-[#f5c04a] text-xs font-bold transition-colors disabled:opacity-50"
+                      className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#3a2f00] hover:bg-[#5c4a00] active:bg-[#4a3d00] text-[#f5c04a] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f5c04a]"
                     >
                       {t('scheduledRides.pauseBtn')}
                     </button>
@@ -307,7 +304,7 @@ export default function CustomerScheduledRidesPage() {
                       type="button"
                       disabled={actionLoadingId === ride.id}
                       onClick={() => handleResume(ride.id)}
-                      className="px-3.5 py-2 rounded-xl bg-[#00311f] hover:bg-[#25a475] text-[#68dba9] hover:text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50"
+                      className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#00311f] hover:bg-[#25a475] active:bg-[#1c7d5c] text-[#68dba9] hover:text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       {t('scheduledRides.resumeBtn')}
                     </button>
@@ -318,7 +315,7 @@ export default function CustomerScheduledRidesPage() {
                       type="button"
                       disabled={actionLoadingId === ride.id}
                       onClick={() => handleCancel(ride.id)}
-                      className="px-3.5 py-2 rounded-xl bg-[#93000a]/20 hover:bg-[#93000a]/40 text-[#ffb4ab] border border-[#93000a]/50 text-xs font-bold transition-colors disabled:opacity-50"
+                      className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#93000a]/20 hover:bg-[#93000a]/40 active:bg-[#93000a]/60 text-[#ffb4ab] border border-[#93000a]/50 text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
                     >
                       {t('scheduledRides.cancelBtn')}
                     </button>

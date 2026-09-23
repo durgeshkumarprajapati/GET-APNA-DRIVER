@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
+import { LoadingState } from '@/components/ui/loading-state';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { RidePinModal } from '@/components/driver/ride-pin-modal';
@@ -50,6 +51,22 @@ import { LocationETACard } from '@/components/location-intelligence/LocationETAC
 import { SmartJourneyCard } from '@/components/trip-execution/SmartJourneyCard';
 import type { DriverJourneyDTO } from '@/modules/trip-execution/application/journey-orchestration-service';
 import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
+
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  SEARCHING_DRIVER: 'Searching Driver',
+  DRIVER_ASSIGNED: 'Driver Assigned',
+  DRIVER_EN_ROUTE: 'Driver En Route',
+  DRIVER_ARRIVED: 'Driver Arrived',
+  TRIP_IN_PROGRESS: 'Service In Progress',
+  TRIP_COMPLETED: 'Service Completed',
+  CANCELLED: 'Cancelled',
+  EXPIRED: 'Expired',
+};
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
+}
 
 export default function DriverJourneyControlPage({
   params,
@@ -139,8 +156,8 @@ export default function DriverJourneyControlPage({
       const data = await res.json();
       if (res.ok) {
         setBooking(data.booking);
-        setActionMessage('Ride PIN verified. Trip In Progress.');
-        showToast('Ride PIN verified successfully! Trip started.', 'success');
+        setActionMessage('Service PIN verified. Service In Progress.');
+        showToast('Service PIN verified successfully! Service started.', 'success');
       } else {
         throw new Error(data.message || 'Verification failed');
       }
@@ -164,7 +181,7 @@ export default function DriverJourneyControlPage({
             setError('Booking assignment not found.');
           }
         } else if (isMounted) {
-          setError('Failed to load trip details.');
+          setError('Failed to load booking details.');
         }
       } catch {
         if (isMounted) setError('Error connecting to server.');
@@ -209,7 +226,7 @@ export default function DriverJourneyControlPage({
         showToast(data.message || 'Action failed.', 'error');
       }
     } catch {
-      showToast('Error updating trip status.', 'error');
+      showToast('Error updating booking status.', 'error');
     } finally {
       setActionPending(false);
     }
@@ -228,12 +245,12 @@ export default function DriverJourneyControlPage({
         setBooking(data.booking);
         setShowCancelModal(false);
         setCancelReason('');
-        showToast('Trip cancelled. The customer has been notified.', 'success');
+        showToast('Booking cancelled. The customer has been notified.', 'success');
       } else {
-        showToast(data.message || 'Failed to cancel trip.', 'error');
+        showToast(data.message || 'Failed to cancel booking.', 'error');
       }
     } catch {
-      showToast('Error cancelling trip.', 'error');
+      showToast('Error cancelling booking.', 'error');
     } finally {
       setCancelling(false);
     }
@@ -243,10 +260,7 @@ export default function DriverJourneyControlPage({
     return (
       <DriverLayout>
         <div className="flex items-center justify-center py-24">
-          <div className="flex items-center gap-3 text-slate-400">
-            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-            Loading trip journey...
-          </div>
+          <LoadingState message="Loading booking journey…" />
         </div>
       </DriverLayout>
     );
@@ -257,12 +271,12 @@ export default function DriverJourneyControlPage({
       <DriverLayout>
         <div className="flex items-center justify-center py-24">
           <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-xl">
-            <p className="text-red-400 font-medium text-sm">{error || 'Trip not found.'}</p>
+            <p className="text-red-400 font-medium text-sm">{error || 'Booking not found.'}</p>
             <Link
               href="/driver/bookings"
-              className="inline-block px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-colors"
+              className="inline-flex min-h-[48px] items-center justify-center px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
             >
-              ← Back to Assigned Trips
+              ← Back to Assigned Bookings
             </Link>
           </div>
         </div>
@@ -290,7 +304,7 @@ export default function DriverJourneyControlPage({
           <div>
             <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
               <Link href="/driver/bookings" className="hover:text-emerald-400 transition-colors">
-                Assigned Trips
+                Assigned Bookings
               </Link>
               <span>/</span>
               <span className="text-slate-200 font-medium">Journey Control</span>
@@ -315,10 +329,10 @@ export default function DriverJourneyControlPage({
           <div className="flex items-center justify-between border-b border-slate-700 pb-4">
             <div>
               <span className="text-xs text-slate-400 uppercase tracking-wider block">
-                Current Trip State
+                Current Booking Status
               </span>
               <span className="text-xl font-bold text-white uppercase tracking-wide">
-                {booking.status.replace(/_/g, ' ')}
+                {bookingStatusLabel(booking.status)}
               </span>
             </div>
             <span className="h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping" />
@@ -336,7 +350,8 @@ export default function DriverJourneyControlPage({
               </div>
               {booking.cancellationReason && (
                 <p className="text-xs text-red-200">
-                  Cancellation Reason: <span className="font-semibold">{booking.cancellationReason}</span>
+                  Cancellation Reason:{' '}
+                  <span className="font-semibold">{booking.cancellationReason}</span>
                 </p>
               )}
             </div>
@@ -359,7 +374,7 @@ export default function DriverJourneyControlPage({
                   type="button"
                   disabled={callingCustomer}
                   onClick={handleCallCustomer}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg shadow transition-colors flex items-center gap-1.5"
+                  className="min-h-[48px] px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg shadow transition-colors flex items-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
                 >
                   <span className="material-symbols-outlined text-sm">call</span>
                   <span>{callingCustomer ? 'Calling…' : 'Call Customer'}</span>
@@ -386,11 +401,12 @@ export default function DriverJourneyControlPage({
 
             {booking.status === 'DRIVER_ASSIGNED' && (
               <button
+                type="button"
                 onClick={() =>
                   handleStatusAction('start-en-route', 'Status updated: Driver is En Route.')
                 }
                 disabled={actionPending}
-                className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] py-4 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
               >
                 {actionPending && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -401,11 +417,12 @@ export default function DriverJourneyControlPage({
 
             {booking.status === 'DRIVER_EN_ROUTE' && (
               <button
+                type="button"
                 onClick={() =>
                   handleStatusAction('arrive', 'Status updated: Driver Arrived at pickup.')
                 }
                 disabled={actionPending}
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
               >
                 {actionPending && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -419,47 +436,49 @@ export default function DriverJourneyControlPage({
                 type="button"
                 onClick={() => setShowCancelModal(true)}
                 disabled={actionPending}
-                className="w-full py-2.5 bg-slate-800 hover:bg-red-950/60 border border-slate-700 hover:border-red-500/50 disabled:opacity-50 text-slate-300 hover:text-red-300 font-semibold rounded-xl transition-all text-xs"
+                className="w-full min-h-[48px] py-2.5 bg-slate-800 hover:bg-red-950/60 active:bg-red-950 border border-slate-700 hover:border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 hover:text-red-300 font-semibold rounded-xl transition-all text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
               >
-                Cancel Trip
+                Cancel Booking
               </button>
             )}
 
             {booking.status === 'DRIVER_ARRIVED' && (
               <button
+                type="button"
                 onClick={() => setIsPinModalOpen(true)}
                 disabled={actionPending}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
               >
                 {actionPending && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                 )}
-                🔑 Verify Ride PIN & Start Trip
+                🔑 Verify Service PIN & Start Service
               </button>
             )}
 
             {booking.status === 'TRIP_IN_PROGRESS' && (
               <button
+                type="button"
                 onClick={() =>
                   handleStatusAction(
                     'complete',
-                    'Trip completed successfully! Availability restored to AVAILABLE.',
+                    'Service completed successfully! Availability restored to AVAILABLE.',
                   )
                 }
                 disabled={actionPending}
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
               >
                 {actionPending && (
                   <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                 )}
-                🏁 Complete Trip
+                🏁 Complete Service
               </button>
             )}
 
             {booking.status === 'TRIP_COMPLETED' && (
               <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-3">
                 <div className="text-center text-emerald-400 font-bold text-sm">
-                  ✓ Trip Successfully Completed!
+                  ✓ Service Successfully Completed!
                 </div>
                 {review && (
                   <div className="pt-3 border-t border-emerald-500/20 space-y-1.5">
@@ -521,7 +540,7 @@ export default function DriverJourneyControlPage({
             {/* Fare & Driver Earnings Financial Breakdown */}
             <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-2">
               <span className="text-xs font-bold text-slate-300 uppercase block font-mono">
-                Trip Earnings & Commission
+                Service Earnings & Commission
               </span>
               <div className="flex justify-between items-center text-xs font-mono text-slate-400">
                 <span>Estimated Duration:</span>
@@ -559,9 +578,9 @@ export default function DriverJourneyControlPage({
       />
 
       {showCancelModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-white">Cancel This Trip?</h3>
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
+            <h3 className="text-lg font-bold text-white">Cancel This Booking?</h3>
             <p className="text-xs text-slate-300">
               The customer will be notified immediately, and any payment already captured for this
               booking will be automatically refunded.
@@ -578,15 +597,17 @@ export default function DriverJourneyControlPage({
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setShowCancelModal(false)}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg"
+                className="min-h-[48px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
               >
-                Keep Trip
+                Keep Booking
               </button>
               <button
+                type="button"
                 onClick={handleCancelTrip}
                 disabled={cancelling}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg flex items-center gap-2"
+                className="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
               >
                 {cancelling && (
                   <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />

@@ -162,7 +162,7 @@ export default function CorporatePoliciesPage() {
                   className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
                 />
                 <span className="text-[10px] text-[#87948b] font-mono">
-                  Trips exceeding this distance require approval
+                  Bookings exceeding this distance require approval
                 </span>
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function CorporatePoliciesPage() {
                   className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
                 />
                 <span className="text-[10px] text-[#87948b] font-mono">
-                  Rides priced equal or above this value auto-route to approval queue
+                  Bookings priced equal or above this value auto-route to approval queue
                 </span>
               </div>
 

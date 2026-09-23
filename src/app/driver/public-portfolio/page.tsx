@@ -73,7 +73,7 @@ export default function DriverPublicPortfolioPage() {
         <PageHeader
           eyebrow="Public Chauffeur Dossier"
           title="Public Portfolio"
-          subtitle="This is what customers see about you — built entirely from your real profile and trip history."
+          subtitle="This is what customers see about you — built entirely from your real profile and service history."
         />
 
         {error && (
@@ -87,7 +87,7 @@ export default function DriverPublicPortfolioPage() {
         ) : (
           portfolio && (
             <>
-              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-2xl">
+              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-2xl animate-fade-in-up">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-xl bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9] font-bold text-xl">
                     {initials(portfolio.displayName)}
@@ -100,7 +100,7 @@ export default function DriverPublicPortfolioPage() {
                       <RatingStars value={portfolio.performance.averageRating} size="sm" />
                       <span className="font-mono text-xs text-[#68dba9]">
                         {portfolio.performance.averageRating.toFixed(2)} •{' '}
-                        {portfolio.performance.completedTrips} Trips •{' '}
+                        {portfolio.performance.completedTrips} Services •{' '}
                         {portfolio.drivingExperienceYears} Years Driving Experience
                       </span>
                     </div>
@@ -124,7 +124,7 @@ export default function DriverPublicPortfolioPage() {
                     {portfolio.recentReviews.map((review, index) => (
                       <div
                         key={index}
-                        className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2"
+                        className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2 animate-fade-in-up"
                       >
                         <div className="flex items-center justify-between">
                           <RatingStars value={review.rating} size="sm" />

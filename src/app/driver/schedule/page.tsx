@@ -313,7 +313,7 @@ export default function DriverSchedulePage() {
             <button
               type="button"
               onClick={() => setShowExceptionModal(true)}
-              className="px-4 py-2.5 rounded-xl bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-[#31353e] font-['Space_Grotesk'] w-full md:w-auto"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-[#31353e] font-['Space_Grotesk'] w-full md:w-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               <span className="material-symbols-outlined text-base">event_note</span>
               <span>Request Leave / Exception</span>
@@ -338,7 +338,7 @@ export default function DriverSchedulePage() {
               type="button"
               disabled={saving}
               onClick={handleSaveSchedule}
-              className="px-5 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] disabled:opacity-50 text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk']"
+              className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-50 disabled:cursor-not-allowed text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               <span className="material-symbols-outlined text-base">save</span>
               <span>{saving ? 'Saving…' : 'Save Weekly Schedule'}</span>
@@ -346,7 +346,7 @@ export default function DriverSchedulePage() {
           </div>
 
           {/* Weekly Days List */}
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-in-up">
             {weeklyEntries.map((entry) => (
               <div
                 key={entry.dayOfWeek}
@@ -455,7 +455,7 @@ export default function DriverSchedulePage() {
                   <button
                     type="button"
                     onClick={() => handleDeleteException(exc.id)}
-                    className="p-2 text-[#ff7675] hover:bg-[#93000a]/20 rounded-lg transition-colors"
+                    className="p-2 text-[#ff7675] hover:bg-[#93000a]/20 active:bg-[#93000a]/35 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
                     title="Remove exception"
                   >
                     <span className="material-symbols-outlined text-lg">delete</span>
@@ -472,8 +472,8 @@ export default function DriverSchedulePage() {
 
         {/* Modal: Request Exception */}
         {showExceptionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-in fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-scale-in">
               <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                 <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                   Add Leave or Custom Date Override
@@ -481,7 +481,7 @@ export default function DriverSchedulePage() {
                 <button
                   type="button"
                   onClick={() => setShowExceptionModal(false)}
-                  className="text-[#87948b] hover:text-[#dfe2ee]"
+                  className="p-1.5 -m-1.5 rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
@@ -565,14 +565,14 @@ export default function DriverSchedulePage() {
                   <button
                     type="button"
                     onClick={() => setShowExceptionModal(false)}
-                    className="px-4 py-2 rounded-xl bg-[#262a33] text-[#dfe2ee] text-xs font-bold font-['Space_Grotesk']"
+                    className="min-h-[48px] px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingException}
-                    className="px-5 py-2 rounded-xl bg-[#68dba9] text-[#003825] text-xs font-bold uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50"
+                    className="min-h-[48px] px-5 py-2 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] text-xs font-bold uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {submittingException ? 'Saving…' : 'Add Exception'}
                   </button>

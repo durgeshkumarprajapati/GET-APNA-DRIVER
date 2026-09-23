@@ -104,7 +104,10 @@ export default function CustomerInvoiceDetailPage({
           <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-sm text-center max-w-sm">
             {error || t('customer.invoices.notFound')}
           </div>
-          <Link href="/customer/invoices" className="text-[#68dba9] hover:underline text-sm">
+          <Link
+            href="/customer/invoices"
+            className="text-[#68dba9] hover:underline text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+          >
             {t('customer.invoices.backToInvoices')}
           </Link>
         </div>
@@ -119,7 +122,7 @@ export default function CustomerInvoiceDetailPage({
           <div>
             <Link
               href="/customer/invoices"
-              className="text-xs text-[#87948b] hover:text-[#68dba9] transition-colors"
+              className="text-xs text-[#87948b] hover:text-[#68dba9] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             >
               {t('customer.invoices.backToInvoices')}
             </Link>
@@ -176,7 +179,7 @@ export default function CustomerInvoiceDetailPage({
         {invoice.bookingId && (
           <Link
             href={`/bookings/${invoice.bookingId}`}
-            className="inline-block text-[#68dba9] hover:underline text-sm"
+            className="inline-block text-[#68dba9] hover:underline text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
           >
             {t('customer.invoices.viewBooking')}
           </Link>

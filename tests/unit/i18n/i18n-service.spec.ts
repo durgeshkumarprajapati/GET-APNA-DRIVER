@@ -41,19 +41,19 @@ describe('i18n Architecture Unit Tests', () => {
       expect(translate('en', 'common.actions.logout')).toBe('Logout');
       expect(translate('en', 'scheduledRides.title')).toBe('Scheduled & Recurring Rides');
       expect(translate('en', 'scheduledRides.createBtn')).toBe('+ Schedule a Ride');
-      expect(translate('en', 'booking.status.TRIP_IN_PROGRESS')).toBe('Trip in Progress');
+      expect(translate('en', 'booking.status.TRIP_IN_PROGRESS')).toBe('Service in Progress');
     });
 
     it('translates keys in Hindi correctly', () => {
       expect(translate('hi', 'common.actions.save')).toBe('सहेजें');
       expect(translate('hi', 'common.actions.cancel')).toBe('रद्द करें');
-      expect(translate('hi', 'booking.status.TRIP_IN_PROGRESS')).toBe('यात्रा जारी है');
+      expect(translate('hi', 'booking.status.TRIP_IN_PROGRESS')).toBe('सेवा जारी है');
     });
 
     it('translates keys in Gujarati correctly', () => {
       expect(translate('gu', 'common.actions.save')).toBe('સાચવો');
       expect(translate('gu', 'common.actions.cancel')).toBe('રદ કરો');
-      expect(translate('gu', 'booking.status.TRIP_IN_PROGRESS')).toBe('મુસાફરી ચાલુ છે');
+      expect(translate('gu', 'booking.status.TRIP_IN_PROGRESS')).toBe('સેવા ચાલુ છે');
     });
 
     it('supports dynamic parameter interpolation', () => {
@@ -91,9 +91,9 @@ describe('i18n Architecture Unit Tests', () => {
 
   describe('Status Label Lookup (getLocalizedStatusLabel)', () => {
     it('maps enum status values to localized text', () => {
-      expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'en')).toBe('Trip in Progress');
-      expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'hi')).toBe('यात्रा जारी है');
-      expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'gu')).toBe('મુસાફરી ચાલુ છે');
+      expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'en')).toBe('Service in Progress');
+      expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'hi')).toBe('सेवा जारी है');
+      expect(getLocalizedStatusLabel('TRIP_IN_PROGRESS', 'gu')).toBe('સેવા ચાલુ છે');
     });
   });
 

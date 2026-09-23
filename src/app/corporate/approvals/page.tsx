@@ -149,7 +149,7 @@ export default function CorporateApprovalsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                       <div>
                         <span className="text-[10px] text-[#bccac0] uppercase block">
-                          Trip Parameters
+                          Booking Parameters
                         </span>
                         <div className="text-[#dfe2ee] mt-1 space-y-1">
                           <p>Estimated Fare: ₹{fare}</p>

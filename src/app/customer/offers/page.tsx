@@ -96,7 +96,7 @@ export default function CustomerOffersPage() {
           })}
           subtitle={t('customer.offers.subtitle', {
             defaultValue:
-              'Claim ride discounts, reveal lucky scratch cards, and unlock festive surprise gift boxes.',
+              'Claim booking discounts, reveal lucky scratch cards, and unlock festive surprise gift boxes.',
           })}
         />
 
@@ -105,10 +105,10 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('LIVE')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'LIVE'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1f8a63] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             🔥 Active Coupons ({liveOffers?.available.length ?? 0})
@@ -116,10 +116,10 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('DISCOUNT')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'DISCOUNT'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1f8a63] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             Discount Catalog
@@ -127,10 +127,10 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('USED')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               activeTab === 'USED'
-                ? 'bg-[#25a475] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-[#25a475] active:bg-[#1f8a63] text-[#00311f] shadow-md'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             Redeemed ({liveOffers?.used.length ?? 0})
@@ -138,10 +138,10 @@ export default function CustomerOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('EXPIRED')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400 ${
               activeTab === 'EXPIRED'
-                ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-rose-950 active:bg-rose-900 text-rose-300 border border-rose-800'
+                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
             }`}
           >
             Expired ({liveOffers?.expired.length ?? 0})
@@ -157,9 +157,9 @@ export default function CustomerOffersPage() {
               <span className="material-symbols-outlined text-[#68dba9] text-base">
                 local_offer
               </span>
-              <span>Available Ride Coupons</span>
+              <span>Available Booking Coupons</span>
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up">
               {liveOffers.available.map((promo) => (
                 <div
                   key={promo.id}
@@ -172,7 +172,7 @@ export default function CustomerOffersPage() {
                       </span>
                       {promo.firstRideOnly && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          First Ride Only
+                          First Booking Only
                         </span>
                       )}
                     </div>
@@ -203,7 +203,7 @@ export default function CustomerOffersPage() {
                       <button
                         type="button"
                         onClick={() => handleCopyCode(promo.code!)}
-                        className="flex-1 py-2 rounded-lg bg-[#262a33] hover:bg-[#323742] text-xs font-bold text-[#68dba9] border border-[#68dba9]/40 transition-colors"
+                        className="min-h-[40px] flex-1 py-2 rounded-lg bg-[#262a33] hover:bg-[#323742] active:bg-[#3d4a42] text-xs font-bold text-[#68dba9] border border-[#68dba9]/40 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                       >
                         {copiedCode === promo.code ? '✓ Copied!' : 'Copy Code'}
                       </button>
@@ -212,13 +212,13 @@ export default function CustomerOffersPage() {
                       type="button"
                       onClick={() => handleClaimOffer(promo.id)}
                       disabled={claimedIds.has(promo.id)}
-                      className="flex-1 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50"
+                      className="min-h-[40px] flex-1 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1f8a63] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       {claimedIds.has(promo.id) ? '✓ Claimed' : 'Claim Offer'}
                     </button>
                     <Link
                       href="/bookings/new"
-                      className="px-3 py-2 rounded-lg bg-[#11141a] hover:bg-[#262a33] text-xs font-bold text-[#c0c7d4] border border-[#262a33] transition-colors"
+                      className="min-h-[40px] px-3 py-2 rounded-lg bg-[#11141a] hover:bg-[#262a33] active:bg-[#31353e] text-xs font-bold text-[#c0c7d4] border border-[#262a33] transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                     >
                       Book →
                     </Link>

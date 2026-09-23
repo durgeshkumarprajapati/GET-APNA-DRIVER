@@ -19,7 +19,7 @@ export const BOOKING_TYPE_OPTIONS: BookingTypeOption[] = [
     defaultLabel: 'Point to Point',
     icon: 'navigation',
     descriptionKey: 'booking.type.pointToPointDesc',
-    defaultDescription: 'Travel from A to B or anywhere you need',
+    defaultDescription: 'A driver comes to you and drives your own car for a single service',
   },
   {
     type: BookingType.HOURLY,

@@ -38,17 +38,20 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [userName, setUserName] = useState<string | null>(userEmail ?? null);
+  const [fetchedUserName, setFetchedUserName] = useState<string | null>(null);
+  // Derived directly from the prop during render rather than mirrored into
+  // state via an effect — avoids a synchronous setState-in-effect (which
+  // triggers a redundant cascading render) for the common case where
+  // userEmail is already known; the effect below only needs to run the
+  // async profile fetch for the fallback case.
+  const userName = userEmail ?? fetchedUserName;
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('DRIVER');
   useAutoWebPush();
   const { capture: captureDeviceLocation } = useGeolocationCapture();
 
   useEffect(() => {
-    if (userEmail) {
-      setUserName(userEmail);
-      return;
-    }
+    if (userEmail) return;
     let isMounted = true;
     fetch('/api/driver/profile')
       .then((res) => (res.ok ? res.json() : null))
@@ -60,7 +63,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           [p.firstName, p.lastName].filter(Boolean).join(' ') ||
           p.email ||
           'Driver Partner';
-        setUserName(name);
+        setFetchedUserName(name);
       })
       .catch(() => {});
     return () => {

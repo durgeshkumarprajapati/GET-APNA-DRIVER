@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
+import { LoadingState } from '@/components/ui/loading-state';
 import { useTranslation } from '@/i18n/context';
 
 interface OccurrenceLog {
@@ -166,7 +167,10 @@ export default function ScheduledRideDetailPage() {
       <div className="flex flex-col gap-6 w-full max-w-4xl">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center gap-2 text-xs font-mono text-[#87948b]">
-          <Link href="/customer/scheduled-rides" className="hover:text-[#68dba9] transition-colors">
+          <Link
+            href="/customer/scheduled-rides"
+            className="hover:text-[#68dba9] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+          >
             ← {t('scheduledRides.title')}
           </Link>
           <span>/</span>
@@ -174,17 +178,15 @@ export default function ScheduledRideDetailPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">
-            {t('common.labels.loading')}
-          </div>
+          <LoadingState />
         ) : error || !ride ? (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm animate-fade-in">
             {error || 'Schedule not found.'}
           </div>
         ) : (
           <>
             {/* Header Banner */}
-            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
@@ -199,7 +201,7 @@ export default function ScheduledRideDetailPage() {
                   </span>
                 </div>
                 <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
-                  Scheduled Ride #{ride.id.substring(0, 8)}
+                  Scheduled Booking #{ride.id.substring(0, 8)}
                 </h1>
                 <p className="text-xs text-[#87948b] font-mono mt-0.5">
                   Created on {formatDate(ride.createdAt)}
@@ -213,7 +215,7 @@ export default function ScheduledRideDetailPage() {
                     type="button"
                     disabled={actionLoading}
                     onClick={handlePause}
-                    className="px-4 py-2 rounded-xl bg-[#3a2f00] hover:bg-[#5c4a00] text-[#f5c04a] text-xs font-bold transition-colors disabled:opacity-50"
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-[#3a2f00] hover:bg-[#5c4a00] active:bg-[#4a3d00] text-[#f5c04a] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f5c04a]"
                   >
                     {t('scheduledRides.pauseBtn')}
                   </button>
@@ -223,7 +225,7 @@ export default function ScheduledRideDetailPage() {
                     type="button"
                     disabled={actionLoading}
                     onClick={handleResume}
-                    className="px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50"
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {t('scheduledRides.resumeBtn')}
                   </button>
@@ -233,7 +235,7 @@ export default function ScheduledRideDetailPage() {
                     type="button"
                     disabled={actionLoading}
                     onClick={handleCancel}
-                    className="px-4 py-2 rounded-xl bg-[#93000a]/20 hover:bg-[#93000a]/40 text-[#ffb4ab] border border-[#93000a]/50 text-xs font-bold transition-colors disabled:opacity-50"
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-[#93000a]/20 hover:bg-[#93000a]/40 active:bg-[#93000a]/60 text-[#ffb4ab] border border-[#93000a]/50 text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
                   >
                     {t('scheduledRides.cancelBtn')}
                   </button>
@@ -242,7 +244,7 @@ export default function ScheduledRideDetailPage() {
             </div>
 
             {/* Main Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up">
               {/* Route & Booking Info */}
               <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 space-y-4">
                 <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider text-[#68dba9]">
@@ -355,7 +357,7 @@ export default function ScheduledRideDetailPage() {
             </div>
 
             {/* Occurrence History Logs */}
-            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 space-y-4">
+            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider text-[#68dba9]">
                 {t('scheduledRides.occurrenceHistory')}
               </h2>
@@ -392,7 +394,7 @@ export default function ScheduledRideDetailPage() {
                       {log.generatedBookingId && (
                         <Link
                           href={`/bookings/${log.generatedBookingId}`}
-                          className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors shrink-0 text-center"
+                          className="min-h-[40px] flex items-center justify-center px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold transition-colors shrink-0 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                         >
                           View Booking →
                         </Link>

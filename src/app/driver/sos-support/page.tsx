@@ -31,6 +31,22 @@ const GEOLOCATION_MESSAGES: Record<string, string> = {
     'Location is not supported by this browser — the SOS will still be sent using your last known location on file.',
 };
 
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  SEARCHING_DRIVER: 'Searching Driver',
+  DRIVER_ASSIGNED: 'Driver Assigned',
+  DRIVER_EN_ROUTE: 'Driver En Route',
+  DRIVER_ARRIVED: 'Driver Arrived',
+  TRIP_IN_PROGRESS: 'Service In Progress',
+  TRIP_COMPLETED: 'Service Completed',
+  CANCELLED: 'Cancelled',
+  EXPIRED: 'Expired',
+};
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
+}
+
 export default function DriverSosSupportPage() {
   const { activeBooking, loading: bookingLoading } = useActiveBooking<DriverBooking>(
     '/api/driver/bookings',
@@ -94,7 +110,7 @@ export default function DriverSosSupportPage() {
               <button
                 type="button"
                 onClick={sos.reset}
-                className="text-xs text-[#68dba9] hover:underline"
+                className="min-h-[48px] px-3 text-xs text-[#68dba9] hover:underline active:text-[#4fc890] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
               >
                 Done
               </button>
@@ -105,7 +121,7 @@ export default function DriverSosSupportPage() {
                 type="button"
                 disabled={sos.status === 'submitting'}
                 onClick={sos.requestConfirmation}
-                className="w-36 h-36 rounded-full bg-[#93000a] hover:bg-[#b3000f] disabled:opacity-60 text-[#ffdad6] font-bold flex flex-col items-center justify-center gap-2 shadow-2xl ring-4 ring-[#ffb4ab]/40 transition-all"
+                className="w-36 h-36 rounded-full bg-[#93000a] hover:bg-[#b3000f] active:bg-[#7a0008] disabled:opacity-60 disabled:cursor-not-allowed text-[#ffdad6] font-bold flex flex-col items-center justify-center gap-2 shadow-2xl ring-4 ring-[#ffb4ab]/40 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
               >
                 <span className="material-symbols-outlined text-4xl">emergency</span>
                 <span className="text-xs uppercase font-['Space_Grotesk']">
@@ -114,7 +130,7 @@ export default function DriverSosSupportPage() {
               </button>
               <div className="text-xs text-[#bccac0] space-y-1">
                 <p className="font-bold text-[#dfe2ee]">Instant Safety Team Dispatch</p>
-                <p>Sends your current location and active trip context to our safety team.</p>
+                <p>Sends your current location and active booking context to our safety team.</p>
               </div>
               {sos.status === 'error' && sos.error && (
                 <p className="text-xs text-[#ffb4ab] font-bold">{sos.error}</p>
@@ -155,7 +171,7 @@ export default function DriverSosSupportPage() {
             type="button"
             disabled={calling}
             onClick={handleCallCustomerCare}
-            className="px-5 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0"
+            className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] active:brightness-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#70a1ff]"
           >
             <span className="material-symbols-outlined text-lg">call</span>
             <span>{calling ? 'Connecting…' : 'Call Support'}</span>
@@ -164,24 +180,24 @@ export default function DriverSosSupportPage() {
 
         <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2">
           <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-            Active Trip Context
+            Active Booking Context
           </h2>
           {bookingLoading ? (
-            <LoadingState message="Checking for an active trip…" />
+            <LoadingState message="Checking for an active booking…" />
           ) : activeBooking ? (
             <div className="text-xs text-[#bccac0] space-y-1">
               <p>
                 Booking <span className="font-mono text-[#dfe2ee]">{activeBooking.id}</span> —{' '}
-                <span className="text-[#68dba9]">{activeBooking.status}</span>
+                <span className="text-[#68dba9]">{bookingStatusLabel(activeBooking.status)}</span>
               </p>
               <p>Pickup: {activeBooking.pickupLocation.address}</p>
               <p className="text-[10px] text-[#87948b]">
-                This trip will be automatically linked to your SOS alert.
+                This booking will be automatically linked to your SOS alert.
               </p>
             </div>
           ) : (
             <p className="text-xs text-[#87948b]">
-              No active trip right now — your SOS will still be sent with your current location.
+              No active booking right now — your SOS will still be sent with your current location.
             </p>
           )}
         </section>

@@ -79,7 +79,7 @@ export default function DriverRatingsPage() {
         <PageHeader
           eyebrow="Client Testimonials & Audits"
           title="Ratings & Reviews"
-          subtitle="Verified feedback from your completed trips."
+          subtitle="Verified feedback from your completed services."
         />
 
         {error && (
@@ -107,7 +107,7 @@ export default function DriverRatingsPage() {
                 {reviews.map((review) => (
                   <div
                     key={review.id}
-                    className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2"
+                    className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2 animate-fade-in-up"
                   >
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-3">

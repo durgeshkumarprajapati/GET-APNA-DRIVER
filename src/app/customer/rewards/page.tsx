@@ -91,7 +91,7 @@ export default function CustomerRewardsPage() {
                       summary.currentTier.pointMultiplier ?? summary.currentTier.multiplier ?? 1,
                     benefitsSummary:
                       summary.currentTier.benefitsSummary ||
-                      'Enjoy priority matching and points multiplier on all completed rides.',
+                      'Enjoy priority matching and points multiplier on all completed bookings.',
                   }
                 : null,
               nextTier: summary.nextTier
@@ -229,7 +229,7 @@ export default function CustomerRewardsPage() {
             <button
               type="button"
               onClick={() => setRefreshKey((k) => k + 1)}
-              className="px-2 py-1 bg-red-900/60 hover:bg-red-800/80 rounded text-[11px] font-bold"
+              className="min-h-[40px] px-2 py-1 bg-red-900/60 hover:bg-red-800/80 active:bg-red-950 rounded text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
             >
               {t('common.actions.retry')}
             </button>
@@ -244,7 +244,7 @@ export default function CustomerRewardsPage() {
           account && (
             <>
               {/* TIER STATUS CARD */}
-              <div className="relative overflow-hidden rounded-2xl bg-[#141822] border border-[#262a33] p-6 shadow-2xl">
+              <div className="relative overflow-hidden rounded-2xl bg-[#141822] border border-[#262a33] p-6 shadow-2xl animate-fade-in-up">
                 <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
                   <span className="material-symbols-outlined text-9xl text-[#68dba9]">
                     workspace_premium
@@ -324,11 +324,11 @@ export default function CustomerRewardsPage() {
                       </span>
                       <p className="text-xs text-[#dfe2ee] mt-1 leading-relaxed">
                         {account.currentTier?.benefitsSummary ||
-                          'Enjoy priority booking matching and points multiper on all completed rides.'}
+                          'Enjoy priority booking matching and points multiper on all completed bookings.'}
                       </p>
                     </div>
                     <div className="mt-4 pt-3 border-t border-[#262a33] text-[11px] text-[#bccac0] font-mono">
-                      Completed trips earn 10 points per ₹100 spent.
+                      Completed bookings earn 10 points per ₹100 spent.
                     </div>
                   </div>
                 </div>
@@ -345,7 +345,7 @@ export default function CustomerRewardsPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up">
                   {rewards.map((reward) => {
                     const isInsufficient = account.pointsBalance < reward.pointsCost;
                     const isTierLocked =
@@ -399,12 +399,12 @@ export default function CustomerRewardsPage() {
                             type="button"
                             onClick={() => void handleRedeem(reward.id)}
                             disabled={isInsufficient || isTierLocked || isRedeemed || isRedeeming}
-                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 ${
+                            className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] disabled:cursor-not-allowed ${
                               isRedeemed
-                                ? 'bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700'
+                                ? 'bg-slate-800 text-slate-400 border border-slate-700'
                                 : isInsufficient || isTierLocked
-                                  ? 'bg-[#181c24] text-[#87948b] cursor-not-allowed border border-[#262a33]'
-                                  : 'bg-[#25a475] hover:bg-[#208e65] text-[#00311f] shadow-lg shadow-[#25a475]/20'
+                                  ? 'bg-[#181c24] text-[#87948b] border border-[#262a33]'
+                                  : 'bg-[#25a475] hover:bg-[#208e65] active:bg-[#1a7455] text-[#00311f] shadow-lg shadow-[#25a475]/20'
                             }`}
                           >
                             {isRedeeming ? (

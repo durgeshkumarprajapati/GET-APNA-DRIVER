@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
+import { LoadingState } from '@/components/ui/loading-state';
 
 interface DriverBooking {
   id: string;
@@ -27,6 +28,22 @@ interface DriverBooking {
   cancelledBy?: string | null;
   cancellationReason?: string | null;
   createdAt: string;
+}
+
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  SEARCHING_DRIVER: 'Searching Driver',
+  DRIVER_ASSIGNED: 'Driver Assigned',
+  DRIVER_EN_ROUTE: 'Driver En Route',
+  DRIVER_ARRIVED: 'Driver Arrived',
+  TRIP_IN_PROGRESS: 'Service In Progress',
+  TRIP_COMPLETED: 'Service Completed',
+  CANCELLED: 'Cancelled',
+  EXPIRED: 'Expired',
+};
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
 }
 
 export default function DriverBookingsListPage() {
@@ -81,10 +98,7 @@ export default function DriverBookingsListPage() {
     return (
       <DriverLayout>
         <div className="flex items-center justify-center py-24">
-          <div className="flex items-center gap-3 text-slate-400">
-            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
-            Loading assigned trips...
-          </div>
+          <LoadingState message="Loading assigned bookings…" />
         </div>
       </DriverLayout>
     );
@@ -106,13 +120,14 @@ export default function DriverBookingsListPage() {
             <h1 className="text-3xl font-bold tracking-tight text-white">Driver Journey Portal</h1>
           </div>
           <button
+            type="button"
             onClick={() => {
               setLoading(true);
               void fetchBookings();
             }}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors self-start md:self-auto"
+            className="min-h-[48px] px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors self-start md:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
-            Refresh Trips
+            Refresh Bookings
           </button>
         </div>
 
@@ -131,19 +146,20 @@ export default function DriverBookingsListPage() {
 
           {activeBookings.length === 0 ? (
             <div className="bg-slate-800/40 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
-              No active trip assignments right now. Make sure your availability is set to AVAILABLE.
+              No active booking assignments right now. Make sure your availability is set to
+              AVAILABLE.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
               {activeBookings.map((b) => (
                 <Link
                   key={b.id}
                   href={`/driver/bookings/${b.id}`}
-                  className="group bg-slate-800/80 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-6 transition-all shadow-lg space-y-4 block"
+                  className="card-interactive group bg-slate-800/80 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-6 transition-all shadow-lg space-y-4 block"
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      {b.status.replace(/_/g, ' ')}
+                      {bookingStatusLabel(b.status)}
                     </span>
                     <span className="text-xs text-slate-400 font-mono">
                       #{b.id.substring(0, 8)}
@@ -161,7 +177,7 @@ export default function DriverBookingsListPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-700/60">
-                    <span>Manage Trip Controls →</span>
+                    <span>Manage Booking Controls →</span>
                     <span className="text-[10px] text-slate-400">
                       {new Date(b.createdAt).toLocaleTimeString()}
                     </span>
@@ -176,9 +192,9 @@ export default function DriverBookingsListPage() {
         {pastBookings.length > 0 && (
           <div className="space-y-4 pt-6 border-t border-slate-800">
             <h2 className="text-lg font-bold text-slate-300">
-              Completed & Past Trips ({pastBookings.length})
+              Completed & Past Bookings ({pastBookings.length})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
               {pastBookings.map((b) => (
                 <div
                   key={b.id}
@@ -186,7 +202,7 @@ export default function DriverBookingsListPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-700 text-slate-300">
-                      {b.status.replace(/_/g, ' ')}
+                      {bookingStatusLabel(b.status)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
                       #{b.id.substring(0, 8)}

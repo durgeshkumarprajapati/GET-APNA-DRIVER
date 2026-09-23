@@ -218,6 +218,7 @@ export default function DriverProfileEditPage() {
           </div>
           <Link
             href="/driver"
+            className="transition-colors hover:bg-[color:var(--color-surface-container-high)] active:bg-[color:var(--color-surface-container-highest)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
             style={{
               padding: '0.5rem 1rem',
               borderRadius: '0.375rem',
@@ -618,6 +619,7 @@ export default function DriverProfileEditPage() {
                 <button
                   type="submit"
                   disabled={saving}
+                  className="min-h-[48px] min-w-[200px] transition-all hover:brightness-110 active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] disabled:cursor-not-allowed"
                   style={{
                     padding: '0.75rem 1.5rem',
                     borderRadius: '0.375rem',

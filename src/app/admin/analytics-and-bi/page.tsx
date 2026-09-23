@@ -262,7 +262,7 @@ export default function AnalyticsAndBIPage() {
                     {data.bookings.completionRate}%
                   </span>
                   <span className="text-[10px] text-[#bccac0] block mt-0.5">
-                    {data.bookings.completed} completed trips
+                    {data.bookings.completed} completed bookings
                   </span>
                 </div>
 
@@ -272,7 +272,7 @@ export default function AnalyticsAndBIPage() {
                     {data.bookings.cancellationRate}%
                   </span>
                   <span className="text-[10px] text-[#bccac0] block mt-0.5">
-                    {data.bookings.cancelled} cancelled trips
+                    {data.bookings.cancelled} cancelled bookings
                   </span>
                 </div>
 
@@ -291,7 +291,7 @@ export default function AnalyticsAndBIPage() {
                   <span className="text-[#87948b] block mb-1">Active In-Progress</span>
                   <span className="text-lg font-bold text-[#b4c5ff]">{data.bookings.active}</span>
                   <span className="text-[10px] text-[#bccac0] block mt-0.5">
-                    Trips currently active
+                    Bookings currently active
                   </span>
                 </div>
               </div>

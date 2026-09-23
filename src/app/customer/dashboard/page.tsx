@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CustomerRecommendationsWidget } from '@/components/customer/customer-recommendations-widget';
 import { CustomerExperienceSection } from '@/components/experience/customer-experience-section';
+import { LoadingState } from '@/components/ui/loading-state';
 import { useTranslation } from '@/i18n/context';
 
 interface CustomerProfile {
@@ -192,13 +193,11 @@ export default function CustomerDashboardPage() {
         )}
 
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">
-            {t('common.labels.loading')}
-          </div>
+          <LoadingState />
         ) : (
           <>
             {/* Profile Summary */}
-            <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
               <div>
                 <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
                   {t('customer.dashboard.welcomeEyebrow')}
@@ -220,7 +219,7 @@ export default function CustomerDashboardPage() {
               </div>
               <Link
                 href="/profile"
-                className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0"
+                className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] active:bg-[#3d4a42] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
               >
                 {t('customer.dashboard.editProfile')}
               </Link>
@@ -230,10 +229,10 @@ export default function CustomerDashboardPage() {
             <CustomerExperienceSection />
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in-up">
               <Link
                 href="/bookings"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
                   {t('customer.dashboard.activeBookings')}
@@ -244,7 +243,7 @@ export default function CustomerDashboardPage() {
               </Link>
               <Link
                 href="/bookings"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
                   {t('customer.dashboard.completedTrips')}
@@ -255,7 +254,7 @@ export default function CustomerDashboardPage() {
               </Link>
               <Link
                 href="/bookings/new"
-                className="p-4 rounded-xl bg-[#25a475] hover:bg-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-[#25a475] hover:bg-[#68dba9] active:bg-[#4fc890] transition-colors flex flex-col gap-1"
               >
                 <span className="text-[10px] font-bold text-[#00311f] uppercase font-['Space_Grotesk']">
                   {t('customer.dashboard.newBooking')}
@@ -311,7 +310,7 @@ export default function CustomerDashboardPage() {
                     </span>
                     <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                       {scheduledRides.filter((r) => r.status === 'SCHEDULED').length} Active
-                      Scheduled Ride(s)
+                      Scheduled Booking(s)
                     </p>
                   </div>
                 </div>
@@ -351,7 +350,7 @@ export default function CustomerDashboardPage() {
                 </div>
                 <Link
                   href={`/bookings/new?bookAgain=${mostRecentRide.id}`}
-                  className="px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors shrink-0 text-center"
+                  className="card-interactive min-h-[48px] px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#4fc890] text-[#00311f] text-xs font-bold transition-colors shrink-0 flex items-center justify-center text-center"
                 >
                   {t('customer.dashboard.bookAgain')}
                 </Link>
@@ -360,14 +359,14 @@ export default function CustomerDashboardPage() {
 
             {/* Saved Places */}
             {savedLocations.length > 0 && (
-              <section className="flex flex-col gap-3">
+              <section className="flex flex-col gap-3 animate-fade-in-up">
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                     {t('customer.dashboard.savedPlacesTitle')}
                   </h2>
                   <Link
                     href="/profile"
-                    className="text-xs font-mono text-[#68dba9] hover:underline"
+                    className="text-xs font-mono text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
                   >
                     {t('customer.dashboard.managePlaces')}
                   </Link>
@@ -377,7 +376,7 @@ export default function CustomerDashboardPage() {
                     <Link
                       key={loc.id}
                       href={`/bookings/new?savedLocationId=${loc.id}`}
-                      className="px-3.5 py-2 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex items-center gap-2 text-xs font-semibold text-[#dfe2ee]"
+                      className="card-interactive px-3.5 py-2 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-xs font-semibold text-[#dfe2ee]"
                     >
                       <span className="material-symbols-outlined text-base text-[#68dba9]">
                         {savedPlaceIcon(loc.label)}
@@ -423,12 +422,15 @@ export default function CustomerDashboardPage() {
             )}
 
             {/* Active Bookings */}
-            <section className="flex flex-col gap-3">
+            <section className="flex flex-col gap-3 animate-fade-in-up">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                   {t('customer.dashboard.activeBookings')}
                 </h2>
-                <Link href="/bookings" className="text-xs font-mono text-[#68dba9] hover:underline">
+                <Link
+                  href="/bookings"
+                  className="text-xs font-mono text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                >
                   {t('customer.dashboard.viewAll')} →
                 </Link>
               </div>
@@ -442,7 +444,7 @@ export default function CustomerDashboardPage() {
                     <Link
                       key={booking.id}
                       href={`/bookings/${booking.id}`}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/50 transition-colors flex items-center justify-between gap-4"
+                      className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
                     >
                       <div>
                         <p className="text-sm font-semibold text-[#dfe2ee]">
@@ -464,12 +466,15 @@ export default function CustomerDashboardPage() {
             </section>
 
             {/* Recent Bookings */}
-            <section className="flex flex-col gap-3">
+            <section className="flex flex-col gap-3 animate-fade-in-up">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                   {t('customer.dashboard.recentBookings')}
                 </h2>
-                <Link href="/bookings" className="text-xs font-mono text-[#68dba9] hover:underline">
+                <Link
+                  href="/bookings"
+                  className="text-xs font-mono text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                >
                   {t('customer.dashboard.viewAll')} →
                 </Link>
               </div>
@@ -483,7 +488,7 @@ export default function CustomerDashboardPage() {
                     <Link
                       key={booking.id}
                       href={`/bookings/${booking.id}`}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/50 transition-colors flex items-center justify-between gap-4"
+                      className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
                     >
                       <div>
                         <p className="text-sm font-semibold text-[#dfe2ee]">

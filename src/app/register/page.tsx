@@ -193,11 +193,24 @@ function RegisterFormContent() {
         </div>
 
         {/* DUAL ROLE SELECTOR CARDS */}
-        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          role="radiogroup"
+          aria-label="How would you like to use Get Apna Driver?"
+          className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {/* CUSTOMER ROLE CARD */}
           <div
+            role="radio"
+            aria-checked={selectedRole === 'customer'}
+            tabIndex={0}
             onClick={() => setSelectedRole('customer')}
-            className={`p-5 sm:p-6 rounded-2xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between gap-4 ${
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedRole('customer');
+              }
+            }}
+            className={`p-5 sm:p-6 rounded-2xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between gap-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               selectedRole === 'customer'
                 ? 'bg-[#181c24] border-[#68dba9] shadow-[0_0_20px_rgba(37,164,117,0.2)]'
                 : 'bg-[#181c24]/60 border-[#262a33] hover:border-[#363b47] opacity-80 hover:opacity-100'
@@ -243,8 +256,17 @@ function RegisterFormContent() {
 
           {/* DRIVER PARTNER ROLE CARD */}
           <div
+            role="radio"
+            aria-checked={selectedRole === 'driver'}
+            tabIndex={0}
             onClick={() => setSelectedRole('driver')}
-            className={`p-5 sm:p-6 rounded-2xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between gap-4 ${
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedRole('driver');
+              }
+            }}
+            className={`p-5 sm:p-6 rounded-2xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between gap-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
               selectedRole === 'driver'
                 ? 'bg-[#181c24] border-[#68dba9] shadow-[0_0_20px_rgba(37,164,117,0.2)]'
                 : 'bg-[#181c24]/60 border-[#262a33] hover:border-[#363b47] opacity-80 hover:opacity-100'
@@ -308,7 +330,7 @@ function RegisterFormContent() {
           {/* Google Sign-up Button */}
           <a
             href="/api/auth/google"
-            className="w-full py-3 px-4 bg-[#0a0e16] hover:bg-[#262a33] rounded-xl font-mono text-xs text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33]"
+            className="w-full min-h-[48px] py-3 px-4 bg-[#0a0e16] hover:bg-[#262a33] active:brightness-90 rounded-xl font-mono text-xs text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -450,7 +472,8 @@ function RegisterFormContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-[#87948b] hover:text-[#dfe2ee] ml-2"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] ml-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
                 >
                   <span className="material-symbols-outlined text-sm">
                     {showPassword ? 'visibility_off' : 'visibility'}
@@ -520,7 +543,7 @@ function RegisterFormContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold rounded-xl text-xs font-mono transition-all flex items-center justify-center gap-2 shadow-[0_0_16px_rgba(37,164,117,0.25)] disabled:opacity-50"
+              className="w-full min-h-[48px] py-3 px-4 bg-[#25a475] hover:bg-[#1f8760] active:brightness-90 text-[#00311f] font-bold rounded-xl text-xs font-mono transition-all flex items-center justify-center gap-2 shadow-[0_0_16px_rgba(37,164,117,0.25)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25a475]"
             >
               {loading ? (
                 <>
@@ -550,8 +573,8 @@ function RegisterFormContent() {
 
       {/* COMPLETION MODAL */}
       {showCompletionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#181c24] border border-[#25a475] rounded-2xl p-6 sm:p-8 space-y-6 text-center shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-[#181c24] border border-[#25a475] rounded-2xl p-6 sm:p-8 space-y-6 text-center shadow-2xl animate-scale-in">
             <div className="w-16 h-16 rounded-full bg-[#25a475]/20 border-2 border-[#68dba9] flex items-center justify-center mx-auto text-[#68dba9]">
               <span className="material-symbols-outlined text-3xl">verified</span>
             </div>
@@ -587,8 +610,9 @@ function RegisterFormContent() {
             </div>
 
             <button
+              type="button"
               onClick={() => router.push(redirectPath)}
-              className="w-full py-3 px-4 bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold rounded-xl text-xs font-mono transition-colors flex items-center justify-center gap-2"
+              className="w-full min-h-[48px] py-3 px-4 bg-[#25a475] hover:bg-[#1f8760] active:brightness-90 text-[#00311f] font-bold rounded-xl text-xs font-mono transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25a475]"
             >
               <span>
                 {selectedRole === 'driver' ? 'Continue to KYC Wizard' : 'Go to Booking Console'}
