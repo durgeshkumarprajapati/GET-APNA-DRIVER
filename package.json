@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "dev:all": "(trap 'kill 0' SIGINT SIGTERM EXIT; npm run worker & npm run dev & wait)",
+    "start:all": "(trap 'kill 0' SIGINT SIGTERM EXIT; npm run worker & npm run start & wait)",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\" \"prisma/**/*.ts\" \"*.{js,mjs,ts,md}\" package.json",

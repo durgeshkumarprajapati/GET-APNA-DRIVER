@@ -38,10 +38,35 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [userName, setUserName] = useState<string | null>(userEmail ?? null);
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('DRIVER');
   useAutoWebPush();
   const { capture: captureDeviceLocation } = useGeolocationCapture();
+
+  useEffect(() => {
+    if (userEmail) {
+      setUserName(userEmail);
+      return;
+    }
+    let isMounted = true;
+    fetch('/api/driver/profile')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!isMounted || !data?.profile) return;
+        const p = data.profile;
+        const name =
+          p.displayName ||
+          [p.firstName, p.lastName].filter(Boolean).join(' ') ||
+          p.email ||
+          'Driver Partner';
+        setUserName(name);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [userEmail]);
 
   // Restore sidebar scroll position and scroll active item into view if out of bounds
   useEffect(() => {
@@ -339,14 +364,14 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
               <div className="flex items-center gap-2">
                 <Link href="/profile" className="flex items-center gap-2">
-                  <div className="text-right hidden sm:block">
+                  <div className="text-right flex flex-col items-end">
                     <div className="text-xs text-[#dfe2ee] font-semibold leading-tight max-w-[140px] truncate">
-                      {userEmail ?? 'Driver Partner'}
+                      {userName || userEmail || 'Driver Partner'}
                     </div>
                   </div>
                   <UserAvatar
                     src={null}
-                    name={userEmail || 'Driver Partner'}
+                    name={userName || userEmail || 'Driver Partner'}
                     className="w-8 h-8 ring-1 ring-[#68dba9]"
                   />
                 </Link>

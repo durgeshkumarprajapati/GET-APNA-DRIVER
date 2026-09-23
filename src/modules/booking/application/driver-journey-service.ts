@@ -14,7 +14,7 @@ import {
   isBookingCancellable,
 } from '../domain/booking-state-machine';
 import { getBoolean, getInteger } from '@/shared/config/configuration-service';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { calculateFinalFare } from '@/modules/pricing/application/fare-calculation-service';
@@ -51,6 +51,9 @@ export interface DriverBookingSummary {
   driverArrivedAt: Date | null;
   tripStartedAt: Date | null;
   tripCompletedAt: Date | null;
+  cancelledAt?: Date | null;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
   createdAt: Date;
 }
 
@@ -81,7 +84,7 @@ async function getAuthorizedDriverBooking(
     throw new BookingNotFoundError(bookingId);
   }
 
-  if (booking.driverProfileId !== profile.id) {
+  if (booking.driverProfileId !== profile.id && booking.cancelledBy !== driverUserId) {
     throw new BookingNotFoundError(bookingId);
   }
 
@@ -134,6 +137,10 @@ export async function startEnRoute(
       },
     });
   });
+
+  // Notifies the customer immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
 
   await recordAuditLog(db, {
     actorUserId: driverUserId,
@@ -200,6 +207,10 @@ export async function markArrived(
       },
     });
   });
+
+  // Notifies the customer immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
 
   await recordAuditLog(db, {
     actorUserId: driverUserId,
@@ -452,6 +463,10 @@ export async function startTrip(
     });
   });
 
+  // Notifies the customer immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
+
   await recordAuditLog(db, {
     actorUserId: driverUserId,
     action: 'RIDE_PIN_VERIFIED',
@@ -680,6 +695,12 @@ export async function completeTrip(
     await addDriverToLiveIndex(profile.id, db);
   }
 
+  // Notifies the customer (rate-your-driver prompt) and driver (earnings
+  // credited) immediately, and picks up any referral/incentive/loyalty
+  // events queued just above, rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
+
   await recordAuditLog(db, {
     actorUserId: driverUserId,
     action: 'booking.trip.completed',
@@ -709,7 +730,9 @@ export async function listDriverBookings(
   const profile = await getOrCreateDriverProfile(driverUserId, db);
 
   const bookings = await db.booking.findMany({
-    where: { driverProfileId: profile.id },
+    where: {
+      OR: [{ driverProfileId: profile.id }, { cancelledBy: driverUserId }],
+    },
     orderBy: { createdAt: 'desc' },
     // Previously unbounded — caps a long-tenured driver's history query
     // without changing the flat-array response shape the driver bookings
@@ -790,6 +813,9 @@ function mapBookingToDriverSummary(booking: Booking): DriverBookingSummary {
     driverArrivedAt: booking.driverArrivedAt,
     tripStartedAt: booking.tripStartedAt,
     tripCompletedAt: booking.tripCompletedAt,
+    cancelledAt: booking.cancelledAt,
+    cancelledBy: booking.cancelledBy,
+    cancellationReason: booking.cancellationReason,
     createdAt: booking.createdAt,
   };
 }

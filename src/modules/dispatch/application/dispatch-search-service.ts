@@ -106,7 +106,7 @@ export async function cancelBookingNoDriverFound(
       data: {
         status: BookingStatus.CANCELLED,
         cancelledAt: now,
-        cancelledBy: 'SYSTEM_DISPATCH_TIMEOUT',
+        cancelledBy: null,
         cancellationReason: CANCELLATION_REASON_NO_DRIVER,
       },
     });

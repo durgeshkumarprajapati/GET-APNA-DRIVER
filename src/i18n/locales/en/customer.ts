@@ -100,6 +100,12 @@ export const customerEn = {
     preferredDriverSubtitle:
       "Optional — we'll try to match you with them if they're available nearby. Not a guarantee.",
     preferredDriverNone: 'No preference — match me with the nearest available driver',
+    nearbyAvailableDriversTitle: 'Browse Available Drivers Nearby',
+    nearbyAvailableDriversSubtitle:
+      "Optional — every online driver near your pickup with no booking conflict. Pick one to request them directly, or skip this and we'll match you automatically.",
+    setPickupToSeeDrivers: 'Set your pickup location to see nearby available drivers.',
+    noDriversAvailableNearby:
+      'No drivers are currently available near your pickup location. You can still book — we will keep searching.',
     fareBreakdownLabel: 'Fare Calculation Breakdown',
     guaranteedRateTag: 'Guaranteed Rate',
     baseFareLabel: 'Base Dispatch & Setup',

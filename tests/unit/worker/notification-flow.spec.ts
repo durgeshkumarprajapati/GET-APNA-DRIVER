@@ -159,6 +159,60 @@ describe('Notification Integration Flow', () => {
     );
   });
 
+  // Regression: capturePayment/captureCashPayment (payment-service.ts) emit
+  // 'payment.captured' with no customerId/driverUserId in the payload at
+  // all — the handler must resolve the driver itself via the payment's
+  // booking/driverProfile relation (or driverProfileId directly) before it
+  // can notify them, or the driver silently never learns a payment came in.
+  it('processes payment.captured outbox event and creates a payment notification for the driver even when the payload carries neither customerId nor driverUserId', async () => {
+    (mockDb as unknown as { payment: { findUnique: jest.Mock } }).payment = {
+      findUnique: jest.fn().mockResolvedValue({
+        customerId: 'cust-11',
+        driverProfileId: 'drv-profile-1',
+        booking: { customerId: 'cust-11', driverProfile: { userId: 'driver-21' } },
+      }),
+    };
+
+    const outboxEvent = {
+      id: 'outbox-payment-2',
+      eventType: 'payment.captured',
+      aggregateType: 'Payment',
+      aggregateId: 'pay-78',
+      payload: {
+        paymentId: 'pay-78',
+        bookingId: 'booking-78',
+        amount: 900,
+      },
+      status: OutboxEventStatus.PROCESSING,
+      attempts: 1,
+      availableAt: new Date(),
+      lastAttemptAt: null,
+      lockedAt: new Date(),
+      lockedBy: 'integration-test-worker',
+      lastError: null,
+      processedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as unknown as OutboxEvent;
+
+    const success = await dispatcher.processEvent(
+      outboxEvent,
+      { maxAttempts: 3 },
+      mockDb as unknown as Parameters<typeof dispatcher.processEvent>[2],
+    );
+
+    expect(success).toBe(true);
+    expect(mockDb.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: 'driver-21',
+          type: NotificationType.PAYMENT_CAPTURED,
+          title: 'Payment Received!',
+        }),
+      }),
+    );
+  });
+
   // Regression: the outbox emitters use hyphenated 'scheduled-ride.*' event
   // types, but the handler registry previously registered mismatched
   // underscored keys ('scheduled_ride.created' / 'scheduled_ride.reminder'),

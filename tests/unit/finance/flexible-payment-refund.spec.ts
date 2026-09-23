@@ -12,9 +12,15 @@ import {
 } from '@/modules/finance/domain/errors';
 import { paymentProvider } from '@/modules/finance/infrastructure/payment-provider';
 import * as notificationService from '@/modules/notification/application/notification-service';
+import { triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 
 jest.mock('@/modules/notification/application/notification-service', () => ({
   createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+}));
+
+jest.mock('@/shared/outbox/outbox-service', () => ({
+  insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockTx = {
@@ -375,14 +381,12 @@ describe('Phase 69: Flexible Customer Payment & Automatic Refund on Cancellation
       });
 
       expect(summary.status).toBe('CAPTURED');
-      expect(notificationService.createNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: driverUserId,
-          type: 'PAYMENT_CAPTURED',
-          title: 'Payment Received',
-          data: { bookingId, paymentId: 'pay-100' },
-        }),
-      );
+      // Driver notification on payment capture is now delivered through the
+      // outbox ('payment.captured' handler resolves the driver from
+      // paymentId — see tests/unit/worker/notification-flow.spec.ts),
+      // triggered immediately rather than via a direct createNotification
+      // call here, so this only proves capturePayment wires that trigger in.
+      expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
     });
   });
 

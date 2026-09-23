@@ -386,7 +386,18 @@ describe('BookingService', () => {
           availabilityStatus: 'AVAILABLE',
           weeklyHireRate: { toString: () => '15000.0000' },
         });
-        mockBookingFindMany.mockResolvedValue([{ driverProfileId: 'driver-1' }]);
+        mockBookingFindMany.mockResolvedValue([
+          {
+            driverProfileId: 'driver-1',
+            bookingType: BookingType.WEEKLY,
+            requestedStartTime: null,
+            requestedAt: new Date(Date.now() - 60_000),
+            hireStartAt: new Date(Date.now() - 1000),
+            hireEndAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            estimatedDurationMinutes: null,
+            hireDurationMinutes: 10080,
+          },
+        ]);
 
         await expect(
           createBooking('cust-1', {

@@ -102,6 +102,12 @@ export const customerBn = {
     preferredDriverSectionTitle: 'পছন্দের ড্রাইভার নির্বাচন করুন',
     preferredDriverSubtitle: 'কাছে থাকলে আমরা তাদের যুক্ত করার চেষ্টা করব।',
     preferredDriverNone: 'কোনো পছন্দ নেই — কাছের উপলব্ধ ড্রাইভার যুক্ত করুন',
+    nearbyAvailableDriversTitle: 'আশেপাশের উপলব্ধ ড্রাইভার দেখুন',
+    nearbyAvailableDriversSubtitle:
+      'ঐচ্ছিক — আপনার পিকআপের কাছে থাকা প্রতিটি অনলাইন ড্রাইভার যার কোনো বুকিং সংঘাত নেই। সরাসরি একজনকে বেছে নিন, বা এটি এড়িয়ে যান এবং আমরা স্বয়ংক্রিয়ভাবে আপনাকে মেলাব।',
+    setPickupToSeeDrivers: 'আশেপাশের উপলব্ধ ড্রাইভার দেখতে আপনার পিকআপ স্থান সেট করুন।',
+    noDriversAvailableNearby:
+      'আপনার পিকআপ স্থানের কাছে এখন কোনো ড্রাইভার উপলব্ধ নেই। আপনি এখনও বুক করতে পারেন — আমরা খুঁজতে থাকব।',
     fareBreakdownLabel: 'ভাড়ার বিবরণ',
     guaranteedRateTag: 'গ্যারান্টিযুক্ত হার',
     baseFareLabel: 'মূল ভাড়া',

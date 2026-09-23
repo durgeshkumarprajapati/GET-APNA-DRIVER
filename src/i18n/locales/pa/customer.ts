@@ -99,6 +99,12 @@ export const customerPa = {
     preferredDriverSectionTitle: 'ਮਨਪਸੰਦ ਡਰਾਈਵਰ ਚੁਣੋ',
     preferredDriverSubtitle: 'ਜੇਕਰ ਉਪਲਬਧ ਹੋਏ ਤਾਂ ਅਸੀਂ ਉਹਨਾਂ ਨੂੰ ਜੋੜਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰਾਂਗੇ।',
     preferredDriverNone: 'ਕੋਈ ਪਸੰਦ ਨਹੀਂ — ਨੇੜਲੇ ਡਰਾਈਵਰ ਨੂੰ ਜੋੜੋ',
+    nearbyAvailableDriversTitle: 'ਨੇੜਲੇ ਉਪਲਬਧ ਡਰਾਈਵਰ ਦੇਖੋ',
+    nearbyAvailableDriversSubtitle:
+      'ਵਿਕਲਪਿਕ — ਤੁਹਾਡੇ ਪਿਕਅੱਪ ਦੇ ਨੇੜੇ ਹਰ ਆਨਲਾਈਨ ਡਰਾਈਵਰ ਜਿਸਦਾ ਕੋਈ ਬੁਕਿੰਗ ਟਕਰਾਅ ਨਹੀਂ ਹੈ। ਕਿਸੇ ਨੂੰ ਸਿੱਧਾ ਚੁਣੋ, ਜਾਂ ਇਸਨੂੰ ਛੱਡ ਦਿਓ ਅਤੇ ਅਸੀਂ ਤੁਹਾਨੂੰ ਆਪਣੇ ਆਪ ਮਿਲਾਵਾਂਗੇ।',
+    setPickupToSeeDrivers: 'ਨੇੜਲੇ ਉਪਲਬਧ ਡਰਾਈਵਰ ਦੇਖਣ ਲਈ ਆਪਣਾ ਪਿਕਅੱਪ ਟਿਕਾਣਾ ਸੈੱਟ ਕਰੋ।',
+    noDriversAvailableNearby:
+      'ਤੁਹਾਡੇ ਪਿਕਅੱਪ ਟਿਕਾਣੇ ਦੇ ਨੇੜੇ ਹੁਣੇ ਕੋਈ ਡਰਾਈਵਰ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਤੁਸੀਂ ਫਿਰ ਵੀ ਬੁੱਕ ਕਰ ਸਕਦੇ ਹੋ — ਅਸੀਂ ਖੋਜਦੇ ਰਹਾਂਗੇ।',
     fareBreakdownLabel: 'ਕਿਰਾਏ ਦਾ ਵੇਰਵਾ',
     guaranteedRateTag: 'ਗਾਰੰਟੀਸ਼ੁਦਾ ਦਰ',
     baseFareLabel: 'ਮੂਲ ਕਿਰਾਇਆ',

@@ -45,13 +45,10 @@ export async function getDriverHireConflicts(
   db: Db = prisma,
 ): Promise<DriverHireConflictResult> {
   const { driverProfileId, hireStartAt, hireEndAt, excludeBookingId } = input;
-
-  if (hireStartAt >= hireEndAt) {
-    return {
-      hasConflict: true,
-      reason: 'Requested hire start time must be strictly before hire end time.',
-    };
-  }
+  const effectiveEndAt =
+    hireEndAt && hireEndAt > hireStartAt
+      ? hireEndAt
+      : new Date(hireStartAt.getTime() + 60 * 60 * 1000);
 
   if (!db.booking?.findMany) {
     return { hasConflict: false };
@@ -105,7 +102,7 @@ export async function getDriverHireConflicts(
     }
 
     // 2. Half-Open Interval Overlap Formula: [startA, endA) overlaps [startB, endB) iff startA < endB AND endA > startB
-    if (existingStart < hireEndAt && existingEnd > hireStartAt) {
+    if (existingStart < effectiveEndAt && existingEnd > hireStartAt) {
       return {
         hasConflict: true,
         conflictingBookingId: b.id,

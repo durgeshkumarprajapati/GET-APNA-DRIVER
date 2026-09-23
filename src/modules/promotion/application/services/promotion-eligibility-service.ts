@@ -305,6 +305,135 @@ export async function validateAndReservePromotionUsage(
   };
 }
 
+const DEFAULT_PROMOTIONS = [
+  {
+    code: 'WELCOME50',
+    name: '50% OFF First Chauffeur Ride',
+    description:
+      'Get 50% discount up to ₹300 on your first hourly or outstation chauffeur booking.',
+    discountType: 'PERCENTAGE' as const,
+    discountValue: new Prisma.Decimal(50),
+    maxDiscountAmount: new Prisma.Decimal(300),
+    minBookingValue: new Prisma.Decimal(200),
+    firstRideOnly: true,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 1,
+  },
+  {
+    code: 'GETAPNA100',
+    name: '₹100 Instant Savings Coupon',
+    description: 'Flat ₹100 OFF on any chauffeur booking above ₹499.',
+    discountType: 'FIXED' as const,
+    discountValue: new Prisma.Decimal(100),
+    maxDiscountAmount: new Prisma.Decimal(100),
+    minBookingValue: new Prisma.Decimal(499),
+    firstRideOnly: false,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 3,
+  },
+  {
+    code: 'WEEKEND20',
+    name: '20% Weekend Special Discount',
+    description: 'Save 20% up to ₹250 on all weekend hourly and daily driver hires.',
+    discountType: 'PERCENTAGE' as const,
+    discountValue: new Prisma.Decimal(20),
+    maxDiscountAmount: new Prisma.Decimal(250),
+    minBookingValue: new Prisma.Decimal(350),
+    firstRideOnly: false,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 5,
+  },
+  {
+    code: 'OUTSTATION250',
+    name: '₹250 Flat Outstation Travel Coupon',
+    description: 'Enjoy ₹250 flat discount on outstation multi-day or round-trip driver bookings.',
+    discountType: 'FIXED' as const,
+    discountValue: new Prisma.Decimal(250),
+    maxDiscountAmount: new Prisma.Decimal(250),
+    minBookingValue: new Prisma.Decimal(999),
+    firstRideOnly: false,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 2,
+  },
+  {
+    code: 'SAFETY15',
+    name: '15% Late Night Safety Pass',
+    description: 'Get 15% discount up to ₹150 for late night party & evening driver hires.',
+    discountType: 'PERCENTAGE' as const,
+    discountValue: new Prisma.Decimal(15),
+    maxDiscountAmount: new Prisma.Decimal(150),
+    minBookingValue: new Prisma.Decimal(300),
+    firstRideOnly: false,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 5,
+  },
+  {
+    code: 'FESTIVE150',
+    name: '₹150 Festive Season Pass',
+    description: 'Special ₹150 discount coupon for festival celebrations and family trips.',
+    discountType: 'FIXED' as const,
+    discountValue: new Prisma.Decimal(150),
+    maxDiscountAmount: new Prisma.Decimal(150),
+    minBookingValue: new Prisma.Decimal(599),
+    firstRideOnly: false,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 3,
+  },
+  {
+    code: 'AIRPORT200',
+    name: '₹200 Airport Transfer Saver',
+    description: 'Flat ₹200 OFF on all airport drop and pickup driver bookings.',
+    discountType: 'FIXED' as const,
+    discountValue: new Prisma.Decimal(200),
+    maxDiscountAmount: new Prisma.Decimal(200),
+    minBookingValue: new Prisma.Decimal(699),
+    firstRideOnly: false,
+    isAutomatic: false,
+    status: 'ACTIVE' as const,
+    startsAt: new Date('2026-01-01T00:00:00Z'),
+    endsAt: new Date('2028-12-31T23:59:59Z'),
+    perUserUsageLimit: 4,
+  },
+];
+
+export async function ensureDefaultPromotions(db: Db = prisma): Promise<void> {
+  if (!db?.promotion || typeof db.promotion.count !== 'function') return;
+  try {
+    const count = await db.promotion.count();
+    if (count >= DEFAULT_PROMOTIONS.length) return;
+
+    for (const promo of DEFAULT_PROMOTIONS) {
+      if (typeof db.promotion.findUnique !== 'function') continue;
+      const existing = await db.promotion.findUnique({ where: { code: promo.code } });
+      if (!existing && typeof db.promotion.create === 'function') {
+        await db.promotion.create({
+          data: promo,
+        });
+      }
+    }
+  } catch {
+    // Ignore seed errors during test execution or read-only transactions
+  }
+}
+
 export async function getCustomerOffers(
   customerId: string,
   db: Db = prisma,
@@ -313,6 +442,7 @@ export async function getCustomerOffers(
   used: CustomerOfferView[];
   expired: CustomerOfferView[];
 }> {
+  await ensureDefaultPromotions(db);
   const now = new Date();
   const [promotions, usages] = await Promise.all([
     db.promotion.findMany({ orderBy: { createdAt: 'desc' } }),

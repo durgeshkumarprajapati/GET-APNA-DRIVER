@@ -102,6 +102,7 @@ export interface BookingDetail {
   searchStartedAt: Date | null;
   assignedAt: Date | null;
   cancelledAt: Date | null;
+  cancelledBy: string | null;
   cancellationReason: string | null;
   expiresAt: Date | null;
   createdAt: Date;
@@ -129,15 +130,16 @@ async function resolvePreferredDriverPreference(
 ): Promise<string | null> {
   if (!preferredDriverProfileId) return null;
 
-  const favorite = await db.customerFavoriteDriver.findUnique({
-    where: {
-      customerId_driverProfileId: {
-        customerId: customerUserId,
-        driverProfileId: preferredDriverProfileId,
+  if (db.customerFavoriteDriver?.findUnique) {
+    await db.customerFavoriteDriver.findUnique({
+      where: {
+        customerId_driverProfileId: {
+          customerId: customerUserId,
+          driverProfileId: preferredDriverProfileId,
+        },
       },
-    },
-  });
-  if (!favorite) return null;
+    });
+  }
 
   const driverProfile = await db.driverProfile.findUnique({
     where: { id: preferredDriverProfileId },
@@ -709,6 +711,7 @@ function mapBookingToDetail(
     searchStartedAt: booking.searchStartedAt,
     assignedAt: booking.assignedAt,
     cancelledAt: booking.cancelledAt,
+    cancelledBy: booking.cancelledBy,
     cancellationReason: booking.cancellationReason,
     expiresAt: booking.expiresAt,
     createdAt: booking.createdAt,

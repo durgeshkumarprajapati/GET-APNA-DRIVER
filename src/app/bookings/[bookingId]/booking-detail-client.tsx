@@ -12,6 +12,7 @@ import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 interface BookingDetail {
   id: string;
+  customerId?: string;
   status: string;
   bookingType: string;
   pickupLocation: {
@@ -39,6 +40,7 @@ interface BookingDetail {
   tripStartedAt: string | null;
   tripCompletedAt: string | null;
   cancelledAt: string | null;
+  cancelledBy?: string | null;
   cancellationReason: string | null;
   expiresAt: string | null;
   preferredDriverProfileId: string | null;
@@ -109,6 +111,46 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [submittingReview, setSubmittingReview] = useState(false);
   const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [resolvedPickupAddress, setResolvedPickupAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (booking?.pickupLocation) {
+      const addr = booking.pickupLocation.address;
+      if (
+        !addr ||
+        addr === 'Current location selected' ||
+        addr.startsWith('Coords:') ||
+        addr.startsWith('Fetching address')
+      ) {
+        fetch(
+          `/api/location/reverse-geocode?lat=${booking.pickupLocation.latitude}&lng=${booking.pickupLocation.longitude}`,
+        )
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (!cancelled && data?.address) {
+              const formatted =
+                data.address.formattedAddress ||
+                [
+                  data.address.addressLine1,
+                  data.address.city,
+                  data.address.state,
+                  data.address.postalCode,
+                ]
+                  .filter(Boolean)
+                  .join(', ');
+              if (formatted) {
+                setResolvedPickupAddress(formatted);
+              }
+            }
+          })
+          .catch(() => {});
+      }
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [booking]);
 
   useEffect(() => {
     const interval = setInterval(() => setNowTime(Date.now()), 2000);
@@ -432,6 +474,24 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
             </div>
           )}
 
+          {booking.status === 'CANCELLED' && (
+            <div className="p-5 rounded-2xl bg-red-950/60 border border-red-500/60 space-y-2">
+              <div className="flex items-center gap-2.5 text-red-300 font-bold text-base">
+                <span className="material-symbols-outlined text-xl">cancel</span>
+                <span>
+                  {booking.cancelledBy && booking.cancelledBy !== booking.customerId
+                    ? 'Driver has cancelled the booking'
+                    : 'You cancelled this booking'}
+                </span>
+              </div>
+              {booking.cancellationReason && (
+                <p className="text-xs text-red-200">
+                  Reason: <span className="font-semibold">{booking.cancellationReason}</span>
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Pending Offer — request sent to a specific driver, awaiting their response */}
           {booking.status === 'SEARCHING_DRIVER' && booking.pendingOffer && (
             <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center gap-3">
@@ -681,7 +741,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
               <span className="text-xs font-medium text-slate-400 uppercase">
                 {t('customer.booking.pickupLocation')}
               </span>
-              <p className="text-sm font-semibold text-white">{booking.pickupLocation.address}</p>
+              <p className="text-sm font-semibold text-white">
+                {resolvedPickupAddress ||
+                  (booking.pickupLocation.address !== 'Current location selected' &&
+                  !booking.pickupLocation.address.startsWith('Coords:') &&
+                  !booking.pickupLocation.address.startsWith('Fetching address')
+                    ? booking.pickupLocation.address
+                    : t('customer.tracking.coordsLabel', {
+                        lat: booking.pickupLocation.latitude.toFixed(4),
+                        lng: booking.pickupLocation.longitude.toFixed(4),
+                      }))}
+              </p>
               <p className="text-xs text-slate-400">
                 {t('customer.tracking.coordsLabel', {
                   lat: booking.pickupLocation.latitude.toFixed(4),

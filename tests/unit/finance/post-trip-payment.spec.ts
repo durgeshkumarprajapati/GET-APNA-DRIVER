@@ -22,7 +22,10 @@ jest.mock('@/shared/config/configuration-service', () => ({
 }));
 
 jest.mock('@/shared/audit/audit-service', () => ({ recordAuditLog: jest.fn() }));
-jest.mock('@/shared/outbox/outbox-service', () => ({ insertOutboxEvent: jest.fn() }));
+jest.mock('@/shared/outbox/outbox-service', () => ({
+  insertOutboxEvent: jest.fn(),
+  triggerImmediateOutboxDispatch: jest.fn(),
+}));
 
 jest.mock('@/modules/finance/infrastructure/payment-provider', () => ({
   paymentProvider: {
@@ -63,6 +66,7 @@ import {
 import { prisma } from '@/shared/database/prisma';
 import { applyWalletChange } from '@/modules/finance/application/services/wallet-service';
 import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
+import { triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import {
   BookingNotEligibleForPaymentError,
   CashPaymentConfirmationForbiddenError,
@@ -267,6 +271,10 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
       expect(postFinancialTransaction).toHaveBeenCalled();
       expect(applyWalletChange).toHaveBeenCalled();
       expect(result.status).toBe('CAPTURED');
+      // Regression: the driver must be notified of the cash payment
+      // immediately rather than only whenever the separate background
+      // worker next polls.
+      expect(triggerImmediateOutboxDispatch).toHaveBeenCalled();
     });
 
     it('rejects cash confirmation for cancelled trip', async () => {

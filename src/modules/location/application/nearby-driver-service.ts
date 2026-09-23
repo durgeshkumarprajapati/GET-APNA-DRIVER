@@ -110,6 +110,26 @@ export async function findNearbyDrivers(
   }
 
   if (candidates.length === 0) {
+    const availableProfiles = await db.driverProfile.findMany({
+      where: {
+        availabilityStatus: 'AVAILABLE',
+        approvalStatus: 'APPROVED',
+        user: { accountStatus: 'ACTIVE' },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    for (const p of availableProfiles) {
+      candidates.push({
+        driverProfileId: p.id,
+        distanceMeters: 0,
+      });
+    }
+  }
+
+  if (candidates.length === 0) {
     return [];
   }
 

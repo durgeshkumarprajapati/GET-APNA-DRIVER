@@ -3,14 +3,13 @@ import type { Payment } from '@prisma/client';
 import { prisma, type Db } from '@/shared/database/prisma';
 import { getString } from '@/shared/config/configuration-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
-import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outbox/outbox-service';
 import { env } from '@/shared/config/env';
 import { paymentProvider } from '../../infrastructure/payment-provider';
 import { calculateBookingAmount, calculateCommission } from './pricing-service';
 import { postFinancialTransaction } from './ledger-service';
 import { applyWalletChange } from './wallet-service';
 import { createTaxInvoiceForBooking } from '@/modules/tax-invoices/invoice-service';
-import { createNotification } from '@/modules/notification/application/notification-service';
 import { logger } from '@/shared/logging/logger';
 import {
   validatePaymentStatusTransition,
@@ -586,6 +585,15 @@ export async function capturePayment(
     return mapPaymentToSummary(updated);
   });
 
+  // Notifies the driver (the 'payment.captured' handler resolves the
+  // recipient from paymentId when it's not already in the payload) and
+  // fires the other outbox events queued in the same transaction
+  // immediately, rather than waiting for the separate background worker's
+  // next poll. Replaces a previous ad-hoc, non-idempotent direct
+  // createNotification call here that would now double-notify the driver
+  // alongside this reliable path.
+  await triggerImmediateOutboxDispatch(db);
+
   // Tax-invoice generation is a best-effort side effect of a successful
   // capture, not a condition of it — createTaxInvoiceForBooking has its own
   // idempotency guard (a unique constraint on TaxInvoice.bookingId), so a
@@ -599,28 +607,6 @@ export async function capturePayment(
       logger.warn(
         { err, bookingId: result.bookingId },
         'Failed to generate tax invoice for booking',
-      );
-    }
-
-    try {
-      const booking = await db.booking.findUnique({
-        where: { id: result.bookingId },
-        include: { driverProfile: true },
-      });
-      if (booking?.driverProfile?.userId) {
-        await createNotification({
-          userId: booking.driverProfile.userId,
-          category: 'BOOKING',
-          type: 'PAYMENT_CAPTURED',
-          title: 'Payment Received',
-          body: `Customer has completed payment for booking ${result.bookingId}.`,
-          data: { bookingId: result.bookingId, paymentId: result.id },
-        });
-      }
-    } catch (notifErr: unknown) {
-      logger.warn(
-        { notifErr, paymentId: result.id, bookingId: result.bookingId },
-        'Best-effort driver payment notification failed',
       );
     }
   }
@@ -909,7 +895,7 @@ export async function captureCashPayment(
   paymentId: string,
   db: Db = prisma,
 ): Promise<PaymentSummary> {
-  return db.$transaction(async (tx: Db) => {
+  const result = await db.$transaction(async (tx: Db) => {
     const payment = await tx.payment.findUnique({ where: { id: paymentId } });
     if (!payment) {
       throw new PaymentNotFoundError(paymentId);
@@ -1032,6 +1018,12 @@ export async function captureCashPayment(
 
     return mapPaymentToSummary(updated);
   });
+
+  // Notifies the driver immediately rather than waiting for the separate
+  // background worker's next poll.
+  await triggerImmediateOutboxDispatch(db);
+
+  return result;
 }
 
 export async function getPostTripPaymentForBooking(
