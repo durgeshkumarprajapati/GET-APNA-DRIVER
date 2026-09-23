@@ -18,6 +18,7 @@ import { updateUserCredentialPassword } from '../src/modules/identity/infrastruc
 import { upsertRoleAssignment } from '../src/modules/identity/infrastructure/rbac-repository';
 import { hashPassword } from '../src/modules/identity/security/password';
 import { normalizeEmail } from '../src/modules/identity/validation/email';
+import { ensureDefaultPromotions } from '../src/modules/promotion/application/services/promotion-eligibility-service';
 
 interface DevUserSeed {
   label: string;
@@ -1231,6 +1232,8 @@ async function runAllSeeds() {
   await seedPhase41CorporateData();
   await seedMarketplaceZones();
   await seedVehicleCategories();
+  await ensureDefaultPromotions(prisma);
+  console.log('Promotions and Offers Seeding Completed.');
 }
 
 main()
