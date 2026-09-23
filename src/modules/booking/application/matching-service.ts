@@ -186,6 +186,57 @@ export async function findAndOfferNextDriver(
     };
   };
 
+  // If the customer selected a specific preferred driver (supported on all
+  // booking types: POINT_TO_POINT, HOURLY, DAILY, WEEKLY, MONTHLY), try to
+  // offer that driver directly first, bypassing geo-distance filtering so distance
+  // from pickup doesn't filter out their assignment offer.
+  const chosenDriverId = booking.preferredDriverProfileId;
+  if (chosenDriverId && !attemptedDriverIds.has(chosenDriverId)) {
+    let isStillAvailable = false;
+    const driverProfile = await db.driverProfile.findUnique({ where: { id: chosenDriverId } });
+    isStillAvailable =
+      !!driverProfile &&
+      driverProfile.approvalStatus === DriverApprovalStatus.APPROVED &&
+      driverProfile.availabilityStatus === DriverAvailabilityStatus.AVAILABLE;
+
+    if (isStillAvailable && booking.hireStartAt && booking.hireEndAt) {
+      const conflicting = await findConflictingDriverIds(
+        [chosenDriverId],
+        booking.hireStartAt,
+        booking.hireEndAt,
+        db,
+      );
+      isStillAvailable = !conflicting.has(chosenDriverId);
+    }
+
+    if (isStillAvailable && booking.vehicleCategoryId) {
+      const cap = await db.driverVehicleCapability.findFirst({
+        where: {
+          driverProfileId: chosenDriverId,
+          vehicleCategoryId: booking.vehicleCategoryId,
+          vehicleCategory: { isActive: true },
+        },
+      });
+      if (!cap) {
+        isStillAvailable = false;
+      }
+    }
+
+    if (isStillAvailable) {
+      const dispatchEligibility = await isDriverDispatchEligible(chosenDriverId, now, db);
+      if (!dispatchEligibility.isEligible) {
+        isStillAvailable = false;
+      }
+    }
+
+    if (isStillAvailable) {
+      return createOffer(
+        chosenDriverId,
+        "Assignment offer created for the customer's selected driver.",
+      );
+    }
+  }
+
   // DAILY/WEEKLY/MONTHLY hires require the customer to have already chosen
   // a specific driver at that driver's own rate (enforced at booking
   // creation — see booking-service.ts / driver-hire-availability-service.ts).
@@ -194,61 +245,13 @@ export async function findAndOfferNextDriver(
   // If the chosen driver is no longer available, the search expires outright
   // rather than widening into the normal geo-proximity pool below.
   if (isRateSelectableHireBooking(booking.bookingType)) {
-    const chosenDriverId = booking.preferredDriverProfileId;
-    let isStillAvailable = false;
-
-    if (chosenDriverId && !attemptedDriverIds.has(chosenDriverId)) {
-      const driverProfile = await db.driverProfile.findUnique({ where: { id: chosenDriverId } });
-      isStillAvailable =
-        !!driverProfile &&
-        driverProfile.approvalStatus === DriverApprovalStatus.APPROVED &&
-        driverProfile.availabilityStatus === DriverAvailabilityStatus.AVAILABLE;
-
-      if (isStillAvailable && booking.hireStartAt && booking.hireEndAt) {
-        const conflicting = await findConflictingDriverIds(
-          [chosenDriverId],
-          booking.hireStartAt,
-          booking.hireEndAt,
-          db,
-        );
-        isStillAvailable = !conflicting.has(chosenDriverId);
-      }
-
-      if (isStillAvailable && booking.vehicleCategoryId) {
-        const cap = await db.driverVehicleCapability.findFirst({
-          where: {
-            driverProfileId: chosenDriverId,
-            vehicleCategoryId: booking.vehicleCategoryId,
-            vehicleCategory: { isActive: true },
-          },
-        });
-        if (!cap) {
-          isStillAvailable = false;
-        }
-      }
-
-      if (isStillAvailable) {
-        const dispatchEligibility = await isDriverDispatchEligible(chosenDriverId, now, db);
-        if (!dispatchEligibility.isEligible) {
-          isStillAvailable = false;
-        }
-      }
-    }
-
-    if (!chosenDriverId || !isStillAvailable) {
-      await cancelBookingNoDriverFound(booking.id, db);
-      return {
-        attemptId: null,
-        status: 'NO_DRIVERS_FOUND',
-        message:
-          'The selected driver is no longer available or does not possess the requested vehicle capability; this booking type does not fall back to another driver.',
-      };
-    }
-
-    return createOffer(
-      chosenDriverId,
-      "Assignment offer created for the customer's selected driver.",
-    );
+    await cancelBookingNoDriverFound(booking.id, db);
+    return {
+      attemptId: null,
+      status: 'NO_DRIVERS_FOUND',
+      message:
+        'The selected driver is no longer available or does not possess the requested vehicle capability; this booking type does not fall back to another driver.',
+    };
   }
 
   let currentRadius = initialRadius + booking.assignmentAttempts.length * radiusIncrement;

@@ -35,7 +35,7 @@ jest.mock('@/shared/database/prisma', () => ({
           id: where.id,
           user: { id: 'u-1', accountStatus: 'ACTIVE' },
           approvalStatus: 'APPROVED',
-          availabilityStatus: 'AVAILABLE',
+          availabilityStatus: where.id === 'dp-offline-elsewhere' ? 'OFFLINE' : 'AVAILABLE',
           verificationStatus: 'VERIFIED',
           onboardingStatus: 'COMPLETED',
           firstName: 'Test',
@@ -252,6 +252,29 @@ describe('MatchingService', () => {
     });
 
     it('falls back to the nearest candidate when the preferred driver is not in the current eligible/nearby pool', async () => {
+      (prisma.driverProfile.findUnique as jest.Mock).mockImplementation(({ where }) => {
+        if (where.id === 'dp-offline-elsewhere') {
+          return Promise.resolve(null);
+        }
+        return Promise.resolve({
+          id: where.id,
+          user: { id: 'u-1', accountStatus: 'ACTIVE' },
+          approvalStatus: 'APPROVED',
+          availabilityStatus: 'AVAILABLE',
+          verificationStatus: 'VERIFIED',
+          onboardingStatus: 'COMPLETED',
+          firstName: 'Test',
+          lastName: 'Driver',
+          dateOfBirth: new Date('1990-01-01'),
+          primaryServiceArea: 'Delhi NCR',
+          drivingExperienceYears: 5,
+          documents: [
+            { documentType: 'DRIVING_LICENSE', status: 'VERIFIED', expiresAt: null },
+            { documentType: 'AADHAAR_CARD', status: 'VERIFIED', expiresAt: null },
+          ],
+        });
+      });
+
       mockFindUniqueBooking.mockResolvedValue({
         id: 'bk-1',
         status: BookingStatus.SEARCHING_DRIVER,
