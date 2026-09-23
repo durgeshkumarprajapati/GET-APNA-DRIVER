@@ -5,11 +5,28 @@
 // alongside OTP delivery). Introduce a full phone-number library only if a
 // concrete requirement (e.g. locale-aware input parsing) justifies it.
 const E164_REGEX = /^\+[1-9]\d{7,14}$/;
+const INDIAN_MOBILE_REGEX = /^\+91[6-9]\d{9}$/;
 
 export function normalizePhoneNumber(value: string): string {
-  return value.trim();
+  if (!value) return '';
+  const trimmed = value.trim();
+
+  // If starts with '+', clean digits after '+'
+  if (trimmed.startsWith('+')) {
+    return '+' + trimmed.slice(1).replace(/\D/g, '');
+  }
+
+  // Without leading '+', return clean digits (which fails E.164 validation as expected)
+  return trimmed.replace(/\D/g, '');
 }
 
 export function isValidE164PhoneNumber(value: string): boolean {
-  return E164_REGEX.test(value);
+  if (!E164_REGEX.test(value)) {
+    return false;
+  }
+  // If it's an Indian number (+91...), enforce Indian 10-digit mobile rule
+  if (value.startsWith('+91')) {
+    return INDIAN_MOBILE_REGEX.test(value);
+  }
+  return true;
 }
