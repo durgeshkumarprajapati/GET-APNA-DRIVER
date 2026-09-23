@@ -56,6 +56,22 @@ const ACTIVE_BOOKING_STATUSES = new Set([
   'TRIP_IN_PROGRESS',
 ]);
 
+const BOOKING_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  SEARCHING_DRIVER: 'Searching Driver',
+  DRIVER_ASSIGNED: 'Driver Assigned',
+  DRIVER_EN_ROUTE: 'Driver En Route',
+  DRIVER_ARRIVED: 'Driver Arrived',
+  TRIP_IN_PROGRESS: 'Service In Progress',
+  TRIP_COMPLETED: 'Service Completed',
+  CANCELLED: 'Cancelled',
+  EXPIRED: 'Expired',
+};
+
+function bookingStatusLabel(status: string): string {
+  return BOOKING_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
+}
+
 export default function DriverDashboardPage() {
   const [profile, setProfile] = useState<DriverProfile | null>(null);
   const [offers, setOffers] = useState<AssignmentOffer[]>([]);
@@ -226,13 +242,13 @@ export default function DriverDashboardPage() {
                     Today: ₹{earningsSummary?.todayEarnings ?? '0.00'}
                   </span>
                   <span className="text-xs text-slate-400">
-                    ({earningsSummary?.completedTripsToday ?? 0} trips completed)
+                    ({earningsSummary?.completedTripsToday ?? 0} services completed)
                   </span>
                 </div>
                 {goals && (
                   <div className="flex items-center gap-2 text-xs text-slate-300 pt-1">
                     <span>
-                      Daily Goal: {goals.completedTripsToday} / {goals.dailyTripGoal} trips
+                      Daily Goal: {goals.completedTripsToday} / {goals.dailyTripGoal} services
                     </span>
                     <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
                       <div
@@ -378,7 +394,7 @@ export default function DriverDashboardPage() {
                         <p className="text-xs text-[#87948b]">{booking.bookingType}</p>
                       </div>
                       <span className="px-2 py-0.5 rounded bg-[#00311f] text-[#68dba9] border border-[#25a475] text-[10px] font-bold">
-                        {booking.status}
+                        {bookingStatusLabel(booking.status)}
                       </span>
                     </div>
                   ))}

@@ -91,7 +91,7 @@ export default function CustomerRewardsPage() {
                       summary.currentTier.pointMultiplier ?? summary.currentTier.multiplier ?? 1,
                     benefitsSummary:
                       summary.currentTier.benefitsSummary ||
-                      'Enjoy priority matching and points multiplier on all completed rides.',
+                      'Enjoy priority matching and points multiplier on all completed bookings.',
                   }
                 : null,
               nextTier: summary.nextTier
@@ -324,11 +324,11 @@ export default function CustomerRewardsPage() {
                       </span>
                       <p className="text-xs text-[#dfe2ee] mt-1 leading-relaxed">
                         {account.currentTier?.benefitsSummary ||
-                          'Enjoy priority booking matching and points multiper on all completed rides.'}
+                          'Enjoy priority booking matching and points multiper on all completed bookings.'}
                       </p>
                     </div>
                     <div className="mt-4 pt-3 border-t border-[#262a33] text-[11px] text-[#bccac0] font-mono">
-                      Completed trips earn 10 points per ₹100 spent.
+                      Completed bookings earn 10 points per ₹100 spent.
                     </div>
                   </div>
                 </div>

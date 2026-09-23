@@ -199,7 +199,7 @@ export default function ScheduledRideDetailPage() {
                   </span>
                 </div>
                 <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
-                  Scheduled Ride #{ride.id.substring(0, 8)}
+                  Scheduled Booking #{ride.id.substring(0, 8)}
                 </h1>
                 <p className="text-xs text-[#87948b] font-mono mt-0.5">
                   Created on {formatDate(ride.createdAt)}

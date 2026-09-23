@@ -385,7 +385,7 @@ export default function AdminCouponsPage() {
                 checked={form.firstRideOnly}
                 onChange={(e) => setForm({ ...form, firstRideOnly: e.target.checked })}
               />
-              First ride only
+              First booking only
             </label>
             <label className="flex items-center gap-2 text-xs text-[#bccac0]">
               <input

@@ -61,7 +61,7 @@ export default function DriverPerformancePage() {
         <PageHeader
           eyebrow="Chauffeur Performance"
           title="Performance Metrics"
-          subtitle="Your quality score, trip completion, and earnings — computed from your real trip history."
+          subtitle="Your quality score, service completion, and earnings — computed from your real service history."
         />
 
         {error && (
@@ -82,7 +82,7 @@ export default function DriverPerformancePage() {
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard label="Completed Trips" value={metrics.completedTrips} />
+                <MetricCard label="Completed Services" value={metrics.completedTrips} />
                 <MetricCard
                   label="Completion Rate"
                   value={formatRate(metrics.completionRate)}
@@ -94,7 +94,7 @@ export default function DriverPerformancePage() {
                   accent={Number(metrics.cancellationRate) > 0.1 ? 'negative' : 'default'}
                 />
                 <MetricCard
-                  label="Average Trip Value"
+                  label="Average Service Value"
                   value={formatCurrency(metrics.averageTripValue)}
                 />
                 <MetricCard
@@ -103,7 +103,7 @@ export default function DriverPerformancePage() {
                   accent="positive"
                 />
                 <MetricCard
-                  label="Cancelled (Assigned) Trips"
+                  label="Cancelled (Assigned) Services"
                   value={metrics.cancelledAssignedTrips}
                 />
               </div>

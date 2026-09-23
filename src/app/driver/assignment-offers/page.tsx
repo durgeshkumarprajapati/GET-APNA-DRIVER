@@ -194,7 +194,7 @@ export default function DriverAssignmentOffersPage() {
               <p className="text-slate-300 font-medium">No pending assignment offers.</p>
               <p className="text-xs text-slate-400">
                 Keep your status set to <strong className="text-emerald-400">AVAILABLE</strong> and
-                send live GPS updates to receive nearby trip requests.
+                send live GPS updates to receive nearby booking requests.
               </p>
             </div>
           ) : (

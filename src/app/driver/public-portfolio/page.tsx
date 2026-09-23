@@ -73,7 +73,7 @@ export default function DriverPublicPortfolioPage() {
         <PageHeader
           eyebrow="Public Chauffeur Dossier"
           title="Public Portfolio"
-          subtitle="This is what customers see about you — built entirely from your real profile and trip history."
+          subtitle="This is what customers see about you — built entirely from your real profile and service history."
         />
 
         {error && (
@@ -100,7 +100,7 @@ export default function DriverPublicPortfolioPage() {
                       <RatingStars value={portfolio.performance.averageRating} size="sm" />
                       <span className="font-mono text-xs text-[#68dba9]">
                         {portfolio.performance.averageRating.toFixed(2)} •{' '}
-                        {portfolio.performance.completedTrips} Trips •{' '}
+                        {portfolio.performance.completedTrips} Services •{' '}
                         {portfolio.drivingExperienceYears} Years Driving Experience
                       </span>
                     </div>

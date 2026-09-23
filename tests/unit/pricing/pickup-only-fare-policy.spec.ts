@@ -16,14 +16,17 @@ describe('Pickup-Only Fare Policy Unit Tests', () => {
 
   const pickup = { latitude: 28.6139, longitude: 77.209 };
 
-  // POINT_TO_POINT/ONE_WAY are the only two BookingTypes priced by real
-  // distance (see pricing-rules.ts). With no dropoff and no better signal,
-  // the route provider honestly reports 0km rather than fabricating a
-  // number it has no basis for — the minimum-fare floor then covers the
-  // charge. The real fix for this (using the driver's live GPS location at
-  // trip completion as a stand-in dropoff) lives in driver-journey-
-  // service.ts's completeTrip and is covered there; this file only proves
-  // the pricing layer itself never invents a fake distance on its own.
+  // GET Apna Driver charges for the driver's service (base fare + time),
+  // never for distance — the customer already owns the vehicle (see
+  // pricing-rules.ts's calculateFareBreakdown, where distanceFareAmount is
+  // always zero for every booking type). With no dropoff and no better
+  // signal, the route provider honestly reports 0km/0min rather than
+  // fabricating a number it has no basis for; this file proves the pricing
+  // layer never invents a fake distance, and that the minimum-fare floor
+  // still covers a very short pickup-only service either way. (The driver's
+  // live GPS capture in driver-journey-service.ts's completeTrip records
+  // where the service actually ended for audit/history purposes — it has
+  // no effect on the fare, since distance was never billed to begin with.)
   it('reports zero distance/duration for a POINT_TO_POINT pickup-only estimate, and the minimum fare floor covers the charge', async () => {
     const result = await calculateEstimatedFare(
       {

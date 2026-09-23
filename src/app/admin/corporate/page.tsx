@@ -117,7 +117,7 @@ export default function AdminCorporatePage() {
                   <tr className="border-b border-[#262a33] bg-[#0a0e16]/60 text-[11px] font-mono text-[#bccac0] uppercase tracking-wider">
                     <th className="p-3.5">Organization</th>
                     <th className="p-3.5">GSTIN / Tax ID</th>
-                    <th className="p-3.5">Members & Rides</th>
+                    <th className="p-3.5">Members & Bookings</th>
                     <th className="p-3.5">Credit Line</th>
                     <th className="p-3.5">Status</th>
                     <th className="p-3.5">Actions</th>
@@ -134,7 +134,7 @@ export default function AdminCorporatePage() {
                         {org.gstin || 'NOT_PROVIDED'}
                       </td>
                       <td className="p-3.5 text-[#bccac0]">
-                        {org._count.members} Members / {org._count.bookings} Rides
+                        {org._count.members} Members / {org._count.bookings} Bookings
                       </td>
                       <td className="p-3.5 font-bold text-[#68dba9]">
                         ₹{Number(org.creditLimit).toLocaleString()}

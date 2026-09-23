@@ -108,7 +108,7 @@ export default function CustomerSafetySosPage() {
             Active Booking Context
           </h2>
           {bookingLoading ? (
-            <LoadingState message="Checking for an active trip…" />
+            <LoadingState message="Checking for an active booking…" />
           ) : activeBooking ? (
             <div className="text-xs text-[#bccac0] space-y-1">
               <p>
@@ -123,12 +123,12 @@ export default function CustomerSafetySosPage() {
                 <p>Dropoff: {activeBooking.dropoffLocation.address}</p>
               )}
               <p className="text-[10px] text-[#87948b]">
-                This trip will be automatically linked to your SOS alert.
+                This booking will be automatically linked to your SOS alert.
               </p>
             </div>
           ) : (
             <p className="text-xs text-[#87948b]">
-              No active trip right now — your SOS will still be sent with your current location.
+              No active booking right now — your SOS will still be sent with your current location.
             </p>
           )}
         </section>

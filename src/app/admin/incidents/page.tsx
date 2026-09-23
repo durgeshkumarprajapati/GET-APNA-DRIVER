@@ -99,7 +99,7 @@ export default function AdminIncidentsListPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-100">
-              Trip Reliability Incident Management
+              Service Reliability Incident Management
             </h1>
             <p className="text-xs text-slate-400 mt-1">
               Real-time operational anomaly tracking and automated recovery control.
@@ -174,7 +174,7 @@ export default function AdminIncidentsListPage() {
 
         {/* Content */}
         {loading ? (
-          <LoadingState message="Fetching active trip reliability incidents..." />
+          <LoadingState message="Fetching active service reliability incidents..." />
         ) : error ? (
           <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
             {error}
@@ -182,7 +182,7 @@ export default function AdminIncidentsListPage() {
         ) : incidents.length === 0 ? (
           <EmptyState
             icon="done_all"
-            message="All active rides and system operations are functioning normally within reliability parameters."
+            message="All active bookings and system operations are functioning normally within reliability parameters."
           />
         ) : (
           <div className="space-y-3">

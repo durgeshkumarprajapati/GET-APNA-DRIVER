@@ -35,7 +35,7 @@ const STATUS_LABEL: Record<string, string> = {
   DRIVER_ASSIGNED: 'Driver assigned',
   DRIVER_EN_ROUTE: 'Driver en route to pickup',
   DRIVER_ARRIVED: 'Driver has arrived',
-  TRIP_IN_PROGRESS: 'Trip in progress',
+  TRIP_IN_PROGRESS: 'Service in progress',
 };
 
 export default function CustomerActiveTrackingPage() {
@@ -104,23 +104,23 @@ export default function CustomerActiveTrackingPage() {
       <div className="flex flex-col w-full gap-6">
         <PageHeader
           eyebrow="Live Tracking"
-          title="Active Ride & Tracking"
-          subtitle="Real-time status of your current trip."
+          title="Active Booking & Tracking"
+          subtitle="Real-time status of your current booking."
         />
 
         {loading ? (
-          <LoadingState message="Checking for an active ride…" />
+          <LoadingState message="Checking for an active booking…" />
         ) : activeBookingError ? (
           <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
             {activeBookingError}
           </div>
         ) : !displayBooking ? (
-          <EmptyState icon="near_me" message="No active ride right now.">
+          <EmptyState icon="near_me" message="No active booking right now.">
             <Link
               href="/bookings/new"
               className="mt-3 inline-block px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold transition-colors"
             >
-              Book a Ride
+              Book a Driver
             </Link>
           </EmptyState>
         ) : (
@@ -149,7 +149,7 @@ export default function CustomerActiveTrackingPage() {
                   href={`/bookings/${displayBooking.id}`}
                   className="text-xs text-[#68dba9] hover:underline"
                 >
-                  View full trip details →
+                  View full booking details →
                 </Link>
               </div>
 
@@ -199,7 +199,7 @@ export default function CustomerActiveTrackingPage() {
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#68dba9] text-base">map</span>
-                  <span>Live Ride Map</span>
+                  <span>Live Booking Map</span>
                 </h2>
                 {driverLocation && (
                   <span className="text-[10px] text-[#87948b]">
@@ -258,7 +258,7 @@ export default function CustomerActiveTrackingPage() {
                     markers={markers}
                     height="380px"
                     fitBounds={true}
-                    ariaLabel="Active ride tracking map"
+                    ariaLabel="Active booking tracking map"
                   />
                 );
               })()}

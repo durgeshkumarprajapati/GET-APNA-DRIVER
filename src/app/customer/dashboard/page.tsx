@@ -311,7 +311,7 @@ export default function CustomerDashboardPage() {
                     </span>
                     <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                       {scheduledRides.filter((r) => r.status === 'SCHEDULED').length} Active
-                      Scheduled Ride(s)
+                      Scheduled Booking(s)
                     </p>
                   </div>
                 </div>

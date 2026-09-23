@@ -245,7 +245,7 @@ export default function CorporateMembersPage() {
                     >
                       <option value="MEMBER">MEMBER (Standard Travel Profile)</option>
                       <option value="TRAVEL_MANAGER">TRAVEL_MANAGER (Roster & Policy Admin)</option>
-                      <option value="APPROVER">APPROVER (Ride Approval Officer)</option>
+                      <option value="APPROVER">APPROVER (Booking Approval Officer)</option>
                       <option value="FINANCE">FINANCE (Billing & GST Statements)</option>
                       <option value="ADMIN">ADMIN (Full Corporate Admin)</option>
                     </select>

@@ -48,7 +48,7 @@ export default function CorporateReportsPage() {
   const handleExportCSV = () => {
     if (!report) return;
     const lines = [
-      'Department Code,Department Name,Spend (INR),Ride Count',
+      'Department Code,Department Name,Spend (INR),Booking Count',
       ...report.departmentBreakdown.map(
         (d) => `"${d.departmentCode}","${d.departmentName}",${d.spend},${d.rideCount}`,
       ),
@@ -131,7 +131,7 @@ export default function CorporateReportsPage() {
                               {d.departmentName} ({d.departmentCode})
                             </span>
                             <span className="text-[#68dba9] font-bold">
-                              ₹{d.spend.toLocaleString()} ({d.rideCount} rides)
+                              ₹{d.spend.toLocaleString()} ({d.rideCount} bookings)
                             </span>
                           </div>
                           <div className="h-2 w-full bg-[#1c2028] rounded-full overflow-hidden border border-[#262a33]">
@@ -174,7 +174,7 @@ export default function CorporateReportsPage() {
                               {cc.costCenterName} ({cc.costCenterCode})
                             </span>
                             <span className="text-[#68dba9] font-bold">
-                              ₹{cc.spend.toLocaleString()} ({cc.rideCount} rides)
+                              ₹{cc.spend.toLocaleString()} ({cc.rideCount} bookings)
                             </span>
                           </div>
                           <div className="h-2 w-full bg-[#1c2028] rounded-full overflow-hidden border border-[#262a33]">

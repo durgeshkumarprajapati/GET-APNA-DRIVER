@@ -47,13 +47,14 @@ export default function CorporateBookingsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <span className="text-[10px] font-mono font-bold tracking-widest text-[#68dba9] uppercase">
-              RIDE MANAGEMENT
+              BOOKING MANAGEMENT
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
               Corporate Travel Roster
             </h1>
             <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-              Track business trips, allocated cost centers, department spend, and ride statuses.
+              Track business bookings, allocated cost centers, department spend, and booking
+              statuses.
             </p>
           </div>
 
@@ -62,7 +63,7 @@ export default function CorporateBookingsPage() {
             className="px-4 py-2.5 bg-[#25a475] hover:bg-[#208e65] text-[#00311f] font-bold rounded-xl text-xs flex items-center gap-2 transition-colors shadow-lg shadow-[#25a475]/20"
           >
             <span className="material-symbols-outlined text-base">add_circle</span>
-            <span>Book Ride</span>
+            <span>Book Driver</span>
           </Link>
         </div>
 

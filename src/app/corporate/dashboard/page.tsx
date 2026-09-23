@@ -55,7 +55,8 @@ export default function CorporateDashboardPage() {
               Corporate Travel Dashboard
             </h1>
             <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
-              Manage enterprise mobility, employee rides, policy compliance, and billing statements.
+              Manage enterprise mobility, employee driver-service bookings, policy compliance, and
+              billing statements.
             </p>
           </div>
 
@@ -65,7 +66,7 @@ export default function CorporateDashboardPage() {
               className="px-4 py-2.5 bg-gradient-to-r from-[#25a475] to-[#68dba9] text-[#00311f] font-bold rounded-xl text-xs flex items-center gap-2 hover:brightness-110 shadow-lg shadow-[#25a475]/20 transition-all"
             >
               <span className="material-symbols-outlined text-base">add_circle</span>
-              <span>Book Corporate Ride</span>
+              <span>Book Corporate Driver</span>
             </Link>
           </div>
         </div>
@@ -103,14 +104,14 @@ export default function CorporateDashboardPage() {
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-[#bccac0]">
                     <span className="text-xs font-mono uppercase tracking-wider font-semibold">
-                      Rides Completed
+                      Bookings Completed
                     </span>
                     <span className="material-symbols-outlined text-[#68dba9]">local_taxi</span>
                   </div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
                     {report.completedRidesCount}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">Employee business trips</p>
+                  <p className="text-[11px] text-[#87948b] font-mono">Employee business bookings</p>
                 </div>
 
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
@@ -211,21 +212,21 @@ export default function CorporateDashboardPage() {
               <div className="space-y-4 pt-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    Recent Corporate Trips
+                    Recent Corporate Bookings
                   </h2>
                   <Link
                     href="/corporate/bookings"
                     className="text-xs text-[#68dba9] font-mono hover:underline"
                   >
-                    View All Rides →
+                    View All Bookings →
                   </Link>
                 </div>
 
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
                   {report.recentRides.length === 0 ? (
                     <div className="p-8 text-center text-[#bccac0] text-xs font-mono">
-                      No corporate rides recorded yet. Click &quot;Book Corporate Ride&quot; to
-                      schedule the first trip.
+                      No corporate bookings recorded yet. Click &quot;Book Corporate Driver&quot; to
+                      schedule the first booking.
                     </div>
                   ) : (
                     <div className="overflow-x-auto">

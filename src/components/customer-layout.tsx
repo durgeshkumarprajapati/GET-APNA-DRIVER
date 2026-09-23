@@ -34,16 +34,19 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [userName, setUserName] = useState<string | null>(userEmail ?? null);
+  const [fetchedUserName, setFetchedUserName] = useState<string | null>(null);
+  // Derived directly from the prop during render rather than mirrored into
+  // state via an effect — avoids a synchronous setState-in-effect (which
+  // triggers a redundant cascading render) for the common case where
+  // userEmail is already known; the effect below only needs to run the
+  // async profile fetch for the fallback case.
+  const userName = userEmail ?? fetchedUserName;
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('CUSTOMER');
   useAutoWebPush();
 
   useEffect(() => {
-    if (userEmail) {
-      setUserName(userEmail);
-      return;
-    }
+    if (userEmail) return;
     let isMounted = true;
     fetch('/api/customer/profile')
       .then((res) => (res.ok ? res.json() : null))
@@ -55,7 +58,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
           [p.firstName, p.lastName].filter(Boolean).join(' ') ||
           p.email ||
           'Customer';
-        setUserName(name);
+        setFetchedUserName(name);
       })
       .catch(() => {});
     return () => {

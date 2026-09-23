@@ -322,7 +322,7 @@ export default function AdminMarketplaceIntelligencePage() {
               <span className="text-2xl font-bold font-mono text-blue-400">
                 {data.forecast.forecastedDemand}
               </span>
-              <span className="text-xs text-slate-400">expected rides</span>
+              <span className="text-xs text-slate-400">expected bookings</span>
             </div>
             <p className="text-xs text-slate-400 mt-3 line-clamp-2">{data.forecast.explanation}</p>
           </div>

@@ -106,7 +106,7 @@ export default function NewCorporateBookingPage() {
         );
         setTimeout(() => router.push('/corporate/approvals'), 2500);
       } else {
-        setSuccessMsg('Corporate ride created & driver search initiated successfully!');
+        setSuccessMsg('Corporate booking created & driver search initiated successfully!');
         setTimeout(() => router.push('/corporate/bookings'), 2000);
       }
     } catch (err: unknown) {

@@ -43,10 +43,10 @@ export default function AdminScheduledRidesPage() {
         setScheduledRides(data.scheduledRides ?? []);
       } else {
         const errData = await res.json();
-        setError(errData.message || 'Failed to load scheduled rides.');
+        setError(errData.message || 'Failed to load scheduled bookings.');
       }
     } catch {
-      setError('Network error fetching scheduled rides.');
+      setError('Network error fetching scheduled bookings.');
     }
   };
 
@@ -61,10 +61,10 @@ export default function AdminScheduledRidesPage() {
           setScheduledRides(data.scheduledRides ?? []);
         } else {
           const errData = await res.json();
-          setError(errData.message || 'Failed to load scheduled rides.');
+          setError(errData.message || 'Failed to load scheduled bookings.');
         }
       } catch {
-        if (isMounted) setError('Network error fetching scheduled rides.');
+        if (isMounted) setError('Network error fetching scheduled bookings.');
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -132,7 +132,7 @@ export default function AdminScheduledRidesPage() {
             {t('scheduledRides.adminTitle')}
           </span>
           <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
-            Fleet Scheduled & Recurring Rides Console
+            Fleet Scheduled & Recurring Bookings Console
           </h1>
         </div>
       </div>
@@ -229,7 +229,7 @@ export default function AdminScheduledRidesPage() {
           </div>
         ) : filteredRides.length === 0 ? (
           <div className="p-8 text-center text-[#87948b] text-sm">
-            No scheduled rides match the selected filters.
+            No scheduled bookings match the selected filters.
           </div>
         ) : (
           <div className="overflow-x-auto">

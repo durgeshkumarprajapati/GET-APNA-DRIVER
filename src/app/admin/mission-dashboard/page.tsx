@@ -128,7 +128,7 @@ export default function MissionDashboardPage() {
               <KpiCard
                 label="Active Bookings"
                 value={String(metrics.bookings.active)}
-                subtext="Searching through trip-in-progress"
+                subtext="Searching through service-in-progress"
                 icon="alt_route"
                 href="/admin/live-bookings"
               />
@@ -159,7 +159,7 @@ export default function MissionDashboardPage() {
               <KpiCard
                 label="Online Now"
                 value={String(metrics.drivers.onlineNow)}
-                subtext="Available or on a trip"
+                subtext="Available or on a booking"
                 icon="wifi"
               />
               <KpiCard

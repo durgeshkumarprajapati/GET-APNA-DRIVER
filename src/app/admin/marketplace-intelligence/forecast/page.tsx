@@ -83,7 +83,7 @@ export default function AdminForecastPage() {
                 <span className="text-3xl font-bold font-mono text-blue-400">
                   {data.forecastedDemand}
                 </span>
-                <span className="text-xs text-slate-400 block mt-1">expected rides</span>
+                <span className="text-xs text-slate-400 block mt-1">expected bookings</span>
               </div>
 
               <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
@@ -95,7 +95,7 @@ export default function AdminForecastPage() {
               </div>
 
               <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                <span className="text-xs text-slate-400 block mb-1">Known Scheduled Rides</span>
+                <span className="text-xs text-slate-400 block mb-1">Known Scheduled Bookings</span>
                 <span className="text-3xl font-bold font-mono text-purple-400">
                   {data.knownScheduledDemand}
                 </span>
