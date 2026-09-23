@@ -425,7 +425,7 @@ function BookDriverPageInner() {
       const isImmediateBrowsableType =
         selectedBookingType === BookingType.POINT_TO_POINT ||
         selectedBookingType === BookingType.HOURLY;
-      if (!isImmediateBrowsableType || !pickupReady) {
+      if (!isImmediateBrowsableType) {
         if (isMounted) setNearbyAvailableDrivers([]);
         return;
       }
@@ -434,9 +434,11 @@ function BookDriverPageInner() {
       try {
         const params = new URLSearchParams({
           bookingType: selectedBookingType,
-          pickupLatitude: String(pickup.latitude),
-          pickupLongitude: String(pickup.longitude),
         });
+        if (pickupReady && pickup.latitude != null && pickup.longitude != null) {
+          params.set('pickupLatitude', String(pickup.latitude));
+          params.set('pickupLongitude', String(pickup.longitude));
+        }
         if (selectedBookingType === BookingType.HOURLY) {
           const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
           if (hireMins) params.set('hireDurationMinutes', String(hireMins));
@@ -455,8 +457,7 @@ function BookDriverPageInner() {
           );
         }
       } catch {
-        // List just stays empty — selection here is optional anyway, so
-        // booking still works fine via normal auto-dispatch matching.
+        // List stays empty on error
       } finally {
         if (isMounted) setNearbyAvailableDriversLoading(false);
       }
@@ -593,13 +594,11 @@ function BookDriverPageInner() {
     // place, or Book Again) before asking the pricing service for an
     // estimate. Without this, a still-unset dropoff (address: '', 0,0)
     // produces a nonsensical "10,000+ km" distance from Null Island.
-    const isHire = isDriverHireBooking(selectedBookingType);
-    const dropoffRequired = !isHire && includeDropoff;
-    if (!pickupReady || (dropoffRequired && !dropoffReady)) return;
+    if (!pickupReady) return;
 
     async function fetchEstimate() {
       try {
-        const activeDropoff = dropoffRequired ? dropoff : null;
+        const activeDropoff = includeDropoff && dropoffReady ? dropoff : null;
         const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
         const res = await fetch('/api/pricing/estimate', {
@@ -665,15 +664,8 @@ function BookDriverPageInner() {
   }, [dropoff.address, t]);
 
   const handleConfirmDispatch = async () => {
-    const isHire = isDriverHireBooking(selectedBookingType);
-    const dropoffRequired = !isHire && includeDropoff;
-
     if (!pickupReady) {
       showError(t('customer.booking.locationNotSet'));
-      return;
-    }
-    if (dropoffRequired && !dropoffReady) {
-      showError(t('customer.booking.dropoffNotSet'));
       return;
     }
     if (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId) {
@@ -684,7 +676,7 @@ function BookDriverPageInner() {
     setLoading(true);
 
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const activeDropoff = dropoffRequired ? dropoff : null;
+    const activeDropoff = includeDropoff && dropoffReady ? dropoff : null;
     const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
 
     try {
@@ -1351,13 +1343,7 @@ function BookDriverPageInner() {
                   })}
                 </p>
 
-                {!pickupReady ? (
-                  <p className="text-[11px] text-[#87948b] py-2">
-                    {t('customer.booking.setPickupToSeeDrivers', {
-                      defaultValue: 'Set your pickup location to see nearby available drivers.',
-                    })}
-                  </p>
-                ) : nearbyAvailableDriversLoading ? (
+                {nearbyAvailableDriversLoading ? (
                   <p className="text-[11px] text-[#87948b] py-2">
                     {t('customer.booking.loadingAvailableDrivers')}
                   </p>
@@ -1365,7 +1351,7 @@ function BookDriverPageInner() {
                   <p className="text-[11px] text-[#87948b] py-2">
                     {t('customer.booking.noDriversAvailableNearby', {
                       defaultValue:
-                        'No drivers are currently available near your pickup location. You can still book — we will keep searching.',
+                        'No drivers are currently available for this booking type. You can still book — we will keep searching.',
                     })}
                   </p>
                 ) : (
@@ -1658,7 +1644,6 @@ function BookDriverPageInner() {
                 disabled={
                   loading ||
                   !pickupReady ||
-                  (!isDriverHireBooking(selectedBookingType) && includeDropoff && !dropoffReady) ||
                   (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId)
                 }
                 className="w-full py-3.5 px-4 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#68dba9]/20 font-['Space_Grotesk'] disabled:opacity-50"

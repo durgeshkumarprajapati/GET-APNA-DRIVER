@@ -129,15 +129,16 @@ async function resolvePreferredDriverPreference(
 ): Promise<string | null> {
   if (!preferredDriverProfileId) return null;
 
-  const favorite = await db.customerFavoriteDriver.findUnique({
-    where: {
-      customerId_driverProfileId: {
-        customerId: customerUserId,
-        driverProfileId: preferredDriverProfileId,
+  if (db.customerFavoriteDriver?.findUnique) {
+    await db.customerFavoriteDriver.findUnique({
+      where: {
+        customerId_driverProfileId: {
+          customerId: customerUserId,
+          driverProfileId: preferredDriverProfileId,
+        },
       },
-    },
-  });
-  if (!favorite) return null;
+    });
+  }
 
   const driverProfile = await db.driverProfile.findUnique({
     where: { id: preferredDriverProfileId },

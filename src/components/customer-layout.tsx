@@ -34,9 +34,34 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [userName, setUserName] = useState<string | null>(userEmail ?? null);
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('CUSTOMER');
   useAutoWebPush();
+
+  useEffect(() => {
+    if (userEmail) {
+      setUserName(userEmail);
+      return;
+    }
+    let isMounted = true;
+    fetch('/api/customer/profile')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!isMounted || !data?.profile) return;
+        const p = data.profile;
+        const name =
+          p.displayName ||
+          [p.firstName, p.lastName].filter(Boolean).join(' ') ||
+          p.email ||
+          'Customer';
+        setUserName(name);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [userEmail]);
 
   // Restore sidebar scroll position and scroll active item into view if out of bounds
   useEffect(() => {
@@ -164,15 +189,15 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
           <NotificationCenter />
 
           <Link href="/profile" className="flex items-center gap-2 pl-1">
-            <div className="text-right hidden md:block">
+            <div className="text-right flex flex-col items-end">
               <div className="text-xs text-[#dfe2ee] font-semibold leading-tight max-w-[160px] truncate">
-                {userEmail ?? 'Customer'}
+                {userName || userEmail || 'Customer'}
               </div>
             </div>
             <div className="relative">
               <UserAvatar
                 src={null}
-                name={userEmail || 'Customer Profile'}
+                name={userName || userEmail || 'Customer Profile'}
                 className="w-8 h-8 ring-1 ring-[#68dba9]"
               />
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] ring-2 ring-[#0a0e16]" />

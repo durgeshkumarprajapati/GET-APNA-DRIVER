@@ -72,14 +72,17 @@ export const GET = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req: NextR
     }
 
     if (
-      (parsed.bookingType === BookingType.POINT_TO_POINT ||
-        parsed.bookingType === BookingType.HOURLY) &&
-      parsed.pickupLatitude != null &&
-      parsed.pickupLongitude != null
+      parsed.bookingType === BookingType.POINT_TO_POINT ||
+      parsed.bookingType === BookingType.HOURLY
     ) {
+      const pickup =
+        parsed.pickupLatitude != null && parsed.pickupLongitude != null
+          ? { latitude: parsed.pickupLatitude, longitude: parsed.pickupLongitude }
+          : null;
+
       const drivers = await listAvailableDriversForImmediateBooking(
         parsed.bookingType,
-        { latitude: parsed.pickupLatitude, longitude: parsed.pickupLongitude },
+        pickup,
         parsed.vehicleCategoryId,
         parsed.hireDurationMinutes,
       );

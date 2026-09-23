@@ -18,7 +18,15 @@ export default async function CustomerSectionLayout({ children }: { children: Re
   }
 
   const contactInfo = await getContactInfoForUsers(prisma, [principal.userId]);
-  const email = contactInfo.get(principal.userId)?.email ?? null;
+  const profile = await prisma.customerProfile.findUnique({
+    where: { userId: principal.userId },
+    select: { displayName: true, firstName: true, lastName: true },
+  });
+  const name =
+    profile?.displayName ||
+    [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') ||
+    contactInfo.get(principal.userId)?.email ||
+    'Customer';
 
-  return <CustomerLayout userEmail={email}>{children}</CustomerLayout>;
+  return <CustomerLayout userEmail={name}>{children}</CustomerLayout>;
 }

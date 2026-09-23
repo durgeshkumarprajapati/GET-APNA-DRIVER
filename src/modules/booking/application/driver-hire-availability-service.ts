@@ -178,7 +178,7 @@ export interface AvailableDriverListing {
  */
 export async function listAvailableDriversForImmediateBooking(
   bookingType: BookingType,
-  pickup: { latitude: number; longitude: number; radiusMeters?: number },
+  pickup?: { latitude: number; longitude: number; radiusMeters?: number } | null,
   vehicleCategoryId?: string,
   hireDurationMinutes?: number | null,
   db: Db = prisma,
@@ -187,28 +187,78 @@ export async function listAvailableDriversForImmediateBooking(
     return [];
   }
 
-  const nearby = await findNearbyDrivers(
-    {
-      latitude: pickup.latitude,
-      longitude: pickup.longitude,
-      radiusMeters: pickup.radiusMeters,
-    },
-    db,
-  );
+  let nearby: {
+    driverId: string;
+    displayName: string;
+    profileImageUrl: string | null;
+    drivingExperienceYears: number;
+    primaryServiceArea: string | null;
+    distanceMeters: number;
+    distanceFormatted: string;
+  }[] = [];
+
+  if (pickup && pickup.latitude != null && pickup.longitude != null) {
+    nearby = await findNearbyDrivers(
+      {
+        latitude: pickup.latitude,
+        longitude: pickup.longitude,
+        radiusMeters: pickup.radiusMeters,
+      },
+      db,
+    );
+  }
+
+  if (nearby.length === 0) {
+    const activeProfiles = db?.driverProfile?.findMany
+      ? await db.driverProfile.findMany({
+          where: {
+            approvalStatus: DriverApprovalStatus.APPROVED,
+            availabilityStatus: DriverAvailabilityStatus.AVAILABLE,
+            user: { accountStatus: 'ACTIVE' },
+            ...(vehicleCategoryId
+              ? {
+                  vehicleCapabilities: {
+                    some: { vehicleCategoryId, vehicleCategory: { isActive: true } },
+                  },
+                }
+              : {}),
+          },
+          include: {
+            currentLocation: true,
+          },
+        })
+      : [];
+
+    nearby = activeProfiles.map((p) => {
+      const displayName =
+        p.displayName || [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Apna Driver';
+
+      return {
+        driverId: p.id,
+        displayName,
+        profileImageUrl: p.profileImageUrl,
+        drivingExperienceYears: p.drivingExperienceYears,
+        primaryServiceArea: p.primaryServiceArea,
+        distanceMeters: 0,
+        distanceFormatted: 'Available for hire',
+      };
+    });
+  }
+
   if (nearby.length === 0) return [];
 
   let candidates = nearby;
-  if (vehicleCategoryId) {
+  if (vehicleCategoryId && candidates.some((c) => c.driverId)) {
     const capable = await db.driverVehicleCapability.findMany({
       where: {
-        driverProfileId: { in: nearby.map((c) => c.driverId) },
+        driverProfileId: { in: candidates.map((c) => c.driverId) },
         vehicleCategoryId,
         vehicleCategory: { isActive: true },
       },
       select: { driverProfileId: true },
     });
     const capableSet = new Set(capable.map((c) => c.driverProfileId));
-    candidates = nearby.filter((c) => capableSet.has(c.driverId));
+    candidates = candidates.filter((c) => capableSet.has(c.driverId));
   }
   if (candidates.length === 0) return [];
 

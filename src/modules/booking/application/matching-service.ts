@@ -215,11 +215,6 @@ export async function findAndOfferNextDriver(
       }
 
       if (isStillAvailable && booking.vehicleCategoryId) {
-        // Must agree with the geo-pool path's equivalent check below
-        // (vehicleCategory: { isActive: true }) — a capability row for a
-        // category an admin has since deactivated must not count as
-        // "capable" here either, or a required-single-driver hire could
-        // bypass a restriction the general dispatch path already enforces.
         const cap = await db.driverVehicleCapability.findFirst({
           where: {
             driverProfileId: chosenDriverId,
@@ -233,12 +228,6 @@ export async function findAndOfferNextDriver(
       }
 
       if (isStillAvailable) {
-        // Final authoritative gate: shift-schedule window + active-booking
-        // conflict, on top of the approval/availability/vehicle checks
-        // above — this is the one existing eligibility engine
-        // (driver-eligibility-service.ts), reused verbatim, not a second
-        // one. A chosen driver technically AVAILABLE but off-shift or with
-        // an undetected active-booking conflict must not receive an offer.
         const dispatchEligibility = await isDriverDispatchEligible(chosenDriverId, now, db);
         if (!dispatchEligibility.isEligible) {
           isStillAvailable = false;

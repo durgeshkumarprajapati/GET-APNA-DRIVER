@@ -25,7 +25,15 @@ export default async function DriverSectionLayout({ children }: { children: Reac
   }
 
   const contactInfo = await getContactInfoForUsers(prisma, [principal.userId]);
-  const email = contactInfo.get(principal.userId)?.email ?? null;
+  const profile = await prisma.driverProfile.findUnique({
+    where: { userId: principal.userId },
+    select: { displayName: true, firstName: true, lastName: true },
+  });
+  const name =
+    profile?.displayName ||
+    [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') ||
+    contactInfo.get(principal.userId)?.email ||
+    'Driver Partner';
 
-  return <DriverLayout userEmail={email}>{children}</DriverLayout>;
+  return <DriverLayout userEmail={name}>{children}</DriverLayout>;
 }
