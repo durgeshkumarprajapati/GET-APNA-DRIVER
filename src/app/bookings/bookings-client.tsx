@@ -15,6 +15,9 @@ interface Booking {
     label: string | null;
   };
   createdAt: string;
+  customerId?: string;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
   assignedDriver?: {
     displayName: string | null;
   } | null;
@@ -134,6 +137,13 @@ export default function BookingsListPage() {
                           booking.assignedDriver.displayName ||
                           t('customer.bookingsList.professionalDriverFallback'),
                       })}
+                    </p>
+                  )}
+                  {booking.status === 'CANCELLED' && (
+                    <p className="text-xs text-red-400 font-medium">
+                      {booking.cancelledBy && booking.customerId && booking.cancelledBy !== booking.customerId
+                        ? `Driver has cancelled the booking${booking.cancellationReason ? `: "${booking.cancellationReason}"` : ''}`
+                        : `Cancelled${booking.cancellationReason ? `: "${booking.cancellationReason}"` : ''}`}
                     </p>
                   )}
                 </div>

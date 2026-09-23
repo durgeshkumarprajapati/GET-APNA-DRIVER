@@ -102,6 +102,7 @@ export interface BookingDetail {
   searchStartedAt: Date | null;
   assignedAt: Date | null;
   cancelledAt: Date | null;
+  cancelledBy: string | null;
   cancellationReason: string | null;
   expiresAt: Date | null;
   createdAt: Date;
@@ -710,6 +711,7 @@ function mapBookingToDetail(
     searchStartedAt: booking.searchStartedAt,
     assignedAt: booking.assignedAt,
     cancelledAt: booking.cancelledAt,
+    cancelledBy: booking.cancelledBy,
     cancellationReason: booking.cancellationReason,
     expiresAt: booking.expiresAt,
     createdAt: booking.createdAt,

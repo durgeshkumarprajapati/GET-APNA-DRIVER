@@ -51,6 +51,9 @@ export interface DriverBookingSummary {
   driverArrivedAt: Date | null;
   tripStartedAt: Date | null;
   tripCompletedAt: Date | null;
+  cancelledAt?: Date | null;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
   createdAt: Date;
 }
 
@@ -81,7 +84,7 @@ async function getAuthorizedDriverBooking(
     throw new BookingNotFoundError(bookingId);
   }
 
-  if (booking.driverProfileId !== profile.id) {
+  if (booking.driverProfileId !== profile.id && booking.cancelledBy !== driverUserId) {
     throw new BookingNotFoundError(bookingId);
   }
 
@@ -727,7 +730,9 @@ export async function listDriverBookings(
   const profile = await getOrCreateDriverProfile(driverUserId, db);
 
   const bookings = await db.booking.findMany({
-    where: { driverProfileId: profile.id },
+    where: {
+      OR: [{ driverProfileId: profile.id }, { cancelledBy: driverUserId }],
+    },
     orderBy: { createdAt: 'desc' },
     // Previously unbounded — caps a long-tenured driver's history query
     // without changing the flat-array response shape the driver bookings
@@ -808,6 +813,9 @@ function mapBookingToDriverSummary(booking: Booking): DriverBookingSummary {
     driverArrivedAt: booking.driverArrivedAt,
     tripStartedAt: booking.tripStartedAt,
     tripCompletedAt: booking.tripCompletedAt,
+    cancelledAt: booking.cancelledAt,
+    cancelledBy: booking.cancelledBy,
+    cancellationReason: booking.cancellationReason,
     createdAt: booking.createdAt,
   };
 }

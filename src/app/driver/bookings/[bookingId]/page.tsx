@@ -30,6 +30,9 @@ interface DriverBookingDetail {
   driverArrivedAt: string | null;
   tripStartedAt: string | null;
   tripCompletedAt: string | null;
+  cancelledAt?: string | null;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
   createdAt: string;
 }
 
@@ -320,6 +323,24 @@ export default function DriverJourneyControlPage({
             </div>
             <span className="h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping" />
           </div>
+
+          {booking.status === 'CANCELLED' && (
+            <div className="p-5 rounded-2xl bg-red-950/60 border border-red-500/60 space-y-2">
+              <div className="flex items-center gap-2.5 text-red-300 font-bold text-base">
+                <span className="material-symbols-outlined text-xl">cancel</span>
+                <span>
+                  {booking.cancelledBy
+                    ? 'You have cancelled this booking'
+                    : 'Booking has been cancelled'}
+                </span>
+              </div>
+              {booking.cancellationReason && (
+                <p className="text-xs text-red-200">
+                  Cancellation Reason: <span className="font-semibold">{booking.cancellationReason}</span>
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Action Trigger Buttons */}
           <div className="space-y-3">

@@ -23,6 +23,9 @@ interface DriverBooking {
   driverArrivedAt: string | null;
   tripStartedAt: string | null;
   tripCompletedAt: string | null;
+  cancelledAt?: string | null;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
   createdAt: string;
 }
 
@@ -191,10 +194,18 @@ export default function DriverBookingsListPage() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-slate-200">{b.pickupLocation.address}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Completed:{' '}
-                      {b.tripCompletedAt ? new Date(b.tripCompletedAt).toLocaleString() : 'N/A'}
-                    </p>
+                    {b.status === 'CANCELLED' ? (
+                      <p className="text-xs text-red-400 font-medium mt-1">
+                        {b.cancelledBy
+                          ? `You have cancelled this booking${b.cancellationReason ? `: "${b.cancellationReason}"` : ''}`
+                          : `Cancelled${b.cancellationReason ? `: "${b.cancellationReason}"` : ''}`}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Completed:{' '}
+                        {b.tripCompletedAt ? new Date(b.tripCompletedAt).toLocaleString() : 'N/A'}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

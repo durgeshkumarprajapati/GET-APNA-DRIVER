@@ -12,6 +12,7 @@ import { PostTripPaymentCard } from '@/components/payment/PostTripPaymentCard';
 
 interface BookingDetail {
   id: string;
+  customerId?: string;
   status: string;
   bookingType: string;
   pickupLocation: {
@@ -39,6 +40,7 @@ interface BookingDetail {
   tripStartedAt: string | null;
   tripCompletedAt: string | null;
   cancelledAt: string | null;
+  cancelledBy?: string | null;
   cancellationReason: string | null;
   expiresAt: string | null;
   preferredDriverProfileId: string | null;
@@ -469,6 +471,24 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
           {preferredDriverUnmatched && (
             <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-200">
               {t('customer.tracking.preferredDriverUnavailableNote')}
+            </div>
+          )}
+
+          {booking.status === 'CANCELLED' && (
+            <div className="p-5 rounded-2xl bg-red-950/60 border border-red-500/60 space-y-2">
+              <div className="flex items-center gap-2.5 text-red-300 font-bold text-base">
+                <span className="material-symbols-outlined text-xl">cancel</span>
+                <span>
+                  {booking.cancelledBy && booking.cancelledBy !== booking.customerId
+                    ? 'Driver has cancelled the booking'
+                    : 'You cancelled this booking'}
+                </span>
+              </div>
+              {booking.cancellationReason && (
+                <p className="text-xs text-red-200">
+                  Reason: <span className="font-semibold">{booking.cancellationReason}</span>
+                </p>
+              )}
             </div>
           )}
 
