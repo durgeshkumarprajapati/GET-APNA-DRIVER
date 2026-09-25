@@ -98,11 +98,39 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
   }
 });
 
-export const GET = withPermission(PERMISSIONS.BOOKINGS_READ, async (_req, { principal }) => {
+import { queryCustomerBookings } from '@/modules/booking/application/customer-booking-query-service';
+
+export const GET = withPermission(PERMISSIONS.BOOKINGS_READ, async (req, { principal }) => {
   try {
+    const searchParams = req.nextUrl.searchParams;
+    const hasParams = searchParams.toString().length > 0;
+
+    if (hasParams) {
+      const page = parseInt(searchParams.get('page') || '1', 10);
+      const pageSize = parseInt(searchParams.get('pageSize') || '15', 10);
+      const statusTab = (searchParams.get('statusTab') || 'ALL').toUpperCase() as
+        'ALL' | 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+      const startDate = searchParams.get('startDate') || undefined;
+      const endDate = searchParams.get('endDate') || undefined;
+      const search = searchParams.get('search') || undefined;
+      const paymentStatus = searchParams.get('paymentStatus') || undefined;
+
+      const result = await queryCustomerBookings(principal.userId, {
+        page,
+        pageSize,
+        statusTab,
+        startDate,
+        endDate,
+        search,
+        paymentStatus,
+      });
+
+      return NextResponse.json({ success: true, ...result }, { status: 200 });
+    }
+
     const bookings = await listCustomerBookings(principal.userId);
     return NextResponse.json({ bookings }, { status: 200 });
   } catch (err: unknown) {
-    return toErrorResponse(err, _req.nextUrl.pathname);
+    return toErrorResponse(err, req.nextUrl.pathname);
   }
 });
