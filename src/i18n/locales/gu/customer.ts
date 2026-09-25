@@ -9,6 +9,7 @@ export const customerGu = {
     reviews: 'મારી સમીક્ષાઓ',
     favorites: 'પસંદગીના ડ્રાઇવરો',
     wallet: 'વોલેટ',
+    billing: 'બિલિંગ સેન્ટર',
     invoices: 'ટેક્સ ઇનવોઇસ',
     offers: 'ઓફર્સ અને કૂપન્સ',
     rewards: 'લોયલ્ટી રિવોર્ડ્સ',

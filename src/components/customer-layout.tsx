@@ -124,6 +124,11 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
           label: t('customer.nav.wallet'),
           icon: 'account_balance_wallet',
         },
+        {
+          href: '/customer/billing',
+          label: t('customer.nav.billing', { defaultValue: 'Billing Center' }),
+          icon: 'account_balance',
+        },
         { href: '/customer/rewards', label: t('customer.nav.rewards'), icon: 'card_giftcard' },
         { href: '/customer/invoices', label: t('customer.nav.invoices'), icon: 'receipt_long' },
         { href: '/customer/offers', label: t('customer.nav.offers'), icon: 'confirmation_number' },

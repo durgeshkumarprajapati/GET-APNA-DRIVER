@@ -9,6 +9,7 @@ export const customerBn = {
     reviews: 'আমার রিভিউ সমূহ',
     favorites: 'প্রিয় ড্রাইভার',
     wallet: 'ওয়ালেট',
+    billing: 'বিলিং সেন্টার',
     invoices: 'ট্যাক্স ইনভয়েস',
     offers: 'অফার ও কুপন',
     rewards: 'আনুগত্য পুরস্কার (Loyalty Rewards)',

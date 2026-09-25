@@ -1492,6 +1492,9 @@ model Refund {
   status   RefundStatus @default(PENDING)
   reason   String?
 
+  /// Sequential concurrency-safe refund document number (e.g. GAD-REF-2026-000001).
+  refundNumber String? @unique @map("refund_number")
+
   /// Optional client-supplied key guarding against an accidental duplicate
   /// refund request; the maximum-refundable-amount check (in
   /// refund-service.ts) is the primary defense against over-refunding.
