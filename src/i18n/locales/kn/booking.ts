@@ -52,4 +52,17 @@ export const bookingKn = {
   anyVehicleCategory: 'ಯಾವುದೇ ವಾಹನ (ಆದ್ಯತೆಯಿಲ್ಲ)',
   vehicleCapabilities: 'ವಾಹನ ಸಾಮರ್ಥ್ಯಗಳು',
   vehicleCapabilitiesHint: 'ನೀವು ಚಾಲನೆ ಮಾಡಬಹುದಾದ ವಾಹನ ವರ್ಗಗಳು',
+  bookForSomeoneElse: {
+    title: 'ಈ ಚಾಲಕ ಸೇವೆ ಯಾರಿಗಾಗಿ?',
+    myself: 'ನನಗಾಗಿ',
+    someoneElse: 'ಮತ್ತೊಬ್ಬರಿಗಾಗಿ',
+    recipientName: 'ಸ್ವೀಕರಿಸುವವರ ಪೂರ್ಣ ಹೆಸರು',
+    recipientPhone: 'ಸ್ವೀಕರಿಸುವವರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ',
+    relationship: 'ಸಂಬಂಧ',
+    recipientEmail: 'ಸ್ವೀಕರಿಸುವವರ ಇಮೇಲ್ (ಐಚ್ಛಿಕ)',
+    notes: 'ಚಾಲಕನಿಗೆ ಟಿಪ್ಪಣಿಗಳು / ಸೂಚನೆಗಳು (ಐಚ್ಛಿಕ)',
+    notifyWhatsApp: 'ವಾಟ್ಸಾಪ್ ಮೂಲಕ ಸ್ವೀಕರಿಸುವವರಿಗೆ ಪ್ರವಾಸದ ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಕಳುಹಿಸಿ',
+    bookedBy: 'ಬುಕ್ ಮಾಡಿದವರು',
+    serviceRecipient: 'ಸೇವೆ ಸ್ವೀಕರಿಸುವವರು (ಪ್ರಯಾಣಿಕರು)',
+  },
 };

@@ -426,7 +426,7 @@ describe('BookingService', () => {
 
       expect(mockFindMany).toHaveBeenCalledWith({
         where: { customerId: 'cust-1', status: BookingStatus.TRIP_COMPLETED },
-        include: { driverProfile: true, vehicleCategory: true },
+        include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
         orderBy: { tripCompletedAt: 'desc' },
         take: 5,
       });

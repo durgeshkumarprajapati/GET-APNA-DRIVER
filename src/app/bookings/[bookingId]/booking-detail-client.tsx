@@ -53,6 +53,15 @@ interface BookingDetail {
     primaryServiceArea: string | null;
     drivingExperienceYears: number;
   } | null;
+  isForSomeoneElse?: boolean;
+  serviceRecipient?: {
+    fullName: string;
+    phone: string;
+    relationship?: string | null;
+    email?: string | null;
+    notes?: string | null;
+    notifyViaWhatsApp: boolean;
+  } | null;
 }
 
 interface BookingReview {
@@ -509,6 +518,44 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                         t('customer.bookingsList.professionalDriverFallback'),
                     })}
               </p>
+            </div>
+          )}
+
+          {/* Recipient Details Card */}
+          {booking.isForSomeoneElse && booking.serviceRecipient && (
+            <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">group</span>
+                  Booked For Service Recipient
+                </h3>
+                {booking.serviceRecipient.relationship && (
+                  <span className="px-2 py-0.5 rounded-full bg-purple-900/80 text-purple-200 font-mono text-[10px] font-semibold uppercase">
+                    {booking.serviceRecipient.relationship}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    Recipient Name
+                  </span>
+                  <span className="text-white font-semibold">
+                    {booking.serviceRecipient.fullName}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    Recipient Mobile
+                  </span>
+                  <span className="text-slate-200 font-mono">{booking.serviceRecipient.phone}</span>
+                </div>
+              </div>
+              {booking.serviceRecipient.notes && (
+                <p className="text-xs text-slate-300 italic pt-1">
+                  Notes for driver: &quot;{booking.serviceRecipient.notes}&quot;
+                </p>
+              )}
             </div>
           )}
 

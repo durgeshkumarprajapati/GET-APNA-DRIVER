@@ -52,4 +52,17 @@ export const bookingBn = {
   anyVehicleCategory: 'যেকোনো যানবাহন (কোনো পছন্দ নেই)',
   vehicleCapabilities: 'যানবাহন সক্ষমতা',
   vehicleCapabilitiesHint: 'যানবাহন বিভাগ যা আপনি চালাতে পারেন',
+  bookForSomeoneElse: {
+    title: 'এই ড্রাইভার সেবা কার জন্য?',
+    myself: 'নিজের জন্য',
+    someoneElse: 'অন্য কারো জন্য',
+    recipientName: 'প্রাপকের পুরো নাম',
+    recipientPhone: 'প্রাপকের মোবাইল নম্বর',
+    relationship: 'সম্পর্ক',
+    recipientEmail: 'প্রাপকের ইমেল (ঐচ্ছিক)',
+    notes: 'ড্রাইভারের জন্য নির্দেশাবলী / নোট (ঐচ্ছিক)',
+    notifyWhatsApp: 'হোয়াটসঅ্যাপের মাধ্যমে প্রাপককে ট্রিপ আপডেট পাঠান',
+    bookedBy: 'বুকিংকারী',
+    serviceRecipient: 'সেবা গ্রহীতা (যাত্রী)',
+  },
 };

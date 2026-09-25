@@ -52,4 +52,17 @@ export const bookingMl = {
   anyVehicleCategory: 'ഏതെങ്കിലും വാഹനം (മുൻഗണനയില്ല)',
   vehicleCapabilities: 'വാഹന ശേഷികൾ',
   vehicleCapabilitiesHint: 'നിങ്ങൾക്ക് ഓടിക്കാൻ കഴിയുന്ന വാഹന വിഭാഗങ്ങൾ',
+  bookForSomeoneElse: {
+    title: 'ഈ ഡ്രൈവർ സേവനം ആർക്കുവേണ്ടിയാണ്?',
+    myself: 'എനിക്കായി',
+    someoneElse: 'മറ്റൊരാൾക്കായി',
+    recipientName: 'സ്വീകർത്താവിന്റെ പൂർണ്ണമായ പേര്',
+    recipientPhone: 'സ്വീകർത്താവിന്റെ മൊബൈൽ നമ്പർ',
+    relationship: 'ബന്ധം',
+    recipientEmail: 'സ്വീകർത്താവിന്റെ ഇമെയിൽ (ഓപ്ഷണൽ)',
+    notes: 'ഡ്രൈവർക്കുള്ള കുറിപ്പുകൾ (ഓപ്ഷണൽ)',
+    notifyWhatsApp: 'വാട്ട്‌സ്ആപ്പ് വഴി സ്വീകർത്താവിന് യാത്രാ വിവരങ്ങൾ അയയ്ക്കുക',
+    bookedBy: 'ബുക്ക് ചെയ്തയാൾ',
+    serviceRecipient: 'സേവന സ്വീകർത്താവ് (യാത്രക്കാരൻ)',
+  },
 };

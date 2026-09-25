@@ -14,6 +14,15 @@ const locationSchema = z.object({
   label: z.string().trim().max(200).nullable().optional(),
 });
 
+const serviceRecipientSchema = z.object({
+  fullName: z.string().trim().min(1, 'Service recipient full name is required').max(100),
+  phone: z.string().trim().min(8, 'Valid phone number is required').max(25),
+  email: z.string().trim().email().nullable().optional().or(z.literal('')),
+  relationship: z.string().trim().max(100).nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+  notifyViaWhatsApp: z.boolean().optional().default(true),
+});
+
 const createBookingSchema = z.object({
   pickupLocation: locationSchema,
   dropoffLocation: locationSchema.nullable().optional(),
@@ -32,6 +41,7 @@ const createBookingSchema = z.object({
   idempotencyKey: z.string().trim().max(200).nullable().optional(),
   promotionCode: z.string().trim().max(50).nullable().optional(),
   preferredDriverProfileId: z.string().uuid().nullable().optional(),
+  serviceRecipient: serviceRecipientSchema.nullable().optional(),
 });
 
 export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
@@ -59,6 +69,7 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
         returnDate: parsed.returnDate,
         promotionCode: parsed.promotionCode,
         preferredDriverProfileId: parsed.preferredDriverProfileId,
+        serviceRecipient: parsed.serviceRecipient,
       },
       idempotencyKey,
     );

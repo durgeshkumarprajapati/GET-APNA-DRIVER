@@ -222,6 +222,15 @@ function BookDriverPageInner() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponValidating, setCouponValidating] = useState(false);
 
+  // Book driver for someone else state
+  const [isForSomeoneElse, setIsForSomeoneElse] = useState<boolean>(false);
+  const [recipientFullName, setRecipientFullName] = useState<string>('');
+  const [recipientPhone, setRecipientPhone] = useState<string>('');
+  const [recipientRelationship, setRecipientRelationship] = useState<string>('Family');
+  const [recipientEmail, setRecipientEmail] = useState<string>('');
+  const [recipientNotes, setRecipientNotes] = useState<string>('');
+  const [recipientNotifyWhatsApp, setRecipientNotifyWhatsApp] = useState<boolean>(true);
+
   const handleApplyCoupon = useCallback(async () => {
     if (!couponCodeInput.trim() || !fareEstimate) return;
     setCouponValidating(true);
@@ -672,12 +681,33 @@ function BookDriverPageInner() {
       showError(t('customer.booking.driverSelectionRequiredError'));
       return;
     }
+    if (isForSomeoneElse) {
+      if (!recipientFullName.trim()) {
+        showError('Please enter the recipient’s full name.');
+        return;
+      }
+      if (!recipientPhone.trim()) {
+        showError('Please enter the recipient’s mobile phone number.');
+        return;
+      }
+    }
 
     setLoading(true);
 
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const activeDropoff = includeDropoff && dropoffReady ? dropoff : null;
     const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
+
+    const serviceRecipientPayload = isForSomeoneElse
+      ? {
+          fullName: recipientFullName.trim(),
+          phone: recipientPhone.trim(),
+          relationship: recipientRelationship.trim() || undefined,
+          email: recipientEmail.trim() || undefined,
+          notes: recipientNotes.trim() || undefined,
+          notifyViaWhatsApp: recipientNotifyWhatsApp,
+        }
+      : undefined;
 
     try {
       if (bookingMode === 'SCHEDULE') {
@@ -761,6 +791,7 @@ function BookDriverPageInner() {
             preferredDriverProfileId,
             vehicleCategoryId: selectedVehicleCategoryId ?? undefined,
             promotionCode: appliedCouponCode ?? undefined,
+            serviceRecipient: serviceRecipientPayload,
           }),
         });
 
@@ -1485,6 +1516,137 @@ function BookDriverPageInner() {
                 )}
               </div>
             )}
+
+            {/* Who is this driver service for? (Myself vs Someone else) */}
+            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  Who is this driver service for?
+                </span>
+                <span className="text-[10px] text-[#87948b] font-mono">
+                  {isForSomeoneElse ? 'Booking for someone else' : 'Booking for myself'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsForSomeoneElse(false)}
+                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                    !isForSomeoneElse
+                      ? 'bg-[#68dba9] text-[#003825] shadow font-bold'
+                      : 'bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">person</span>
+                  <span>Myself</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsForSomeoneElse(true)}
+                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                    isForSomeoneElse
+                      ? 'bg-[#68dba9] text-[#003825] shadow font-bold'
+                      : 'bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">group</span>
+                  <span>Someone Else</span>
+                </button>
+              </div>
+
+              {isForSomeoneElse && (
+                <div className="pt-2 border-t border-[#262a33] flex flex-col gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Recipient Full Name <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Rajesh Sharma"
+                        value={recipientFullName}
+                        onChange={(e) => setRecipientFullName(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Recipient Mobile Phone <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="e.g. +91 98765 43210"
+                        value={recipientPhone}
+                        onChange={(e) => setRecipientPhone(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Relationship
+                      </label>
+                      <select
+                        value={recipientRelationship}
+                        onChange={(e) => setRecipientRelationship(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                      >
+                        <option value="Family">Family Member</option>
+                        <option value="Friend">Friend</option>
+                        <option value="Guest">Guest / Client</option>
+                        <option value="Employee">Employee / Colleague</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Recipient Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="e.g. recipient@example.com"
+                        value={recipientEmail}
+                        onChange={(e) => setRecipientEmail(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                      Notes / Pickup Instructions for Driver (Optional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Please call recipient upon arrival at Terminal 3 Gate 4."
+                      value={recipientNotes}
+                      onChange={(e) => setRecipientNotes(e.target.value)}
+                      className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none resize-none"
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={recipientNotifyWhatsApp}
+                      onChange={(e) => setRecipientNotifyWhatsApp(e.target.checked)}
+                      className="accent-[#68dba9] w-4 h-4 rounded"
+                    />
+                    <span className="text-xs text-[#dfe2ee]">
+                      Send instant WhatsApp trip status updates directly to recipient
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
 
             {/* Price Estimation Breakdown */}
             <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
