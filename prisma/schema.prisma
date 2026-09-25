@@ -2439,16 +2439,20 @@ model SupportMessage {
 /// exists once a specific driver is associated with the booking (assigned,
 /// or offered/preferred), not only after acceptance.
 model BookingMessage {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bookingId    String   @map("booking_id") @db.Uuid
-  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  senderUserId String   @map("sender_user_id") @db.Uuid
-  sender       User     @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId    String    @map("booking_id") @db.Uuid
+  booking      Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderUserId String    @map("sender_user_id") @db.Uuid
+  sender       User      @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   body         String
+  messageType  String    @default("TEXT") @map("message_type")
+  senderRole   String?   @map("sender_role")
+  readAt       DateTime? @map("read_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([bookingId, createdAt])
+  @@index([bookingId, readAt])
   @@map("booking_messages")
 }
 

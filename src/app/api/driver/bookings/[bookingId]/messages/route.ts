@@ -7,13 +7,15 @@ import {
   sendBookingMessage,
   listBookingMessages,
 } from '@/modules/booking/application/booking-messaging-service';
+import { checkRateLimit } from '@/shared/rate-limit/rate-limiter';
 import { AppError, toErrorResponse } from '@/shared/errors/app-error';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
 type RouteParams = { params: Promise<{ bookingId: string }> };
 
 const sendMessageSchema = z.object({
-  body: z.string().trim().min(1).max(2000),
+  body: z.string().trim().min(1).max(500),
+  messageType: z.enum(['TEXT', 'QUICK_REPLY']).optional(),
 });
 
 export const GET = withPermission<RouteParams>(
@@ -21,8 +23,8 @@ export const GET = withPermission<RouteParams>(
   async (_req, { principal }, routeContext) => {
     try {
       const { bookingId } = await routeContext!.params;
-      const messages = await listBookingMessages(principal.userId, bookingId);
-      return NextResponse.json({ messages }, { status: 200 });
+      const result = await listBookingMessages(principal.userId, bookingId);
+      return NextResponse.json(result, { status: 200 });
     } catch (err: unknown) {
       if (err instanceof BookingNotFoundError) {
         return NextResponse.json(
@@ -46,14 +48,34 @@ export const POST = withPermission<RouteParams>(
   async (req, { principal }, routeContext) => {
     try {
       const { bookingId } = await routeContext!.params;
+
+      const rateLimit = await checkRateLimit(
+        'booking_message',
+        `${bookingId}:${principal.userId}`,
+        30,
+        60,
+      );
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          { error: 'RATE_LIMIT_EXCEEDED', message: 'Too many messages sent. Please slow down.' },
+          { status: 429, headers: { 'Retry-After': String(rateLimit.resetSeconds) } },
+        );
+      }
+
       const body = await req.json();
       const parsed = sendMessageSchema.parse(body);
-      const message = await sendBookingMessage(principal.userId, bookingId, parsed.body);
+      const message = await sendBookingMessage(principal.userId, bookingId, parsed.body, {
+        messageType: parsed.messageType,
+      });
       return NextResponse.json({ message }, { status: 201 });
     } catch (err: unknown) {
       if (err instanceof z.ZodError) {
         return NextResponse.json(
-          { error: 'INVALID_INPUT', message: 'Message cannot be empty.', issues: err.issues },
+          {
+            error: 'INVALID_INPUT',
+            message: 'Message cannot be empty or exceed 500 characters.',
+            issues: err.issues,
+          },
           { status: 400 },
         );
       }
