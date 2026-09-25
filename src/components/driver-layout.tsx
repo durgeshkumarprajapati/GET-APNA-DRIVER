@@ -204,25 +204,20 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
     let locationPayload: { latitude?: number; longitude?: number; accuracy?: number } = {};
 
     if (targetStatus === 'AVAILABLE') {
-      // Reuses the same device-GPS capture used elsewhere in the app
-      // (high-accuracy attempt, then a standard-accuracy retry). A driver's
-      // live location must never be faked — if a real fix can't be
-      // acquired, going online is refused rather than silently submitting a
-      // fixed default city, which would show the driver in the wrong place
-      // for dispatch/tracking.
       const result = await captureDeviceLocation();
-      if (!result) {
+      if (result) {
+        locationPayload = {
+          latitude: result.latitude,
+          longitude: result.longitude,
+          accuracy: result.accuracy ?? undefined,
+        };
+      } else if (process.env.NODE_ENV === 'production') {
         setUpdatingAvailability(false);
         alert(
           'We could not detect your current location. Please enable location access and try again.',
         );
         return;
       }
-      locationPayload = {
-        latitude: result.latitude,
-        longitude: result.longitude,
-        accuracy: result.accuracy ?? undefined,
-      };
     }
 
     try {

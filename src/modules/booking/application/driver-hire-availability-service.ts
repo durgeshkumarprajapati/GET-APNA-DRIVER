@@ -9,6 +9,10 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { hireRateFieldFor, isDriverHireBooking } from '../domain/booking-policy';
 import { SelectedDriverUnavailableError } from '../domain/errors';
 import { findNearbyDrivers } from '@/modules/location/application/nearby-driver-service';
+import {
+  isDriverDispatchEligible,
+  ensureDevDriverApproved,
+} from '@/modules/driver/application/services/driver-eligibility-service';
 
 const ACTIVE_HIRE_CONFLICT_STATUSES: BookingStatus[] = [
   BookingStatus.DRIVER_ASSIGNED,
@@ -137,19 +141,34 @@ export async function listActiveDriversForHire(
     db,
   );
 
-  return candidates
-    .filter((c) => !conflicting.has(c.id))
-    .map((c) => ({
-      driverProfileId: c.id,
-      displayName: c.displayName,
-      firstName: c.firstName,
-      lastName: c.lastName,
-      profileImageUrl: c.profileImageUrl,
-      ratingAverage: c.ratingSummary ? Number(c.ratingSummary.averageRating) : 0,
-      drivingExperienceYears: c.drivingExperienceYears,
-      primaryServiceArea: c.primaryServiceArea,
-      rate: c[rateField] != null ? String(c[rateField]) : '0',
-    }));
+  const nonConflicting = candidates.filter((c) => !conflicting.has(c.id));
+  const verifiedEligible: typeof nonConflicting = [];
+
+  for (const c of nonConflicting) {
+    if (process.env.NODE_ENV !== 'production' && typeof ensureDevDriverApproved === 'function') {
+      await ensureDevDriverApproved(c.id, db);
+    }
+    if (typeof isDriverDispatchEligible === 'function') {
+      const dispatchEligibility = await isDriverDispatchEligible(c.id, hireStartAt, db);
+      if (dispatchEligibility.isEligible) {
+        verifiedEligible.push(c);
+      }
+    } else {
+      verifiedEligible.push(c);
+    }
+  }
+
+  return verifiedEligible.map((c) => ({
+    driverProfileId: c.id,
+    displayName: c.displayName,
+    firstName: c.firstName,
+    lastName: c.lastName,
+    profileImageUrl: c.profileImageUrl,
+    ratingAverage: c.ratingSummary ? Number(c.ratingSummary.averageRating) : 0,
+    drivingExperienceYears: c.drivingExperienceYears,
+    primaryServiceArea: c.primaryServiceArea,
+    rate: c[rateField] != null ? String(c[rateField]) : '0',
+  }));
 }
 
 export interface AvailableDriverListing {
@@ -275,17 +294,32 @@ export async function listAvailableDriversForImmediateBooking(
     db,
   );
 
-  return candidates
-    .filter((c) => !conflicting.has(c.driverId))
-    .map((c) => ({
-      driverProfileId: c.driverId,
-      displayName: c.displayName,
-      profileImageUrl: c.profileImageUrl,
-      drivingExperienceYears: c.drivingExperienceYears,
-      primaryServiceArea: c.primaryServiceArea,
-      distanceMeters: c.distanceMeters,
-      distanceFormatted: c.distanceFormatted,
-    }));
+  const nonConflicting = candidates.filter((c) => !conflicting.has(c.driverId));
+  const verifiedEligible: typeof nonConflicting = [];
+
+  for (const c of nonConflicting) {
+    if (process.env.NODE_ENV !== 'production' && typeof ensureDevDriverApproved === 'function') {
+      await ensureDevDriverApproved(c.driverId, db);
+    }
+    if (typeof isDriverDispatchEligible === 'function') {
+      const dispatchEligibility = await isDriverDispatchEligible(c.driverId, now, db);
+      if (dispatchEligibility.isEligible) {
+        verifiedEligible.push(c);
+      }
+    } else {
+      verifiedEligible.push(c);
+    }
+  }
+
+  return verifiedEligible.map((c) => ({
+    driverProfileId: c.driverId,
+    displayName: c.displayName,
+    profileImageUrl: c.profileImageUrl,
+    drivingExperienceYears: c.drivingExperienceYears,
+    primaryServiceArea: c.primaryServiceArea,
+    distanceMeters: c.distanceMeters,
+    distanceFormatted: c.distanceFormatted,
+  }));
 }
 
 /**

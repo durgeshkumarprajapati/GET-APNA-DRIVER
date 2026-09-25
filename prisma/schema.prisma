@@ -78,6 +78,7 @@ model User {
   customerProfile         CustomerProfile?
   savedLocations          SavedLocation[]
   customerPreference      CustomerPreference?
+  savedPeople             CustomerSavedPerson[]    @relation("CustomerSavedPeople")
   customerCurrentLocation CustomerCurrentLocation?
   driverProfile           DriverProfile?
   customerBookings        Booking[]                @relation("CustomerBookings")
@@ -489,14 +490,39 @@ model CustomerPreference {
   user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme                     ThemePreference @default(SYSTEM)
   language                  String          @default("en")
+  languagesSpoken           String[]        @default(["en", "hi"]) @map("languages_spoken")
   pushNotificationsEnabled  Boolean         @default(true) @map("push_notifications_enabled")
   smsNotificationsEnabled   Boolean         @default(true) @map("sms_notifications_enabled")
   emailNotificationsEnabled Boolean         @default(true) @map("email_notifications_enabled")
+
+  preferredVehicleCategory    String? @map("preferred_vehicle_category")
+  preferredServiceType        String? @map("preferred_service_type")
+  preferredPickupInstructions String? @map("preferred_pickup_instructions")
+  preferredDriverProfileId    String? @map("preferred_driver_profile_id") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("customer_preferences")
+}
+
+/// Customer saved service recipients for reuse during booking.
+model CustomerSavedPerson {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId   String   @map("customer_id") @db.Uuid
+  customer     User     @relation("CustomerSavedPeople", fields: [customerId], references: [id], onDelete: Cascade)
+  fullName     String   @map("full_name")
+  phone        String   @map("phone")
+  email        String?  @map("email")
+  relationship String?  @map("relationship")
+  notes        String?  @map("notes")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([customerId, isActive])
+  @@index([customerId, phone])
+  @@map("customer_saved_people")
 }
 
 // ---------------------------------------------------------------------------
@@ -577,6 +603,7 @@ model DriverProfile {
   bio                    String?
   drivingExperienceYears Int                      @default(0) @map("driving_experience_years")
   primaryServiceArea     String?                  @map("primary_service_area")
+  languagesSpoken        String[]                 @default(["en", "hi"]) @map("languages_spoken")
 
   /// Driver-set rate for a full DAILY/WEEKLY/MONTHLY hire (not per-km/per-minute).
   /// Null means the driver has not opted into that hire type, so they are
@@ -941,6 +968,7 @@ model Booking {
   scheduledRideOccurrences ScheduledRideOccurrenceLog[]
   tripIntelligenceEvents   TripIntelligenceEvent[]
   reliabilityIncidents     TripReliabilityIncident[]  @relation("BookingReliabilityIncidents")
+  serviceRecipient         BookingServiceRecipient?
 
   // Corporate / Business Travel extension fields
   organizationId    String?                   @map("organization_id") @db.Uuid
@@ -968,6 +996,24 @@ model Booking {
   @@index([scheduledRideId])
   @@index([status, createdAt])
   @@map("bookings")
+}
+
+/// Service recipient details when a customer books a driver for someone else.
+model BookingServiceRecipient {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId         String   @unique @map("booking_id") @db.Uuid
+  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  fullName          String   @map("full_name")
+  phone             String?  @map("phone")
+  email             String?  @map("email")
+  relationship      String?  @map("relationship")
+  notes             String?  @map("notes")
+  notifyViaWhatsApp Boolean  @default(true) @map("notify_via_whatsapp")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([phone])
+  @@map("booking_service_recipients")
 }
 
 /// Explicit entity representing a driver assignment offer attempt for a booking.
@@ -1472,6 +1518,9 @@ model Refund {
   currency String       @default("INR")
   status   RefundStatus @default(PENDING)
   reason   String?
+
+  /// Sequential concurrency-safe refund document number (e.g. GAD-REF-2026-000001).
+  refundNumber String? @unique @map("refund_number")
 
   /// Optional client-supplied key guarding against an accidental duplicate
   /// refund request; the maximum-refundable-amount check (in
@@ -2392,16 +2441,20 @@ model SupportMessage {
 /// exists once a specific driver is associated with the booking (assigned,
 /// or offered/preferred), not only after acceptance.
 model BookingMessage {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bookingId    String   @map("booking_id") @db.Uuid
-  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  senderUserId String   @map("sender_user_id") @db.Uuid
-  sender       User     @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId    String    @map("booking_id") @db.Uuid
+  booking      Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderUserId String    @map("sender_user_id") @db.Uuid
+  sender       User      @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   body         String
+  messageType  String    @default("TEXT") @map("message_type")
+  senderRole   String?   @map("sender_role")
+  readAt       DateTime? @map("read_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([bookingId, createdAt])
+  @@index([bookingId, readAt])
   @@map("booking_messages")
 }
 

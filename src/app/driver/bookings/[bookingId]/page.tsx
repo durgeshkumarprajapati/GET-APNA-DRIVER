@@ -35,6 +35,21 @@ interface DriverBookingDetail {
   cancelledBy?: string | null;
   cancellationReason?: string | null;
   createdAt: string;
+  isForSomeoneElse?: boolean;
+  serviceRecipient?: {
+    fullName: string;
+    phone: string;
+    relationship?: string | null;
+    email?: string | null;
+    notes?: string | null;
+    notifyViaWhatsApp: boolean;
+  } | null;
+  bookedBy?: {
+    id: string;
+    fullName: string;
+    phone: string;
+    email?: string;
+  } | null;
 }
 
 interface BookingReview {
@@ -501,6 +516,91 @@ export default function DriverJourneyControlPage({
 
           {/* Trip Details Card */}
           <div className="space-y-4 pt-4 border-t border-slate-700/60">
+            {/* Service Recipient / Booked By Card */}
+            {booking.isForSomeoneElse && booking.serviceRecipient ? (
+              <div className="bg-purple-950/40 border border-purple-500/40 p-4 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-purple-300 font-bold text-sm">
+                    <span className="material-symbols-outlined text-base">person_pin</span>
+                    <span>Service Recipient (Passenger)</span>
+                  </div>
+                  {booking.serviceRecipient.relationship && (
+                    <span className="px-2 py-0.5 rounded-full bg-purple-900/80 text-purple-200 font-mono text-[10px] font-semibold uppercase">
+                      {booking.serviceRecipient.relationship}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                      Passenger Name
+                    </span>
+                    <span className="text-white font-semibold text-sm">
+                      {booking.serviceRecipient.fullName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                      Contact Phone
+                    </span>
+                    <a
+                      href={`tel:${booking.serviceRecipient.phone}`}
+                      className="text-emerald-400 hover:underline font-mono font-medium flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-xs">call</span>
+                      {booking.serviceRecipient.phone}
+                    </a>
+                  </div>
+                </div>
+                {booking.serviceRecipient.notes && (
+                  <div className="text-xs bg-purple-900/20 p-2.5 rounded-lg border border-purple-500/20">
+                    <span className="text-purple-300 font-medium block text-[10px] uppercase">
+                      Recipient Notes / Instructions
+                    </span>
+                    <p className="text-slate-200 mt-0.5">{booking.serviceRecipient.notes}</p>
+                  </div>
+                )}
+                {booking.bookedBy && (
+                  <div className="pt-2 border-t border-purple-500/20 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>
+                      Booked By (Account Holder):{' '}
+                      <strong className="text-slate-200">{booking.bookedBy.fullName}</strong>
+                    </span>
+                    {booking.bookedBy.phone && (
+                      <a
+                        href={`tel:${booking.bookedBy.phone}`}
+                        className="text-slate-300 hover:text-emerald-400 font-mono"
+                      >
+                        {booking.bookedBy.phone}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              booking.bookedBy && (
+                <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/80 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                      Customer / Passenger
+                    </span>
+                    <span className="text-white font-semibold text-sm">
+                      {booking.bookedBy.fullName}
+                    </span>
+                  </div>
+                  {booking.bookedBy.phone && (
+                    <a
+                      href={`tel:${booking.bookedBy.phone}`}
+                      className="text-emerald-400 hover:underline font-mono font-medium flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-xs">call</span>
+                      {booking.bookedBy.phone}
+                    </a>
+                  )}
+                </div>
+              )
+            )}
+
             <div>
               <span className="text-xs text-slate-400 uppercase block">Pickup Location</span>
               <p className="text-base font-semibold text-white mt-0.5">

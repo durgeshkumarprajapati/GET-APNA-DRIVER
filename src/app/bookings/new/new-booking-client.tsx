@@ -115,6 +115,11 @@ interface BookingRecord {
     latitude: number;
     longitude: number;
   } | null;
+  serviceRecipient?: {
+    fullName: string;
+    phone: string;
+    relationship?: string | null;
+  } | null;
 }
 
 function savedLocationAddress(loc: SavedLocationRecord): string {
@@ -221,6 +226,25 @@ function BookDriverPageInner() {
   const [couponDiscountAmount, setCouponDiscountAmount] = useState<string | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponValidating, setCouponValidating] = useState(false);
+
+  // Book driver for someone else state
+  const [isForSomeoneElse, setIsForSomeoneElse] = useState<boolean>(false);
+  const [recipientFullName, setRecipientFullName] = useState<string>('');
+  const [recipientPhone, setRecipientPhone] = useState<string>('');
+  const [recipientRelationship, setRecipientRelationship] = useState<string>('Family');
+  const [recipientEmail, setRecipientEmail] = useState<string>('');
+  const [recipientNotes, setRecipientNotes] = useState<string>('');
+  const [recipientNotifyWhatsApp, setRecipientNotifyWhatsApp] = useState<boolean>(true);
+  const [savedPeople, setSavedPeople] = useState<
+    Array<{
+      id: string;
+      fullName: string;
+      phone: string;
+      relationship?: string | null;
+      notes?: string | null;
+    }>
+  >([]);
+  const [savePersonForFuture, setSavePersonForFuture] = useState<boolean>(false);
 
   const handleApplyCoupon = useCallback(async () => {
     if (!couponCodeInput.trim() || !fareEstimate) return;
@@ -340,9 +364,11 @@ function BookDriverPageInner() {
     let isMounted = true;
     (async () => {
       try {
-        const [locationsRes, favoritesRes] = await Promise.all([
+        const [locationsRes, favoritesRes, peopleRes, prefRes] = await Promise.all([
           fetch('/api/customer/locations'),
           fetch('/api/customer/favorites'),
+          fetch('/api/customer/saved-people'),
+          fetch('/api/customer/preferences'),
         ]);
         if (!isMounted) return;
         if (locationsRes.ok) {
@@ -352,6 +378,25 @@ function BookDriverPageInner() {
         if (favoritesRes.ok) {
           const data = await favoritesRes.json();
           setFavoriteDrivers(data.favorites ?? []);
+        }
+        if (peopleRes.ok) {
+          const data = await peopleRes.json();
+          setSavedPeople(data.savedPeople ?? []);
+        }
+        if (prefRes.ok) {
+          const data = await prefRes.json();
+          if (data.preferences) {
+            const prefs = data.preferences;
+            if (prefs.preferredServiceType) {
+              const prefType = prefs.preferredServiceType as BookingType;
+              if (Object.values(BookingType).includes(prefType)) {
+                setSelectedBookingType(prefType);
+              }
+            }
+            if (prefs.preferredDriverProfileId) {
+              setPreferredDriverProfileId(prefs.preferredDriverProfileId);
+            }
+          }
         }
       } catch {
         // Quick-select chips and the preference picker just stay empty.
@@ -569,6 +614,14 @@ function BookDriverPageInner() {
             setDropoffReady(true);
           }
           setSelectedTab(BOOKING_TYPE_TO_TAB[booking.bookingType] ?? 'oneway');
+          if (booking.serviceRecipient) {
+            setIsForSomeoneElse(true);
+            setRecipientFullName(booking.serviceRecipient.fullName || '');
+            setRecipientPhone(booking.serviceRecipient.phone || '');
+            if (booking.serviceRecipient.relationship) {
+              setRecipientRelationship(booking.serviceRecipient.relationship);
+            }
+          }
         } else if (savedLocationId) {
           const res = await fetch(`/api/customer/locations/${savedLocationId}`);
           if (!res.ok) return;
@@ -672,12 +725,33 @@ function BookDriverPageInner() {
       showError(t('customer.booking.driverSelectionRequiredError'));
       return;
     }
+    if (isForSomeoneElse) {
+      if (!recipientFullName.trim()) {
+        showError('Please enter the recipient’s full name.');
+        return;
+      }
+      if (!recipientPhone.trim()) {
+        showError('Please enter the recipient’s mobile phone number.');
+        return;
+      }
+    }
 
     setLoading(true);
 
     const idempotencyKey = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const activeDropoff = includeDropoff && dropoffReady ? dropoff : null;
     const hireMins = getHireDurationMinutes(selectedBookingType, hireDurationValue);
+
+    const serviceRecipientPayload = isForSomeoneElse
+      ? {
+          fullName: recipientFullName.trim(),
+          phone: recipientPhone.trim(),
+          relationship: recipientRelationship.trim() || undefined,
+          email: recipientEmail.trim() || undefined,
+          notes: recipientNotes.trim() || undefined,
+          notifyViaWhatsApp: recipientNotifyWhatsApp,
+        }
+      : undefined;
 
     try {
       if (bookingMode === 'SCHEDULE') {
@@ -720,10 +794,10 @@ function BookDriverPageInner() {
         const data = await res.json();
         if (!res.ok) {
           showError(
-            data.error === 'INVALID_INPUT'
-              ? t('customer.booking.validationFailedError')
-              : data.message ||
-                  t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
+            data.message ||
+              (data.error === 'INVALID_INPUT'
+                ? t('customer.booking.validationFailedError')
+                : t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' })),
           );
         } else {
           router.push('/customer/scheduled-rides');
@@ -761,19 +835,21 @@ function BookDriverPageInner() {
             preferredDriverProfileId,
             vehicleCategoryId: selectedVehicleCategoryId ?? undefined,
             promotionCode: appliedCouponCode ?? undefined,
+            serviceRecipient: serviceRecipientPayload,
           }),
         });
 
         const data = await res.json();
         if (!res.ok) {
           showError(
-            data.error === 'INVALID_INPUT'
-              ? t('customer.booking.validationFailedError')
-              : data.error === 'DRIVER_SELECTION_REQUIRED'
-                ? t('customer.booking.driverSelectionRequiredError')
-                : data.error === 'SELECTED_DRIVER_UNAVAILABLE'
-                  ? t('customer.booking.selectedDriverUnavailableError')
-                  : data.message || t('customer.booking.dispatchFailedError'),
+            data.message ||
+              (data.error === 'INVALID_INPUT'
+                ? t('customer.booking.validationFailedError')
+                : data.error === 'DRIVER_SELECTION_REQUIRED'
+                  ? t('customer.booking.driverSelectionRequiredError')
+                  : data.error === 'SELECTED_DRIVER_UNAVAILABLE'
+                    ? t('customer.booking.selectedDriverUnavailableError')
+                    : t('customer.booking.dispatchFailedError')),
           );
         } else {
           router.push(`/bookings/${data.booking.id}`);
@@ -1485,6 +1561,192 @@ function BookDriverPageInner() {
                 )}
               </div>
             )}
+
+            {/* Who is this driver service for? (Myself vs Someone else) */}
+            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                  Who is this driver service for?
+                </span>
+                <span className="text-[10px] text-[#87948b] font-mono">
+                  {isForSomeoneElse ? 'Booking for someone else' : 'Booking for myself'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsForSomeoneElse(false)}
+                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                    !isForSomeoneElse
+                      ? 'bg-[#68dba9] text-[#003825] shadow font-bold'
+                      : 'bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">person</span>
+                  <span>Myself</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsForSomeoneElse(true)}
+                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                    isForSomeoneElse
+                      ? 'bg-[#68dba9] text-[#003825] shadow font-bold'
+                      : 'bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">group</span>
+                  <span>Someone Else</span>
+                </button>
+              </div>
+
+              {isForSomeoneElse && (
+                <div className="pt-2 border-t border-[#262a33] flex flex-col gap-3">
+                  {savedPeople.length > 0 && (
+                    <div className="flex flex-col gap-1.5 mb-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk'] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                          bookmark
+                        </span>
+                        <span>Choose Saved Person</span>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {savedPeople.map((person) => (
+                          <button
+                            key={person.id}
+                            type="button"
+                            onClick={() => {
+                              setRecipientFullName(person.fullName);
+                              setRecipientPhone(person.phone);
+                              setRecipientRelationship(person.relationship || 'Family');
+                              if (person.notes) setRecipientNotes(person.notes);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-[#1c2028] hover:bg-[#262a33] active:bg-[#343a46] text-xs font-semibold text-[#dfe2ee] border border-[#262a33] hover:border-[#68dba9]/50 flex items-center gap-1.5 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                              person
+                            </span>
+                            <span>{person.fullName}</span>
+                            {person.relationship && (
+                              <span className="text-[10px] text-[#87948b]">
+                                ({person.relationship})
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Recipient Full Name <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Rajesh Sharma"
+                        value={recipientFullName}
+                        onChange={(e) => setRecipientFullName(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Recipient Mobile Phone <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="e.g. +91 98765 43210"
+                        value={recipientPhone}
+                        onChange={(e) => setRecipientPhone(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Relationship
+                      </label>
+                      <select
+                        value={recipientRelationship}
+                        onChange={(e) => setRecipientRelationship(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                      >
+                        <option value="Family">Family Member</option>
+                        <option value="Father">Father</option>
+                        <option value="Mother">Mother</option>
+                        <option value="Spouse">Spouse / Partner</option>
+                        <option value="Friend">Friend</option>
+                        <option value="Guest">Guest / Client</option>
+                        <option value="Employee">Employee / Colleague</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                        Recipient Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="e.g. recipient@example.com"
+                        value={recipientEmail}
+                        onChange={(e) => setRecipientEmail(e.target.value)}
+                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      id="savePersonForFuture"
+                      type="checkbox"
+                      checked={savePersonForFuture}
+                      onChange={(e) => setSavePersonForFuture(e.target.checked)}
+                      className="rounded bg-[#1c2028] border-[#262a33] text-[#68dba9] focus:ring-0 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="savePersonForFuture"
+                      className="text-xs text-[#bccac0] cursor-pointer"
+                    >
+                      Save this person to My Saved People for future 1-click bookings
+                    </label>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                      Notes / Pickup Instructions for Driver (Optional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Please call recipient upon arrival at Terminal 3 Gate 4."
+                      value={recipientNotes}
+                      onChange={(e) => setRecipientNotes(e.target.value)}
+                      className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none resize-none"
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={recipientNotifyWhatsApp}
+                      onChange={(e) => setRecipientNotifyWhatsApp(e.target.checked)}
+                      className="accent-[#68dba9] w-4 h-4 rounded"
+                    />
+                    <span className="text-xs text-[#dfe2ee]">
+                      Send instant WhatsApp trip status updates directly to recipient
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
 
             {/* Price Estimation Breakdown */}
             <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">

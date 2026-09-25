@@ -9,6 +9,7 @@ export const customerPa = {
     reviews: 'ਮੇਰੀਆਂ ਸਮੀਖਿਆਵਾਂ',
     favorites: 'ਮਨਪਸੰਦ ਡਰਾਈਵਰ',
     wallet: 'ਵਾਲਿਟ',
+    billing: 'ਬਿਲਿੰਗ ਸੈਂਟਰ',
     invoices: 'ਟੈਕਸ ਇਨਵੌਇਸ',
     offers: 'ਆਫਰਾਂ ਅਤੇ ਕੂਪਨ',
     rewards: 'ਲੌਇਲਟੀ ਇਨਾਮ',

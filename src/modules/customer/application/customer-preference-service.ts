@@ -7,9 +7,14 @@ import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 export interface UpdateCustomerPreferenceInput {
   theme?: ThemePreference;
   language?: string;
+  languagesSpoken?: string[];
   pushNotificationsEnabled?: boolean;
   smsNotificationsEnabled?: boolean;
   emailNotificationsEnabled?: boolean;
+  preferredVehicleCategory?: string | null;
+  preferredServiceType?: string | null;
+  preferredPickupInstructions?: string | null;
+  preferredDriverProfileId?: string | null;
 }
 
 /**
@@ -56,6 +61,9 @@ export async function updateCustomerPreference(
       data: {
         ...(input.theme && { theme: input.theme }),
         ...(input.language && { language: input.language }),
+        ...(input.languagesSpoken !== undefined && {
+          languagesSpoken: input.languagesSpoken,
+        }),
         ...(input.pushNotificationsEnabled !== undefined && {
           pushNotificationsEnabled: input.pushNotificationsEnabled,
         }),
@@ -64,6 +72,18 @@ export async function updateCustomerPreference(
         }),
         ...(input.emailNotificationsEnabled !== undefined && {
           emailNotificationsEnabled: input.emailNotificationsEnabled,
+        }),
+        ...(input.preferredVehicleCategory !== undefined && {
+          preferredVehicleCategory: input.preferredVehicleCategory,
+        }),
+        ...(input.preferredServiceType !== undefined && {
+          preferredServiceType: input.preferredServiceType,
+        }),
+        ...(input.preferredPickupInstructions !== undefined && {
+          preferredPickupInstructions: input.preferredPickupInstructions,
+        }),
+        ...(input.preferredDriverProfileId !== undefined && {
+          preferredDriverProfileId: input.preferredDriverProfileId,
         }),
       },
     });

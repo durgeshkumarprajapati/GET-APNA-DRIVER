@@ -6,6 +6,7 @@ import { CustomerLayout } from '@/components/customer-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
+import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
 
 interface ProfileData {
   firstName: string | null;
@@ -29,18 +30,56 @@ interface LocationData {
   isDefault: boolean;
 }
 
+interface SavedPersonData {
+  id: string;
+  fullName: string;
+  phone: string;
+  email: string | null;
+  relationship: string | null;
+  notes: string | null;
+  isActive: boolean;
+}
+
+interface FavoriteDriverOption {
+  driverProfileId: string;
+  displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+}
+
 interface PreferenceData {
   theme: 'SYSTEM' | 'LIGHT' | 'DARK';
   language: string;
+  languagesSpoken?: string[];
   pushNotificationsEnabled: boolean;
   smsNotificationsEnabled: boolean;
   emailNotificationsEnabled: boolean;
+  preferredVehicleCategory?: string | null;
+  preferredServiceType?: string | null;
+  preferredPickupInstructions?: string | null;
+  preferredDriverProfileId?: string | null;
 }
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'locations' | 'preferences' | 'security'>(
-    'profile',
-  );
+  const [activeTab, setActiveTab] = useState<
+    'profile' | 'people' | 'locations' | 'preferences' | 'security'
+  >('profile');
+
+  // Saved People State
+  const [savedPeople, setSavedPeople] = useState<SavedPersonData[]>([]);
+  const [savedPeopleLoading, setSavedPeopleLoading] = useState(true);
+  const [showPersonModal, setShowPersonModal] = useState(false);
+  const [editingPersonId, setEditingPersonId] = useState<string | null>(null);
+  const [personForm, setPersonForm] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    relationship: 'Family',
+    notes: '',
+  });
+  const [personSaving, setPersonSaving] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverOption[]>([]);
 
   // Ride Security / PIN State
   const [pinStatus, setPinStatus] = useState<{
@@ -132,17 +171,95 @@ export default function ProfilePage() {
     }
   };
 
+  const loadSavedPeople = async () => {
+    try {
+      const res = await fetch('/api/customer/saved-people');
+      if (res.ok) {
+        const data = await res.json();
+        setSavedPeople(data.savedPeople || []);
+      }
+    } catch {
+      // Ignore load error
+    } finally {
+      setSavedPeopleLoading(false);
+    }
+  };
+
+  const handleSavePerson = async (e: React.FormEvent, allowDuplicate = false) => {
+    e.preventDefault();
+    setPersonSaving(true);
+    setDuplicateWarning(null);
+
+    try {
+      const isEdit = !!editingPersonId;
+      const url = isEdit
+        ? `/api/customer/saved-people/${editingPersonId}`
+        : '/api/customer/saved-people';
+      const method = isEdit ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: personForm.fullName,
+          phone: personForm.phone,
+          relationship: personForm.relationship,
+          email: personForm.email || null,
+          notes: personForm.notes || null,
+          allowDuplicate,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 409 && data.isDuplicate) {
+        setDuplicateWarning(data.message || 'A person with this mobile number already exists.');
+        setPersonSaving(false);
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to save person');
+      }
+
+      showToast(isEdit ? 'Person updated successfully' : 'Person added successfully', 'success');
+      setShowPersonModal(false);
+      setEditingPersonId(null);
+      setPersonForm({ fullName: '', phone: '', email: '', relationship: 'Family', notes: '' });
+      await loadSavedPeople();
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Error saving person', 'error');
+    } finally {
+      setPersonSaving(false);
+    }
+  };
+
+  const handleDeletePerson = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this saved person?')) return;
+    try {
+      const res = await fetch(`/api/customer/saved-people/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Saved person deleted', 'info');
+        await loadSavedPeople();
+      }
+    } catch {
+      showToast('Failed to delete person', 'error');
+    }
+  };
+
   // Fetch initial data
   useEffect(() => {
     let active = true;
 
     const loadAll = async () => {
       try {
-        const [profRes, locRes, prefRes, pinRes] = await Promise.all([
+        const [profRes, locRes, prefRes, pinRes, peopleRes, favRes] = await Promise.all([
           fetch('/api/customer/profile'),
           fetch('/api/customer/locations'),
           fetch('/api/customer/preferences'),
           fetch('/api/customer/ride-pin'),
+          fetch('/api/customer/saved-people'),
+          fetch('/api/customer/favorites'),
         ]);
 
         if (active && profRes.ok) {
@@ -165,15 +282,33 @@ export default function ProfilePage() {
           setLocations(data.locations || []);
         }
 
+        if (active && peopleRes.ok) {
+          const data = await peopleRes.json();
+          setSavedPeople(data.savedPeople || []);
+        }
+
+        if (active && favRes.ok) {
+          const data = await favRes.json();
+          setFavoriteDrivers(data.favorites || []);
+        }
+
         if (active && prefRes.ok) {
           const data = (await prefRes.json()) as { preferences?: PreferenceData };
           if (data.preferences) {
             setPreferences({
               theme: data.preferences.theme || 'SYSTEM',
               language: data.preferences.language || 'en',
+              languagesSpoken:
+                data.preferences.languagesSpoken && data.preferences.languagesSpoken.length > 0
+                  ? data.preferences.languagesSpoken
+                  : ['en', 'hi'],
               pushNotificationsEnabled: data.preferences.pushNotificationsEnabled ?? true,
               smsNotificationsEnabled: data.preferences.smsNotificationsEnabled ?? true,
               emailNotificationsEnabled: data.preferences.emailNotificationsEnabled ?? true,
+              preferredVehicleCategory: data.preferences.preferredVehicleCategory || null,
+              preferredServiceType: data.preferences.preferredServiceType || null,
+              preferredPickupInstructions: data.preferences.preferredPickupInstructions || null,
+              preferredDriverProfileId: data.preferences.preferredDriverProfileId || null,
             });
           }
         }
@@ -451,6 +586,27 @@ export default function ProfilePage() {
             }}
           >
             Personal Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('people')}
+            className="min-h-[44px] transition-opacity hover:opacity-80 active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+            style={{
+              padding: '0.75rem 1.25rem',
+              fontSize: '1rem',
+              fontWeight: 600,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              color:
+                activeTab === 'people' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom:
+                activeTab === 'people' ? '3px solid var(--color-primary)' : '3px solid transparent',
+            }}
+          >
+            Saved People ({savedPeople.length})
           </button>
           <button
             type="button"
@@ -738,6 +894,293 @@ export default function ProfilePage() {
                 </div>
               </form>
             )}
+          </div>
+        )}
+
+        {/* Saved People Tab Content */}
+        {activeTab === 'people' && (
+          <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-6 flex flex-col gap-6 animate-fade-in-up">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#262a33] pb-4">
+              <div>
+                <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  Saved People (Service Recipients)
+                </h2>
+                <p className="text-xs text-[#87948b] mt-1">
+                  Save family members, friends, or guests to quickly book driver services for them.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingPersonId(null);
+                  setPersonForm({
+                    fullName: '',
+                    phone: '',
+                    email: '',
+                    relationship: 'Family',
+                    notes: '',
+                  });
+                  setDuplicateWarning(null);
+                  setShowPersonModal(true);
+                }}
+                className="px-4 py-2 rounded-lg bg-[#68dba9] text-[#003825] hover:bg-[#86e2ba] text-xs font-bold transition-all flex items-center justify-center gap-2 self-start sm:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              >
+                <span className="material-symbols-outlined text-sm">person_add</span>
+                <span>+ Add Person</span>
+              </button>
+            </div>
+
+            {savedPeopleLoading ? (
+              <div className="text-xs text-[#87948b] py-8 text-center">Loading saved people...</div>
+            ) : savedPeople.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 bg-[#141820] border border-dashed border-[#262a33] rounded-xl text-center">
+                <span className="material-symbols-outlined text-3xl text-[#5a685e] mb-2">
+                  group
+                </span>
+                <h3 className="text-sm font-bold text-[#dfe2ee]">No Saved People Yet</h3>
+                <p className="text-xs text-[#87948b] mt-1 max-w-sm">
+                  Save family members or colleagues for quick 1-click selection when booking driver
+                  services for someone else.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingPersonId(null);
+                    setPersonForm({
+                      fullName: '',
+                      phone: '',
+                      email: '',
+                      relationship: 'Family',
+                      notes: '',
+                    });
+                    setDuplicateWarning(null);
+                    setShowPersonModal(true);
+                  }}
+                  className="mt-4 px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-xs font-semibold text-[#68dba9] border border-[#68dba9]/30 transition-all flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  <span>Add First Person</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {savedPeople.map((person) => (
+                  <div
+                    key={person.id}
+                    className="p-4 bg-[#141820] border border-[#262a33] hover:border-[#343a46] rounded-xl flex flex-col justify-between gap-4 transition-all group"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#262a33] text-[#68dba9] flex items-center justify-center font-bold text-sm font-['Space_Grotesk']">
+                          {person.fullName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-[#dfe2ee] group-hover:text-[#68dba9] transition-colors">
+                            {person.fullName}
+                          </h4>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-[#262a33] text-[#a2b0a6] uppercase font-mono tracking-wider">
+                            {person.relationship || 'Recipient'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingPersonId(person.id);
+                            setPersonForm({
+                              fullName: person.fullName,
+                              phone: person.phone,
+                              email: person.email || '',
+                              relationship: person.relationship || 'Family',
+                              notes: person.notes || '',
+                            });
+                            setDuplicateWarning(null);
+                            setShowPersonModal(true);
+                          }}
+                          className="p-1.5 text-[#87948b] hover:text-[#dfe2ee] rounded-md hover:bg-[#262a33] transition-colors"
+                          title="Edit Person"
+                        >
+                          <span className="material-symbols-outlined text-base">edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePerson(person.id)}
+                          className="p-1.5 text-red-400 hover:text-red-300 rounded-md hover:bg-red-950/30 transition-colors"
+                          title="Delete Person"
+                        >
+                          <span className="material-symbols-outlined text-base">delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-[#87948b] space-y-1 font-mono">
+                      <div className="flex items-center gap-2 text-[#dfe2ee]">
+                        <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                          call
+                        </span>
+                        <span>{person.phone}</span>
+                      </div>
+                      {person.email && (
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-xs text-[#87948b]">
+                            mail
+                          </span>
+                          <span>{person.email}</span>
+                        </div>
+                      )}
+                      {person.notes && (
+                        <div className="text-[11px] text-[#87948b] font-sans mt-1 bg-[#1c2028] p-2 rounded border border-[#262a33]">
+                          Note: {person.notes}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-[#262a33]">
+                      <Link
+                        href={`/bookings/new?savedPersonId=${person.id}`}
+                        className="w-full py-2 px-3 rounded-lg bg-[#262a33] hover:bg-[#343a46] active:bg-[#3d4a42] text-xs font-bold text-[#68dba9] flex items-center justify-center gap-2 transition-colors border border-[#68dba9]/20"
+                      >
+                        <span className="material-symbols-outlined text-sm">directions_car</span>
+                        <span>Book for {person.fullName.split(' ')[0]}</span>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Add / Edit Saved Person Modal */}
+        {showPersonModal && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-scale-up">
+              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
+                <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  {editingPersonId ? 'Edit Saved Person' : 'Add Saved Person'}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPersonModal(false)}
+                  className="text-[#87948b] hover:text-[#dfe2ee]"
+                >
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+
+              {duplicateWarning && (
+                <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs flex flex-col gap-2">
+                  <div className="flex items-center gap-2 font-bold">
+                    <span className="material-symbols-outlined text-base">warning</span>
+                    <span>Duplicate Person Warning</span>
+                  </div>
+                  <p>{duplicateWarning}</p>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSavePerson(e, true)}
+                    className="self-end px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded transition-colors"
+                  >
+                    Add Person Anyway
+                  </button>
+                </div>
+              )}
+
+              <form onSubmit={(e) => handleSavePerson(e, false)} className="space-y-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                    Full Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rahul Sharma"
+                    value={personForm.fullName}
+                    onChange={(e) => setPersonForm({ ...personForm, fullName: e.target.value })}
+                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                    Mobile Phone <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. +91 98765 43210"
+                    value={personForm.phone}
+                    onChange={(e) => setPersonForm({ ...personForm, phone: e.target.value })}
+                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                    Relationship
+                  </label>
+                  <select
+                    value={personForm.relationship}
+                    onChange={(e) => setPersonForm({ ...personForm, relationship: e.target.value })}
+                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                  >
+                    <option value="Father">Father</option>
+                    <option value="Mother">Mother</option>
+                    <option value="Spouse">Spouse / Partner</option>
+                    <option value="Son">Son</option>
+                    <option value="Daughter">Daughter</option>
+                    <option value="Family">Family Member</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Guest">Guest / Client</option>
+                    <option value="Employee">Employee / Colleague</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                    Email Address (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="e.g. rahul@example.com"
+                    value={personForm.email}
+                    onChange={(e) => setPersonForm({ ...personForm, email: e.target.value })}
+                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                    Notes / Preferences (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Prefer non-smoking driver"
+                    value={personForm.notes}
+                    onChange={(e) => setPersonForm({ ...personForm, notes: e.target.value })}
+                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#262a33]">
+                  <button
+                    type="button"
+                    onClick={() => setShowPersonModal(false)}
+                    className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-xs font-semibold text-[#dfe2ee]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={personSaving}
+                    className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#86e2ba] text-xs font-bold text-[#003825] disabled:opacity-50"
+                  >
+                    {personSaving ? 'Saving...' : editingPersonId ? 'Update Person' : 'Save Person'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
@@ -1425,10 +1868,24 @@ export default function ProfilePage() {
                   >
                     <option value="en">English</option>
                     <option value="hi">Hindi (हिंदी)</option>
-                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="gu">Gujarati (ગુજરાતી)</option>
+                    <option value="mr">Marathi (मराठी)</option>
+                    <option value="bn">Bengali (বাংলা)</option>
                     <option value="ta">Tamil (தமிழ்)</option>
-                    <option value="te">Telugu (ತೆಲುಗು)</option>
+                    <option value="te">Telugu (తెలుగు)</option>
+                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ml">Malayalam (മലയാളം)</option>
+                    <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
                   </select>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                  <SpokenLanguageSelector
+                    selectedLanguages={preferences.languagesSpoken || ['en', 'hi']}
+                    onChange={(langs) => setPreferences({ ...preferences, languagesSpoken: langs })}
+                    label="Languages Spoken & Understood"
+                    description="Select all languages you can speak or understand so your assigned driver knows how to communicate with you."
+                  />
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
@@ -1496,6 +1953,171 @@ export default function ProfilePage() {
                       />
                       <span style={{ fontSize: '0.875rem' }}>Enable Email Updates & Receipts</span>
                     </label>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 0.25rem 0' }}>
+                    Smart Booking Preferences
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: '0.8125rem',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    Default selections for your driver bookings. Existing matching & safety rules
+                    remain authoritative.
+                  </p>
+
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Preferred Vehicle Category
+                      </label>
+                      <select
+                        value={preferences.preferredVehicleCategory || ''}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            preferredVehicleCategory: e.target.value || null,
+                          })
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '0.625rem 0.875rem',
+                          borderRadius: '0.375rem',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-background)',
+                          color: 'var(--color-text-primary)',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="">No Preference (Default Matching)</option>
+                        <option value="HATCHBACK">Hatchback</option>
+                        <option value="SEDAN">Premium Sedan</option>
+                        <option value="SUV">SUV / MUV</option>
+                        <option value="LUXURY">Luxury Vehicle</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Preferred Service Type
+                      </label>
+                      <select
+                        value={preferences.preferredServiceType || ''}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            preferredServiceType: e.target.value || null,
+                          })
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '0.625rem 0.875rem',
+                          borderRadius: '0.375rem',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-background)',
+                          color: 'var(--color-text-primary)',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="">No Preference (Default)</option>
+                        <option value="POINT_TO_POINT">Point-to-Point City Trip</option>
+                        <option value="HOURLY">Hourly Driver Hire</option>
+                        <option value="FULL_DAY">Full Day / Daily Chauffeur</option>
+                        <option value="MULTI_DAY">Multi-Day Outstation</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Preferred Pickup Instructions
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. Please call before arrival or wait near gate 2"
+                        value={preferences.preferredPickupInstructions || ''}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            preferredPickupInstructions: e.target.value || null,
+                          })
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '0.625rem 0.875rem',
+                          borderRadius: '0.375rem',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-background)',
+                          color: 'var(--color-text-primary)',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Preferred Chauffeur / Driver
+                      </label>
+                      <select
+                        value={preferences.preferredDriverProfileId || ''}
+                        onChange={(e) =>
+                          setPreferences({
+                            ...preferences,
+                            preferredDriverProfileId: e.target.value || null,
+                          })
+                        }
+                        style={{
+                          width: '100%',
+                          padding: '0.625rem 0.875rem',
+                          borderRadius: '0.375rem',
+                          border: '1px solid var(--color-border)',
+                          backgroundColor: 'var(--color-background)',
+                          color: 'var(--color-text-primary)',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="">No Preferred Driver (Default Dispatch)</option>
+                        {favoriteDrivers.map((fav) => (
+                          <option key={fav.driverProfileId} value={fav.driverProfileId}>
+                            {fav.displayName ||
+                              [fav.firstName, fav.lastName].filter(Boolean).join(' ') ||
+                              fav.driverProfileId}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 

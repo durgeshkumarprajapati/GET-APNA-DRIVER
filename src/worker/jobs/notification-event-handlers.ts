@@ -4,6 +4,8 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { eventHandlerRegistry } from '../outbox/event-handler-registry';
 import { createNotification } from '@/modules/notification/application/notification-service';
 import { processCampaignDispatch } from '@/modules/notification/application/notification-campaign-service';
+import { whatsAppProvider } from '@/modules/notification/infrastructure/whatsapp-provider';
+import { emailProvider } from '@/modules/notification/infrastructure/email-provider';
 
 /**
  * Fans a notification out to every currently-active ADMINISTRATOR — there
@@ -38,6 +40,56 @@ async function notifyAdministrators(
   }
 }
 
+async function sendRecipientNotifications(
+  bookingId: string,
+  event: OutboxEvent,
+  eventType: string,
+  database: Db,
+  getCustomMessage: (recipientName: string) => Promise<string> | string,
+  emailSubject: string = 'Driver Service Booking Update - Get Apna Driver',
+): Promise<void> {
+  try {
+    const recipient = await database.bookingServiceRecipient.findUnique({
+      where: { bookingId },
+    });
+    if (!recipient) {
+      return;
+    }
+
+    const message = await getCustomMessage(recipient.fullName);
+
+    // Send WhatsApp notification if recipient phone is provided
+    if (recipient.notifyViaWhatsApp && recipient.phone) {
+      await whatsAppProvider.sendMessage({
+        toPhone: recipient.phone,
+        textMessage: message,
+      });
+      logger.info(
+        { bookingId, recipientPhone: recipient.phone, eventType, eventId: event.id },
+        'Recipient WhatsApp notification dispatched successfully',
+      );
+    }
+
+    // Send Email notification if recipient email is provided
+    if (recipient.email) {
+      await emailProvider.sendEmail({
+        toEmail: recipient.email,
+        subject: emailSubject,
+        bodyText: message,
+      });
+      logger.info(
+        { bookingId, recipientEmail: recipient.email, eventType, eventId: event.id },
+        'Recipient Email notification dispatched successfully',
+      );
+    }
+  } catch (err) {
+    logger.error(
+      { bookingId, eventType, eventId: event.id, err },
+      'Non-fatal error dispatching notifications to service recipient',
+    );
+  }
+}
+
 export function registerNotificationEventHandlers(): void {
   // -------------------------------------------------------------------------
   // Booking Events
@@ -47,6 +99,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -58,8 +111,31 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-created`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.created',
+          database,
+          async (recipientName) => {
+            const customer = await database.user.findUnique({
+              where: { id: customerId },
+              select: {
+                customerProfile: { select: { displayName: true, firstName: true, lastName: true } },
+              },
+            });
+            const cp = customer?.customerProfile;
+            const customerName =
+              cp?.displayName ||
+              [cp?.firstName, cp?.lastName].filter(Boolean).join(' ') ||
+              'Someone';
+            return `Hi ${recipientName}, ${customerName} has booked a driver service for you with Get Apna Driver (Booking ID: ${bookingId.substring(0, 8)}). We are assigning a top-rated driver.`;
+          },
+        );
+      }
     },
   );
 
@@ -138,6 +214,41 @@ export function registerNotificationEventHandlers(): void {
           database,
         );
       }
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.driver.assigned',
+          database,
+          async (recipientName) => {
+            let driverName = 'Your driver';
+            let driverPhone = '';
+            if (driverUserId) {
+              const dUser = await database.user.findUnique({
+                where: { id: driverUserId },
+                select: {
+                  driverProfile: { select: { displayName: true, firstName: true, lastName: true } },
+                  identities: { select: { phoneNumber: true } },
+                },
+              });
+              const dp = dUser?.driverProfile;
+              if (dp) {
+                driverName =
+                  dp.displayName ||
+                  [dp.firstName, dp.lastName].filter(Boolean).join(' ') ||
+                  driverName;
+              }
+              const phone = dUser?.identities?.find(
+                (i: { phoneNumber: string | null }) => i.phoneNumber,
+              )?.phoneNumber;
+              if (phone) driverPhone = phone;
+            }
+            const phoneText = driverPhone ? ` (${driverPhone})` : '';
+            return `Hi ${recipientName}, ${driverName}${phoneText} has been assigned as your driver for Booking ID: ${bookingId.substring(0, 8)}.`;
+          },
+        );
+      }
     },
   );
 
@@ -172,6 +283,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -183,8 +295,20 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-enroute`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.driver.en_route',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver is en route to your pickup location for Booking ID: ${bookingId.substring(0, 8)}.`;
+          },
+        );
+      }
     },
   );
 
@@ -193,6 +317,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -204,8 +329,20 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-arrived`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.driver.arrived',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver has arrived at your pickup location for Booking ID: ${bookingId.substring(0, 8)}.`;
+          },
+        );
+      }
     },
   );
 
@@ -214,6 +351,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -225,8 +363,20 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-trip-started`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.trip.started',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver service has started (Booking ID: ${bookingId.substring(0, 8)}). Have a safe journey!`;
+          },
+        );
+      }
     },
   );
 
@@ -236,6 +386,7 @@ export function registerNotificationEventHandlers(): void {
       const customerId = payload.customerId as string;
       const driverUserId = payload.driverUserId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
 
       if (customerId) {
         await createNotification(
@@ -245,15 +396,10 @@ export function registerNotificationEventHandlers(): void {
             title: 'Driver Service Completed',
             body: 'Thank you for using our driver service! Tap to rate your chauffeur.',
             data: { bookingId },
-            // Straight to this specific booking's tracker page, which
-            // already shows the "Rate Your Driver" form once TRIP_COMPLETED
-            // — not the generic bookings list (the template's
-            // defaultActionUrl), which would leave the customer to go find
-            // the right booking themselves.
             actionUrl: `/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-customer-trip-completed`,
           },
-          db ?? prisma,
+          database,
         );
       }
 
@@ -268,7 +414,19 @@ export function registerNotificationEventHandlers(): void {
             actionUrl: `/driver/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-driver-trip-completed`,
           },
-          db ?? prisma,
+          database,
+        );
+      }
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.trip.completed',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver service (Booking ID: ${bookingId.substring(0, 8)}) is complete. Thank you for using Get Apna Driver!`;
+          },
         );
       }
     },
@@ -280,6 +438,7 @@ export function registerNotificationEventHandlers(): void {
       const customerId = payload.customerId as string;
       const driverUserId = payload.driverUserId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
 
       if (customerId) {
         await createNotification(
@@ -291,7 +450,7 @@ export function registerNotificationEventHandlers(): void {
             data: { bookingId },
             idempotencyKey: `${event.id}-customer-cancelled`,
           },
-          db ?? prisma,
+          database,
         );
       }
 
@@ -301,11 +460,23 @@ export function registerNotificationEventHandlers(): void {
             userId: driverUserId,
             type: NotificationType.BOOKING_CANCELLED,
             title: 'Booking Cancelled',
-            body: 'The customer has cancelled this booking request.',
+            body: 'Booking was cancelled by customer or operations.',
             data: { bookingId },
             idempotencyKey: `${event.id}-driver-cancelled`,
           },
-          db ?? prisma,
+          database,
+        );
+      }
+
+      if (bookingId) {
+        await sendRecipientNotifications(
+          bookingId,
+          event,
+          'booking.cancelled',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver service booking (Booking ID: ${bookingId.substring(0, 8)}) has been cancelled.`;
+          },
         );
       }
     },
@@ -403,6 +574,64 @@ export function registerNotificationEventHandlers(): void {
           },
           client,
         );
+      }
+
+      // Send Tax Invoice email to customer & recipient after payment completion
+      const bookingId = (payload.bookingId as string) || paymentId;
+      if (bookingId && client.booking?.findUnique) {
+        try {
+          const booking = await client.booking.findUnique({
+            where: { id: bookingId },
+            select: {
+              id: true,
+              customerId: true,
+              customer: {
+                select: {
+                  customerProfile: { select: { displayName: true, firstName: true, lastName: true } },
+                  identities: { select: { email: true } },
+                },
+              },
+              serviceRecipient: {
+                select: { fullName: true, email: true },
+              },
+              taxInvoice: {
+                select: { invoiceNumber: true, totalAmount: true },
+              },
+            },
+          });
+
+          if (booking) {
+            const customerEmail = booking.customer?.identities?.find((i) => i.email)?.email;
+            const cp = booking.customer?.customerProfile;
+            const customerName =
+              cp?.displayName ||
+              [cp?.firstName, cp?.lastName].filter(Boolean).join(' ') ||
+              'Valued Customer';
+            const invoiceNum = booking.taxInvoice?.invoiceNumber || `INV-${bookingId.substring(0, 8).toUpperCase()}`;
+            const total = booking.taxInvoice?.totalAmount ? Number(booking.taxInvoice.totalAmount) : amount;
+
+            const invoiceEmailMessage = `Hi ${customerName},\n\nThank you for your payment of ₹${total}. Your tax invoice (${invoiceNum}) for Booking ID: ${bookingId.substring(0, 8)} has been completed successfully.\n\nThank you for choosing Get Apna Driver!`;
+
+            if (customerEmail) {
+              await emailProvider.sendEmail({
+                toEmail: customerEmail,
+                subject: `Tax Invoice ${invoiceNum} - Booking ID: ${bookingId.substring(0, 8)}`,
+                bodyText: invoiceEmailMessage,
+              });
+            }
+
+            if (booking.serviceRecipient?.email) {
+              const recipientInvoiceMsg = `Hi ${booking.serviceRecipient.fullName},\n\nPayment of ₹${total} for your driver service (Booking ID: ${bookingId.substring(0, 8)}, booked by ${customerName}) has been completed. Tax Invoice: ${invoiceNum}.\n\nThank you for choosing Get Apna Driver!`;
+              await emailProvider.sendEmail({
+                toEmail: booking.serviceRecipient.email,
+                subject: `Driver Service Invoice - Booking ID: ${bookingId.substring(0, 8)}`,
+                bodyText: recipientInvoiceMsg,
+              });
+            }
+          }
+        } catch (err) {
+          logger.error({ bookingId, err }, 'Failed to send invoice email after payment completion');
+        }
       }
     },
   );

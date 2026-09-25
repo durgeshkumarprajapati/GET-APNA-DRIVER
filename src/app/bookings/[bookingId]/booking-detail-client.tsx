@@ -53,6 +53,15 @@ interface BookingDetail {
     primaryServiceArea: string | null;
     drivingExperienceYears: number;
   } | null;
+  isForSomeoneElse?: boolean;
+  serviceRecipient?: {
+    fullName: string;
+    phone: string;
+    relationship?: string | null;
+    email?: string | null;
+    notes?: string | null;
+    notifyViaWhatsApp: boolean;
+  } | null;
 }
 
 interface BookingReview {
@@ -112,6 +121,44 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [resolvedPickupAddress, setResolvedPickupAddress] = useState<string | null>(null);
+  const [invoice, setInvoice] = useState<{
+    id: string;
+    invoiceNumber: string;
+    paymentId?: string | null;
+    status: string;
+    subtotalAmount: number;
+    discountAmount: number;
+    taxAmount: number;
+    totalAmount: number;
+    taxDetails?: {
+      driverCharges: number;
+      platformCharges: number;
+      otherCharges: number;
+      grossSubtotal: number;
+      discountAmount: number;
+      taxableAmount: number;
+      cgstRate: number;
+      cgstAmount: number;
+      sgstRate: number;
+      sgstAmount: number;
+      igstRate: number;
+      igstAmount: number;
+      totalTaxAmount: number;
+    };
+  } | null>(null);
+
+  useEffect(() => {
+    if (booking?.id && booking.status === 'TRIP_COMPLETED') {
+      fetch(`/api/customer/bookings/${booking.id}/invoice`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.success && data?.invoice) {
+            setInvoice(data.invoice);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [booking?.id, booking?.status]);
 
   useEffect(() => {
     let cancelled = false;
@@ -485,6 +532,11 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                 <span>
                   {booking.cancelledBy && booking.cancelledBy !== booking.customerId
                     ? 'Driver has cancelled the booking'
+                    : booking.cancellationReason?.toLowerCase().includes('rejected') ||
+                      booking.cancellationReason === 'Booking rejected by driver'
+                    ? 'Booking rejected by driver'
+                    : booking.cancellationReason === 'NO_ACTIVE_DRIVER_NEARBY'
+                    ? 'No active driver found near you'
                     : 'You cancelled this booking'}
                 </span>
               </div>
@@ -509,6 +561,44 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                         t('customer.bookingsList.professionalDriverFallback'),
                     })}
               </p>
+            </div>
+          )}
+
+          {/* Recipient Details Card */}
+          {booking.isForSomeoneElse && booking.serviceRecipient && (
+            <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">group</span>
+                  Booked For Service Recipient
+                </h3>
+                {booking.serviceRecipient.relationship && (
+                  <span className="px-2 py-0.5 rounded-full bg-purple-900/80 text-purple-200 font-mono text-[10px] font-semibold uppercase">
+                    {booking.serviceRecipient.relationship}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    Recipient Name
+                  </span>
+                  <span className="text-white font-semibold">
+                    {booking.serviceRecipient.fullName}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    Recipient Mobile
+                  </span>
+                  <span className="text-slate-200 font-mono">{booking.serviceRecipient.phone}</span>
+                </div>
+              </div>
+              {booking.serviceRecipient.notes && (
+                <p className="text-xs text-slate-300 italic pt-1">
+                  Notes for driver: &quot;{booking.serviceRecipient.notes}&quot;
+                </p>
+              )}
             </div>
           )}
 
@@ -592,6 +682,132 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
           {booking.status === 'TRIP_COMPLETED' && (
             <div className="space-y-6">
               <PostTripPaymentCard bookingId={booking.id} role="CUSTOMER" />
+
+              {invoice && (
+                <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span className="material-symbols-outlined text-emerald-400 text-lg">
+                          receipt_long
+                        </span>
+                        Payment Summary & Tax Invoice
+                      </h3>
+                      <p className="text-xs text-slate-400">Invoice No: {invoice.invoiceNumber}</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {invoice.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-300">
+                      <span>Driver Charges</span>
+                      <span className="font-mono">
+                        ₹{(invoice.taxDetails?.driverCharges ?? invoice.subtotalAmount).toFixed(2)}
+                      </span>
+                    </div>
+                    {(invoice.taxDetails?.platformCharges ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-300">
+                        <span>Platform Charges</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.platformCharges?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {(invoice.taxDetails?.otherCharges ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-300">
+                        <span>Other Charges</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.otherCharges?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-800 font-medium">
+                      <span>Gross Subtotal</span>
+                      <span className="font-mono">
+                        ₹{(invoice.taxDetails?.grossSubtotal ?? invoice.subtotalAmount).toFixed(2)}
+                      </span>
+                    </div>
+                    {invoice.discountAmount > 0 && (
+                      <div className="flex justify-between text-emerald-400 font-medium">
+                        <span>Promotion Discount</span>
+                        <span className="font-mono">-₹{invoice.discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-slate-300 pt-1 border-t border-slate-800">
+                      <span>Taxable Amount</span>
+                      <span className="font-mono">
+                        ₹{(invoice.taxDetails?.taxableAmount ?? invoice.subtotalAmount).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>GST (18% inclusive)</span>
+                      <span className="font-mono">₹{invoice.taxAmount.toFixed(2)}</span>
+                    </div>
+                    {(invoice.taxDetails?.cgstAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-500 text-[11px] pl-2">
+                        <span>CGST ({invoice.taxDetails?.cgstRate}%)</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.cgstAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {(invoice.taxDetails?.sgstAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-500 text-[11px] pl-2">
+                        <span>SGST ({invoice.taxDetails?.sgstRate}%)</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.sgstAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-slate-700">
+                      <span>Total Payable</span>
+                      <span className="text-emerald-400 font-mono">
+                        ₹{invoice.totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800">
+                    <a
+                      href={`/api/customer/bookings/${booking.id}/invoice/pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">visibility</span>
+                      View Invoice
+                    </a>
+                    <a
+                      href={`/api/customer/bookings/${booking.id}/invoice/pdf`}
+                      download={`invoice-${invoice.invoiceNumber}.pdf`}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">download</span>
+                      Download PDF Invoice
+                    </a>
+                    {invoice.paymentId && (
+                      <a
+                        href={`/api/customer/payments/${invoice.paymentId}/receipt/pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-purple-950/80 hover:bg-purple-900 text-purple-200 text-xs font-semibold rounded-lg border border-purple-500/30 flex items-center gap-1.5 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">receipt</span>
+                        View Payment Receipt
+                      </a>
+                    )}
+                    <Link
+                      href="/customer/billing"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">account_balance</span>
+                      Billing Center
+                    </Link>
+                  </div>
+                </div>
+              )}
 
               <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
                 <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">

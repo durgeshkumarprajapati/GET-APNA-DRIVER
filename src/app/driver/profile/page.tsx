@@ -7,6 +7,7 @@ import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
 import { DriverCapabilitySelector } from '@/components/driver/DriverCapabilitySelector';
+import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
 
 interface DriverProfileData {
   firstName: string;
@@ -18,6 +19,7 @@ interface DriverProfileData {
   bio: string;
   drivingExperienceYears: number;
   primaryServiceArea: string;
+  languagesSpoken: string[];
   // Empty string means "no rate set / opted out of this hire type" —
   // converted to null on submit, never sent as 0.
   dailyHireRate: string;
@@ -36,6 +38,7 @@ export default function DriverProfileEditPage() {
     bio: '',
     drivingExperienceYears: 1,
     primaryServiceArea: 'Bengaluru Central',
+    languagesSpoken: ['en', 'hi'],
     dailyHireRate: '',
     weeklyHireRate: '',
     monthlyHireRate: '',
@@ -77,6 +80,10 @@ export default function DriverProfileEditPage() {
               bio: data.profile.bio || '',
               drivingExperienceYears: data.profile.drivingExperienceYears || 1,
               primaryServiceArea: data.profile.primaryServiceArea || '',
+              languagesSpoken:
+                data.profile.languagesSpoken && data.profile.languagesSpoken.length > 0
+                  ? data.profile.languagesSpoken
+                  : ['en', 'hi'],
               dailyHireRate:
                 data.profile.dailyHireRate != null ? String(data.profile.dailyHireRate) : '',
               weeklyHireRate:
@@ -479,6 +486,16 @@ export default function DriverProfileEditPage() {
                     />
                   </div>
                 )}
+              </div>
+
+              {/* Spoken & Understood Languages Selector */}
+              <div className="pt-4 border-t border-slate-800">
+                <SpokenLanguageSelector
+                  selectedLanguages={form.languagesSpoken}
+                  onChange={(langs) => setForm({ ...form, languagesSpoken: langs })}
+                  label="Spoken & Understood Languages"
+                  description="Select all languages you can speak or understand so customers can easily communicate with you."
+                />
               </div>
 
               <div>

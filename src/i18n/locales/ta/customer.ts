@@ -9,6 +9,7 @@ export const customerTa = {
     reviews: 'என் மதிப்பாய்வுகள்',
     favorites: 'விருப்பமான ஓட்டுநர்கள்',
     wallet: 'வாலட்',
+    billing: 'பில்லிங் மையம்',
     invoices: 'வரி சலான் (Invoices)',
     offers: 'சலுகைகள் & கூப்பன்கள்',
     rewards: 'ராயல்டி ரிவார்டுகள்',

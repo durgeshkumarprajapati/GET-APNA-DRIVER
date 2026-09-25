@@ -88,35 +88,60 @@ export async function setDriverAvailability(
         throw new DriverNotEligibleError(evaluation.reasons);
       }
 
+      const now = new Date();
+
+      // If location coordinates were passed in requestMetadata, update directly inside transaction
+      if (
+        requestMetadata &&
+        typeof requestMetadata.latitude === 'number' &&
+        typeof requestMetadata.longitude === 'number'
+      ) {
+        await tx.driverCurrentLocation.upsert({
+          where: { driverProfileId: profile.id },
+          create: {
+            driverProfileId: profile.id,
+            latitude: requestMetadata.latitude,
+            longitude: requestMetadata.longitude,
+            accuracy: typeof requestMetadata.accuracy === 'number' ? requestMetadata.accuracy : null,
+            capturedAt: now,
+          },
+          update: {
+            latitude: requestMetadata.latitude,
+            longitude: requestMetadata.longitude,
+            accuracy: typeof requestMetadata.accuracy === 'number' ? requestMetadata.accuracy : null,
+            capturedAt: now,
+          },
+        });
+      }
+
       // Operational Driver Presence: Verify valid recent current location
-      const currentLocation = await tx.driverCurrentLocation.findUnique({
+      let currentLocation = await tx.driverCurrentLocation.findUnique({
         where: { driverProfileId: profile.id },
       });
 
-      const now = new Date();
       const isFresh =
         currentLocation && now.getTime() - currentLocation.capturedAt.getTime() <= 120 * 1000;
 
       if (!currentLocation || !isFresh) {
-        // If developer testing or fallback location, create default active location if missing
-        if (process.env.NODE_ENV !== 'production' && !currentLocation) {
-          await tx.driverCurrentLocation.upsert({
+        // If developer testing or fallback location, create/refresh active location timestamp
+        if (process.env.NODE_ENV !== 'production') {
+          currentLocation = await tx.driverCurrentLocation.upsert({
             where: { driverProfileId: profile.id },
             create: {
               driverProfileId: profile.id,
-              latitude: 19.076,
-              longitude: 72.8777,
+              latitude: currentLocation?.latitude ?? 19.076,
+              longitude: currentLocation?.longitude ?? 72.8777,
               accuracy: 10,
               capturedAt: now,
             },
             update: {
-              latitude: 19.076,
-              longitude: 72.8777,
+              latitude: currentLocation?.latitude ?? 19.076,
+              longitude: currentLocation?.longitude ?? 72.8777,
               accuracy: 10,
               capturedAt: now,
             },
           });
-        } else if (!currentLocation || !isFresh) {
+        } else {
           throw new DriverNotEligibleError([
             'Location required to go online. Current device location is missing or stale.',
           ]);

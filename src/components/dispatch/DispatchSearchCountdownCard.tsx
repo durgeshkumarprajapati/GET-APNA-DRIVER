@@ -12,6 +12,7 @@ export interface DispatchStatusResponse {
   remainingSeconds: number;
   hasExpired: boolean;
   isNoDriverCancelled: boolean;
+  isDriverRejectedCancelled?: boolean;
   cancellationReason: string | null;
   cancellationMessage: string | null;
 }
@@ -41,7 +42,7 @@ export function DispatchSearchCountdownCard({
             setDispatchStatus(ds);
             setRemainingSec(ds.remainingSeconds ?? 0);
 
-            if (ds.isNoDriverCancelled && onCancelled) {
+            if ((ds.isNoDriverCancelled || ds.isDriverRejectedCancelled) && onCancelled) {
               onCancelled();
             }
           }
@@ -73,6 +74,43 @@ export function DispatchSearchCountdownCard({
     const secs = totalSeconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const isDriverRejected =
+    dispatchStatus.isDriverRejectedCancelled ||
+    (dispatchStatus.status === 'CANCELLED' &&
+      (dispatchStatus.cancellationReason?.toLowerCase().includes('rejected') ||
+        dispatchStatus.cancellationReason === 'Booking rejected by driver'));
+
+  if (isDriverRejected) {
+    return (
+      <div className="p-6 rounded-2xl bg-[#181c24] border border-[#f2b8b5]/30 space-y-4 shadow-lg animate-fade-in">
+        <div className="flex items-center gap-3 text-[#f2b8b5]">
+          <span className="material-symbols-outlined text-2xl">person_cancel</span>
+          <div>
+            <h3 className="text-base font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+              Booking Rejected by Driver
+            </h3>
+            <p className="text-xs text-[#c4c7c5] mt-0.5">
+              {dispatchStatus.cancellationMessage || 'The requested driver has declined the booking offer.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-[#262a33] flex items-center justify-between flex-wrap gap-3">
+          <p className="text-xs text-[#87948b]">
+            Your booking request was declined by the driver. You can select another driver or try again.
+          </p>
+          <Link
+            href="/bookings/new"
+            className="px-5 py-2.5 rounded-xl bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs transition-colors flex items-center gap-1.5 shadow-md"
+          >
+            <span className="material-symbols-outlined text-sm">refresh</span>
+            <span>Try Again</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (
     dispatchStatus.isNoDriverCancelled ||

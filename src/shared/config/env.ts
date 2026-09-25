@@ -52,6 +52,15 @@ const envSchema = z.object({
   MSG91_AUTH_KEY: z.string().optional(),
   MSG91_TEMPLATE_ID: z.string().optional(),
   FAST2SMS_API_KEY: z.string().optional(),
+  WHATSAPP_PROVIDER: z
+    .preprocess(
+      (val) => (typeof val === 'string' ? val.toLowerCase() : val),
+      z.enum(['mock', 'dev', 'development', 'meta', 'twilio']),
+    )
+    .default('development'),
+  WHATSAPP_API_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

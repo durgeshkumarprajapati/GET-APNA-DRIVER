@@ -5,6 +5,7 @@ import {
   BookingType,
   DriverAvailabilityStatus,
   AssignmentAttemptStatus,
+  Prisma,
 } from '@prisma/client';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
@@ -55,6 +56,17 @@ export interface DriverBookingSummary {
   cancelledBy?: string | null;
   cancellationReason?: string | null;
   createdAt: Date;
+  isForSomeoneElse?: boolean;
+  bookedBy?: {
+    fullName: string | null;
+    phone: string | null;
+  } | null;
+  serviceRecipient?: {
+    fullName: string;
+    phone: string | null;
+    relationship: string | null;
+    notes: string | null;
+  } | null;
 }
 
 export interface ActiveDriverLocationSnapshot {
@@ -736,10 +748,11 @@ export async function listDriverBookings(
     where: {
       OR: [{ driverProfileId: profile.id }, { cancelledBy: driverUserId }],
     },
+    include: {
+      customer: { select: { customerProfile: true, identities: true } },
+      serviceRecipient: true,
+    },
     orderBy: { createdAt: 'desc' },
-    // Previously unbounded — caps a long-tenured driver's history query
-    // without changing the flat-array response shape the driver bookings
-    // page already expects.
     take: 200,
   });
 
@@ -794,9 +807,37 @@ export async function getDriverLocationForBooking(
   };
 }
 
-import type { Booking } from '@prisma/client';
+type DriverBookingPayload = Prisma.BookingGetPayload<Record<string, never>> & {
+  customer?: {
+    customerProfile?: {
+      displayName: string | null;
+      firstName: string | null;
+      lastName: string | null;
+    } | null;
+    identities?: { phoneNumber: string | null }[];
+  } | null;
+  serviceRecipient?: {
+    id: string;
+    fullName: string;
+    phone: string | null;
+    email: string | null;
+    relationship: string | null;
+    notes: string | null;
+    notifyViaWhatsApp: boolean;
+  } | null;
+};
 
-function mapBookingToDriverSummary(booking: Booking): DriverBookingSummary {
+function mapBookingToDriverSummary(booking: DriverBookingPayload): DriverBookingSummary {
+  const customerProf = booking.customer?.customerProfile;
+  const customerName = customerProf
+    ? customerProf.displayName ||
+      [customerProf.firstName, customerProf.lastName].filter(Boolean).join(' ') ||
+      null
+    : null;
+  const customerPhone =
+    booking.customer?.identities?.find((i: { phoneNumber: string | null }) => i.phoneNumber)
+      ?.phoneNumber || null;
+
   return {
     id: booking.id,
     customerId: booking.customerId,
@@ -820,5 +861,18 @@ function mapBookingToDriverSummary(booking: Booking): DriverBookingSummary {
     cancelledBy: booking.cancelledBy,
     cancellationReason: booking.cancellationReason,
     createdAt: booking.createdAt,
+    isForSomeoneElse: Boolean(booking.serviceRecipient),
+    bookedBy: {
+      fullName: customerName,
+      phone: customerPhone,
+    },
+    serviceRecipient: booking.serviceRecipient
+      ? {
+          fullName: booking.serviceRecipient.fullName,
+          phone: booking.serviceRecipient.phone,
+          relationship: booking.serviceRecipient.relationship,
+          notes: booking.serviceRecipient.notes,
+        }
+      : null,
   };
 }

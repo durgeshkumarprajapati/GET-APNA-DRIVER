@@ -106,7 +106,7 @@ describe('createUserWithIdentity', () => {
 
   it('rejects a phone number that is not in E.164 format', async () => {
     await expect(
-      createUserWithIdentity({ providerName: 'phone', phoneNumber: '9876543210' }),
+      createUserWithIdentity({ providerName: 'phone', phoneNumber: '12345' }),
     ).rejects.toThrow(InvalidPhoneNumberError);
     expect(mockedCreateUser).not.toHaveBeenCalled();
   });

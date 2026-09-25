@@ -8,6 +8,7 @@ import { DispatchSearchState } from '../domain/candidate-ranking-types';
 
 export const SEARCH_DEADLINE_SECONDS = 180; // Server-authoritative 3-minute search deadline
 export const CANCELLATION_REASON_NO_DRIVER = 'NO_ACTIVE_DRIVER_NEARBY';
+export const CANCELLATION_REASON_DRIVER_REJECTED = 'Booking rejected by driver';
 export const CUSTOMER_CANCELLATION_TEXT = 'No active driver found near you.';
 
 /**
@@ -25,6 +26,9 @@ export async function getDispatchSearchState(
       searchStartedAt: true,
       createdAt: true,
       expiresAt: true,
+      cancelledBy: true,
+      cancellationReason: true,
+      customerId: true,
       assignmentAttempts: {
         select: {
           id: true,
@@ -51,6 +55,11 @@ export async function getDispatchSearchState(
     ? booking.assignmentAttempts.filter((a) => a.status === AssignmentAttemptStatus.PENDING).length
     : 0;
 
+  const isDriverRejected =
+    booking.status === 'CANCELLED' &&
+    (booking.cancellationReason?.toLowerCase().includes('rejected') ||
+      (booking.cancelledBy !== null && booking.cancelledBy !== booking.customerId));
+
   return {
     bookingId: booking.id,
     status: booking.status,
@@ -60,12 +69,16 @@ export async function getDispatchSearchState(
     candidatePoolSize: activeOffersCount,
     rankedCandidatesCount: booking.assignmentAttempts?.length || 0,
     hasExpired,
+    cancelledBy: booking.cancelledBy || null,
+    cancellationReason: booking.cancellationReason || null,
+    isDriverRejected,
   };
 }
 
 /**
  * Executes automatic server-authoritative 2-minute search deadline cancellation.
  * Only cancels if booking is still in SEARCHING_DRIVER state and unassigned.
+ * Auto-detects if assignment attempt was REJECTED by driver and sets reason/cancelledBy accordingly.
  */
 export async function cancelBookingNoDriverFound(
   bookingId: string,
@@ -99,6 +112,33 @@ export async function cancelBookingNoDriverFound(
 
   validateBookingStatusTransition(booking.status, BookingStatus.CANCELLED);
 
+  // Check if any assignment attempt was REJECTED by driver
+  const rejectedAttempts = booking.assignmentAttempts.filter(
+    (a) => a.status === AssignmentAttemptStatus.REJECTED,
+  );
+
+  let cancellationReason = CANCELLATION_REASON_NO_DRIVER;
+  let cancellationText = CUSTOMER_CANCELLATION_TEXT;
+  let cancelledByUserId: string | null = null;
+  let actionName = 'booking.cancelled.no_driver';
+  let eventType = 'booking.no_driver_found';
+
+  if (rejectedAttempts.length > 0) {
+    const lastRejected = rejectedAttempts[rejectedAttempts.length - 1];
+    cancellationReason = lastRejected.rejectionReason || CANCELLATION_REASON_DRIVER_REJECTED;
+    cancellationText = CANCELLATION_REASON_DRIVER_REJECTED;
+    actionName = 'booking.cancelled.driver_rejected';
+    eventType = 'booking.driver_rejected';
+
+    const driverProfile = await db.driverProfile.findUnique({
+      where: { id: lastRejected.driverProfileId },
+      select: { userId: true },
+    });
+    if (driverProfile?.userId) {
+      cancelledByUserId = driverProfile.userId;
+    }
+  }
+
   await db.$transaction(async (tx) => {
     // 1. Authoritative status update to CANCELLED
     await tx.booking.update({
@@ -106,8 +146,8 @@ export async function cancelBookingNoDriverFound(
       data: {
         status: BookingStatus.CANCELLED,
         cancelledAt: now,
-        cancelledBy: null,
-        cancellationReason: CANCELLATION_REASON_NO_DRIVER,
+        cancelledBy: cancelledByUserId,
+        cancellationReason,
       },
     });
 
@@ -123,39 +163,41 @@ export async function cancelBookingNoDriverFound(
         bookingId: booking.id,
         fromStatus: booking.status,
         toStatus: BookingStatus.CANCELLED,
-        action: 'booking.cancelled.no_driver',
-        reason: CUSTOMER_CANCELLATION_TEXT,
+        action: actionName,
+        reason: cancellationText,
       },
     });
 
     // 4. Emit outbox event
     await insertOutboxEvent(tx, {
-      eventType: 'booking.no_driver_found',
+      eventType,
       aggregateType: 'Booking',
       aggregateId: booking.id,
       payload: {
         bookingId: booking.id,
         customerId: booking.customerId,
-        reason: CANCELLATION_REASON_NO_DRIVER,
-        message: CUSTOMER_CANCELLATION_TEXT,
+        reason: cancellationReason,
+        message: cancellationText,
         cancelledAt: now.toISOString(),
+        cancelledBy: cancelledByUserId,
       },
     });
   });
 
   await recordAuditLog(db, {
-    actorUserId: null,
-    action: 'booking.cancelled.no_driver',
+    actorUserId: cancelledByUserId,
+    action: actionName,
     entityType: 'Booking',
     entityId: bookingId,
     beforeState: { status: booking.status },
     afterState: {
       status: BookingStatus.CANCELLED,
-      cancellationReason: CANCELLATION_REASON_NO_DRIVER,
+      cancellationReason,
+      cancelledBy: cancelledByUserId,
     },
   });
 
-  return { cancelled: true, reason: CANCELLATION_REASON_NO_DRIVER };
+  return { cancelled: true, reason: cancellationReason };
 }
 
 /**

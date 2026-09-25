@@ -26,6 +26,7 @@ import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
+import { normalizePhoneNumber, isValidE164PhoneNumber } from '@/modules/identity/validation/phone';
 import { CreateBookingInput } from '../domain/types';
 import {
   BookingNotFoundError,
@@ -33,6 +34,7 @@ import {
   DuplicateBookingIdempotencyError,
   DriverSelectionRequiredError,
 } from '../domain/errors';
+import { ValidationError } from '@/shared/errors/app-error';
 
 import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calculation-service';
 import {
@@ -43,6 +45,16 @@ import { validateAndReservePromotionUsage } from '@/modules/promotion/applicatio
 
 const MAX_CUSTOMER_BOOKINGS_RETURNED = 200;
 
+export interface ServiceRecipientDetail {
+  id: string;
+  fullName: string;
+  phone: string | null;
+  email: string | null;
+  relationship: string | null;
+  notes: string | null;
+  notifyViaWhatsApp: boolean;
+}
+
 export interface BookingDetail {
   id: string;
   idempotencyKey: string | null;
@@ -50,6 +62,8 @@ export interface BookingDetail {
   driverProfileId: string | null;
   preferredDriverProfileId: string | null;
   driverCustomRateSnapshot?: string | null;
+  isForSomeoneElse: boolean;
+  serviceRecipient?: ServiceRecipientDetail | null;
   /**
    * The currently outstanding PENDING assignment attempt, if any — surfaced
    * so the customer's tracker page can show "Request sent to <driver>,
@@ -164,7 +178,7 @@ export async function createBooking(
   if (idempotencyKey) {
     const existing = await db.booking.findUnique({
       where: { idempotencyKey },
-      include: { driverProfile: true, vehicleCategory: true },
+      include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
     });
     if (existing) {
       if (existing.customerId !== customerUserId) {
@@ -233,7 +247,7 @@ export async function createBooking(
   if (rawCatId) {
     const category = await db.vehicleCategory.findUnique({ where: { id: rawCatId } });
     if (!category || !category.isActive) {
-      throw new Error(`Invalid or inactive vehicle category selection: '${rawCatId}'.`);
+      throw new ValidationError(`Invalid or inactive vehicle category selection: '${rawCatId}'.`, 'INVALID_VEHICLE_CATEGORY');
     }
     resolvedVehicleCategoryId = category.id;
   } else if (rawCatCode) {
@@ -243,9 +257,45 @@ export async function createBooking(
       .replace(/[\s-]+/g, '_');
     const category = await db.vehicleCategory.findUnique({ where: { code: normalizedCode } });
     if (!category || !category.isActive) {
-      throw new Error(`Invalid or inactive vehicle category selection: '${rawCatCode}'.`);
+      throw new ValidationError(`Invalid or inactive vehicle category selection: '${rawCatCode}'.`, 'INVALID_VEHICLE_CATEGORY');
     }
     resolvedVehicleCategoryId = category.id;
+  }
+
+  // 2d. Validate Optional Service Recipient (Booking for someone else)
+  let validatedRecipient: {
+    fullName: string;
+    phone: string | null;
+    email: string | null;
+    relationship: string | null;
+    notes: string | null;
+    notifyViaWhatsApp: boolean;
+  } | null = null;
+
+  if (input.serviceRecipient) {
+    const rawName = (input.serviceRecipient.fullName || '').trim();
+    if (!rawName) {
+      throw new ValidationError('Service recipient full name is required.', 'INVALID_RECIPIENT_NAME');
+    }
+    const rawPhone = input.serviceRecipient.phone || '';
+    const normalizedPhone = rawPhone ? normalizePhoneNumber(rawPhone) : '';
+    const email = input.serviceRecipient.email?.trim() || null;
+
+    if (rawPhone && !isValidE164PhoneNumber(normalizedPhone)) {
+      throw new ValidationError('Valid mobile number is required for the service recipient.', 'INVALID_RECIPIENT_PHONE');
+    }
+    if (!normalizedPhone && !email) {
+      throw new ValidationError('Either email or phone number is required when booking for someone else.', 'INVALID_RECIPIENT_CONTACT');
+    }
+
+    validatedRecipient = {
+      fullName: rawName,
+      phone: normalizedPhone || null,
+      email,
+      relationship: input.serviceRecipient.relationship?.trim() || null,
+      notes: input.serviceRecipient.notes?.trim() || null,
+      notifyViaWhatsApp: input.serviceRecipient.notifyViaWhatsApp ?? true,
+    };
   }
 
   // 3. Calculate Estimated Fare and Route
@@ -309,6 +359,21 @@ export async function createBooking(
       },
     });
 
+    let recipientRecord = null;
+    if (validatedRecipient) {
+      recipientRecord = await tx.bookingServiceRecipient.create({
+        data: {
+          bookingId: created.id,
+          fullName: validatedRecipient.fullName,
+          phone: validatedRecipient.phone,
+          email: validatedRecipient.email,
+          relationship: validatedRecipient.relationship,
+          notes: validatedRecipient.notes,
+          notifyViaWhatsApp: validatedRecipient.notifyViaWhatsApp,
+        },
+      });
+    }
+
     await tx.bookingLog.create({
       data: {
         bookingId: created.id,
@@ -354,6 +419,14 @@ export async function createBooking(
         pickupLongitude: created.pickupLongitude,
         estimatedFareAmount: fareResult.breakdown.totalFareAmount,
         createdAt: now.toISOString(),
+        serviceRecipient: recipientRecord
+          ? {
+              fullName: recipientRecord.fullName,
+              phone: recipientRecord.phone,
+              relationship: recipientRecord.relationship,
+              notifyViaWhatsApp: recipientRecord.notifyViaWhatsApp,
+            }
+          : null,
       },
     });
 
@@ -384,6 +457,7 @@ export async function createBooking(
       customerId: customerUserId,
       status: BookingStatus.SEARCHING_DRIVER,
       idempotencyKey,
+      isForSomeoneElse: Boolean(validatedRecipient),
     },
   });
 
@@ -396,7 +470,7 @@ export async function createBooking(
 
   const freshBooking = await db.booking.findUniqueOrThrow({
     where: { id: booking.id },
-    include: { driverProfile: true, vehicleCategory: true },
+    include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
   });
 
   return mapBookingToDetail(freshBooking);
@@ -418,7 +492,7 @@ export async function getBookingById(
 ): Promise<BookingDetail> {
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { driverProfile: true, vehicleCategory: true },
+    include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
   });
 
   if (!booking) {
@@ -464,7 +538,7 @@ export async function listCustomerBookings(
 ): Promise<BookingDetail[]> {
   const bookings = await db.booking.findMany({
     where: { customerId: customerUserId },
-    include: { driverProfile: true, vehicleCategory: true },
+    include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
     orderBy: { createdAt: 'desc' },
     take: MAX_CUSTOMER_BOOKINGS_RETURNED,
   });
@@ -486,7 +560,7 @@ export async function listRecentCompletedBookings(
 ): Promise<BookingDetail[]> {
   const bookings = await db.booking.findMany({
     where: { customerId: customerUserId, status: BookingStatus.TRIP_COMPLETED },
-    include: { driverProfile: true, vehicleCategory: true },
+    include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
     orderBy: { tripCompletedAt: 'desc' },
     take: MAX_RECENT_BOOKINGS_RETURNED,
   });
@@ -508,7 +582,7 @@ export async function cancelBooking(
 ): Promise<BookingDetail> {
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { driverProfile: true, vehicleCategory: true },
+    include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
   });
 
   if (booking && booking.customerId !== userId) {
@@ -641,14 +715,16 @@ export async function cancelBooking(
 
   const updatedBooking = await db.booking.findUniqueOrThrow({
     where: { id: booking.id },
-    include: { driverProfile: true, vehicleCategory: true },
+    include: { driverProfile: true, vehicleCategory: true, serviceRecipient: true },
   });
 
   return mapBookingToDetail(updatedBooking);
 }
 
 function mapBookingToDetail(
-  booking: Prisma.BookingGetPayload<{ include: { driverProfile: true; vehicleCategory?: true } }>,
+  booking: Prisma.BookingGetPayload<{
+    include: { driverProfile: true; vehicleCategory?: true; serviceRecipient?: true };
+  }>,
 ): BookingDetail {
   return {
     id: booking.id,
@@ -658,6 +734,18 @@ function mapBookingToDetail(
     preferredDriverProfileId: booking.preferredDriverProfileId,
     driverCustomRateSnapshot: booking.driverCustomRateSnapshot
       ? booking.driverCustomRateSnapshot.toString()
+      : null,
+    isForSomeoneElse: Boolean(booking.serviceRecipient),
+    serviceRecipient: booking.serviceRecipient
+      ? {
+          id: booking.serviceRecipient.id,
+          fullName: booking.serviceRecipient.fullName,
+          phone: booking.serviceRecipient.phone,
+          email: booking.serviceRecipient.email,
+          relationship: booking.serviceRecipient.relationship,
+          notes: booking.serviceRecipient.notes,
+          notifyViaWhatsApp: booking.serviceRecipient.notifyViaWhatsApp,
+        }
       : null,
     status: booking.status,
     bookingType: booking.bookingType,

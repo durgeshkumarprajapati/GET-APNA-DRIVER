@@ -11,9 +11,13 @@ import {
 const updatePreferenceSchema = z.object({
   theme: z.nativeEnum(ThemePreference).optional(),
   language: z.string().optional(),
+  languagesSpoken: z.array(z.string()).optional(),
   pushNotificationsEnabled: z.boolean().optional(),
   smsNotificationsEnabled: z.boolean().optional(),
   emailNotificationsEnabled: z.boolean().optional(),
+  preferredVehicleCategory: z.string().nullable().optional(),
+  preferredServiceType: z.string().nullable().optional(),
+  preferredPickupInstructions: z.string().nullable().optional(),
 });
 
 export const GET = withAuth(async (_req, { principal }) => {
@@ -31,3 +35,5 @@ export const PUT = withAuth(async (req, { principal }) => {
 
   return NextResponse.json({ preferences: updated }, { status: 200 });
 });
+
+export const PATCH = PUT;

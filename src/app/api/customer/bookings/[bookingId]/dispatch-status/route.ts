@@ -18,12 +18,37 @@ export const GET = withPermission<RouteParams>(
 
       const dispatchState = await getDispatchSearchState(bookingId);
 
+      const isDriverRejected =
+        booking.status === 'CANCELLED' &&
+        (booking.cancellationReason?.toLowerCase().includes('rejected') ||
+          (booking.cancelledBy !== null && booking.cancelledBy !== principal.userId));
+
+      const isNoDriverCancelled =
+        booking.status === 'CANCELLED' &&
+        booking.cancellationReason === 'NO_ACTIVE_DRIVER_NEARBY';
+
+      const cancellationMessage = isDriverRejected
+        ? 'Booking rejected by driver.'
+        : booking.cancellationReason || 'No active driver found near you.';
+
       return NextResponse.json(
         {
           bookingId,
           status: booking.status,
           dispatchState,
           assignedDriverId: booking.driverProfileId,
+          dispatchStatus: {
+            bookingId,
+            status: booking.status,
+            searchStartedAt: dispatchState?.searchStartedAt?.toISOString() || null,
+            searchDeadlineAt: dispatchState?.searchDeadlineAt?.toISOString() || null,
+            remainingSeconds: dispatchState?.remainingSeconds ?? 0,
+            hasExpired: dispatchState?.hasExpired ?? false,
+            isNoDriverCancelled,
+            isDriverRejectedCancelled: isDriverRejected,
+            cancellationReason: booking.cancellationReason,
+            cancellationMessage,
+          },
         },
         { status: 200 },
       );

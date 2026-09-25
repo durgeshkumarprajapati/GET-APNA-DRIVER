@@ -437,11 +437,11 @@ export class DriverScheduleService {
 
     if (!profile) return false;
 
-    // Rollout safety: If driver has zero configured schedules, default to schedule-neutral (true)
-    const allSchedulesCount = await db.driverSchedule.count({
-      where: { driverProfileId },
+    // Rollout safety: If driver has zero active configured schedules, default to schedule-neutral (true)
+    const activeSchedulesCount = await db.driverSchedule.count({
+      where: { driverProfileId, isActive: true },
     });
-    if (allSchedulesCount === 0) {
+    if (activeSchedulesCount === 0) {
       return true;
     }
 

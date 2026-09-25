@@ -1,5 +1,6 @@
-import { prisma } from '@/shared/database/prisma';
+import { prisma, type Db } from '@/shared/database/prisma';
 import { TaxInvoiceStatus } from '@prisma/client';
+import { calculateTaxBreakdown } from './tax-calculation-service';
 
 export interface TaxInvoiceItem {
   id: string;
@@ -25,17 +26,60 @@ export interface TaxInvoiceItem {
     name?: string | null;
     email?: string | null;
     phone?: string | null;
+    isForSomeoneElse?: boolean;
+    serviceRecipient?: {
+      fullName: string;
+      phone: string;
+      relationship?: string | null;
+      notes?: string | null;
+    } | null;
   };
   taxDetails: {
+    driverCharges: number;
+    platformCharges: number;
+    otherCharges: number;
+    grossSubtotal: number;
+    discountAmount: number;
+    taxableAmount: number;
     cgstRate: number;
     cgstAmount: number;
     sgstRate: number;
     sgstAmount: number;
     igstRate: number;
     igstAmount: number;
+    totalTaxAmount: number;
   };
   issuedAt: string;
   createdAt: string;
+}
+
+export async function generateSequentialInvoiceNumber(
+  db: Db = prisma,
+  date: Date = new Date(),
+): Promise<string> {
+  const year = date.getFullYear();
+  const prefix = `GAD-INV-${year}-`;
+
+  const count = await db.taxInvoice.count({
+    where: {
+      invoiceNumber: {
+        startsWith: prefix,
+      },
+    },
+  });
+
+  const seq = count + 1;
+  let candidate = `${prefix}${String(seq).padStart(6, '0')}`;
+
+  let attempts = 0;
+  while (attempts < 10) {
+    const existing = await db.taxInvoice.findUnique({ where: { invoiceNumber: candidate } });
+    if (!existing) return candidate;
+    attempts++;
+    candidate = `${prefix}${String(seq + attempts).padStart(6, '0')}`;
+  }
+
+  return `${prefix}${Date.now().toString().slice(-6)}`;
 }
 
 export function generateInvoiceNumber(date: Date = new Date()): string {
@@ -43,12 +87,15 @@ export function generateInvoiceNumber(date: Date = new Date()): string {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  return `INV-${yyyy}${mm}${dd}-${randomSuffix}`;
+  return `GAD-INV-${yyyy}${mm}${dd}-${randomSuffix}`;
 }
 
-export async function createTaxInvoiceForBooking(bookingId: string): Promise<TaxInvoiceItem> {
+export async function createTaxInvoiceForBooking(
+  bookingId: string,
+  db: Db = prisma,
+): Promise<TaxInvoiceItem> {
   // Check if invoice already exists
-  const existing = await prisma.taxInvoice.findUnique({
+  const existing = await db.taxInvoice.findUnique({
     where: { bookingId },
     include: { customer: { include: { customerProfile: true, identities: true } } },
   });
@@ -57,7 +104,7 @@ export async function createTaxInvoiceForBooking(bookingId: string): Promise<Tax
     return formatInvoiceResponse(existing);
   }
 
-  const booking = await prisma.booking.findUnique({
+  const booking = await db.booking.findUnique({
     where: { id: bookingId },
     include: {
       customer: {
@@ -66,6 +113,7 @@ export async function createTaxInvoiceForBooking(bookingId: string): Promise<Tax
           identities: true,
         },
       },
+      serviceRecipient: true,
       payments: {
         where: { status: 'CAPTURED' },
         orderBy: { createdAt: 'desc' },
@@ -79,17 +127,21 @@ export async function createTaxInvoiceForBooking(bookingId: string): Promise<Tax
   }
 
   const payment = booking.payments[0];
-  const grossAmount = Number(
+  const finalFare = Number(
     booking.finalFareAmount ?? booking.estimatedFareAmount ?? payment?.amount ?? 0,
   );
   const discountAmount = Number(payment?.discountAmount ?? 0);
-  const netAmount = Math.max(0, grossAmount - discountAmount);
+  const platformCharges = Number(payment?.commissionAmount ?? 0);
+  const driverCharges = Math.max(0, finalFare - platformCharges);
 
-  // SAC Code 9964: Passenger Transport Services (18% GST = 9% CGST + 9% SGST)
-  const subtotalAmount = Number((netAmount / 1.18).toFixed(2));
-  const taxAmount = Number((netAmount - subtotalAmount).toFixed(2));
-  const cgstAmount = Number((taxAmount / 2).toFixed(2));
-  const sgstAmount = Number((taxAmount - cgstAmount).toFixed(2));
+  const taxBreakdown = calculateTaxBreakdown({
+    driverCharges,
+    platformCharges,
+    otherCharges: 0,
+    discountAmount,
+    gstRatePercent: 18,
+    isTaxInclusive: true,
+  });
 
   const customerName =
     booking.customer.customerProfile?.displayName ||
@@ -112,36 +164,45 @@ export async function createTaxInvoiceForBooking(bookingId: string): Promise<Tax
     name: customerName,
     email: customerEmail,
     phone: customerPhone,
+    isForSomeoneElse: Boolean(booking.serviceRecipient),
+    serviceRecipient: booking.serviceRecipient
+      ? {
+          fullName: booking.serviceRecipient.fullName,
+          phone: booking.serviceRecipient.phone,
+          relationship: booking.serviceRecipient.relationship,
+          notes: booking.serviceRecipient.notes,
+        }
+      : null,
   };
 
   const taxDetails = {
-    cgstRate: 9,
-    cgstAmount,
-    sgstRate: 9,
-    sgstAmount,
-    igstRate: 0,
-    igstAmount: 0,
+    driverCharges: taxBreakdown.driverCharges,
+    platformCharges: taxBreakdown.platformCharges,
+    otherCharges: taxBreakdown.otherCharges,
+    grossSubtotal: taxBreakdown.grossSubtotal,
+    discountAmount: taxBreakdown.discountAmount,
+    taxableAmount: taxBreakdown.taxableAmount,
+    cgstRate: taxBreakdown.cgstRatePercent,
+    cgstAmount: taxBreakdown.cgstAmount,
+    sgstRate: taxBreakdown.sgstRatePercent,
+    sgstAmount: taxBreakdown.sgstAmount,
+    igstRate: taxBreakdown.igstRatePercent,
+    igstAmount: taxBreakdown.igstAmount,
+    totalTaxAmount: taxBreakdown.totalTaxAmount,
   };
 
-  let invoiceNumber = generateInvoiceNumber();
-  let attempts = 0;
-  while (attempts < 5) {
-    const isUnique = !(await prisma.taxInvoice.findUnique({ where: { invoiceNumber } }));
-    if (isUnique) break;
-    invoiceNumber = generateInvoiceNumber();
-    attempts++;
-  }
+  const invoiceNumber = await generateSequentialInvoiceNumber(db);
 
-  const invoice = await prisma.taxInvoice.create({
+  const invoice = await db.taxInvoice.create({
     data: {
       invoiceNumber,
       customerId: booking.customerId,
       bookingId: booking.id,
       paymentId: payment?.id || null,
-      subtotalAmount,
-      discountAmount,
-      taxAmount,
-      totalAmount: netAmount,
+      subtotalAmount: taxBreakdown.taxableAmount,
+      discountAmount: taxBreakdown.discountAmount,
+      taxAmount: taxBreakdown.totalTaxAmount,
+      totalAmount: taxBreakdown.finalPayable,
       currency: 'INR',
       status: TaxInvoiceStatus.ISSUED,
       supplierSnapshot,
@@ -175,6 +236,25 @@ export async function getCustomerInvoiceById(
 ): Promise<TaxInvoiceItem | null> {
   const invoice = await prisma.taxInvoice.findFirst({
     where: { id: invoiceId, customerId },
+  });
+  if (!invoice) return null;
+  return formatInvoiceResponse(invoice);
+}
+
+export async function getCustomerInvoiceByBookingId(
+  customerId: string,
+  bookingId: string,
+): Promise<TaxInvoiceItem | null> {
+  const invoice = await prisma.taxInvoice.findFirst({
+    where: { bookingId, customerId },
+  });
+  if (!invoice) return null;
+  return formatInvoiceResponse(invoice);
+}
+
+export async function getInvoiceByBookingId(bookingId: string): Promise<TaxInvoiceItem | null> {
+  const invoice = await prisma.taxInvoice.findFirst({
+    where: { bookingId },
   });
   if (!invoice) return null;
   return formatInvoiceResponse(invoice);

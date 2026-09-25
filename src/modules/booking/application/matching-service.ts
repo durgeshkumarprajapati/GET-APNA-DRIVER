@@ -19,7 +19,10 @@ import {
 } from '@/modules/dispatch/application/dispatch-search-service';
 import { isDriverHireBooking, isRateSelectableHireBooking } from '../domain/booking-policy';
 import { findConflictingDriverIds } from './driver-hire-availability-service';
-import { isDriverDispatchEligible } from '@/modules/driver/application/services/driver-eligibility-service';
+import {
+  isDriverDispatchEligible,
+  ensureDevDriverApproved,
+} from '@/modules/driver/application/services/driver-eligibility-service';
 
 export interface MatchingResult {
   attemptId: string | null;
@@ -190,8 +193,12 @@ export async function findAndOfferNextDriver(
   // booking types: POINT_TO_POINT, HOURLY, DAILY, WEEKLY, MONTHLY), try to
   // offer that driver directly first, bypassing geo-distance filtering so distance
   // from pickup doesn't filter out their assignment offer.
+  const targetTime = booking.hireStartAt || booking.requestedStartTime || now;
   const chosenDriverId = booking.preferredDriverProfileId;
   if (chosenDriverId && !attemptedDriverIds.has(chosenDriverId)) {
+    if (process.env.NODE_ENV !== 'production') {
+      await ensureDevDriverApproved(chosenDriverId, db);
+    }
     let isStillAvailable = false;
     const driverProfile = await db.driverProfile.findUnique({ where: { id: chosenDriverId } });
     isStillAvailable =
@@ -223,7 +230,7 @@ export async function findAndOfferNextDriver(
     }
 
     if (isStillAvailable) {
-      const dispatchEligibility = await isDriverDispatchEligible(chosenDriverId, now, db);
+      const dispatchEligibility = await isDriverDispatchEligible(chosenDriverId, targetTime, db);
       if (!dispatchEligibility.isEligible) {
         isStillAvailable = false;
       }

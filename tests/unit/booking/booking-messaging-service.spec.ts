@@ -173,8 +173,8 @@ describe('BookingMessagingService', () => {
 
       const result = await listBookingMessages('cust-1', 'bk-1');
 
-      expect(result[0].senderRole).toBe('CUSTOMER');
-      expect(result[1].senderRole).toBe('DRIVER');
+      expect(result.messages[0].senderRole).toBe('CUSTOMER');
+      expect(result.messages[1].senderRole).toBe('DRIVER');
     });
 
     it('rejects an unrelated user from reading the thread', async () => {

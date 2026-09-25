@@ -14,6 +14,48 @@ export class AppError extends Error {
   }
 }
 
+export class ValidationError extends AppError {
+  constructor(message: string, code = 'VALIDATION_ERROR') {
+    super(message, 400, code);
+    this.name = 'ValidationError';
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string, code = 'NOT_FOUND') {
+    super(message, 404, code);
+    this.name = 'NotFoundError';
+  }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message: string, code = 'BAD_REQUEST') {
+    super(message, 400, code);
+    this.name = 'BadRequestError';
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string, code = 'CONFLICT') {
+    super(message, 409, code);
+    this.name = 'ConflictError';
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message = 'Access forbidden', code = 'FORBIDDEN') {
+    super(message, 403, code);
+    this.name = 'ForbiddenError';
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(message = 'Authentication required', code = 'UNAUTHORIZED') {
+    super(message, 401, code);
+    this.name = 'UnauthorizedError';
+  }
+}
+
 interface ErrorBody {
   statusCode: number;
   code: string;
@@ -71,6 +113,31 @@ export function toErrorResponse(error: unknown, path: string): NextResponse<Erro
         timestamp: new Date().toISOString(),
       },
       { status: 409 },
+    );
+  }
+
+  // Fallback for standard Errors with human-readable validation/business messages
+  if (
+    error instanceof Error &&
+    !(error instanceof TypeError) &&
+    !(error instanceof ReferenceError) &&
+    !(error instanceof SyntaxError) &&
+    !(error instanceof RangeError) &&
+    !(error instanceof URIError) &&
+    error.message &&
+    !error.message.includes('ECONNREFUSED') &&
+    !error.message.includes('PrismaClient')
+  ) {
+    logger.warn({ err: error, path }, 'Standard Error converted to 400 validation response');
+    return NextResponse.json(
+      {
+        statusCode: 400,
+        code: 'VALIDATION_ERROR',
+        message: error.message,
+        path,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 400 },
     );
   }
 

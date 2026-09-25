@@ -16,8 +16,19 @@ export function normalizePhoneNumber(value: string): string {
     return '+' + trimmed.slice(1).replace(/\D/g, '');
   }
 
-  // Without leading '+', return clean digits (which fails E.164 validation as expected)
-  return trimmed.replace(/\D/g, '');
+  const digits = trimmed.replace(/\D/g, '');
+
+  // 10-digit Indian mobile number starting with 6-9
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    return '+91' + digits;
+  }
+
+  // 12-digit number starting with 91 (e.g. 916261549133)
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return '+' + digits;
+  }
+
+  return digits;
 }
 
 export function isValidE164PhoneNumber(value: string): boolean {

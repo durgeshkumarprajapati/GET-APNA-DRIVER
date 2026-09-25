@@ -9,6 +9,7 @@ export const customerMl = {
     reviews: 'എന്റെ റിവ്യൂകൾ',
     favorites: 'പ്രിയപ്പെട്ട ഡ്രൈവർമാർ',
     wallet: 'വാലറ്റ്',
+    billing: 'ബില്ലിംഗ് സെന്റർ',
     invoices: 'ടാക്സ് ഇൻവോയ്സുകൾ',
     offers: 'ഓഫറുകൾ & കൂപ്പണുകൾ',
     rewards: 'റോയൽറ്റി റിവാർഡുകൾ',

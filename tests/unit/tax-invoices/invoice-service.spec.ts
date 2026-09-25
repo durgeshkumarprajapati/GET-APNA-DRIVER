@@ -2,19 +2,19 @@ import { generateInvoiceNumber } from '@/modules/tax-invoices/invoice-service';
 
 describe('Phase 31 Objective C — Production Tax Invoices Service', () => {
   describe('generateInvoiceNumber', () => {
-    it('generates unique collision-safe invoice numbers in INV-YYYYMMDD-XXXX format', () => {
+    it('generates unique collision-safe invoice numbers in GAD-INV-YYYYMMDD-XXXX format', () => {
       const invNum1 = generateInvoiceNumber();
       const invNum2 = generateInvoiceNumber();
 
-      expect(invNum1).toMatch(/^INV-\d{8}-\d{4}$/);
-      expect(invNum2).toMatch(/^INV-\d{8}-\d{4}$/);
+      expect(invNum1).toMatch(/^GAD-INV-\d{8}-\d{4}$/);
+      expect(invNum2).toMatch(/^GAD-INV-\d{8}-\d{4}$/);
       expect(invNum1).not.toEqual(invNum2);
     });
 
     it('formats date correctly in invoice string prefix', () => {
       const customDate = new Date('2026-09-14T10:00:00Z');
       const invNum = generateInvoiceNumber(customDate);
-      expect(invNum).toContain('INV-20260914-');
+      expect(invNum).toContain('GAD-INV-20260914-');
     });
   });
 
