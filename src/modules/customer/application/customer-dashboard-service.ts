@@ -121,7 +121,10 @@ export async function getCustomerDashboardData(
   customerId: string,
   dbClient: Db = prisma,
 ): Promise<CustomerDashboardData> {
-  const db = dbClient as unknown as Record<string, Record<string, (args: unknown) => Promise<unknown>>>;
+  const db = dbClient as unknown as Record<
+    string,
+    Record<string, (args: unknown) => Promise<unknown>>
+  >;
 
   const [
     userRaw,
@@ -141,7 +144,13 @@ export async function getCustomerDashboardData(
       include: {
         customerProfile: true,
         identities: {
-          select: { identityType: true, identifier: true, email: true, phoneE164: true },
+          select: {
+            providerType: true,
+            providerName: true,
+            providerSubject: true,
+            email: true,
+            phoneNumber: true,
+          },
         },
       },
     }),
@@ -195,7 +204,9 @@ export async function getCustomerDashboardData(
       orderBy: { requestedStartTime: 'asc' },
     }),
     // 4. Recent bookings (last 5)
-    (db.booking as { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> }).findMany({
+    (
+      db.booking as { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> }
+    ).findMany({
       where: { customerId },
       include: {
         driverProfile: {
@@ -220,7 +231,11 @@ export async function getCustomerDashboardData(
       take: 4,
     }),
     // 7. Favorite drivers
-    (db.customerFavoriteDriver as { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> }).findMany({
+    (
+      db.customerFavoriteDriver as {
+        findMany: (args: unknown) => Promise<Array<Record<string, unknown>>>;
+      }
+    ).findMany({
       where: { customerId },
       include: {
         driverProfile: {
@@ -239,7 +254,9 @@ export async function getCustomerDashboardData(
       where: { userId: customerId },
     }),
     // 9. Pending payments
-    (db.payment as { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> }).findMany({
+    (
+      db.payment as { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> }
+    ).findMany({
       where: { customerId, status: { in: ['CREATED', 'PROCESSING'] } },
       orderBy: { createdAt: 'desc' },
       take: 5,
@@ -266,11 +283,11 @@ export async function getCustomerDashboardData(
   const credentials = (user.credentials as Record<string, unknown>) || {};
 
   const userEmail =
-    (identities.find((i) => i.identityType === 'EMAIL' || i.email)?.email as string) ||
+    (identities.find((i) => i.providerType === 'EMAIL' || i.email)?.email as string) ||
     (credentials.email as string) ||
     null;
   const userPhone =
-    (identities.find((i) => i.identityType === 'PHONE' || i.phoneE164)?.phoneE164 as string) ||
+    (identities.find((i) => i.providerType === 'PHONE' || i.phoneNumber)?.phoneNumber as string) ||
     (credentials.phoneNumber as string) ||
     null;
 
@@ -405,8 +422,7 @@ export async function getCustomerDashboardData(
 
       const pickupLocObj = b.pickupLocation as { address?: string; label?: string } | undefined;
       const pickupJson = b.pickupLocationJson as { address?: string } | undefined;
-      const dropoffLocObj = b.dropoffLocation as
-        { address?: string; label?: string } | undefined;
+      const dropoffLocObj = b.dropoffLocation as { address?: string; label?: string } | undefined;
       const dropoffJson = b.dropoffLocationJson as { address?: string } | undefined;
 
       const driverName = driverProfile
@@ -414,9 +430,7 @@ export async function getCustomerDashboardData(
           [driverProfile.firstName, driverProfile.lastName].filter(Boolean).join(' ')
         : null;
 
-      const fare = Number(
-        b.finalFareAmount ?? b.estimatedFareAmount ?? payments?.[0]?.amount ?? 0,
-      );
+      const fare = Number(b.finalFareAmount ?? b.estimatedFareAmount ?? payments?.[0]?.amount ?? 0);
 
       return {
         id: String(b.id),
@@ -424,12 +438,16 @@ export async function getCustomerDashboardData(
         bookingType: String(b.bookingType),
         pickupLocation: {
           address:
-            pickupLocObj?.address ?? pickupJson?.address ?? (b.pickupAddress as string) ?? 'Pickup location',
+            pickupLocObj?.address ??
+            pickupJson?.address ??
+            (b.pickupAddress as string) ??
+            'Pickup location',
           label: pickupLocObj?.label ?? (b.pickupLabel as string) ?? null,
         },
         dropoffLocation: b.dropoffAddress
           ? {
-              address: dropoffLocObj?.address ?? dropoffJson?.address ?? (b.dropoffAddress as string),
+              address:
+                dropoffLocObj?.address ?? dropoffJson?.address ?? (b.dropoffAddress as string),
               label: dropoffLocObj?.label ?? (b.dropoffLabel as string) ?? null,
             }
           : null,
@@ -467,16 +485,18 @@ export async function getCustomerDashboardData(
   });
 
   // Saved Places
-  const savedPlaces: CustomerDashboardData['savedPlaces'] = savedPlacesRaw.map((locItem: unknown) => {
-    const loc = locItem as Record<string, unknown>;
-    return {
-      id: String(loc.id),
-      label: String(loc.label),
-      addressLine1: String(loc.addressLine1),
-      city: String(loc.city),
-      isDefault: Boolean(loc.isDefault),
-    };
-  });
+  const savedPlaces: CustomerDashboardData['savedPlaces'] = savedPlacesRaw.map(
+    (locItem: unknown) => {
+      const loc = locItem as Record<string, unknown>;
+      return {
+        id: String(loc.id),
+        label: String(loc.label),
+        addressLine1: String(loc.addressLine1),
+        city: String(loc.city),
+        isDefault: Boolean(loc.isDefault),
+      };
+    },
+  );
 
   // Favorite Drivers
   const favoriteDrivers: CustomerDashboardData['favoriteDrivers'] = (favoriteDriversRaw || []).map(
@@ -495,13 +515,10 @@ export async function getCustomerDashboardData(
   );
 
   // Billing Summary
-  const pendingTotal = (pendingPaymentsRaw || []).reduce(
-    (sum: number, pItem: unknown) => {
-      const p = pItem as Record<string, unknown>;
-      return sum + Number(p.amount);
-    },
-    0,
-  );
+  const pendingTotal = (pendingPaymentsRaw || []).reduce((sum: number, pItem: unknown) => {
+    const p = pItem as Record<string, unknown>;
+    return sum + Number(p.amount);
+  }, 0);
   const billingSummary: CustomerDashboardData['billingSummary'] = {
     pendingPaymentsCount: pendingPaymentsRaw.length,
     pendingPaymentsTotalAmount: pendingTotal,

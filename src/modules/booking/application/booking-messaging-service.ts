@@ -99,7 +99,13 @@ export async function resolveMessagingParticipant(
   const isPreferred = booking.preferredDriverProfileId === callerDriverProfile.id;
   const hasAttempt = isAssigned
     ? true
-    : !!(await (db as unknown as { bookingAssignmentAttempt: { findFirst: (args: unknown) => Promise<{ id: string } | null> } }).bookingAssignmentAttempt.findFirst({
+    : !!(await (
+        db as unknown as {
+          bookingAssignmentAttempt: {
+            findFirst: (args: unknown) => Promise<{ id: string } | null>;
+          };
+        }
+      ).bookingAssignmentAttempt.findFirst({
         where: { bookingId: booking.id, driverProfileId: callerDriverProfile.id },
         select: { id: true },
       }));
@@ -139,7 +145,11 @@ export async function sendBookingMessage(
 
   const messageType = options?.messageType ?? 'TEXT';
 
-  const message = await (db as unknown as { bookingMessage: { create: (args: unknown) => Promise<Record<string, unknown>> } }).bookingMessage.create({
+  const message = await (
+    db as unknown as {
+      bookingMessage: { create: (args: unknown) => Promise<Record<string, unknown>> };
+    }
+  ).bookingMessage.create({
     data: {
       bookingId,
       senderUserId,
@@ -181,7 +191,11 @@ export async function createSystemBookingMessage(
   const booking = await db.booking.findUnique({ where: { id: bookingId } });
   if (!booking) return null;
 
-  const message = await (db as unknown as { bookingMessage: { create: (args: unknown) => Promise<Record<string, unknown>> } }).bookingMessage.create({
+  const message = await (
+    db as unknown as {
+      bookingMessage: { create: (args: unknown) => Promise<Record<string, unknown>> };
+    }
+  ).bookingMessage.create({
     data: {
       bookingId,
       senderUserId: booking.customerId,
@@ -212,7 +226,11 @@ export async function listBookingMessages(
     throw new MessagingNotAuthorizedError(bookingId);
   }
 
-  const rawMessages = await (db as unknown as { bookingMessage: { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> } }).bookingMessage.findMany({
+  const rawMessages = await (
+    db as unknown as {
+      bookingMessage: { findMany: (args: unknown) => Promise<Array<Record<string, unknown>>> };
+    }
+  ).bookingMessage.findMany({
     where: { bookingId },
     orderBy: { createdAt: 'asc' },
   });
@@ -271,7 +289,11 @@ export async function markMessagesAsRead(
   }
 
   const now = new Date();
-  const updateResult = await (db as unknown as { bookingMessage: { updateMany: (args: unknown) => Promise<{ count: number }> } }).bookingMessage.updateMany({
+  const updateResult = await (
+    db as unknown as {
+      bookingMessage: { updateMany: (args: unknown) => Promise<{ count: number }> };
+    }
+  ).bookingMessage.updateMany({
     where: {
       bookingId,
       senderUserId: { not: userId },
@@ -307,7 +329,9 @@ export async function getUnreadMessageCount(
   bookingId: string,
   db: Db = prisma,
 ): Promise<number> {
-  const count = await (db as unknown as { bookingMessage: { count: (args: unknown) => Promise<number> } }).bookingMessage.count({
+  const count = await (
+    db as unknown as { bookingMessage: { count: (args: unknown) => Promise<number> } }
+  ).bookingMessage.count({
     where: {
       bookingId,
       senderUserId: { not: userId },
@@ -317,7 +341,10 @@ export async function getUnreadMessageCount(
   return count;
 }
 
-function toDTO(message: Record<string, unknown>, senderRole: 'CUSTOMER' | 'DRIVER' | 'SYSTEM'): BookingMessageDTO {
+function toDTO(
+  message: Record<string, unknown>,
+  senderRole: 'CUSTOMER' | 'DRIVER' | 'SYSTEM',
+): BookingMessageDTO {
   return {
     id: String(message.id),
     bookingId: String(message.bookingId),
