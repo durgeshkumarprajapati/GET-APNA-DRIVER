@@ -3,86 +3,31 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
-import { CustomerRecommendationsWidget } from '@/components/customer/customer-recommendations-widget';
 import { CustomerExperienceSection } from '@/components/experience/customer-experience-section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { useTranslation } from '@/i18n/context';
-
-interface CustomerProfile {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  displayName: string | null;
-  dateOfBirth: string | null;
-  accountStatus: string;
-  email: string | null;
-  phoneNumber: string | null;
-  createdAt: string;
-}
-
-interface BookingLocationSummary {
-  address: string;
-  label: string | null;
-}
-
-interface BookingSummary {
-  id: string;
-  status: string;
-  bookingType: string;
-  pickupLocation: BookingLocationSummary;
-  dropoffLocation?: BookingLocationSummary | null;
-  requestedStartTime: string | null;
-  createdAt: string;
-}
-
-interface SavedLocationSummary {
-  id: string;
-  label: string;
-  addressLine1: string;
-  city: string;
-  isDefault: boolean;
-}
-
-interface FavoriteDriverSummary {
-  driverProfileId: string;
-  displayName: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  profileImageUrl: string | null;
-  ratingAverage: number;
-}
-
-const ACTIVE_BOOKING_STATUSES = new Set([
-  'SEARCHING_DRIVER',
-  'DRIVER_ASSIGNED',
-  'DRIVER_EN_ROUTE',
-  'DRIVER_ARRIVED',
-  'TRIP_IN_PROGRESS',
-]);
-
-function customerDisplayName(profile: CustomerProfile): string {
-  if (profile.displayName) return profile.displayName;
-  const combined = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
-  return combined || profile.email || 'there';
-}
-
-function favoriteDisplayName(fav: FavoriteDriverSummary): string {
-  if (fav.displayName) return fav.displayName;
-  return [fav.firstName, fav.lastName].filter(Boolean).join(' ') || '—';
-}
+import type { CustomerDashboardData } from '@/modules/customer/application/customer-dashboard-service';
 
 function statusBadgeClass(status: string): string {
   if (status === 'TRIP_COMPLETED') return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
   if (status === 'CANCELLED' || status === 'EXPIRED') {
     return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
   }
-  if (ACTIVE_BOOKING_STATUSES.has(status)) {
+  if (
+    [
+      'SEARCHING_DRIVER',
+      'DRIVER_ASSIGNED',
+      'DRIVER_EN_ROUTE',
+      'DRIVER_ARRIVED',
+      'TRIP_IN_PROGRESS',
+      'TRIP_STARTED',
+    ].includes(status)
+  ) {
     return 'bg-[#3a2f00] text-[#f5c04a] border border-[#5c4a00]';
   }
   return 'bg-[#262a33] text-[#dfe2ee] border border-[#3d4a42]';
 }
 
-/** Derives a display icon from the customer's own real saved-place label — never fabricated data, just a presentational cue for common label words. */
 function savedPlaceIcon(label: string): string {
   const normalized = label.toLowerCase();
   if (normalized.includes('home')) return 'home';
@@ -92,96 +37,48 @@ function savedPlaceIcon(label: string): string {
 }
 
 export default function CustomerDashboardPage() {
-  const { t, formatDate, statusLabel } = useTranslation();
-  const [profile, setProfile] = useState<CustomerProfile | null>(null);
-  const [bookings, setBookings] = useState<BookingSummary[]>([]);
-  const [recentCompleted, setRecentCompleted] = useState<BookingSummary[]>([]);
-  const [savedLocations, setSavedLocations] = useState<SavedLocationSummary[]>([]);
-  const [favoriteDrivers, setFavoriteDrivers] = useState<FavoriteDriverSummary[]>([]);
-  const [loyaltyAccount, setLoyaltyAccount] = useState<{
-    pointsBalance: number;
-    tierCode: string;
-    currentTier: { name: string } | null;
-  } | null>(null);
-  const [scheduledRides, setScheduledRides] = useState<
-    Array<{
-      id: string;
-      status: string;
-      scheduledTime: string;
-      nextRunAt?: string | null;
-      pickupLocation: { address: string; label?: string | null };
-    }>
-  >([]);
+  const { t, formatDate, formatCurrency, statusLabel } = useTranslation();
+  const [dashboard, setDashboard] = useState<CustomerDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    const load = async () => {
+    async function loadDashboard() {
       try {
-        const [
-          profileRes,
-          bookingsRes,
-          recentRes,
-          locationsRes,
-          favoritesRes,
-          loyaltyRes,
-          scheduledRes,
-        ] = await Promise.all([
-          fetch('/api/customer/profile'),
-          fetch('/api/bookings'),
-          fetch('/api/customer/bookings/recent'),
-          fetch('/api/customer/locations'),
-          fetch('/api/customer/favorites'),
-          fetch('/api/customer/loyalty'),
-          fetch('/api/customer/scheduled-rides'),
-        ]);
-        if (!isMounted) return;
-        if (profileRes.ok) {
-          const data = await profileRes.json();
-          setProfile(data.profile);
+        const res = await fetch('/api/customer/dashboard');
+        if (!res.ok) throw new Error('Failed to load dashboard.');
+        const data = await res.json();
+        if (isMounted && data.success) {
+          setDashboard(data.dashboard);
+          setError(null);
         }
-        if (bookingsRes.ok) {
-          const data = await bookingsRes.json();
-          setBookings(data.bookings ?? []);
-        }
-        if (recentRes.ok) {
-          const data = await recentRes.json();
-          setRecentCompleted(data.bookings ?? []);
-        }
-        if (locationsRes.ok) {
-          const data = await locationsRes.json();
-          setSavedLocations(data.locations ?? []);
-        }
-        if (favoritesRes.ok) {
-          const data = await favoritesRes.json();
-          setFavoriteDrivers(data.favorites ?? []);
-        }
-        if (loyaltyRes.ok) {
-          const data = await loyaltyRes.json();
-          setLoyaltyAccount(data.account ?? null);
-        }
-        if (scheduledRes.ok) {
-          const data = await scheduledRes.json();
-          setScheduledRides(data.scheduledRides ?? []);
-        }
-      } catch (err) {
+      } catch (err: unknown) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Failed to load dashboard.');
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    };
-    void load();
+    }
+    loadDashboard();
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const activeBookings = bookings.filter((b) => ACTIVE_BOOKING_STATUSES.has(b.status));
-  const completedBookings = bookings.filter((b) => b.status === 'TRIP_COMPLETED');
-  const mostRecentRide = recentCompleted[0] ?? null;
+  const profile = dashboard?.profile;
+  const activeService = dashboard?.activeService;
+  const upcomingService = dashboard?.upcomingService;
+  const savedPeople = dashboard?.savedPeople || [];
+  const savedPlaces = dashboard?.savedPlaces || [];
+  const recentServices = dashboard?.recentServices || [];
+  const bookAgainShortcuts = dashboard?.bookAgainShortcuts || [];
+  const favoriteDrivers = dashboard?.favoriteDrivers || [];
+  const billingSummary = dashboard?.billingSummary;
+  const recommendations = dashboard?.recommendations || [];
 
   return (
     <CustomerLayout>
@@ -196,14 +93,16 @@ export default function CustomerDashboardPage() {
           <LoadingState />
         ) : (
           <>
-            {/* Profile Summary */}
+            {/* Header & Profile Overview */}
             <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
               <div>
                 <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
                   {t('customer.dashboard.welcomeEyebrow')}
                 </span>
                 <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
-                  {profile ? customerDisplayName(profile) : 'Customer'}
+                  {profile?.displayName || profile?.firstName
+                    ? [profile.firstName, profile.lastName].filter(Boolean).join(' ')
+                    : 'Customer'}
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-[#87948b]">
                   {profile?.email && <span>{profile.email}</span>}
@@ -217,162 +116,288 @@ export default function CustomerDashboardPage() {
                   )}
                 </div>
               </div>
-              <Link
-                href="/profile"
-                className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] active:bg-[#3d4a42] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
-              >
-                {t('customer.dashboard.editProfile')}
-              </Link>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/bookings/new"
+                  className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#86e2ba] text-[#003825] text-xs font-bold font-['Space_Grotesk'] transition-all flex items-center gap-2 shadow-lg shadow-[#68dba9]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                >
+                  <span className="material-symbols-outlined text-base">directions_car</span>
+                  <span>{t('customer.dashboard.bookDriverBtn')}</span>
+                </Link>
+                <Link
+                  href="/profile"
+                  className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                >
+                  {t('customer.dashboard.editProfile')}
+                </Link>
+              </div>
             </section>
 
-            {/* Intelligent Experience Orchestration Engine (Phase 52) */}
+            {/* Intelligent Experience Orchestration Engine */}
             <CustomerExperienceSection />
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in-up">
-              <Link
-                href="/bookings"
-                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1"
-              >
-                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
-                  {t('customer.dashboard.activeBookings')}
-                </span>
-                <span className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk']">
-                  {activeBookings.length}
-                </span>
-              </Link>
-              <Link
-                href="/bookings"
-                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1"
-              >
-                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
-                  {t('customer.dashboard.completedTrips')}
-                </span>
-                <span className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  {completedBookings.length}
-                </span>
-              </Link>
-              <Link
-                href="/bookings/new"
-                className="card-interactive p-4 rounded-xl bg-[#25a475] hover:bg-[#68dba9] active:bg-[#4fc890] transition-colors flex flex-col gap-1"
-              >
-                <span className="text-[10px] font-bold text-[#00311f] uppercase font-['Space_Grotesk']">
-                  {t('customer.dashboard.newBooking')}
-                </span>
-                <span className="text-sm font-bold text-[#00311f] font-['Space_Grotesk'] flex items-center gap-1">
-                  {t('customer.dashboard.bookDriverBtn')}
-                  <span className="material-symbols-outlined text-base">arrow_forward</span>
-                </span>
-              </Link>
-            </div>
-
-            {/* Loyalty & Rewards Widget */}
-            {loyaltyAccount && (
-              <section className="p-4 rounded-xl bg-gradient-to-r from-[#141822] to-[#1a202c] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#68dba9]/10 border border-[#68dba9]/30 flex items-center justify-center text-[#68dba9]">
-                    <span className="material-symbols-outlined text-xl">workspace_premium</span>
+            {/* Active Driver Service Banner */}
+            {activeService && (
+              <section className="bg-gradient-to-r from-[#1b2520] to-[#141d1a] border-2 border-[#68dba9]/60 rounded-2xl p-6 shadow-2xl space-y-4 animate-pulse-subtle">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-[#68dba9]"></span>
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
+                      Active Driver Service
+                    </span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#68dba9]">
-                        {loyaltyAccount.currentTier?.name || loyaltyAccount.tierCode}
+                  <span
+                    className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(activeService.status)}`}
+                  >
+                    {statusLabel(activeService.status)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-xs text-[#87948b]">
+                      <span className="text-[10px] uppercase font-bold text-[#87948b]">
+                        Pickup:
+                      </span>{' '}
+                      <span className="text-[#dfe2ee] font-semibold">
+                        {activeService.pickupLocation.label || activeService.pickupLocation.address}
                       </span>
                     </div>
-                    <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      {loyaltyAccount.pointsBalance.toLocaleString()} Loyalty Points
-                    </p>
+                    {activeService.dropoffLocation && (
+                      <div className="text-xs text-[#87948b]">
+                        <span className="text-[10px] uppercase font-bold text-[#87948b]">
+                          Destination:
+                        </span>{' '}
+                        <span className="text-[#dfe2ee] font-semibold">
+                          {activeService.dropoffLocation.label ||
+                            activeService.dropoffLocation.address}
+                        </span>
+                      </div>
+                    )}
+                    {activeService.serviceRecipient?.isForSomeoneElse && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#262a33] text-xs font-semibold text-[#68dba9] border border-[#343a46]">
+                        <span className="material-symbols-outlined text-xs">group</span>
+                        <span>
+                          Service For: {activeService.serviceRecipient.fullName}{' '}
+                          {activeService.serviceRecipient.relationship
+                            ? `(${activeService.serviceRecipient.relationship})`
+                            : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
+
+                  {activeService.driver && (
+                    <div className="p-3 rounded-xl bg-[#141820] border border-[#262a33] flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#262a33] text-[#68dba9] flex items-center justify-center font-bold text-sm">
+                          {activeService.driver.displayName?.charAt(0) || 'D'}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#dfe2ee]">
+                            {activeService.driver.displayName}
+                          </h4>
+                          <div className="flex items-center gap-1 text-[11px] text-[#f5c04a]">
+                            <span className="material-symbols-outlined text-xs">star</span>
+                            <span>{activeService.driver.ratingAverage.toFixed(1)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Link
+                        href={`/bookings/${activeService.id}`}
+                        className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-xs font-semibold text-[#68dba9] transition-colors"
+                      >
+                        Track Ride →
+                      </Link>
+                    </div>
+                  )}
                 </div>
-                <Link
-                  href="/customer/rewards"
-                  className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold font-mono transition-colors shrink-0 flex items-center gap-1"
-                >
-                  <span>{t('customer.nav.rewards')}</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </Link>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <Link
+                    href={`/bookings/${activeService.id}`}
+                    className="px-4 py-2 rounded-xl bg-[#68dba9] hover:bg-[#86e2ba] text-[#003825] text-xs font-bold transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">map</span>
+                    <span>Track Live Service</span>
+                  </Link>
+                </div>
               </section>
             )}
 
-            {/* Smart Recommendation Engine Widget */}
-            <CustomerRecommendationsWidget />
-
-            {/* Scheduled Rides Summary Widget */}
-            {scheduledRides.filter((r) => r.status === 'SCHEDULED').length > 0 && (
-              <section className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#25a475]/10 border border-[#25a475]/30 flex items-center justify-center text-[#68dba9]">
-                    <span className="material-symbols-outlined text-xl">schedule</span>
+            {/* Upcoming Service Banner */}
+            {upcomingService && !activeService && (
+              <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#25a475]/10 border border-[#25a475]/30 flex items-center justify-center text-[#68dba9] shrink-0 mt-0.5">
+                    <span className="material-symbols-outlined text-xl">event</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
-                      {t('scheduledRides.title')}
+                      Upcoming Service
                     </span>
-                    <p className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                      {scheduledRides.filter((r) => r.status === 'SCHEDULED').length} Active
-                      Scheduled Booking(s)
+                    <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-0.5">
+                      {upcomingService.requestedStartTime
+                        ? formatDate(upcomingService.requestedStartTime)
+                        : 'Scheduled Trip'}
+                    </h3>
+                    <p className="text-xs text-[#87948b] mt-0.5">
+                      Pickup:{' '}
+                      {upcomingService.pickupLocation.label ||
+                        upcomingService.pickupLocation.address}
                     </p>
+                    {upcomingService.serviceRecipient?.isForSomeoneElse && (
+                      <p className="text-[11px] text-[#68dba9] mt-1 font-semibold">
+                        Service For: {upcomingService.serviceRecipient.fullName}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Link
-                  href="/customer/scheduled-rides"
-                  className="px-3 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold font-mono transition-colors shrink-0 flex items-center gap-1"
+                  href={`/bookings/${upcomingService.id}`}
+                  className="px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#343a46] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0 flex items-center justify-center"
                 >
-                  <span>{t('customer.dashboard.viewAll')}</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  View Details →
                 </Link>
               </section>
             )}
 
-            {/* Recent Ride / Book Again */}
-            {mostRecentRide && (
-              <section className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
-                    {t('customer.dashboard.recentRideTitle')}
-                  </span>
-                  <p className="text-sm font-semibold text-[#dfe2ee] truncate flex items-center gap-2 mt-0.5">
-                    <span className="truncate">
-                      {mostRecentRide.pickupLocation.label ?? mostRecentRide.pickupLocation.address}
-                    </span>
-                    {mostRecentRide.dropoffLocation && (
-                      <>
-                        <span className="material-symbols-outlined text-sm text-[#68dba9] shrink-0">
-                          arrow_forward
-                        </span>
-                        <span className="truncate">
-                          {mostRecentRide.dropoffLocation.label ??
-                            mostRecentRide.dropoffLocation.address}
-                        </span>
-                      </>
-                    )}
-                  </p>
+            {/* Pending Payment Alert */}
+            {billingSummary &&
+              billingSummary.pendingPaymentsCount > 0 &&
+              billingSummary.latestPendingPayment && (
+                <section className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-lg">payments</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-['Space_Grotesk']">
+                        Pending Payment
+                      </span>
+                      <p className="text-xs font-bold text-amber-200">
+                        Payment of {formatCurrency(billingSummary.latestPendingPayment.amount)} is
+                        due for booking #
+                        {billingSummary.latestPendingPayment.bookingId.substring(0, 8)}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/payments/${billingSummary.latestPendingPayment.id}`}
+                    className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold font-mono transition-colors shrink-0"
+                  >
+                    Pay Now
+                  </Link>
+                </section>
+              )}
+
+            {/* Deterministic Recommendations Carousel / Section */}
+            {recommendations.length > 0 && (
+              <section className="flex flex-col gap-3 animate-fade-in-up">
+                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider text-[#68dba9]">
+                  Smart Suggestions
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {recommendations.map((rec) => (
+                    <div
+                      key={rec.id}
+                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-all flex items-start justify-between gap-3 group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-[#262a33] text-[#68dba9] flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-[#68dba9] group-hover:text-[#003825] transition-colors">
+                          <span className="material-symbols-outlined text-base">{rec.icon}</span>
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#dfe2ee] group-hover:text-[#68dba9] transition-colors">
+                            {rec.title}
+                          </h4>
+                          <p className="text-[11px] text-[#87948b] mt-0.5">{rec.description}</p>
+                        </div>
+                      </div>
+                      <Link
+                        href={rec.actionUrl}
+                        className="px-2.5 py-1 rounded-md bg-[#262a33] hover:bg-[#343a46] text-[11px] font-bold text-[#68dba9] whitespace-nowrap transition-colors shrink-0"
+                      >
+                        {rec.actionLabel}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Saved People Quick Access */}
+            <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-5 shadow-xl flex flex-col gap-4 animate-fade-in-up">
+              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base text-[#68dba9]">group</span>
+                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    Saved People (Book for Family & Friends)
+                  </h2>
                 </div>
                 <Link
-                  href={`/bookings/new?bookAgain=${mostRecentRide.id}`}
-                  className="card-interactive min-h-[48px] px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#4fc890] text-[#00311f] text-xs font-bold transition-colors shrink-0 flex items-center justify-center text-center"
+                  href="/profile?tab=people"
+                  className="text-xs font-mono text-[#68dba9] hover:underline"
                 >
-                  {t('customer.dashboard.bookAgain')}
+                  Manage People →
                 </Link>
-              </section>
-            )}
+              </div>
 
-            {/* Saved Places */}
-            {savedLocations.length > 0 && (
+              {savedPeople.length === 0 ? (
+                <div className="p-4 rounded-xl bg-[#141820] border border-dashed border-[#262a33] text-center text-xs text-[#87948b] flex flex-col items-center gap-2">
+                  <p>Save family members or guests for 1-click chauffeur bookings.</p>
+                  <Link
+                    href="/profile?tab=people"
+                    className="px-3 py-1.5 rounded-lg bg-[#262a33] text-[#68dba9] font-bold text-xs"
+                  >
+                    + Add Saved Person
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {savedPeople.map((person) => (
+                    <div
+                      key={person.id}
+                      className="p-3 bg-[#141820] border border-[#262a33] hover:border-[#68dba9]/40 rounded-xl flex flex-col justify-between gap-3 transition-colors"
+                    >
+                      <div>
+                        <h4 className="text-xs font-bold text-[#dfe2ee]">{person.fullName}</h4>
+                        <span className="text-[10px] text-[#87948b] uppercase font-mono">
+                          {person.relationship || 'Recipient'}
+                        </span>
+                      </div>
+                      <Link
+                        href={`/bookings/new?savedPersonId=${person.id}`}
+                        className="w-full py-1.5 px-2 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-[11px] font-bold text-[#68dba9] text-center transition-colors border border-[#68dba9]/20"
+                      >
+                        Book for {person.fullName.split(' ')[0]}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Saved Places Quick Chips */}
+            {savedPlaces.length > 0 && (
               <section className="flex flex-col gap-3 animate-fade-in-up">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    {t('customer.dashboard.savedPlacesTitle')}
+                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    Saved Places
                   </h2>
                   <Link
-                    href="/profile"
-                    className="text-xs font-mono text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    href="/profile?tab=locations"
+                    className="text-xs font-mono text-[#68dba9] hover:underline"
                   >
-                    {t('customer.dashboard.managePlaces')}
+                    Manage Places
                   </Link>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {savedLocations.map((loc) => (
+                  {savedPlaces.map((loc) => (
                     <Link
                       key={loc.id}
                       href={`/bookings/new?savedLocationId=${loc.id}`}
@@ -381,130 +406,183 @@ export default function CustomerDashboardPage() {
                       <span className="material-symbols-outlined text-base text-[#68dba9]">
                         {savedPlaceIcon(loc.label)}
                       </span>
-                      {loc.label}
+                      <span>{loc.label}</span>
+                      <span className="text-[10px] text-[#87948b]">({loc.city})</span>
                     </Link>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Favorite Drivers Teaser */}
-            {favoriteDrivers.length > 0 && (
-              <section className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                    {t('customer.favorites.title')}
-                  </h2>
-                  <Link
-                    href="/customer/favorites"
-                    className="text-xs font-mono text-[#68dba9] hover:underline"
-                  >
-                    {t('customer.dashboard.favoriteDriversViewAll')}
-                  </Link>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {favoriteDrivers.slice(0, 3).map((fav) => (
+            {/* Book Again Shortcuts */}
+            {bookAgainShortcuts.length > 0 && (
+              <section className="flex flex-col gap-3 animate-fade-in-up">
+                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  Book Again
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {bookAgainShortcuts.map((trip) => (
                     <div
-                      key={fav.driverProfileId}
-                      className="px-3.5 py-2 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-xs font-semibold text-[#dfe2ee]"
+                      key={trip.id}
+                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between gap-3"
                     >
-                      <span className="material-symbols-outlined text-base text-[#f5c04a]">
-                        star
-                      </span>
-                      {favoriteDisplayName(fav)}
-                      <span className="text-[#87948b] font-mono">
-                        {t('customer.favorites.rating', { rating: fav.ratingAverage.toFixed(1) })}
-                      </span>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-[#68dba9] font-mono">
+                          {trip.bookingType}
+                        </span>
+                        <p className="text-xs font-semibold text-[#dfe2ee] truncate mt-1">
+                          {trip.pickupLocation.label || trip.pickupLocation.address}
+                        </p>
+                        {trip.serviceRecipientName && (
+                          <p className="text-[10px] text-[#87948b] mt-0.5">
+                            For: {trip.serviceRecipientName}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        href={`/bookings/new?bookAgain=${trip.id}`}
+                        className="py-1.5 px-3 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold text-center transition-colors font-['Space_Grotesk']"
+                      >
+                        Book Again
+                      </Link>
                     </div>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Active Bookings */}
+            {/* Recent Services History */}
             <section className="flex flex-col gap-3 animate-fade-in-up">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  {t('customer.dashboard.activeBookings')}
+                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  Recent Driver Services
                 </h2>
-                <Link
-                  href="/bookings"
-                  className="text-xs font-mono text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
-                >
-                  {t('customer.dashboard.viewAll')} →
+                <Link href="/bookings" className="text-xs font-mono text-[#68dba9] hover:underline">
+                  View Full History →
                 </Link>
               </div>
-              {activeBookings.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-sm">
-                  {t('customer.dashboard.noActiveRide')}
+              {recentServices.length === 0 ? (
+                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-xs">
+                  No previous driver services found.
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {activeBookings.slice(0, 5).map((booking) => (
+                  {recentServices.map((service) => (
                     <Link
-                      key={booking.id}
-                      href={`/bookings/${booking.id}`}
+                      key={service.id}
+                      href={`/bookings/${service.id}`}
                       className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
                     >
-                      <div>
-                        <p className="text-sm font-semibold text-[#dfe2ee]">
-                          {booking.pickupLocation.label ?? booking.pickupLocation.address}
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-[#dfe2ee] truncate">
+                          {service.pickupLocation.label || service.pickupLocation.address}
                         </p>
-                        <p className="text-xs text-[#87948b]">
-                          {t(`booking.types.${booking.bookingType}`)}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#87948b]">
+                          <span>{formatDate(service.createdAt)}</span>
+                          {service.serviceRecipientName && (
+                            <span>• For: {service.serviceRecipientName}</span>
+                          )}
+                        </div>
                       </div>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(booking.status)}`}
-                      >
-                        {statusLabel(booking.status)}
-                      </span>
+                      <div className="flex items-center gap-3 shrink-0">
+                        {service.fareAmount > 0 && (
+                          <span className="text-xs font-bold font-mono text-[#68dba9]">
+                            {formatCurrency(service.fareAmount)}
+                          </span>
+                        )}
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(service.status)}`}
+                        >
+                          {statusLabel(service.status)}
+                        </span>
+                      </div>
                     </Link>
                   ))}
                 </div>
               )}
             </section>
 
-            {/* Recent Bookings */}
-            <section className="flex flex-col gap-3 animate-fade-in-up">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                  {t('customer.dashboard.recentBookings')}
-                </h2>
-                <Link
-                  href="/bookings"
-                  className="text-xs font-mono text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
-                >
-                  {t('customer.dashboard.viewAll')} →
-                </Link>
-              </div>
-              {bookings.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-sm">
-                  {t('customer.dashboard.noBookingsYet')}
+            {/* Favorite Drivers */}
+            {favoriteDrivers.length > 0 && (
+              <section className="flex flex-col gap-3 animate-fade-in-up">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    Favorite Drivers
+                  </h2>
+                  <Link
+                    href="/customer/favorites"
+                    className="text-xs font-mono text-[#68dba9] hover:underline"
+                  >
+                    View All Favorites
+                  </Link>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {bookings.slice(0, 5).map((booking) => (
-                    <Link
-                      key={booking.id}
-                      href={`/bookings/${booking.id}`}
-                      className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {favoriteDrivers.map((fav) => (
+                    <div
+                      key={fav.driverProfileId}
+                      className="p-3.5 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-3"
                     >
-                      <div>
-                        <p className="text-sm font-semibold text-[#dfe2ee]">
-                          {booking.pickupLocation.label ?? booking.pickupLocation.address}
-                        </p>
-                        <p className="text-xs text-[#87948b]">{formatDate(booking.createdAt)}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base text-[#f5c04a]">
+                          star
+                        </span>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#dfe2ee]">{fav.displayName}</h4>
+                          <span className="text-[10px] text-[#87948b] font-mono">
+                            ⭐ {fav.ratingAverage.toFixed(1)}
+                          </span>
+                        </div>
                       </div>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(booking.status)}`}
+                      <Link
+                        href={`/bookings/new?preferredDriverId=${fav.driverProfileId}`}
+                        className="px-2.5 py-1 rounded bg-[#262a33] hover:bg-[#343a46] text-[11px] font-semibold text-[#68dba9] transition-colors"
                       >
-                        {statusLabel(booking.status)}
-                      </span>
-                    </Link>
+                        Hire
+                      </Link>
+                    </div>
                   ))}
                 </div>
-              )}
+              </section>
+            )}
+
+            {/* Financial & Operational Shortcuts */}
+            <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in-up">
+              <Link
+                href="/customer/billing"
+                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+              >
+                <span className="material-symbols-outlined text-lg text-[#68dba9]">
+                  account_balance_wallet
+                </span>
+                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Billing Center</span>
+                <span className="text-[10px] text-[#87948b]">Financial summary & receipts</span>
+              </Link>
+              <Link
+                href="/customer/invoices"
+                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+              >
+                <span className="material-symbols-outlined text-lg text-[#68dba9]">
+                  receipt_long
+                </span>
+                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Tax Invoices</span>
+                <span className="text-[10px] text-[#87948b]">Download tax invoice PDFs</span>
+              </Link>
+              <Link
+                href="/profile?tab=people"
+                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+              >
+                <span className="material-symbols-outlined text-lg text-[#68dba9]">group</span>
+                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Saved People</span>
+                <span className="text-[10px] text-[#87948b]">Manage service recipients</span>
+              </Link>
+              <Link
+                href="/profile?tab=preferences"
+                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+              >
+                <span className="material-symbols-outlined text-lg text-[#68dba9]">tune</span>
+                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Booking Preferences</span>
+                <span className="text-[10px] text-[#87948b]">Default vehicle & service</span>
+              </Link>
             </section>
           </>
         )}
