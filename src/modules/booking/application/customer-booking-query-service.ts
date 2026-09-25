@@ -53,7 +53,7 @@ export interface CustomerBookingCardItem {
   serviceRecipient?: {
     isForSomeoneElse: boolean;
     fullName: string;
-    phone: string;
+    phone: string | null;
     relationship?: string | null;
   } | null;
   fareAmount: number;

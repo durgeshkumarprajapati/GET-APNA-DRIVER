@@ -48,7 +48,7 @@ const MAX_CUSTOMER_BOOKINGS_RETURNED = 200;
 export interface ServiceRecipientDetail {
   id: string;
   fullName: string;
-  phone: string;
+  phone: string | null;
   email: string | null;
   relationship: string | null;
   notes: string | null;
@@ -265,7 +265,7 @@ export async function createBooking(
   // 2d. Validate Optional Service Recipient (Booking for someone else)
   let validatedRecipient: {
     fullName: string;
-    phone: string;
+    phone: string | null;
     email: string | null;
     relationship: string | null;
     notes: string | null;
@@ -278,14 +278,20 @@ export async function createBooking(
       throw new ValidationError('Service recipient full name is required.', 'INVALID_RECIPIENT_NAME');
     }
     const rawPhone = input.serviceRecipient.phone || '';
-    const normalizedPhone = normalizePhoneNumber(rawPhone);
-    if (!isValidE164PhoneNumber(normalizedPhone)) {
+    const normalizedPhone = rawPhone ? normalizePhoneNumber(rawPhone) : '';
+    const email = input.serviceRecipient.email?.trim() || null;
+
+    if (rawPhone && !isValidE164PhoneNumber(normalizedPhone)) {
       throw new ValidationError('Valid mobile number is required for the service recipient.', 'INVALID_RECIPIENT_PHONE');
     }
+    if (!normalizedPhone && !email) {
+      throw new ValidationError('Either email or phone number is required when booking for someone else.', 'INVALID_RECIPIENT_CONTACT');
+    }
+
     validatedRecipient = {
       fullName: rawName,
-      phone: normalizedPhone,
-      email: input.serviceRecipient.email?.trim() || null,
+      phone: normalizedPhone || null,
+      email,
       relationship: input.serviceRecipient.relationship?.trim() || null,
       notes: input.serviceRecipient.notes?.trim() || null,
       notifyViaWhatsApp: input.serviceRecipient.notifyViaWhatsApp ?? true,

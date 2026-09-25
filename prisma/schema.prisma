@@ -1004,7 +1004,7 @@ model BookingServiceRecipient {
   bookingId         String   @unique @map("booking_id") @db.Uuid
   booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   fullName          String   @map("full_name")
-  phone             String   @map("phone")
+  phone             String?  @map("phone")
   email             String?  @map("email")
   relationship      String?  @map("relationship")
   notes             String?  @map("notes")

@@ -63,7 +63,7 @@ export interface DriverBookingSummary {
   } | null;
   serviceRecipient?: {
     fullName: string;
-    phone: string;
+    phone: string | null;
     relationship: string | null;
     notes: string | null;
   } | null;
@@ -819,7 +819,7 @@ type DriverBookingPayload = Prisma.BookingGetPayload<Record<string, never>> & {
   serviceRecipient?: {
     id: string;
     fullName: string;
-    phone: string;
+    phone: string | null;
     email: string | null;
     relationship: string | null;
     notes: string | null;

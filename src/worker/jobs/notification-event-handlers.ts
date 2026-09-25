@@ -5,6 +5,7 @@ import { eventHandlerRegistry } from '../outbox/event-handler-registry';
 import { createNotification } from '@/modules/notification/application/notification-service';
 import { processCampaignDispatch } from '@/modules/notification/application/notification-campaign-service';
 import { whatsAppProvider } from '@/modules/notification/infrastructure/whatsapp-provider';
+import { emailProvider } from '@/modules/notification/infrastructure/email-provider';
 
 /**
  * Fans a notification out to every currently-active ADMINISTRATOR — there
@@ -39,34 +40,52 @@ async function notifyAdministrators(
   }
 }
 
-async function sendRecipientWhatsAppNotification(
+async function sendRecipientNotifications(
   bookingId: string,
   event: OutboxEvent,
   eventType: string,
   database: Db,
   getCustomMessage: (recipientName: string) => Promise<string> | string,
+  emailSubject: string = 'Driver Service Booking Update - Get Apna Driver',
 ): Promise<void> {
   try {
     const recipient = await database.bookingServiceRecipient.findUnique({
       where: { bookingId },
     });
-    if (!recipient || !recipient.notifyViaWhatsApp || !recipient.phone) {
+    if (!recipient) {
       return;
     }
 
     const message = await getCustomMessage(recipient.fullName);
-    await whatsAppProvider.sendMessage({
-      toPhone: recipient.phone,
-      textMessage: message,
-    });
-    logger.info(
-      { bookingId, recipientPhone: recipient.phone, eventType, eventId: event.id },
-      'Recipient WhatsApp notification dispatched successfully',
-    );
+
+    // Send WhatsApp notification if recipient phone is provided
+    if (recipient.notifyViaWhatsApp && recipient.phone) {
+      await whatsAppProvider.sendMessage({
+        toPhone: recipient.phone,
+        textMessage: message,
+      });
+      logger.info(
+        { bookingId, recipientPhone: recipient.phone, eventType, eventId: event.id },
+        'Recipient WhatsApp notification dispatched successfully',
+      );
+    }
+
+    // Send Email notification if recipient email is provided
+    if (recipient.email) {
+      await emailProvider.sendEmail({
+        toEmail: recipient.email,
+        subject: emailSubject,
+        bodyText: message,
+      });
+      logger.info(
+        { bookingId, recipientEmail: recipient.email, eventType, eventId: event.id },
+        'Recipient Email notification dispatched successfully',
+      );
+    }
   } catch (err) {
     logger.error(
       { bookingId, eventType, eventId: event.id, err },
-      'Non-fatal error dispatching WhatsApp notification to service recipient',
+      'Non-fatal error dispatching notifications to service recipient',
     );
   }
 }
@@ -96,7 +115,7 @@ export function registerNotificationEventHandlers(): void {
       );
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.created',
@@ -197,7 +216,7 @@ export function registerNotificationEventHandlers(): void {
       }
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.driver.assigned',
@@ -280,7 +299,7 @@ export function registerNotificationEventHandlers(): void {
       );
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.driver.en_route',
@@ -314,7 +333,7 @@ export function registerNotificationEventHandlers(): void {
       );
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.driver.arrived',
@@ -348,7 +367,7 @@ export function registerNotificationEventHandlers(): void {
       );
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.trip.started',
@@ -400,7 +419,7 @@ export function registerNotificationEventHandlers(): void {
       }
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.trip.completed',
@@ -450,7 +469,7 @@ export function registerNotificationEventHandlers(): void {
       }
 
       if (bookingId) {
-        await sendRecipientWhatsAppNotification(
+        await sendRecipientNotifications(
           bookingId,
           event,
           'booking.cancelled',
@@ -555,6 +574,64 @@ export function registerNotificationEventHandlers(): void {
           },
           client,
         );
+      }
+
+      // Send Tax Invoice email to customer & recipient after payment completion
+      const bookingId = (payload.bookingId as string) || paymentId;
+      if (bookingId && client.booking?.findUnique) {
+        try {
+          const booking = await client.booking.findUnique({
+            where: { id: bookingId },
+            select: {
+              id: true,
+              customerId: true,
+              customer: {
+                select: {
+                  customerProfile: { select: { displayName: true, firstName: true, lastName: true } },
+                  identities: { select: { email: true } },
+                },
+              },
+              serviceRecipient: {
+                select: { fullName: true, email: true },
+              },
+              taxInvoice: {
+                select: { invoiceNumber: true, totalAmount: true },
+              },
+            },
+          });
+
+          if (booking) {
+            const customerEmail = booking.customer?.identities?.find((i) => i.email)?.email;
+            const cp = booking.customer?.customerProfile;
+            const customerName =
+              cp?.displayName ||
+              [cp?.firstName, cp?.lastName].filter(Boolean).join(' ') ||
+              'Valued Customer';
+            const invoiceNum = booking.taxInvoice?.invoiceNumber || `INV-${bookingId.substring(0, 8).toUpperCase()}`;
+            const total = booking.taxInvoice?.totalAmount ? Number(booking.taxInvoice.totalAmount) : amount;
+
+            const invoiceEmailMessage = `Hi ${customerName},\n\nThank you for your payment of ₹${total}. Your tax invoice (${invoiceNum}) for Booking ID: ${bookingId.substring(0, 8)} has been completed successfully.\n\nThank you for choosing Get Apna Driver!`;
+
+            if (customerEmail) {
+              await emailProvider.sendEmail({
+                toEmail: customerEmail,
+                subject: `Tax Invoice ${invoiceNum} - Booking ID: ${bookingId.substring(0, 8)}`,
+                bodyText: invoiceEmailMessage,
+              });
+            }
+
+            if (booking.serviceRecipient?.email) {
+              const recipientInvoiceMsg = `Hi ${booking.serviceRecipient.fullName},\n\nPayment of ₹${total} for your driver service (Booking ID: ${bookingId.substring(0, 8)}, booked by ${customerName}) has been completed. Tax Invoice: ${invoiceNum}.\n\nThank you for choosing Get Apna Driver!`;
+              await emailProvider.sendEmail({
+                toEmail: booking.serviceRecipient.email,
+                subject: `Driver Service Invoice - Booking ID: ${bookingId.substring(0, 8)}`,
+                bodyText: recipientInvoiceMsg,
+              });
+            }
+          }
+        } catch (err) {
+          logger.error({ bookingId, err }, 'Failed to send invoice email after payment completion');
+        }
       }
     },
   );
