@@ -121,6 +121,43 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [resolvedPickupAddress, setResolvedPickupAddress] = useState<string | null>(null);
+  const [invoice, setInvoice] = useState<{
+    id: string;
+    invoiceNumber: string;
+    status: string;
+    subtotalAmount: number;
+    discountAmount: number;
+    taxAmount: number;
+    totalAmount: number;
+    taxDetails?: {
+      driverCharges: number;
+      platformCharges: number;
+      otherCharges: number;
+      grossSubtotal: number;
+      discountAmount: number;
+      taxableAmount: number;
+      cgstRate: number;
+      cgstAmount: number;
+      sgstRate: number;
+      sgstAmount: number;
+      igstRate: number;
+      igstAmount: number;
+      totalTaxAmount: number;
+    };
+  } | null>(null);
+
+  useEffect(() => {
+    if (booking?.id && booking.status === 'TRIP_COMPLETED') {
+      fetch(`/api/customer/bookings/${booking.id}/invoice`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.success && data?.invoice) {
+            setInvoice(data.invoice);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [booking?.id, booking?.status]);
 
   useEffect(() => {
     let cancelled = false;
@@ -639,6 +676,114 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
           {booking.status === 'TRIP_COMPLETED' && (
             <div className="space-y-6">
               <PostTripPaymentCard bookingId={booking.id} role="CUSTOMER" />
+
+              {invoice && (
+                <div className="p-6 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span className="material-symbols-outlined text-emerald-400 text-lg">
+                          receipt_long
+                        </span>
+                        Payment Summary & Tax Invoice
+                      </h3>
+                      <p className="text-xs text-slate-400">Invoice No: {invoice.invoiceNumber}</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {invoice.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-300">
+                      <span>Driver Charges</span>
+                      <span className="font-mono">
+                        ₹{(invoice.taxDetails?.driverCharges ?? invoice.subtotalAmount).toFixed(2)}
+                      </span>
+                    </div>
+                    {(invoice.taxDetails?.platformCharges ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-300">
+                        <span>Platform Charges</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.platformCharges?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {(invoice.taxDetails?.otherCharges ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-300">
+                        <span>Other Charges</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.otherCharges?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-800 font-medium">
+                      <span>Gross Subtotal</span>
+                      <span className="font-mono">
+                        ₹{(invoice.taxDetails?.grossSubtotal ?? invoice.subtotalAmount).toFixed(2)}
+                      </span>
+                    </div>
+                    {invoice.discountAmount > 0 && (
+                      <div className="flex justify-between text-emerald-400 font-medium">
+                        <span>Promotion Discount</span>
+                        <span className="font-mono">-₹{invoice.discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-slate-300 pt-1 border-t border-slate-800">
+                      <span>Taxable Amount</span>
+                      <span className="font-mono">
+                        ₹{(invoice.taxDetails?.taxableAmount ?? invoice.subtotalAmount).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>GST (18% inclusive)</span>
+                      <span className="font-mono">₹{invoice.taxAmount.toFixed(2)}</span>
+                    </div>
+                    {(invoice.taxDetails?.cgstAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-500 text-[11px] pl-2">
+                        <span>CGST ({invoice.taxDetails?.cgstRate}%)</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.cgstAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {(invoice.taxDetails?.sgstAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-slate-500 text-[11px] pl-2">
+                        <span>SGST ({invoice.taxDetails?.sgstRate}%)</span>
+                        <span className="font-mono">
+                          ₹{invoice.taxDetails?.sgstAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-slate-700">
+                      <span>Total Payable</span>
+                      <span className="text-emerald-400 font-mono">
+                        ₹{invoice.totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800">
+                    <a
+                      href={`/api/customer/bookings/${booking.id}/invoice/pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">visibility</span>
+                      View Invoice
+                    </a>
+                    <a
+                      href={`/api/customer/bookings/${booking.id}/invoice/pdf`}
+                      download={`invoice-${invoice.invoiceNumber}.pdf`}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">download</span>
+                      Download PDF Invoice
+                    </a>
+                  </div>
+                </div>
+              )}
 
               <div className="p-6 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-4">
                 <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
