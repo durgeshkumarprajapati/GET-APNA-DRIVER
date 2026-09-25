@@ -53,4 +53,17 @@ export const bookingHi = {
   anyVehicleCategory: 'कोई भी वाहन (कोई प्राथमिकता नहीं)',
   vehicleCapabilities: 'वाहन क्षमताएं',
   vehicleCapabilitiesHint: 'वाहन श्रेणियां जो आप चला सकते हैं',
+  bookForSomeoneElse: {
+    title: 'यह ड्राइवर सेवा किसके लिए है?',
+    myself: 'खुद के लिए',
+    someoneElse: 'किसी अन्य व्यक्ति के लिए',
+    recipientName: 'प्राप्तकर्ता का पूरा नाम',
+    recipientPhone: 'प्राप्तकर्ता का मोबाइल नंबर',
+    relationship: 'संबंध',
+    recipientEmail: 'प्राप्तकर्ता की ईमेल (वैकल्पिक)',
+    notes: 'ड्राइवर के लिए निर्देश / नोट (वैकल्पिक)',
+    notifyWhatsApp: 'व्हाट्सएप के जरिए प्राप्तकर्ता को यात्रा अपडेट भेजें',
+    bookedBy: 'बुकिंगकर्ता',
+    serviceRecipient: 'सेवा प्राप्तकर्ता (यात्री)',
+  },
 };

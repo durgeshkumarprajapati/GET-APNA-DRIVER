@@ -53,4 +53,17 @@ export const bookingEn = {
   anyVehicleCategory: 'Any Vehicle (No Preference)',
   vehicleCapabilities: 'Vehicle Capabilities',
   vehicleCapabilitiesHint: 'Vehicle categories you can operate',
+  bookForSomeoneElse: {
+    title: 'Who is this driver service for?',
+    myself: 'Myself',
+    someoneElse: 'Someone Else',
+    recipientName: 'Recipient Full Name',
+    recipientPhone: 'Recipient Mobile Phone',
+    relationship: 'Relationship',
+    recipientEmail: 'Recipient Email (Optional)',
+    notes: 'Notes / Pickup Instructions for Driver (Optional)',
+    notifyWhatsApp: 'Send instant WhatsApp trip status updates directly to recipient',
+    bookedBy: 'Booked By',
+    serviceRecipient: 'Service Recipient (Passenger)',
+  },
 };

@@ -52,4 +52,17 @@ export const bookingPa = {
   anyVehicleCategory: 'ਕੋਈ ਵੀ ਵਾਹਨ (ਕੋਈ ਤਰਜੀਹ ਨਹੀਂ)',
   vehicleCapabilities: 'ਵਾਹਨ ਸਮਰੱਥਾਵਾਂ',
   vehicleCapabilitiesHint: 'ਵਾਹਨ ਸ਼੍ਰੇਣੀਆਂ ਜੋ ਤੁਸੀਂ ਚਲਾ ਸਕਦੇ ਹੋ',
+  bookForSomeoneElse: {
+    title: 'ਇਹ ਡਰਾਈਵਰ ਸੇਵਾ ਕਿਸ ਲਈ ਹੈ?',
+    myself: 'ਆਪਣੇ ਲਈ',
+    someoneElse: 'ਕਿਸੇ ਹੋਰ ਲਈ',
+    recipientName: 'ਪ੍ਰਾਪਤਕਰਤਾ ਦਾ ਪੂਰਾ ਨਾਮ',
+    recipientPhone: 'ਪ੍ਰਾਪਤਕਰਤਾ ਦਾ ਮੋਬਾਈਲ ਨੰਬਰ',
+    relationship: 'ਰਿਸ਼ਤਾ',
+    recipientEmail: 'ਪ੍ਰਾਪਤਕਰਤਾ ਦੀ ਈਮੇਲ (ਵਿਕਲਪਿਕ)',
+    notes: 'ਡਰਾਈਵਰ ਲਈ ਨੋਟਸ / ਹਦਾਇਤਾਂ (ਵਿਕਲਪਿਕ)',
+    notifyWhatsApp: 'ਵਟਸਐਪ ਰਾਹੀਂ ਪ੍ਰਾਪਤਕਰਤਾ ਨੂੰ ਯਾਤਰਾ ਦੀ ਜਾਣਕਾਰੀ ਭੇਜੋ',
+    bookedBy: 'ਬੁੱਕ ਕਰਨ ਵਾਲਾ',
+    serviceRecipient: 'ਸੇਵਾ ਪ੍ਰਾਪਤਕਰਤਾ (ਯਾਤਰੀ)',
+  },
 };

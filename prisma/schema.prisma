@@ -941,6 +941,7 @@ model Booking {
   scheduledRideOccurrences ScheduledRideOccurrenceLog[]
   tripIntelligenceEvents   TripIntelligenceEvent[]
   reliabilityIncidents     TripReliabilityIncident[]  @relation("BookingReliabilityIncidents")
+  serviceRecipient         BookingServiceRecipient?
 
   // Corporate / Business Travel extension fields
   organizationId    String?                   @map("organization_id") @db.Uuid
@@ -968,6 +969,24 @@ model Booking {
   @@index([scheduledRideId])
   @@index([status, createdAt])
   @@map("bookings")
+}
+
+/// Service recipient details when a customer books a driver for someone else.
+model BookingServiceRecipient {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId         String   @unique @map("booking_id") @db.Uuid
+  booking           Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  fullName          String   @map("full_name")
+  phone             String   @map("phone")
+  email             String?  @map("email")
+  relationship      String?  @map("relationship")
+  notes             String?  @map("notes")
+  notifyViaWhatsApp Boolean  @default(true) @map("notify_via_whatsapp")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([phone])
+  @@map("booking_service_recipients")
 }
 
 /// Explicit entity representing a driver assignment offer attempt for a booking.

@@ -52,4 +52,17 @@ export const bookingGu = {
   anyVehicleCategory: 'કોઈપણ વાહન (કોઈ પસંદગી નથી)',
   vehicleCapabilities: 'વાહન ક્ષમતાઓ',
   vehicleCapabilitiesHint: 'વાહન શ્રેણીઓ જે તમે ચલાવી શકો છો',
+  bookForSomeoneElse: {
+    title: 'આ ડ્રાઇવર સેવા કોના માટે છે?',
+    myself: 'મારા પોતાના માટે',
+    someoneElse: 'અન્ય વ્યક્તિ માટે',
+    recipientName: 'પ્રાપ્તકર્તાનું પૂરું નામ',
+    recipientPhone: 'પ્રાપ્તકર્તાનો મોબાઇલ નંબર',
+    relationship: 'સંબંધ',
+    recipientEmail: 'પ્રાપ્તકર્તાનું ઇમેઇલ (વૈકલ્પિક)',
+    notes: 'ડ્રાઇવર માટે નોંધો / સૂચનાઓ (વૈકલ્પિક)',
+    notifyWhatsApp: 'વોટ્સએપ દ્વારા પ્રાપ્તકર્તાને સફરના અપડેટ્સ મોકલો',
+    bookedBy: 'બુક કરનાર',
+    serviceRecipient: 'સેવા પ્રાપ્તકર્તા (મુસાફર)',
+  },
 };

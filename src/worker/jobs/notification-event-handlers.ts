@@ -4,6 +4,7 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { eventHandlerRegistry } from '../outbox/event-handler-registry';
 import { createNotification } from '@/modules/notification/application/notification-service';
 import { processCampaignDispatch } from '@/modules/notification/application/notification-campaign-service';
+import { whatsAppProvider } from '@/modules/notification/infrastructure/whatsapp-provider';
 
 /**
  * Fans a notification out to every currently-active ADMINISTRATOR — there
@@ -38,6 +39,38 @@ async function notifyAdministrators(
   }
 }
 
+async function sendRecipientWhatsAppNotification(
+  bookingId: string,
+  event: OutboxEvent,
+  eventType: string,
+  database: Db,
+  getCustomMessage: (recipientName: string) => Promise<string> | string,
+): Promise<void> {
+  try {
+    const recipient = await database.bookingServiceRecipient.findUnique({
+      where: { bookingId },
+    });
+    if (!recipient || !recipient.notifyViaWhatsApp || !recipient.phone) {
+      return;
+    }
+
+    const message = await getCustomMessage(recipient.fullName);
+    await whatsAppProvider.sendMessage({
+      toPhone: recipient.phone,
+      textMessage: message,
+    });
+    logger.info(
+      { bookingId, recipientPhone: recipient.phone, eventType, eventId: event.id },
+      'Recipient WhatsApp notification dispatched successfully',
+    );
+  } catch (err) {
+    logger.error(
+      { bookingId, eventType, eventId: event.id, err },
+      'Non-fatal error dispatching WhatsApp notification to service recipient',
+    );
+  }
+}
+
 export function registerNotificationEventHandlers(): void {
   // -------------------------------------------------------------------------
   // Booking Events
@@ -47,6 +80,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -58,8 +92,31 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-created`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.created',
+          database,
+          async (recipientName) => {
+            const customer = await database.user.findUnique({
+              where: { id: customerId },
+              select: {
+                customerProfile: { select: { displayName: true, firstName: true, lastName: true } },
+              },
+            });
+            const cp = customer?.customerProfile;
+            const customerName =
+              cp?.displayName ||
+              [cp?.firstName, cp?.lastName].filter(Boolean).join(' ') ||
+              'Someone';
+            return `Hi ${recipientName}, ${customerName} has booked a driver service for you with Get Apna Driver (Booking ID: ${bookingId.substring(0, 8)}). We are assigning a top-rated driver.`;
+          },
+        );
+      }
     },
   );
 
@@ -138,6 +195,41 @@ export function registerNotificationEventHandlers(): void {
           database,
         );
       }
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.driver.assigned',
+          database,
+          async (recipientName) => {
+            let driverName = 'Your driver';
+            let driverPhone = '';
+            if (driverUserId) {
+              const dUser = await database.user.findUnique({
+                where: { id: driverUserId },
+                select: {
+                  driverProfile: { select: { displayName: true, firstName: true, lastName: true } },
+                  identities: { select: { phoneNumber: true } },
+                },
+              });
+              const dp = dUser?.driverProfile;
+              if (dp) {
+                driverName =
+                  dp.displayName ||
+                  [dp.firstName, dp.lastName].filter(Boolean).join(' ') ||
+                  driverName;
+              }
+              const phone = dUser?.identities?.find(
+                (i: { phoneNumber: string | null }) => i.phoneNumber,
+              )?.phoneNumber;
+              if (phone) driverPhone = phone;
+            }
+            const phoneText = driverPhone ? ` (${driverPhone})` : '';
+            return `Hi ${recipientName}, ${driverName}${phoneText} has been assigned as your driver for Booking ID: ${bookingId.substring(0, 8)}.`;
+          },
+        );
+      }
     },
   );
 
@@ -172,6 +264,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -183,8 +276,20 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-enroute`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.driver.en_route',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver is en route to your pickup location for Booking ID: ${bookingId.substring(0, 8)}.`;
+          },
+        );
+      }
     },
   );
 
@@ -193,6 +298,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -204,8 +310,20 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-arrived`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.driver.arrived',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver has arrived at your pickup location for Booking ID: ${bookingId.substring(0, 8)}.`;
+          },
+        );
+      }
     },
   );
 
@@ -214,6 +332,7 @@ export function registerNotificationEventHandlers(): void {
     async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
       const customerId = payload.customerId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
       if (!customerId) return;
 
       await createNotification(
@@ -225,8 +344,20 @@ export function registerNotificationEventHandlers(): void {
           data: { bookingId },
           idempotencyKey: `${event.id}-customer-trip-started`,
         },
-        db ?? prisma,
+        database,
       );
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.trip.started',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver service has started (Booking ID: ${bookingId.substring(0, 8)}). Have a safe journey!`;
+          },
+        );
+      }
     },
   );
 
@@ -236,6 +367,7 @@ export function registerNotificationEventHandlers(): void {
       const customerId = payload.customerId as string;
       const driverUserId = payload.driverUserId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
 
       if (customerId) {
         await createNotification(
@@ -245,15 +377,10 @@ export function registerNotificationEventHandlers(): void {
             title: 'Driver Service Completed',
             body: 'Thank you for using our driver service! Tap to rate your chauffeur.',
             data: { bookingId },
-            // Straight to this specific booking's tracker page, which
-            // already shows the "Rate Your Driver" form once TRIP_COMPLETED
-            // — not the generic bookings list (the template's
-            // defaultActionUrl), which would leave the customer to go find
-            // the right booking themselves.
             actionUrl: `/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-customer-trip-completed`,
           },
-          db ?? prisma,
+          database,
         );
       }
 
@@ -268,7 +395,19 @@ export function registerNotificationEventHandlers(): void {
             actionUrl: `/driver/bookings/${bookingId}`,
             idempotencyKey: `${event.id}-driver-trip-completed`,
           },
-          db ?? prisma,
+          database,
+        );
+      }
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.trip.completed',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver service (Booking ID: ${bookingId.substring(0, 8)}) is complete. Thank you for using Get Apna Driver!`;
+          },
         );
       }
     },
@@ -280,6 +419,7 @@ export function registerNotificationEventHandlers(): void {
       const customerId = payload.customerId as string;
       const driverUserId = payload.driverUserId as string;
       const bookingId = payload.bookingId as string;
+      const database = db ?? prisma;
 
       if (customerId) {
         await createNotification(
@@ -291,7 +431,7 @@ export function registerNotificationEventHandlers(): void {
             data: { bookingId },
             idempotencyKey: `${event.id}-customer-cancelled`,
           },
-          db ?? prisma,
+          database,
         );
       }
 
@@ -301,11 +441,23 @@ export function registerNotificationEventHandlers(): void {
             userId: driverUserId,
             type: NotificationType.BOOKING_CANCELLED,
             title: 'Booking Cancelled',
-            body: 'The customer has cancelled this booking request.',
+            body: 'Booking was cancelled by customer or operations.',
             data: { bookingId },
             idempotencyKey: `${event.id}-driver-cancelled`,
           },
-          db ?? prisma,
+          database,
+        );
+      }
+
+      if (bookingId) {
+        await sendRecipientWhatsAppNotification(
+          bookingId,
+          event,
+          'booking.cancelled',
+          database,
+          (recipientName) => {
+            return `Hi ${recipientName}, your driver service booking (Booking ID: ${bookingId.substring(0, 8)}) has been cancelled.`;
+          },
         );
       }
     },

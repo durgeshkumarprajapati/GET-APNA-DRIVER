@@ -52,4 +52,17 @@ export const bookingTa = {
   anyVehicleCategory: 'எந்த வாகனமும் (முன்னுரிமை இல்லை)',
   vehicleCapabilities: 'வாகனத் திறன்கள்',
   vehicleCapabilitiesHint: 'நீங்கள் இயக்கக்கூடிய வாகன வகைகள்',
+  bookForSomeoneElse: {
+    title: 'இந்த ஓட்டுநர் சேவை யாருக்காக?',
+    myself: 'எனக்காக',
+    someoneElse: 'மற்றொருவருக்காக',
+    recipientName: 'பெறுநரின் முழுப் பெயர்',
+    recipientPhone: 'பெறுநரின் கைபேசி எண்',
+    relationship: 'உறவு',
+    recipientEmail: 'பெறுநரின் மின்னஞ்சல் (விருப்பத்தேர்வு)',
+    notes: 'ஓட்டுநருக்கான குறிப்புகள் (விருப்பத்தேர்வு)',
+    notifyWhatsApp: 'வாட்ஸ்அப் மூலம் பெறுநருக்குப் பயண புதுப்பிப்புகளை அனுப்பவும்',
+    bookedBy: 'முன்பதிவு செய்தவர்',
+    serviceRecipient: 'சேவை பெறுநர் (பயணி)',
+  },
 };

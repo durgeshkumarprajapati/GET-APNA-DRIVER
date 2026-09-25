@@ -52,4 +52,17 @@ export const bookingTe = {
   anyVehicleCategory: 'ఏదైనా వాహనం (ప్రాధాన్యత లేదు)',
   vehicleCapabilities: 'వాహన సామర్థ్యాలు',
   vehicleCapabilitiesHint: 'మీరు నడపగల వాహన వర్గాలు',
+  bookForSomeoneElse: {
+    title: 'ఈ డ్రైవర్ సేవ ఎవరి కోసం?',
+    myself: 'నా కోసమే',
+    someoneElse: 'మరొకరి కోసం',
+    recipientName: 'గ్రహీత పూర్తి పేరు',
+    recipientPhone: 'గ్రహీత మొబైల్ నంబర్',
+    relationship: 'సంబంధం',
+    recipientEmail: 'గ్రహీత ఇమెయిల్ (ఐచ్ఛికం)',
+    notes: 'డ్రైవర్ కోసం గమనికలు / సూచనలు (ఐచ్ఛికం)',
+    notifyWhatsApp: 'వాట్సాప్ ద్వారా గ్రహీతకు రవాణా వివరాలు పంపండి',
+    bookedBy: 'బుక్ చేసినవారు',
+    serviceRecipient: 'సేవా గ్రహీత (ప్రయాణికుడు)',
+  },
 };

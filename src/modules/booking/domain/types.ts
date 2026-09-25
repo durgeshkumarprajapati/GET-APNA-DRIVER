@@ -14,6 +14,15 @@ export interface DropoffLocationSnapshot {
   label?: string | null;
 }
 
+export interface ServiceRecipientInput {
+  fullName: string;
+  phone: string;
+  email?: string | null;
+  relationship?: string | null;
+  notes?: string | null;
+  notifyViaWhatsApp?: boolean;
+}
+
 export interface CreateBookingInput {
   pickupLocation: PickupLocationSnapshot;
   dropoffLocation?: DropoffLocationSnapshot | null;
@@ -37,6 +46,8 @@ export interface CreateBookingInput {
   vehicleCategoryId?: string | null;
   /** Optional customer vehicle requirement code. Validated server-side — see booking-service.ts. */
   vehicleCategoryCode?: string | null;
+  /** Optional service recipient details when booking a driver for someone else. */
+  serviceRecipient?: ServiceRecipientInput | null;
 }
 
 export interface CandidateDriverRanked {
