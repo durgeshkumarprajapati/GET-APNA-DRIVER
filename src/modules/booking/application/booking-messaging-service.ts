@@ -125,7 +125,7 @@ export async function sendBookingMessage(
   senderUserId: string,
   bookingId: string,
   body: string,
-  options?: { messageType?: 'TEXT' | 'QUICK_REPLY' },
+  options?: { messageType?: 'TEXT' | 'QUICK_REPLY'; idempotencyKey?: string },
   db: Db = prisma,
 ): Promise<BookingMessageDTO> {
   const trimmedBody = body.trim();
@@ -144,6 +144,22 @@ export async function sendBookingMessage(
   }
   if (!SENDABLE_STATUSES.includes(booking.status)) {
     throw new MessagingNotAllowedError(bookingId, booking.status);
+  }
+
+  // Idempotency check: if client retries with idempotencyKey, return existing message if created within last 5 minutes
+  if (options?.idempotencyKey) {
+    const existing = await (db as any).bookingMessage.findFirst({
+      where: {
+        bookingId,
+        senderUserId,
+        body: trimmedBody.slice(0, MESSAGE_BODY_MAX_LENGTH),
+        createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (existing) {
+      return toDTO(existing, participant.role);
+    }
   }
 
   const messageType = options?.messageType ?? 'TEXT';
