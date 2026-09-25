@@ -807,7 +807,7 @@ export async function getDriverLocationForBooking(
   };
 }
 
-type DriverBookingPayload = Prisma.BookingGetPayload<{}> & {
+type DriverBookingPayload = Prisma.BookingGetPayload<Record<string, never>> & {
   customer?: {
     customerProfile?: {
       displayName: string | null;
@@ -835,9 +835,8 @@ function mapBookingToDriverSummary(booking: DriverBookingPayload): DriverBooking
       null
     : null;
   const customerPhone =
-    booking.customer?.identities?.find(
-      (i: { phoneNumber: string | null }) => i.phoneNumber,
-    )?.phoneNumber || null;
+    booking.customer?.identities?.find((i: { phoneNumber: string | null }) => i.phoneNumber)
+      ?.phoneNumber || null;
 
   return {
     id: booking.id,
