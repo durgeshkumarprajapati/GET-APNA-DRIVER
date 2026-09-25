@@ -70,4 +70,7 @@ export interface DispatchSearchState {
   candidatePoolSize: number;
   rankedCandidatesCount: number;
   hasExpired: boolean;
+  cancelledBy?: string | null;
+  cancellationReason?: string | null;
+  isDriverRejected?: boolean;
 }

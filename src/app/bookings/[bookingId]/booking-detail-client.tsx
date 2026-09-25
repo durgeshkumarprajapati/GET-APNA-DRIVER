@@ -532,6 +532,11 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                 <span>
                   {booking.cancelledBy && booking.cancelledBy !== booking.customerId
                     ? 'Driver has cancelled the booking'
+                    : booking.cancellationReason?.toLowerCase().includes('rejected') ||
+                      booking.cancellationReason === 'Booking rejected by driver'
+                    ? 'Booking rejected by driver'
+                    : booking.cancellationReason === 'NO_ACTIVE_DRIVER_NEARBY'
+                    ? 'No active driver found near you'
                     : 'You cancelled this booking'}
                 </span>
               </div>

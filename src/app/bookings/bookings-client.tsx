@@ -409,9 +409,18 @@ export default function BookingsListPage() {
 
                   {/* CANCELLATION REASON IF CANCELLED */}
                   {booking.status === 'CANCELLED' && booking.cancellationReason && (
-                    <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-300 font-mono">
-                      Cancelled by {booking.cancelledBy || 'system'}: &quot;
-                      {booking.cancellationReason}&quot;
+                    <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-300 font-medium flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm text-red-400 shrink-0">cancel</span>
+                      <span>
+                        {booking.cancellationReason.toLowerCase().includes('rejected') ||
+                        booking.cancellationReason === 'Booking rejected by driver'
+                          ? `Booking rejected by driver`
+                          : booking.cancellationReason === 'NO_ACTIVE_DRIVER_NEARBY'
+                          ? `No active driver found near you`
+                          : booking.cancelledBy
+                          ? `Cancelled by driver: "${booking.cancellationReason}"`
+                          : `Cancelled: "${booking.cancellationReason}"`}
+                      </span>
                     </div>
                   )}
 
