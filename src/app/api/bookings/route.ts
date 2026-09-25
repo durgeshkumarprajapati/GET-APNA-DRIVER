@@ -77,20 +77,27 @@ export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { pr
     return NextResponse.json({ booking }, { status: 201 });
   } catch (err: unknown) {
     if (err instanceof z.ZodError) {
+      const firstIssue = err.issues[0];
+      const message =
+        firstIssue?.message &&
+        firstIssue.message !== 'Required' &&
+        firstIssue.message !== 'Invalid input'
+          ? firstIssue.message
+          : 'Invalid booking request parameters.';
       return NextResponse.json(
-        { error: 'INVALID_INPUT', message: 'Invalid booking request.', issues: err.issues },
+        { error: 'INVALID_INPUT', message, issues: err.issues },
         { status: 400 },
       );
     }
     if (err instanceof DuplicateBookingIdempotencyError) {
       return NextResponse.json(
-        { error: 'DUPLICATE_IDEMPOTENCY', message: err.message },
+        { error: err.code || 'DUPLICATE_IDEMPOTENCY', message: err.message },
         { status: 409 },
       );
     }
     if (err instanceof AppError) {
       return NextResponse.json(
-        { error: err.code, message: err.message },
+        { error: err.code, message: err.message, statusCode: err.statusCode },
         { status: err.statusCode },
       );
     }

@@ -34,6 +34,7 @@ import {
   DuplicateBookingIdempotencyError,
   DriverSelectionRequiredError,
 } from '../domain/errors';
+import { ValidationError } from '@/shared/errors/app-error';
 
 import { calculateEstimatedFare } from '@/modules/pricing/application/fare-calculation-service';
 import {
@@ -246,7 +247,7 @@ export async function createBooking(
   if (rawCatId) {
     const category = await db.vehicleCategory.findUnique({ where: { id: rawCatId } });
     if (!category || !category.isActive) {
-      throw new Error(`Invalid or inactive vehicle category selection: '${rawCatId}'.`);
+      throw new ValidationError(`Invalid or inactive vehicle category selection: '${rawCatId}'.`, 'INVALID_VEHICLE_CATEGORY');
     }
     resolvedVehicleCategoryId = category.id;
   } else if (rawCatCode) {
@@ -256,7 +257,7 @@ export async function createBooking(
       .replace(/[\s-]+/g, '_');
     const category = await db.vehicleCategory.findUnique({ where: { code: normalizedCode } });
     if (!category || !category.isActive) {
-      throw new Error(`Invalid or inactive vehicle category selection: '${rawCatCode}'.`);
+      throw new ValidationError(`Invalid or inactive vehicle category selection: '${rawCatCode}'.`, 'INVALID_VEHICLE_CATEGORY');
     }
     resolvedVehicleCategoryId = category.id;
   }
@@ -274,12 +275,12 @@ export async function createBooking(
   if (input.serviceRecipient) {
     const rawName = (input.serviceRecipient.fullName || '').trim();
     if (!rawName) {
-      throw new Error('Service recipient full name is required.');
+      throw new ValidationError('Service recipient full name is required.', 'INVALID_RECIPIENT_NAME');
     }
     const rawPhone = input.serviceRecipient.phone || '';
     const normalizedPhone = normalizePhoneNumber(rawPhone);
     if (!isValidE164PhoneNumber(normalizedPhone)) {
-      throw new Error('Valid mobile number is required for the service recipient.');
+      throw new ValidationError('Valid mobile number is required for the service recipient.', 'INVALID_RECIPIENT_PHONE');
     }
     validatedRecipient = {
       fullName: rawName,

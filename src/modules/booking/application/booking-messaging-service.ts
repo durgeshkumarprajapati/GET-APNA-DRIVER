@@ -7,6 +7,7 @@ import {
   MessagingNotAuthorizedError,
   MessagingNotAllowedError,
 } from '../domain/errors';
+import { ValidationError } from '@/shared/errors/app-error';
 
 const MESSAGE_BODY_MAX_LENGTH = 500;
 const MESSAGE_PREVIEW_LENGTH = 140;
@@ -127,7 +128,7 @@ export async function sendBookingMessage(
 ): Promise<BookingMessageDTO> {
   const trimmedBody = body.trim();
   if (!trimmedBody) {
-    throw new Error('Message body cannot be empty.');
+    throw new ValidationError('Message body cannot be empty.', 'EMPTY_MESSAGE_BODY');
   }
 
   const booking = await db.booking.findUnique({ where: { id: bookingId } });

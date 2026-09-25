@@ -794,10 +794,10 @@ function BookDriverPageInner() {
         const data = await res.json();
         if (!res.ok) {
           showError(
-            data.error === 'INVALID_INPUT'
-              ? t('customer.booking.validationFailedError')
-              : data.message ||
-                  t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' }),
+            data.message ||
+              (data.error === 'INVALID_INPUT'
+                ? t('customer.booking.validationFailedError')
+                : t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' })),
           );
         } else {
           router.push('/customer/scheduled-rides');
@@ -842,13 +842,14 @@ function BookDriverPageInner() {
         const data = await res.json();
         if (!res.ok) {
           showError(
-            data.error === 'INVALID_INPUT'
-              ? t('customer.booking.validationFailedError')
-              : data.error === 'DRIVER_SELECTION_REQUIRED'
-                ? t('customer.booking.driverSelectionRequiredError')
-                : data.error === 'SELECTED_DRIVER_UNAVAILABLE'
-                  ? t('customer.booking.selectedDriverUnavailableError')
-                  : data.message || t('customer.booking.dispatchFailedError'),
+            data.message ||
+              (data.error === 'INVALID_INPUT'
+                ? t('customer.booking.validationFailedError')
+                : data.error === 'DRIVER_SELECTION_REQUIRED'
+                  ? t('customer.booking.driverSelectionRequiredError')
+                  : data.error === 'SELECTED_DRIVER_UNAVAILABLE'
+                    ? t('customer.booking.selectedDriverUnavailableError')
+                    : t('customer.booking.dispatchFailedError')),
           );
         } else {
           router.push(`/bookings/${data.booking.id}`);

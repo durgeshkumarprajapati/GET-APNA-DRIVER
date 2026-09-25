@@ -1,99 +1,125 @@
 import { BookingStatus, AssignmentAttemptStatus, BookingType } from '@prisma/client';
 import { AppError } from '@/shared/errors/app-error';
 
-export class BookingNotFoundError extends Error {
+export class BookingNotFoundError extends AppError {
   constructor(identifier: string) {
-    super(`Booking not found: ${identifier}`);
+    super(`Booking not found: ${identifier}`, 404, 'BOOKING_NOT_FOUND');
     this.name = 'BookingNotFoundError';
   }
 }
 
-export class InvalidBookingStatusTransitionError extends Error {
+export class InvalidBookingStatusTransitionError extends AppError {
   constructor(currentStatus: BookingStatus, targetStatus: BookingStatus) {
-    super(`Invalid booking status transition from ${currentStatus} to ${targetStatus}.`);
+    super(
+      `Invalid booking status transition from ${currentStatus} to ${targetStatus}.`,
+      400,
+      'INVALID_BOOKING_STATUS_TRANSITION',
+    );
     this.name = 'InvalidBookingStatusTransitionError';
   }
 }
 
-export class AssignmentAttemptNotFoundError extends Error {
+export class AssignmentAttemptNotFoundError extends AppError {
   constructor(attemptId: string) {
-    super(`Assignment attempt not found: ${attemptId}`);
+    super(`Assignment attempt not found: ${attemptId}`, 404, 'ASSIGNMENT_ATTEMPT_NOT_FOUND');
     this.name = 'AssignmentAttemptNotFoundError';
   }
 }
 
-export class AssignmentOfferExpiredError extends Error {
+export class AssignmentOfferExpiredError extends AppError {
   constructor(attemptId: string) {
-    super(`Assignment offer ${attemptId} has expired.`);
+    super(`Assignment offer ${attemptId} has expired.`, 400, 'ASSIGNMENT_OFFER_EXPIRED');
     this.name = 'AssignmentOfferExpiredError';
   }
 }
 
-export class AssignmentAlreadyRespondedError extends Error {
+export class AssignmentAlreadyRespondedError extends AppError {
   constructor(attemptId: string, currentStatus: AssignmentAttemptStatus) {
     super(
       `Assignment offer ${attemptId} has already been responded to (status: ${currentStatus}).`,
+      400,
+      'ASSIGNMENT_ALREADY_RESPONDED',
     );
     this.name = 'AssignmentAlreadyRespondedError';
   }
 }
 
-export class BookingAlreadyAssignedError extends Error {
+export class BookingAlreadyAssignedError extends AppError {
   constructor(bookingId: string) {
-    super(`Booking ${bookingId} is already assigned to a driver.`);
+    super(`Booking ${bookingId} is already assigned to a driver.`, 409, 'BOOKING_ALREADY_ASSIGNED');
     this.name = 'BookingAlreadyAssignedError';
   }
 }
 
-export class BookingNotCancellableError extends Error {
+export class BookingNotCancellableError extends AppError {
   constructor(bookingId: string, currentStatus: BookingStatus) {
-    super(`Booking ${bookingId} cannot be cancelled from current status: ${currentStatus}.`);
+    super(
+      `Booking ${bookingId} cannot be cancelled from current status: ${currentStatus}.`,
+      400,
+      'BOOKING_NOT_CANCELLABLE',
+    );
     this.name = 'BookingNotCancellableError';
   }
 }
 
-export class DuplicateBookingIdempotencyError extends Error {
+export class DuplicateBookingIdempotencyError extends AppError {
   constructor(idempotencyKey: string) {
-    super(`Booking creation with idempotency key '${idempotencyKey}' already processed.`);
+    super(
+      `Booking creation with idempotency key '${idempotencyKey}' already processed.`,
+      409,
+      'DUPLICATE_IDEMPOTENCY',
+    );
     this.name = 'DuplicateBookingIdempotencyError';
   }
 }
 
-export class DispatchInvalidBookingStateError extends Error {
+export class DispatchInvalidBookingStateError extends AppError {
   constructor(bookingId: string, currentStatus: BookingStatus, requiredStatuses: BookingStatus[]) {
     super(
       `Booking ${bookingId} is in ${currentStatus}; this dispatch action requires one of: ${requiredStatuses.join(', ')}.`,
+      400,
+      'DISPATCH_INVALID_BOOKING_STATE',
     );
     this.name = 'DispatchInvalidBookingStateError';
   }
 }
 
-export class DriverNotEligibleForDispatchError extends Error {
+export class DriverNotEligibleForDispatchError extends AppError {
   constructor(driverProfileId: string, reasons: string[]) {
-    super(`Driver ${driverProfileId} is not eligible for assignment: ${reasons.join('; ')}`);
+    super(
+      `Driver ${driverProfileId} is not eligible for assignment: ${reasons.join('; ')}`,
+      400,
+      'DRIVER_NOT_ELIGIBLE_FOR_DISPATCH',
+    );
     this.name = 'DriverNotEligibleForDispatchError';
   }
 }
 
-export class DriverNotAvailableForDispatchError extends Error {
+export class DriverNotAvailableForDispatchError extends AppError {
   constructor(driverProfileId: string, currentAvailabilityStatus: string) {
     super(
       `Driver ${driverProfileId} is not available for assignment (current status: ${currentAvailabilityStatus}).`,
+      400,
+      'DRIVER_NOT_AVAILABLE_FOR_DISPATCH',
     );
     this.name = 'DriverNotAvailableForDispatchError';
   }
 }
 
-export class InvalidRidePinError extends Error {
+export class InvalidRidePinError extends AppError {
   constructor(message = 'Invalid ride PIN.') {
-    super(message);
+    super(message, 400, 'INVALID_RIDE_PIN');
     this.name = 'InvalidRidePinError';
   }
 }
 
-export class MaxRidePinAttemptsExceededError extends Error {
+export class MaxRidePinAttemptsExceededError extends AppError {
   constructor() {
-    super('Maximum ride PIN verification attempts exceeded for this booking.');
+    super(
+      'Maximum ride PIN verification attempts exceeded for this booking.',
+      429,
+      'MAX_RIDE_PIN_ATTEMPTS_EXCEEDED',
+    );
     this.name = 'MaxRidePinAttemptsExceededError';
   }
 }
