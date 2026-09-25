@@ -67,29 +67,25 @@ describe('Phase 79 — Intelligent Customer Dashboard & Personalized Experience'
         ]),
       },
       customerSavedPerson: {
-        findMany: jest
-          .fn()
-          .mockResolvedValue([
-            {
-              id: 'sp-1',
-              fullName: 'Rahul Sharma',
-              phone: '+919876511111',
-              relationship: 'Father',
-            },
-          ]),
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 'sp-1',
+            fullName: 'Rahul Sharma',
+            phone: '+919876511111',
+            relationship: 'Father',
+          },
+        ]),
       },
       savedLocation: {
-        findMany: jest
-          .fn()
-          .mockResolvedValue([
-            {
-              id: 'loc-1',
-              label: 'Home',
-              addressLine1: 'Villa 12, Vasant Vihar',
-              city: 'Delhi',
-              isDefault: true,
-            },
-          ]),
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 'loc-1',
+            label: 'Home',
+            addressLine1: 'Villa 12, Vasant Vihar',
+            city: 'Delhi',
+            isDefault: true,
+          },
+        ]),
       },
       customerFavoriteDriver: {
         findMany: jest.fn().mockResolvedValue([
@@ -162,7 +158,7 @@ describe('Phase 79 — Intelligent Customer Dashboard & Personalized Experience'
   });
 
   it('should strictly filter queries by customerId for IDOR protection', async () => {
-    const mockDb: any = {
+    const mockDb = {
       user: {
         findUnique: jest.fn().mockResolvedValue({
           id: customerId,
@@ -183,7 +179,8 @@ describe('Phase 79 — Intelligent Customer Dashboard & Personalized Experience'
       taxInvoice: { findFirst: jest.fn().mockResolvedValue(null) },
     };
 
-    await getCustomerDashboardData(customerId, mockDb as any);
+    const dbArg = mockDb as unknown as Parameters<typeof getCustomerDashboardData>[1];
+    await getCustomerDashboardData(customerId, dbArg);
 
     expect(mockDb.user.findUnique).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: customerId } }),

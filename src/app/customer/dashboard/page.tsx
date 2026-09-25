@@ -6,6 +6,7 @@ import { CustomerLayout } from '@/components/customer-layout';
 import { CustomerExperienceSection } from '@/components/experience/customer-experience-section';
 import { LoadingState } from '@/components/ui/loading-state';
 import { useTranslation } from '@/i18n/context';
+import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
 import type { CustomerDashboardData } from '@/modules/customer/application/customer-dashboard-service';
 
 function statusBadgeClass(status: string): string {
@@ -41,6 +42,7 @@ export default function CustomerDashboardPage() {
   const [dashboard, setDashboard] = useState<CustomerDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showActiveChat, setShowActiveChat] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -218,6 +220,14 @@ export default function CustomerDashboardPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowActiveChat(!showActiveChat)}
+                    className="px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#353942] text-[#68dba9] border border-[#68dba9]/40 text-xs font-bold transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">forum</span>
+                    <span>{showActiveChat ? 'Hide Communication' : 'Message Chauffeur'}</span>
+                  </button>
                   <Link
                     href={`/bookings/${activeService.id}`}
                     className="px-4 py-2 rounded-xl bg-[#68dba9] hover:bg-[#86e2ba] text-[#003825] text-xs font-bold transition-all flex items-center gap-2"
@@ -226,6 +236,16 @@ export default function CustomerDashboardPage() {
                     <span>Track Live Service</span>
                   </Link>
                 </div>
+
+                {showActiveChat && (
+                  <div className="pt-3 border-t border-[#262a33]">
+                    <BookingMessagePanel
+                      viewerRole="CUSTOMER"
+                      apiBasePath={`/api/customer/bookings/${activeService.id}/messages`}
+                      bookingStatus={activeService.status}
+                    />
+                  </div>
+                )}
               </section>
             )}
 
