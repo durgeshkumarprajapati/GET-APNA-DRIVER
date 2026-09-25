@@ -9,6 +9,7 @@ export const customerTe = {
     reviews: 'నా సమీక్షలు',
     favorites: 'ఇష్టమైన డ్రైవర్లు',
     wallet: 'వాలెట్',
+    billing: 'బిల్లింగ్ సెంటర్',
     invoices: 'టాక్స్ ఇన్‌వాయిస్‌లు',
     offers: 'ఆఫర్‌లు & కూపన్లు',
     rewards: 'లాయల్టీ రివార్డులు',

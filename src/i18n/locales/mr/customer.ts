@@ -9,6 +9,7 @@ export const customerMr = {
     reviews: 'माझी पुनरावलोकने',
     favorites: 'आवडते ड्रायव्हर्स',
     wallet: 'वॉलेट',
+    billing: 'बिलिंग सेंटर',
     invoices: 'टॅक्स इनव्हॉइस',
     offers: 'ऑफर्स आणि कूपन्स',
     rewards: 'लॉयल्टी रिवॉर्ड्स',

@@ -9,6 +9,7 @@ export const customerEn = {
     reviews: 'My Reviews',
     favorites: 'Favorite Drivers',
     wallet: 'Wallet',
+    billing: 'Billing Center',
     invoices: 'Tax Invoices',
     offers: 'Offers & Coupons',
     rewards: 'Loyalty Rewards',

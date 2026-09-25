@@ -9,6 +9,7 @@ export const customerKn = {
     reviews: 'ನನ್ನ ವಿಮರ್ಶೆಗಳು',
     favorites: 'ನೆಚ್ಚಿನ ಚಾಲಕರು',
     wallet: 'ವ್ಯಾಲೆಟ್',
+    billing: 'ಬಿಲ್ಲಿಂಗ್ ಸೆಂಟರ್',
     invoices: 'ತೆರಿಗೆ ಇನ್‌ವಾಯ್ಸ್‌ಗಳು',
     offers: 'ಆಫರ್‌ಗಳು & ಕೂಪನ್‌ಗಳು',
     rewards: 'ರಾಯಲ್ಟಿ ರಿವಾರ್ಡ್‌ಗಳು',

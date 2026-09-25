@@ -124,6 +124,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [invoice, setInvoice] = useState<{
     id: string;
     invoiceNumber: string;
+    paymentId?: string | null;
     status: string;
     subtotalAmount: number;
     discountAmount: number;
@@ -781,6 +782,24 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                       <span className="material-symbols-outlined text-base">download</span>
                       Download PDF Invoice
                     </a>
+                    {invoice.paymentId && (
+                      <a
+                        href={`/api/customer/payments/${invoice.paymentId}/receipt/pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-purple-950/80 hover:bg-purple-900 text-purple-200 text-xs font-semibold rounded-lg border border-purple-500/30 flex items-center gap-1.5 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">receipt</span>
+                        View Payment Receipt
+                      </a>
+                    )}
+                    <Link
+                      href="/customer/billing"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">account_balance</span>
+                      Billing Center
+                    </Link>
                   </div>
                 </div>
               )}
