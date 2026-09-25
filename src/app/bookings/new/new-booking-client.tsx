@@ -235,6 +235,16 @@ function BookDriverPageInner() {
   const [recipientEmail, setRecipientEmail] = useState<string>('');
   const [recipientNotes, setRecipientNotes] = useState<string>('');
   const [recipientNotifyWhatsApp, setRecipientNotifyWhatsApp] = useState<boolean>(true);
+  const [savedPeople, setSavedPeople] = useState<
+    Array<{
+      id: string;
+      fullName: string;
+      phone: string;
+      relationship?: string | null;
+      notes?: string | null;
+    }>
+  >([]);
+  const [savePersonForFuture, setSavePersonForFuture] = useState<boolean>(false);
 
   const handleApplyCoupon = useCallback(async () => {
     if (!couponCodeInput.trim() || !fareEstimate) return;
@@ -354,9 +364,11 @@ function BookDriverPageInner() {
     let isMounted = true;
     (async () => {
       try {
-        const [locationsRes, favoritesRes] = await Promise.all([
+        const [locationsRes, favoritesRes, peopleRes, prefRes] = await Promise.all([
           fetch('/api/customer/locations'),
           fetch('/api/customer/favorites'),
+          fetch('/api/customer/saved-people'),
+          fetch('/api/customer/preferences'),
         ]);
         if (!isMounted) return;
         if (locationsRes.ok) {
@@ -366,6 +378,25 @@ function BookDriverPageInner() {
         if (favoritesRes.ok) {
           const data = await favoritesRes.json();
           setFavoriteDrivers(data.favorites ?? []);
+        }
+        if (peopleRes.ok) {
+          const data = await peopleRes.json();
+          setSavedPeople(data.savedPeople ?? []);
+        }
+        if (prefRes.ok) {
+          const data = await prefRes.json();
+          if (data.preferences) {
+            const prefs = data.preferences;
+            if (prefs.preferredServiceType) {
+              const prefType = prefs.preferredServiceType as BookingType;
+              if (Object.values(BookingType).includes(prefType)) {
+                setSelectedBookingType(prefType);
+              }
+            }
+            if (prefs.preferredDriverProfileId) {
+              setPreferredDriverProfileId(prefs.preferredDriverProfileId);
+            }
+          }
         }
       } catch {
         // Quick-select chips and the preference picker just stay empty.
@@ -1571,6 +1602,42 @@ function BookDriverPageInner() {
 
               {isForSomeoneElse && (
                 <div className="pt-2 border-t border-[#262a33] flex flex-col gap-3">
+                  {savedPeople.length > 0 && (
+                    <div className="flex flex-col gap-1.5 mb-1">
+                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk'] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                          bookmark
+                        </span>
+                        <span>Choose Saved Person</span>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {savedPeople.map((person) => (
+                          <button
+                            key={person.id}
+                            type="button"
+                            onClick={() => {
+                              setRecipientFullName(person.fullName);
+                              setRecipientPhone(person.phone);
+                              setRecipientRelationship(person.relationship || 'Family');
+                              if (person.notes) setRecipientNotes(person.notes);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-[#1c2028] hover:bg-[#262a33] active:bg-[#343a46] text-xs font-semibold text-[#dfe2ee] border border-[#262a33] hover:border-[#68dba9]/50 flex items-center gap-1.5 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                              person
+                            </span>
+                            <span>{person.fullName}</span>
+                            {person.relationship && (
+                              <span className="text-[10px] text-[#87948b]">
+                                ({person.relationship})
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
@@ -1612,6 +1679,9 @@ function BookDriverPageInner() {
                         className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs font-sans outline-none"
                       >
                         <option value="Family">Family Member</option>
+                        <option value="Father">Father</option>
+                        <option value="Mother">Mother</option>
+                        <option value="Spouse">Spouse / Partner</option>
                         <option value="Friend">Friend</option>
                         <option value="Guest">Guest / Client</option>
                         <option value="Employee">Employee / Colleague</option>
@@ -1631,6 +1701,22 @@ function BookDriverPageInner() {
                         className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
                       />
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      id="savePersonForFuture"
+                      type="checkbox"
+                      checked={savePersonForFuture}
+                      onChange={(e) => setSavePersonForFuture(e.target.checked)}
+                      className="rounded bg-[#1c2028] border-[#262a33] text-[#68dba9] focus:ring-0 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="savePersonForFuture"
+                      className="text-xs text-[#bccac0] cursor-pointer"
+                    >
+                      Save this person to My Saved People for future 1-click bookings
+                    </label>
                   </div>
 
                   <div className="flex flex-col gap-1">
