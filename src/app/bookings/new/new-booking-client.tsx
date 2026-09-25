@@ -115,6 +115,11 @@ interface BookingRecord {
     latitude: number;
     longitude: number;
   } | null;
+  serviceRecipient?: {
+    fullName: string;
+    phone: string;
+    relationship?: string | null;
+  } | null;
 }
 
 function savedLocationAddress(loc: SavedLocationRecord): string {
@@ -578,6 +583,14 @@ function BookDriverPageInner() {
             setDropoffReady(true);
           }
           setSelectedTab(BOOKING_TYPE_TO_TAB[booking.bookingType] ?? 'oneway');
+          if (booking.serviceRecipient) {
+            setIsForSomeoneElse(true);
+            setRecipientFullName(booking.serviceRecipient.fullName || '');
+            setRecipientPhone(booking.serviceRecipient.phone || '');
+            if (booking.serviceRecipient.relationship) {
+              setRecipientRelationship(booking.serviceRecipient.relationship);
+            }
+          }
         } else if (savedLocationId) {
           const res = await fetch(`/api/customer/locations/${savedLocationId}`);
           if (!res.ok) return;
