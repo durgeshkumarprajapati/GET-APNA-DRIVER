@@ -191,15 +191,11 @@ export async function queryCustomerBookings(
     const pickupLocationObj = rawBooking.pickupLocation as
       | { latitude?: number; longitude?: number; address?: string; label?: string | null }
       | undefined;
-    const pickupLocationJson = rawBooking.pickupLocationJson as
-      | { address?: string }
-      | undefined;
+    const pickupLocationJson = rawBooking.pickupLocationJson as { address?: string } | undefined;
     const dropoffLocationObj = rawBooking.dropoffLocation as
       | { latitude?: number; longitude?: number; address?: string; label?: string | null }
       | undefined;
-    const dropoffLocationJson = rawBooking.dropoffLocationJson as
-      | { address?: string }
-      | undefined;
+    const dropoffLocationJson = rawBooking.dropoffLocationJson as { address?: string } | undefined;
 
     const pickupLoc = {
       latitude: pickupLocationObj?.latitude ?? b.pickupLatitude ?? 0,
@@ -213,10 +209,7 @@ export async function queryCustomerBookings(
     };
 
     const dropoffAddress =
-      dropoffLocationObj?.address ??
-      dropoffLocationJson?.address ??
-      b.dropoffAddress ??
-      null;
+      dropoffLocationObj?.address ?? dropoffLocationJson?.address ?? b.dropoffAddress ?? null;
 
     const dropoffLoc = dropoffAddress
       ? {

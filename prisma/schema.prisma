@@ -78,6 +78,7 @@ model User {
   customerProfile         CustomerProfile?
   savedLocations          SavedLocation[]
   customerPreference      CustomerPreference?
+  savedPeople             CustomerSavedPerson[]    @relation("CustomerSavedPeople")
   customerCurrentLocation CustomerCurrentLocation?
   driverProfile           DriverProfile?
   customerBookings        Booking[]                @relation("CustomerBookings")
@@ -493,10 +494,34 @@ model CustomerPreference {
   smsNotificationsEnabled   Boolean         @default(true) @map("sms_notifications_enabled")
   emailNotificationsEnabled Boolean         @default(true) @map("email_notifications_enabled")
 
+  preferredVehicleCategory    String? @map("preferred_vehicle_category")
+  preferredServiceType        String? @map("preferred_service_type")
+  preferredPickupInstructions String? @map("preferred_pickup_instructions")
+  preferredDriverProfileId    String? @map("preferred_driver_profile_id") @db.Uuid
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("customer_preferences")
+}
+
+/// Customer saved service recipients for reuse during booking.
+model CustomerSavedPerson {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customerId   String   @map("customer_id") @db.Uuid
+  customer     User     @relation("CustomerSavedPeople", fields: [customerId], references: [id], onDelete: Cascade)
+  fullName     String   @map("full_name")
+  phone        String   @map("phone")
+  email        String?  @map("email")
+  relationship String?  @map("relationship")
+  notes        String?  @map("notes")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([customerId, isActive])
+  @@index([customerId, phone])
+  @@map("customer_saved_people")
 }
 
 // ---------------------------------------------------------------------------
