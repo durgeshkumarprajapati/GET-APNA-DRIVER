@@ -43,6 +43,8 @@ export interface ListBookingMessagesResult {
     reason?: string;
     status: string;
   };
+  driverLanguagesSpoken?: string[];
+  customerLanguagesSpoken?: string[];
 }
 
 export const QUICK_MESSAGES = {
@@ -254,6 +256,29 @@ export async function listBookingMessages(
 
   const canSend = SENDABLE_STATUSES.includes(booking.status);
 
+  const driverProfileId = booking.driverProfileId ?? booking.preferredDriverProfileId;
+  let driverLanguagesSpoken: string[] = ['en', 'hi'];
+  if (driverProfileId) {
+    const driverProfile = await db.driverProfile.findUnique({
+      where: { id: driverProfileId },
+      select: { languagesSpoken: true },
+    });
+    if (driverProfile?.languagesSpoken && driverProfile.languagesSpoken.length > 0) {
+      driverLanguagesSpoken = driverProfile.languagesSpoken;
+    }
+  }
+
+  let customerLanguagesSpoken: string[] = ['en', 'hi'];
+  if ((db as any).customerPreference?.findUnique) {
+    const customerPref = await (db as any).customerPreference.findUnique({
+      where: { userId: booking.customerId },
+      select: { languagesSpoken: true },
+    });
+    if (customerPref?.languagesSpoken && customerPref.languagesSpoken.length > 0) {
+      customerLanguagesSpoken = customerPref.languagesSpoken;
+    }
+  }
+
   return {
     messages,
     unreadCount,
@@ -268,6 +293,8 @@ export async function listBookingMessages(
             ? 'Service cancelled. Communication is closed.'
             : 'Service inactive.',
     },
+    driverLanguagesSpoken,
+    customerLanguagesSpoken,
   };
 }
 

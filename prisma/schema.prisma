@@ -490,6 +490,7 @@ model CustomerPreference {
   user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme                     ThemePreference @default(SYSTEM)
   language                  String          @default("en")
+  languagesSpoken           String[]        @default(["en", "hi"]) @map("languages_spoken")
   pushNotificationsEnabled  Boolean         @default(true) @map("push_notifications_enabled")
   smsNotificationsEnabled   Boolean         @default(true) @map("sms_notifications_enabled")
   emailNotificationsEnabled Boolean         @default(true) @map("email_notifications_enabled")
@@ -602,6 +603,7 @@ model DriverProfile {
   bio                    String?
   drivingExperienceYears Int                      @default(0) @map("driving_experience_years")
   primaryServiceArea     String?                  @map("primary_service_area")
+  languagesSpoken        String[]                 @default(["en", "hi"]) @map("languages_spoken")
 
   /// Driver-set rate for a full DAILY/WEEKLY/MONTHLY hire (not per-km/per-minute).
   /// Null means the driver has not opted into that hire type, so they are

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from '@/i18n/context';
+import { formatLanguagesList } from '@/shared/constants/languages';
 
 export interface BookingMessage {
   id: string;
@@ -23,31 +25,14 @@ export interface BookingMessagePanelProps {
   maskedCallPhone?: string | null;
 }
 
-const CUSTOMER_QUICK_REPLIES = [
-  'I am at the pickup location.',
-  'Please call me.',
-  'I am near the main gate.',
-  'Please wait 5 minutes.',
-  'I cannot find the pickup point.',
-  'Please check the pickup instructions.',
-];
-
-const DRIVER_QUICK_REPLIES = [
-  'I am on my way.',
-  'I have arrived at the pickup point.',
-  'Please come to the pickup location.',
-  'I am waiting near the gate.',
-  'Please call me.',
-  'I cannot locate the pickup point.',
-];
-
 export function BookingMessagePanel({
   viewerRole,
   apiBasePath,
-  title = 'Service Communication',
+  title,
   bookingStatus,
   maskedCallPhone: _maskedCallPhone,
 }: BookingMessagePanelProps) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<BookingMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState('');
@@ -57,10 +42,32 @@ export function BookingMessagePanel({
     allowed: true,
   });
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [driverLangs, setDriverLangs] = useState<string[]>([]);
+  const [customerLangs, setCustomerLangs] = useState<string[]>([]);
   const [calling, setCalling] = useState(false);
   const listEndRef = useRef<HTMLDivElement | null>(null);
 
-  const quickReplies = viewerRole === 'CUSTOMER' ? CUSTOMER_QUICK_REPLIES : DRIVER_QUICK_REPLIES;
+  const customerQuickReplies = [
+    t('booking.communication.custPickupLocation', { defaultValue: 'I am at the pickup location.' }),
+    t('booking.communication.custPleaseCall', { defaultValue: 'Please call me.' }),
+    t('booking.communication.custNearMainGate', { defaultValue: 'I am near the main gate.' }),
+    t('booking.communication.custWait5Min', { defaultValue: 'Please wait 5 minutes.' }),
+    t('booking.communication.custCannotFindPickup', { defaultValue: 'I cannot find the pickup point.' }),
+    t('booking.communication.custCheckInstructions', { defaultValue: 'Please check the pickup instructions.' }),
+    t('booking.communication.custWaitingReception', { defaultValue: 'I am waiting near the reception.' }),
+    t('booking.communication.custWearingBlueShirt', { defaultValue: 'I am wearing a blue shirt.' }),
+  ];
+
+  const driverQuickReplies = [
+    t('booking.communication.driverOnWay', { defaultValue: 'I am on my way.' }),
+    t('booking.communication.driverArrived', { defaultValue: 'I have arrived at the pickup point.' }),
+    t('booking.communication.driverPleaseCome', { defaultValue: 'Please come to the pickup location.' }),
+    t('booking.communication.driverWaitingGate', { defaultValue: 'I am waiting near the gate.' }),
+    t('booking.communication.driverPleaseCall', { defaultValue: 'Please call me.' }),
+    t('booking.communication.driverCannotLocate', { defaultValue: 'I cannot locate the pickup point.' }),
+  ];
+
+  const quickReplies = viewerRole === 'CUSTOMER' ? customerQuickReplies : driverQuickReplies;
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -72,6 +79,8 @@ export function BookingMessagePanel({
         if (data.canCommunicate) {
           setCanCommunicate(data.canCommunicate);
         }
+        if (data.driverLanguagesSpoken) setDriverLangs(data.driverLanguagesSpoken);
+        if (data.customerLanguagesSpoken) setCustomerLangs(data.customerLanguagesSpoken);
         setError(null);
 
         // Mark incoming messages read if unread count > 0
@@ -160,7 +169,7 @@ export function BookingMessagePanel({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
-                {title}
+                {title || t('booking.communication.panelTitle')}
               </span>
               {unreadCount > 0 && (
                 <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-slate-950">
@@ -188,9 +197,37 @@ export function BookingMessagePanel({
           title="Call via Secure Masked Telephony"
         >
           <span className="material-symbols-outlined text-base">call</span>
-          <span>{viewerRole === 'CUSTOMER' ? 'Call Driver' : 'Call Customer'}</span>
+          <span>
+            {viewerRole === 'CUSTOMER'
+              ? t('booking.communication.callDriver')
+              : t('booking.communication.callCustomer')}
+          </span>
         </button>
       </div>
+
+      {/* Spoken Languages Compatibility Bar */}
+      {(driverLangs.length > 0 || customerLangs.length > 0) && (
+        <div className="px-4 py-2 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="material-symbols-outlined text-sm text-emerald-400">translate</span>
+            <span className="font-semibold text-slate-200">
+              {t('booking.communication.spokenLanguages')}:
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-[11px]">
+            {driverLangs.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-300">
+                👨‍✈️ {t('booking.communication.driverLanguages')}: {formatLanguagesList(driverLangs)}
+              </span>
+            )}
+            {customerLangs.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-300">
+                👤 {t('booking.communication.customerLanguages')}: {formatLanguagesList(customerLangs)}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Message Timeline */}
       <div className="flex flex-col gap-3 p-4 min-h-[220px] max-h-[320px] overflow-y-auto bg-slate-950/40">
@@ -204,10 +241,11 @@ export function BookingMessagePanel({
             <span className="material-symbols-outlined text-3xl text-slate-600 mb-2">
               chat_bubble_outline
             </span>
-            <p className="text-xs font-medium text-slate-400">Operational communication thread</p>
+            <p className="text-xs font-medium text-slate-400">
+              {t('booking.communication.panelTitle')}
+            </p>
             <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
-              Send quick status updates or pickup details to your{' '}
-              {viewerRole === 'CUSTOMER' ? 'assigned driver' : 'customer'}.
+              {t('booking.communication.panelSubtitle')}
             </p>
           </div>
         ) : (
@@ -266,7 +304,7 @@ export function BookingMessagePanel({
       {canCommunicate.allowed && (
         <div className="px-3 py-2 bg-slate-900 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <span className="text-[10px] uppercase font-bold text-slate-500 whitespace-nowrap mr-1">
-            Quick:
+            {t('booking.communication.quickHeader')}:
           </span>
           {quickReplies.map((text) => (
             <button
@@ -304,7 +342,9 @@ export function BookingMessagePanel({
                   void handleSend();
                 }
               }}
-              placeholder={`Message ${viewerRole === 'CUSTOMER' ? 'driver' : 'customer'}…`}
+              placeholder={t('booking.communication.messagePlaceholder', {
+                defaultValue: `Message ${viewerRole === 'CUSTOMER' ? 'driver' : 'customer'}…`,
+              })}
               maxLength={500}
               className="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/80 min-h-[44px]"
             />

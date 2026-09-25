@@ -7,6 +7,7 @@ import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 export interface UpdateCustomerPreferenceInput {
   theme?: ThemePreference;
   language?: string;
+  languagesSpoken?: string[];
   pushNotificationsEnabled?: boolean;
   smsNotificationsEnabled?: boolean;
   emailNotificationsEnabled?: boolean;
@@ -60,6 +61,9 @@ export async function updateCustomerPreference(
       data: {
         ...(input.theme && { theme: input.theme }),
         ...(input.language && { language: input.language }),
+        ...(input.languagesSpoken !== undefined && {
+          languagesSpoken: input.languagesSpoken,
+        }),
         ...(input.pushNotificationsEnabled !== undefined && {
           pushNotificationsEnabled: input.pushNotificationsEnabled,
         }),

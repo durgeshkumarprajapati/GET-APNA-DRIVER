@@ -6,6 +6,7 @@ import { CustomerLayout } from '@/components/customer-layout';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
+import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
 
 interface ProfileData {
   firstName: string | null;
@@ -49,6 +50,7 @@ interface FavoriteDriverOption {
 interface PreferenceData {
   theme: 'SYSTEM' | 'LIGHT' | 'DARK';
   language: string;
+  languagesSpoken?: string[];
   pushNotificationsEnabled: boolean;
   smsNotificationsEnabled: boolean;
   emailNotificationsEnabled: boolean;
@@ -296,6 +298,10 @@ export default function ProfilePage() {
             setPreferences({
               theme: data.preferences.theme || 'SYSTEM',
               language: data.preferences.language || 'en',
+              languagesSpoken:
+                data.preferences.languagesSpoken && data.preferences.languagesSpoken.length > 0
+                  ? data.preferences.languagesSpoken
+                  : ['en', 'hi'],
               pushNotificationsEnabled: data.preferences.pushNotificationsEnabled ?? true,
               smsNotificationsEnabled: data.preferences.smsNotificationsEnabled ?? true,
               emailNotificationsEnabled: data.preferences.emailNotificationsEnabled ?? true,
@@ -1862,10 +1868,24 @@ export default function ProfilePage() {
                   >
                     <option value="en">English</option>
                     <option value="hi">Hindi (हिंदी)</option>
-                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="gu">Gujarati (ગુજરાતી)</option>
+                    <option value="mr">Marathi (मराठी)</option>
+                    <option value="bn">Bengali (বাংলা)</option>
                     <option value="ta">Tamil (தமிழ்)</option>
-                    <option value="te">Telugu (ತೆಲುಗು)</option>
+                    <option value="te">Telugu (తెలుగు)</option>
+                    <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                    <option value="ml">Malayalam (മലയാളം)</option>
+                    <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
                   </select>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                  <SpokenLanguageSelector
+                    selectedLanguages={preferences.languagesSpoken || ['en', 'hi']}
+                    onChange={(langs) => setPreferences({ ...preferences, languagesSpoken: langs })}
+                    label="Languages Spoken & Understood"
+                    description="Select all languages you can speak or understand so your assigned driver knows how to communicate with you."
+                  />
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
