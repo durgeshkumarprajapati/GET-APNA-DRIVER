@@ -3,18 +3,56 @@
 import { useState } from 'react';
 import type { DriverReliabilityView } from '@/modules/trip-reliability/trip-reliability-types';
 import { LocationMapModal } from '@/components/maps/location-map-modal';
+import { useTranslation } from '@/i18n/context';
 import Link from 'next/link';
 
 export interface DriverPickupReliabilityCardProps {
   reliability: DriverReliabilityView;
+  /** Called after a confirmation response is successfully recorded, so the parent can refetch the reliability view. */
+  onConfirmed?: () => void;
 }
 
-export function DriverPickupReliabilityCard({ reliability }: DriverPickupReliabilityCardProps) {
+type DriverConfirmationResponseValue =
+  'STILL_TRAVELLING' | 'ARRIVED' | 'TEMPORARILY_DELAYED' | 'UNABLE_TO_CONTINUE';
+
+export function DriverPickupReliabilityCard({
+  reliability,
+  onConfirmed,
+}: DriverPickupReliabilityCardProps) {
+  const { t } = useTranslation();
   const [mapOpen, setMapOpen] = useState(false);
+  const [submittingResponse, setSubmittingResponse] =
+    useState<DriverConfirmationResponseValue | null>(null);
+  const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(
+    null,
+  );
 
   if (!reliability.hasActiveIncident) {
     return null;
   }
+
+  const handleConfirm = async (response: DriverConfirmationResponseValue) => {
+    if (!reliability.incidentId || submittingResponse) return;
+    setSubmittingResponse(response);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/driver/bookings/${reliability.bookingId}/reliability/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incidentId: reliability.incidentId, response }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.message || 'Failed to send update');
+      }
+      setFeedback({ tone: 'success', text: t('driver.tripReliability.confirmSubmitted') });
+      onConfirmed?.();
+    } catch {
+      setFeedback({ tone: 'error', text: t('driver.tripReliability.confirmFailed') });
+    } finally {
+      setSubmittingResponse(null);
+    }
+  };
 
   const hasCoords = Boolean(
     reliability.recommendedAction?.payload &&
@@ -46,6 +84,48 @@ export function DriverPickupReliabilityCard({ reliability }: DriverPickupReliabi
           {reliability.statusExplanation}
         </p>
       </div>
+
+      {reliability.incidentId && (
+        <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700 space-y-2">
+          <span className="text-xs font-bold text-slate-200">
+            {t('driver.tripReliability.confirmPromptTitle')}
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ['STILL_TRAVELLING', 'driver.tripReliability.confirmStillTravelling'],
+                ['ARRIVED', 'driver.tripReliability.confirmArrived'],
+                ['TEMPORARILY_DELAYED', 'driver.tripReliability.confirmDelayed'],
+                ['UNABLE_TO_CONTINUE', 'driver.tripReliability.confirmUnableToContinue'],
+              ] as const
+            ).map(([value, labelKey]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => handleConfirm(value)}
+                disabled={submittingResponse !== null}
+                className={`min-h-[44px] px-3 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  value === 'UNABLE_TO_CONTINUE'
+                    ? 'bg-rose-950/40 border-rose-800 text-rose-300 hover:bg-rose-900/50'
+                    : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                }`}
+              >
+                {submittingResponse === value
+                  ? t('driver.tripReliability.confirmSubmitting')
+                  : t(labelKey)}
+              </button>
+            ))}
+          </div>
+          {feedback && (
+            <p
+              role={feedback.tone === 'error' ? 'alert' : 'status'}
+              className={`text-[11px] ${feedback.tone === 'error' ? 'text-rose-300' : 'text-emerald-300'}`}
+            >
+              {feedback.text}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-2 pt-1">
         {hasCoords && (

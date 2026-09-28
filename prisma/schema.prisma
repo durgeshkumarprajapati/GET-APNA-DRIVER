@@ -71,55 +71,55 @@ model User {
   rolesAssigned UserRole[] @relation("UserRoleAssignedBy")
   rolesRevoked  UserRole[] @relation("UserRoleRevokedBy")
 
-  credentials             UserCredential?
-  sessions                UserSession[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens     PasswordResetToken[]
-  customerProfile         CustomerProfile?
-  savedLocations          SavedLocation[]
-  customerPreference      CustomerPreference?
-  savedPeople             CustomerSavedPerson[]    @relation("CustomerSavedPeople")
-  customerCurrentLocation CustomerCurrentLocation?
-  driverProfile           DriverProfile?
-  customerBookings        Booking[]                @relation("CustomerBookings")
-  payments                Payment[]
-  notifications           Notification[]
-  pushSubscriptions       PushSubscription[]
-  notificationPreferences NotificationPreference[]
-  reporterSafetyIncidents SafetyIncident[]         @relation("ReporterSafetyIncidents")
-  customerSafetyIncidents SafetyIncident[]         @relation("CustomerSafetyIncidents")
-  assignedSafetyIncidents SafetyIncident[]         @relation("AssignedSafetyIncidents")
-  customerReliabilityIncidents TripReliabilityIncident[] @relation("CustomerReliabilityIncidents")
-  safetyTimelineEntries   SafetyIncidentTimeline[]
-  userRaisedDisputes      Dispute[]                @relation("UserRaisedDisputes")
-  assignedDisputes        Dispute[]                @relation("AssignedDisputes")
-  disputeLogs             DisputeLog[]
-  referralCode            UserReferralCode?
-  givenReferrals          Referral[]               @relation("ReferrerUser")
-  receivedReferral        Referral?                @relation("ReferredUser")
-  customerReviews         Review[]                 @relation("CustomerReviews")
-  promotionUsages         PromotionUsage[]
-  customerSupportTickets  SupportTicket[]          @relation("CustomerSupportTickets")
-  assignedSupportTickets  SupportTicket[]          @relation("AssignedSupportTickets")
-  supportMessages         SupportMessage[]
-  sentBookingMessages     BookingMessage[]
-  initiatedCalls          CallSession[]            @relation("InitiatedCalls")
-  customerCalls           CallSession[]            @relation("CustomerCalls")
-  customerTaxInvoices     TaxInvoice[]             @relation("CustomerTaxInvoices")
-  favoriteDrivers         CustomerFavoriteDriver[] @relation("CustomerFavoriteDrivers")
-  customerLoyaltyAccount  CustomerLoyaltyAccount?  @relation("CustomerLoyaltyAccount")
-  adminLoyaltyAdjustments LoyaltyPointTransaction[] @relation("AdminLoyaltyAdjustments")
-  scheduledRides          ScheduledRide[]          @relation("CustomerScheduledRides")
-  organizationMemberships    OrganizationMember[]
-  organizationInvitationsSent OrganizationInvitation[]     @relation("InvitedByUsers")
-  bookedForBookings          Booking[]                    @relation("BookedForUserBookings")
-  approvalRequestsSubmitted  CorporateApprovalRequest[]  @relation("RequesterUsers")
-  approvalRequestsReviewed   CorporateApprovalRequest[]  @relation("ApproverUsers")
-  recommendationActions      MarketplaceRecommendationAction[] @relation("AdminRecommendationActions")
-  aiConversations            AIConversation[]
-  aiAuditLogs                AIAuditLog[]
-  tripIntelligenceEvents     TripIntelligenceEvent[]
-  experienceDismissals       ExperienceDismissal[]
+  credentials                  UserCredential?
+  sessions                     UserSession[]
+  emailVerificationTokens      EmailVerificationToken[]
+  passwordResetTokens          PasswordResetToken[]
+  customerProfile              CustomerProfile?
+  savedLocations               SavedLocation[]
+  customerPreference           CustomerPreference?
+  savedPeople                  CustomerSavedPerson[]             @relation("CustomerSavedPeople")
+  customerCurrentLocation      CustomerCurrentLocation?
+  driverProfile                DriverProfile?
+  customerBookings             Booking[]                         @relation("CustomerBookings")
+  payments                     Payment[]
+  notifications                Notification[]
+  pushSubscriptions            PushSubscription[]
+  notificationPreferences      NotificationPreference[]
+  reporterSafetyIncidents      SafetyIncident[]                  @relation("ReporterSafetyIncidents")
+  customerSafetyIncidents      SafetyIncident[]                  @relation("CustomerSafetyIncidents")
+  assignedSafetyIncidents      SafetyIncident[]                  @relation("AssignedSafetyIncidents")
+  customerReliabilityIncidents TripReliabilityIncident[]         @relation("CustomerReliabilityIncidents")
+  safetyTimelineEntries        SafetyIncidentTimeline[]
+  userRaisedDisputes           Dispute[]                         @relation("UserRaisedDisputes")
+  assignedDisputes             Dispute[]                         @relation("AssignedDisputes")
+  disputeLogs                  DisputeLog[]
+  referralCode                 UserReferralCode?
+  givenReferrals               Referral[]                        @relation("ReferrerUser")
+  receivedReferral             Referral?                         @relation("ReferredUser")
+  customerReviews              Review[]                          @relation("CustomerReviews")
+  promotionUsages              PromotionUsage[]
+  customerSupportTickets       SupportTicket[]                   @relation("CustomerSupportTickets")
+  assignedSupportTickets       SupportTicket[]                   @relation("AssignedSupportTickets")
+  supportMessages              SupportMessage[]
+  sentBookingMessages          BookingMessage[]
+  initiatedCalls               CallSession[]                     @relation("InitiatedCalls")
+  customerCalls                CallSession[]                     @relation("CustomerCalls")
+  customerTaxInvoices          TaxInvoice[]                      @relation("CustomerTaxInvoices")
+  favoriteDrivers              CustomerFavoriteDriver[]          @relation("CustomerFavoriteDrivers")
+  customerLoyaltyAccount       CustomerLoyaltyAccount?           @relation("CustomerLoyaltyAccount")
+  adminLoyaltyAdjustments      LoyaltyPointTransaction[]         @relation("AdminLoyaltyAdjustments")
+  scheduledRides               ScheduledRide[]                   @relation("CustomerScheduledRides")
+  organizationMemberships      OrganizationMember[]
+  organizationInvitationsSent  OrganizationInvitation[]          @relation("InvitedByUsers")
+  bookedForBookings            Booking[]                         @relation("BookedForUserBookings")
+  approvalRequestsSubmitted    CorporateApprovalRequest[]        @relation("RequesterUsers")
+  approvalRequestsReviewed     CorporateApprovalRequest[]        @relation("ApproverUsers")
+  recommendationActions        MarketplaceRecommendationAction[] @relation("AdminRecommendationActions")
+  aiConversations              AIConversation[]
+  aiAuditLogs                  AIAuditLog[]
+  tripIntelligenceEvents       TripIntelligenceEvent[]
+  experienceDismissals         ExperienceDismissal[]
 
   @@index([accountStatus])
   @@index([createdAt])
@@ -591,27 +591,27 @@ enum DriverDocumentStatus {
 
 /// Driver profile data linked 1-to-1 with core User account.
 model DriverProfile {
-  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId                 String                   @unique @map("user_id") @db.Uuid
-  user                   User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName              String?                  @map("first_name")
-  lastName               String?                  @map("last_name")
-  displayName            String?                  @map("display_name")
-  profileImageUrl        String?                  @map("profile_image_url")
-  dateOfBirth            DateTime?                @map("date_of_birth") @db.Timestamptz(6)
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String    @unique @map("user_id") @db.Uuid
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName              String?   @map("first_name")
+  lastName               String?   @map("last_name")
+  displayName            String?   @map("display_name")
+  profileImageUrl        String?   @map("profile_image_url")
+  dateOfBirth            DateTime? @map("date_of_birth") @db.Timestamptz(6)
   gender                 String?
   bio                    String?
-  drivingExperienceYears Int                      @default(0) @map("driving_experience_years")
-  primaryServiceArea     String?                  @map("primary_service_area")
-  languagesSpoken        String[]                 @default(["en", "hi"]) @map("languages_spoken")
+  drivingExperienceYears Int       @default(0) @map("driving_experience_years")
+  primaryServiceArea     String?   @map("primary_service_area")
+  languagesSpoken        String[]  @default(["en", "hi"]) @map("languages_spoken")
 
   /// Driver-set rate for a full DAILY/WEEKLY/MONTHLY hire (not per-km/per-minute).
   /// Null means the driver has not opted into that hire type, so they are
   /// excluded from the customer-facing browsable list for it — see
   /// driver-hire-availability-service.ts.
-  dailyHireRate   Decimal? @map("daily_hire_rate") @db.Decimal(12, 4)
-  weeklyHireRate  Decimal? @map("weekly_hire_rate") @db.Decimal(12, 4)
-  monthlyHireRate Decimal? @map("monthly_hire_rate") @db.Decimal(12, 4)
+  dailyHireRate          Decimal?                 @map("daily_hire_rate") @db.Decimal(12, 4)
+  weeklyHireRate         Decimal?                 @map("weekly_hire_rate") @db.Decimal(12, 4)
+  monthlyHireRate        Decimal?                 @map("monthly_hire_rate") @db.Decimal(12, 4)
   onboardingStatus       DriverOnboardingStatus   @default(NOT_STARTED) @map("onboarding_status")
   verificationStatus     DriverVerificationStatus @default(NOT_VERIFIED) @map("verification_status")
   approvalStatus         DriverApprovalStatus     @default(PENDING) @map("approval_status")
@@ -624,30 +624,30 @@ model DriverProfile {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  documents            DriverDocument[]
-  onboardingLogs       DriverOnboardingLog[]
-  currentLocation      DriverCurrentLocation?
-  locationHistory      DriverLocationHistory[]
-  assignedBookings     Booking[]                  @relation("DriverBookings")
-  preferredByBookings  Booking[]                  @relation("PreferredDriverBookings")
-  assignmentAttempts   BookingAssignmentAttempt[]
-  wallet               DriverWallet?
-  settlements          DriverSettlement[]
-  safetyIncidents      SafetyIncident[]           @relation("DriverSafetyIncidents")
-  reliabilityIncidents TripReliabilityIncident[]  @relation("DriverReliabilityIncidents")
-  reviews              Review[]                   @relation("DriverReviews")
-  ratingSummary        DriverRatingSummary?
-  driverCalls          CallSession[]              @relation("DriverCalls")
-  schedules            DriverSchedule[]
-  scheduleExceptions   DriverScheduleException[]
-  favoritedByCustomers CustomerFavoriteDriver[]   @relation("DriverFavoriteCustomers")
-  incentiveProgresses  DriverIncentiveProgress[]
-  goalPreference       DriverGoalPreference?
-  preferredScheduledRides ScheduledRide[]          @relation("PreferredDriverScheduledRides")
-  achievementProgresses DriverAchievementProgress[]
-  achievementUnlocks    DriverAchievementUnlock[]
-  streak                DriverStreak?
-  vehicleCapabilities   DriverVehicleCapability[]
+  documents               DriverDocument[]
+  onboardingLogs          DriverOnboardingLog[]
+  currentLocation         DriverCurrentLocation?
+  locationHistory         DriverLocationHistory[]
+  assignedBookings        Booking[]                   @relation("DriverBookings")
+  preferredByBookings     Booking[]                   @relation("PreferredDriverBookings")
+  assignmentAttempts      BookingAssignmentAttempt[]
+  wallet                  DriverWallet?
+  settlements             DriverSettlement[]
+  safetyIncidents         SafetyIncident[]            @relation("DriverSafetyIncidents")
+  reliabilityIncidents    TripReliabilityIncident[]   @relation("DriverReliabilityIncidents")
+  reviews                 Review[]                    @relation("DriverReviews")
+  ratingSummary           DriverRatingSummary?
+  driverCalls             CallSession[]               @relation("DriverCalls")
+  schedules               DriverSchedule[]
+  scheduleExceptions      DriverScheduleException[]
+  favoritedByCustomers    CustomerFavoriteDriver[]    @relation("DriverFavoriteCustomers")
+  incentiveProgresses     DriverIncentiveProgress[]
+  goalPreference          DriverGoalPreference?
+  preferredScheduledRides ScheduledRide[]             @relation("PreferredDriverScheduledRides")
+  achievementProgresses   DriverAchievementProgress[]
+  achievementUnlocks      DriverAchievementUnlock[]
+  streak                  DriverStreak?
+  vehicleCapabilities     DriverVehicleCapability[]
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -707,13 +707,13 @@ model DriverOnboardingLog {
 
 /// Vehicle category master table managed by administrators.
 model VehicleCategory {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code         String   @unique // e.g. MINI_CAR, CAR, LONG_CAR, SUV, TRACTOR, TRUCK, HEAVY_TRUCK
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String  @unique // e.g. MINI_CAR, CAR, LONG_CAR, SUV, TRACTOR, TRUCK, HEAVY_TRUCK
   name         String
   description  String?
-  iconUrl      String?  @map("icon_url")
-  displayOrder Int      @default(0) @map("display_order")
-  isActive     Boolean  @default(true) @map("is_active")
+  iconUrl      String? @map("icon_url")
+  displayOrder Int     @default(0) @map("display_order")
+  isActive     Boolean @default(true) @map("is_active")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -951,24 +951,25 @@ model Booking {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  assignmentAttempts BookingAssignmentAttempt[]
-  bookingLogs        BookingLog[]
-  payments           Payment[]
-  safetyIncidents    SafetyIncident[]           @relation("BookingSafetyIncidents")
-  disputes           Dispute[]                  @relation("BookingDisputes")
-  review             Review?
-  promotionUsage     PromotionUsage?
-  supportTickets           SupportTicket[]
-  callSessions             CallSession[]
-  messages                 BookingMessage[]
-  taxInvoice               TaxInvoice?
-  loyaltyTransactions      LoyaltyPointTransaction[]  @relation("BookingLoyaltyTransactions")
-  scheduledRideId          String?                    @map("scheduled_ride_id") @db.Uuid
-  scheduledRide            ScheduledRide?             @relation("GeneratedBookings", fields: [scheduledRideId], references: [id], onDelete: SetNull)
-  scheduledRideOccurrences ScheduledRideOccurrenceLog[]
-  tripIntelligenceEvents   TripIntelligenceEvent[]
-  reliabilityIncidents     TripReliabilityIncident[]  @relation("BookingReliabilityIncidents")
-  serviceRecipient         BookingServiceRecipient?
+  assignmentAttempts          BookingAssignmentAttempt[]
+  bookingLogs                 BookingLog[]
+  payments                    Payment[]
+  safetyIncidents             SafetyIncident[]                 @relation("BookingSafetyIncidents")
+  disputes                    Dispute[]                        @relation("BookingDisputes")
+  review                      Review?
+  promotionUsage              PromotionUsage?
+  supportTickets              SupportTicket[]
+  callSessions                CallSession[]
+  messages                    BookingMessage[]
+  taxInvoice                  TaxInvoice?
+  loyaltyTransactions         LoyaltyPointTransaction[]        @relation("BookingLoyaltyTransactions")
+  scheduledRideId             String?                          @map("scheduled_ride_id") @db.Uuid
+  scheduledRide               ScheduledRide?                   @relation("GeneratedBookings", fields: [scheduledRideId], references: [id], onDelete: SetNull)
+  scheduledRideOccurrences    ScheduledRideOccurrenceLog[]
+  tripIntelligenceEvents      TripIntelligenceEvent[]
+  reliabilityIncidents        TripReliabilityIncident[]        @relation("BookingReliabilityIncidents")
+  reliabilityRecoveryAttempts TripReliabilityRecoveryAttempt[] @relation("BookingReliabilityRecoveryAttempts")
+  serviceRecipient            BookingServiceRecipient?
 
   // Corporate / Business Travel extension fields
   organizationId    String?                   @map("organization_id") @db.Uuid
@@ -984,10 +985,10 @@ model Booking {
   approvalRequest   CorporateApprovalRequest? @relation(fields: [approvalRequestId], references: [id], onDelete: SetNull)
 
   // Controlled Dynamic Pricing snapshot fields
-  dynamicAdjustmentAmount   Decimal? @map("dynamic_adjustment_amount") @db.Decimal(12, 4)
-  dynamicPricingPolicyId    String?  @map("dynamic_pricing_policy_id") @db.Uuid
-  dynamicPricingPolicyVersion Int?   @map("dynamic_pricing_policy_version")
-  pressureState             String?  @map("pressure_state")
+  dynamicAdjustmentAmount     Decimal? @map("dynamic_adjustment_amount") @db.Decimal(12, 4)
+  dynamicPricingPolicyId      String?  @map("dynamic_pricing_policy_id") @db.Uuid
+  dynamicPricingPolicyVersion Int?     @map("dynamic_pricing_policy_version")
+  pressureState               String?  @map("pressure_state")
 
   @@index([customerId, status])
   @@index([driverProfileId, status])
@@ -1641,8 +1642,8 @@ model Promotion {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  usages PromotionUsage[]
-  loyaltyRewards LoyaltyReward[] @relation("RewardPromotion")
+  usages         PromotionUsage[]
+  loyaltyRewards LoyaltyReward[]  @relation("RewardPromotion")
 
   @@index([status])
   @@index([startsAt, endsAt])
@@ -2174,12 +2175,12 @@ model UserReferralCode {
 
 /// Referral relationship tracking between referrer and newly registered user.
 model Referral {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  referrerUserId  String         @map("referrer_user_id") @db.Uuid
-  referrerUser    User           @relation("ReferrerUser", fields: [referrerUserId], references: [id], onDelete: Cascade)
-  referredUserId  String         @unique @map("referred_user_id") @db.Uuid
-  referredUser    User           @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
-  codeUsed        String         @map("code_used")
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrerUserId      String            @map("referrer_user_id") @db.Uuid
+  referrerUser        User              @relation("ReferrerUser", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referredUserId      String            @unique @map("referred_user_id") @db.Uuid
+  referredUser        User              @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  codeUsed            String            @map("code_used")
   campaignId          String?           @map("campaign_id") @db.Uuid
   campaign            ReferralCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   channel             String?           @default("CODE")
@@ -2813,24 +2814,24 @@ model LoyaltyPointTransaction {
 
 /// Catalog of rewards redeemable using customer loyalty points.
 model LoyaltyReward {
-  id                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title                String
   description          String?
-  rewardType           LoyaltyRewardType       @map("reward_type")
-  pointsRequired       Int                     @map("points_required")
-  minimumTierId        String?                 @map("minimum_tier_id") @db.Uuid
-  minimumTier          LoyaltyTier?            @relation("TierMinimumRequirement", fields: [minimumTierId], references: [id], onDelete: SetNull)
-  promotionId          String?                 @map("promotion_id") @db.Uuid
-  promotion            Promotion?              @relation("RewardPromotion", fields: [promotionId], references: [id], onDelete: SetNull)
-  discountValue        Decimal?                @map("discount_value") @db.Decimal(12, 4)
-  status               LoyaltyRewardStatus     @default(ACTIVE)
-  startsAt             DateTime                @default(now()) @map("starts_at") @db.Timestamptz(6)
-  expiresAt            DateTime?               @map("expires_at") @db.Timestamptz(6)
-  totalRedemptionLimit Int?                    @map("total_redemption_limit")
-  totalRedeemedCount   Int                     @default(0) @map("total_redeemed_count")
-  perCustomerLimit     Int                     @default(1) @map("per_customer_limit")
-  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  rewardType           LoyaltyRewardType   @map("reward_type")
+  pointsRequired       Int                 @map("points_required")
+  minimumTierId        String?             @map("minimum_tier_id") @db.Uuid
+  minimumTier          LoyaltyTier?        @relation("TierMinimumRequirement", fields: [minimumTierId], references: [id], onDelete: SetNull)
+  promotionId          String?             @map("promotion_id") @db.Uuid
+  promotion            Promotion?          @relation("RewardPromotion", fields: [promotionId], references: [id], onDelete: SetNull)
+  discountValue        Decimal?            @map("discount_value") @db.Decimal(12, 4)
+  status               LoyaltyRewardStatus @default(ACTIVE)
+  startsAt             DateTime            @default(now()) @map("starts_at") @db.Timestamptz(6)
+  expiresAt            DateTime?           @map("expires_at") @db.Timestamptz(6)
+  totalRedemptionLimit Int?                @map("total_redemption_limit")
+  totalRedeemedCount   Int                 @default(0) @map("total_redeemed_count")
+  perCustomerLimit     Int                 @default(1) @map("per_customer_limit")
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   redemptions  LoyaltyRewardRedemption[]
   transactions LoyaltyPointTransaction[]
@@ -2974,21 +2975,21 @@ enum StreakStatus {
 
 /// Admin-configurable driver achievement catalog definition.
 model DriverAchievementDefinition {
-  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code          String              @unique
-  name          String
-  description   String?
-  category      AchievementCategory @default(TRIPS)
-  targetValue   Decimal             @default(1.0000) @map("target_value") @db.Decimal(12, 4)
-  badgeIcon     String              @default("emoji_events") @map("badge_icon")
-  displayOrder  Int                 @default(0) @map("display_order")
-  isActive      Boolean             @default(true) @map("is_active")
-  startsAt      DateTime?           @map("starts_at") @db.Timestamptz(6)
-  endsAt        DateTime?           @map("ends_at") @db.Timestamptz(6)
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code           String              @unique
+  name           String
+  description    String?
+  category       AchievementCategory @default(TRIPS)
+  targetValue    Decimal             @default(1.0000) @map("target_value") @db.Decimal(12, 4)
+  badgeIcon      String              @default("emoji_events") @map("badge_icon")
+  displayOrder   Int                 @default(0) @map("display_order")
+  isActive       Boolean             @default(true) @map("is_active")
+  startsAt       DateTime?           @map("starts_at") @db.Timestamptz(6)
+  endsAt         DateTime?           @map("ends_at") @db.Timestamptz(6)
   criteriaConfig Json?               @map("criteria_config")
   rewardConfig   Json?               @map("reward_config")
-  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   progresses DriverAchievementProgress[]
   unlocks    DriverAchievementUnlock[]
@@ -3037,14 +3038,14 @@ model DriverAchievementUnlock {
 
 /// Driver daily activity streak projection in Asia/Kolkata business timezone.
 model DriverStreak {
-  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  driverProfileId    String       @unique @map("driver_profile_id") @db.Uuid
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId    String        @unique @map("driver_profile_id") @db.Uuid
   driverProfile      DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
-  currentStreak      Int          @default(0) @map("current_streak")
-  longestStreak      Int          @default(0) @map("longest_streak")
-  lastQualifyingDate DateTime?    @map("last_qualifying_date") @db.Date
-  streakStatus       StreakStatus @default(ACTIVE) @map("streak_status")
-  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  currentStreak      Int           @default(0) @map("current_streak")
+  longestStreak      Int           @default(0) @map("longest_streak")
+  lastQualifyingDate DateTime?     @map("last_qualifying_date") @db.Date
+  streakStatus       StreakStatus  @default(ACTIVE) @map("streak_status")
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("driver_streaks")
 }
@@ -3137,10 +3138,10 @@ model OrganizationMember {
   employeeCode   String?                  @map("employee_code")
   designation    String?
 
-  departmentId   String?                  @map("department_id") @db.Uuid
-  department     OrganizationDepartment?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  costCenterId   String?                  @map("cost_center_id") @db.Uuid
-  costCenter     OrganizationCostCenter?  @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
+  departmentId String?                 @map("department_id") @db.Uuid
+  department   OrganizationDepartment? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  costCenterId String?                 @map("cost_center_id") @db.Uuid
+  costCenter   OrganizationCostCenter? @relation(fields: [costCenterId], references: [id], onDelete: SetNull)
 
   joinedAt  DateTime? @map("joined_at") @db.Timestamptz(6)
   removedAt DateTime? @map("removed_at") @db.Timestamptz(6)
@@ -3243,14 +3244,14 @@ model CorporateApprovalRequest {
 
 /// Corporate billing configuration and tax profile.
 model CorporateBillingProfile {
-  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String       @unique @map("organization_id") @db.Uuid
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  legalName      String       @map("legal_name")
-  billingAddress String       @map("billing_address")
-  gstin          String?
-  billingEmail   String       @map("billing_email")
-  paymentTermDays Int         @default(30) @map("payment_term_days")
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String       @unique @map("organization_id") @db.Uuid
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  legalName       String       @map("legal_name")
+  billingAddress  String       @map("billing_address")
+  gstin           String?
+  billingEmail    String       @map("billing_email")
+  paymentTermDays Int          @default(30) @map("payment_term_days")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -3260,17 +3261,17 @@ model CorporateBillingProfile {
 
 /// Invitation record storing hashed token for secure employee onboarding.
 model OrganizationInvitation {
-  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organizationId String                 @map("organization_id") @db.Uuid
-  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  email          String
-  invitedByUserId String                @map("invited_by_user_id") @db.Uuid
-  invitedByUser   User                  @relation("InvitedByUsers", fields: [invitedByUserId], references: [id], onDelete: Cascade)
-  role           OrganizationMemberRole @default(MEMBER)
-  tokenHash      String                 @unique @map("token_hash")
-  status         InvitationStatus       @default(PENDING)
-  expiresAt      DateTime               @map("expires_at") @db.Timestamptz(6)
-  acceptedAt     DateTime?              @map("accepted_at") @db.Timestamptz(6)
+  id              String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId  String                 @map("organization_id") @db.Uuid
+  organization    Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email           String
+  invitedByUserId String                 @map("invited_by_user_id") @db.Uuid
+  invitedByUser   User                   @relation("InvitedByUsers", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  role            OrganizationMemberRole @default(MEMBER)
+  tokenHash       String                 @unique @map("token_hash")
+  status          InvitationStatus       @default(PENDING)
+  expiresAt       DateTime               @map("expires_at") @db.Timestamptz(6)
+  acceptedAt      DateTime?              @map("accepted_at") @db.Timestamptz(6)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -3355,12 +3356,12 @@ enum AIMessageSender {
 
 /// AI conversation session model per user.
 model AIConversation {
-  id        String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String               @map("user_id") @db.Uuid
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      AIConversationRole   @default(CUSTOMER)
-  title     String?
-  status    AIConversationStatus @default(ACTIVE)
+  id     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String               @map("user_id") @db.Uuid
+  user   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   AIConversationRole   @default(CUSTOMER)
+  title  String?
+  status AIConversationStatus @default(ACTIVE)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -3392,18 +3393,18 @@ model AIMessage {
 
 /// Telemetry and observability audit record for AI model requests.
 model AIAuditLog {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String  @map("user_id") @db.Uuid
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   role         String
   intent       String
   provider     String
   model        String
-  latencyMs    Int      @map("latency_ms")
-  success      Boolean  @default(true)
-  actionType   String?  @map("action_type")
-  tokenUsage   Json?    @map("token_usage")
-  errorMessage String?  @map("error_message")
+  latencyMs    Int     @map("latency_ms")
+  success      Boolean @default(true)
+  actionType   String? @map("action_type")
+  tokenUsage   Json?   @map("token_usage")
+  errorMessage String? @map("error_message")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -3419,16 +3420,16 @@ model AIAuditLog {
 
 /// Persistent operational intelligence event record for trip signal tracking and deduplication.
 model TripIntelligenceEvent {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  bookingId  String   @map("booking_id") @db.Uuid
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  userId     String   @map("user_id") @db.Uuid
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  actorRole  String   @map("actor_role")
-  signalType String   @map("signal_type")
-  confidence String   @default("HIGH")
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingId   String  @map("booking_id") @db.Uuid
+  booking     Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId      String  @map("user_id") @db.Uuid
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actorRole   String  @map("actor_role")
+  signalType  String  @map("signal_type")
+  confidence  String  @default("HIGH")
   fingerprint String  @unique
-  metadata   Json?
+  metadata    Json?
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -3510,7 +3511,7 @@ model TripReliabilityIncident {
   fingerprint     String                          @unique
   metadata        Json?
   resolutionCode  String?                         @map("resolution_code")
-  
+
   detectedAt  DateTime  @default(now()) @map("detected_at") @db.Timestamptz(6)
   confirmedAt DateTime? @map("confirmed_at") @db.Timestamptz(6)
   resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz(6)
@@ -3518,7 +3519,8 @@ model TripReliabilityIncident {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  timelineEntries TripReliabilityTimeline[]
+  timelineEntries  TripReliabilityTimeline[]
+  recoveryAttempts TripReliabilityRecoveryAttempt[]
 
   @@index([bookingId, status])
   @@index([customerId])
@@ -3544,6 +3546,67 @@ model TripReliabilityTimeline {
 
   @@index([incidentId, createdAt])
   @@map("trip_reliability_timelines")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 82: Proactive Service Reliability & Recovery — structured, retryable,
+// idempotent recovery-attempt tracking per incident (mirrors
+// BookingAssignmentAttempt's attemptNumber/status/idempotencyKey shape).
+// TripReliabilityTimeline already logs a free-text history of what
+// happened; this model exists alongside it to answer the questions the
+// timeline's free-text `action` field cannot: how many times has recovery
+// been attempted for this incident, is one already in flight, and did the
+// driver respond to a confirmation request — all needed to enforce
+// IncidentPolicyService's maxAutoRetries and prevent duplicate concurrent
+// execution.
+// ---------------------------------------------------------------------------
+
+enum RecoveryAttemptStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+
+  @@map("recovery_attempt_status")
+}
+
+enum DriverConfirmationResponse {
+  STILL_TRAVELLING
+  ARRIVED
+  TEMPORARILY_DELAYED
+  UNABLE_TO_CONTINUE
+
+  @@map("driver_confirmation_response")
+}
+
+/// A single traceable, idempotent recovery action attempted for a trip reliability incident — automated or operator/driver-triggered.
+model TripReliabilityRecoveryAttempt {
+  id         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  incidentId String                  @map("incident_id") @db.Uuid
+  incident   TripReliabilityIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  bookingId  String                  @map("booking_id") @db.Uuid
+  booking    Booking                 @relation("BookingReliabilityRecoveryAttempts", fields: [bookingId], references: [id], onDelete: Cascade)
+
+  action         String
+  status         RecoveryAttemptStatus       @default(PENDING)
+  attemptNumber  Int                         @map("attempt_number")
+  idempotencyKey String                      @unique @map("idempotency_key")
+  triggeredBy    String                      @default("SYSTEM") @map("triggered_by")
+  actorUserId    String?                     @map("actor_user_id") @db.Uuid
+  driverResponse DriverConfirmationResponse? @map("driver_response")
+  failureCode    String?                     @map("failure_code")
+  failureSummary String?                     @map("failure_summary")
+
+  startedAt   DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([incidentId, attemptNumber])
+  @@index([bookingId, status])
+  @@index([status, startedAt])
+  @@map("trip_reliability_recovery_attempts")
 }
 
 // ---------------------------------------------------------------------------
@@ -3578,24 +3641,24 @@ enum AlertStatus {
 
 /// Deterministic platform health snapshots for operational monitoring and HUD dashboards.
 model PlatformHealthSnapshot {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  overallScore         Int                  @map("overall_score")
-  overallStatus        PlatformHealthStatus @map("overall_status")
-  applicationStatus    PlatformHealthStatus @map("application_status")
-  databaseStatus       PlatformHealthStatus @map("database_status")
-  redisStatus          PlatformHealthStatus @map("redis_status")
-  workerStatus         PlatformHealthStatus @map("worker_status")
-  bookingStatus        PlatformHealthStatus @map("booking_status")
-  dispatchStatus       PlatformHealthStatus @map("dispatch_status")
-  paymentStatus        PlatformHealthStatus @map("payment_status")
-  notificationStatus   PlatformHealthStatus @map("notification_status")
-  locationStatus       PlatformHealthStatus @map("location_status")
-  scheduledRideStatus  PlatformHealthStatus @map("scheduled_ride_status")
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  overallScore        Int                  @map("overall_score")
+  overallStatus       PlatformHealthStatus @map("overall_status")
+  applicationStatus   PlatformHealthStatus @map("application_status")
+  databaseStatus      PlatformHealthStatus @map("database_status")
+  redisStatus         PlatformHealthStatus @map("redis_status")
+  workerStatus        PlatformHealthStatus @map("worker_status")
+  bookingStatus       PlatformHealthStatus @map("booking_status")
+  dispatchStatus      PlatformHealthStatus @map("dispatch_status")
+  paymentStatus       PlatformHealthStatus @map("payment_status")
+  notificationStatus  PlatformHealthStatus @map("notification_status")
+  locationStatus      PlatformHealthStatus @map("location_status")
+  scheduledRideStatus PlatformHealthStatus @map("scheduled_ride_status")
   reliabilityStatus   PlatformHealthStatus @map("reliability_status")
-  dependencyStatus     PlatformHealthStatus @map("dependency_status")
-  evidence             Json                 @db.JsonB
-  metadata             Json?                @db.JsonB
-  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  dependencyStatus    PlatformHealthStatus @map("dependency_status")
+  evidence            Json                 @db.JsonB
+  metadata            Json?                @db.JsonB
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([overallStatus, createdAt])
   @@index([createdAt])
@@ -3662,9 +3725,3 @@ model ExperienceDismissal {
   @@index([userId, experienceType])
   @@map("experience_dismissals")
 }
-
-
-
-
-
-

@@ -184,5 +184,13 @@ export const driverBn = {
     gpsCheckNotice: 'সঠিক নেভিগেশনের জন্য আপনার লোকেশন সার্ভিস সচল আছে কিনা তা নিশ্চিত করুন।',
     viewPickupMap: 'পিকআপ ম্যাপ দেখুন',
     support: 'সাপোর্ট',
+    confirmPromptTitle: 'কুইক চেক-ইন',
+    confirmStillTravelling: 'এখনও যাত্রা চলছে',
+    confirmArrived: 'আমি পৌঁছে গেছি',
+    confirmDelayed: 'দেরি হচ্ছে',
+    confirmUnableToContinue: 'চালিয়ে যেতে পারছি না',
+    confirmSubmitting: 'পাঠানো হচ্ছে...',
+    confirmSubmitted: 'ধন্যবাদ — আপনার আপডেট পাঠানো হয়েছে।',
+    confirmFailed: 'আপনার আপডেট পাঠাতে সমস্যা হয়েছে। আবার চেষ্টা করুন।',
   },
 };

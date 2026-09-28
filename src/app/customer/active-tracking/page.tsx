@@ -83,8 +83,8 @@ export default function CustomerActiveTrackingPage() {
     fetch(`/api/customer/bookings/${displayBooking.id}/reliability`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.data) {
-          setReliability(data.data);
+        if (data?.reliability) {
+          setReliability(data.reliability);
         }
       })
       .catch(() => {});

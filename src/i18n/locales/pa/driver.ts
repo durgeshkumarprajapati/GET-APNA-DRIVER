@@ -184,5 +184,13 @@ export const driverPa = {
     gpsCheckNotice: 'ਕਿਰਪਾ ਕਰਕੇ ਸਹੀ ਨੇਵੀਗੇਸ਼ਨ ਲਈ ਆਪਣੀਆਂ ਲੋਕੇਸ਼ਨ ਸੇਵਾਵਾਂ ਚਾਲੂ ਰੱਖੋ।',
     viewPickupMap: 'ਪਿਕਅੱਪ ਨਕਸ਼ਾ ਦੇਖੋ',
     support: 'ਸਹਾਇਤਾ',
+    confirmPromptTitle: 'ਤੁਰੰਤ ਚੈੱਕ-ਇਨ',
+    confirmStillTravelling: 'ਹਾਲੇ ਸਫ਼ਰ ਜਾਰੀ ਹੈ',
+    confirmArrived: 'ਮੈਂ ਪਹੁੰਚ ਗਿਆ ਹਾਂ',
+    confirmDelayed: 'ਦੇਰ ਹੋ ਰਹੀ ਹੈ',
+    confirmUnableToContinue: 'ਜਾਰੀ ਨਹੀਂ ਰੱਖ ਸਕਦਾ',
+    confirmSubmitting: 'ਭੇਜਿਆ ਜਾ ਰਿਹਾ ਹੈ...',
+    confirmSubmitted: 'ਧੰਨਵਾਦ — ਤੁਹਾਡੀ ਅੱਪਡੇਟ ਭੇਜ ਦਿੱਤੀ ਗਈ ਹੈ।',
+    confirmFailed: 'ਤੁਹਾਡੀ ਅੱਪਡੇਟ ਭੇਜਣ ਵਿੱਚ ਸਮੱਸਿਆ ਆਈ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
   },
 };

@@ -38,6 +38,9 @@ export const GET = withPermission<RouteParams>(
           timelineEntries: {
             orderBy: { createdAt: 'asc' },
           },
+          recoveryAttempts: {
+            orderBy: { attemptNumber: 'asc' },
+          },
         },
       });
 

@@ -185,5 +185,13 @@ export const driverEn = {
     gpsCheckNotice: 'Please ensure your location services are enabled for accurate navigation.',
     viewPickupMap: 'View Pickup Map',
     support: 'Support',
+    confirmPromptTitle: 'Quick Check-In',
+    confirmStillTravelling: 'Still Travelling',
+    confirmArrived: "I've Arrived",
+    confirmDelayed: 'Running Late',
+    confirmUnableToContinue: 'Unable to Continue',
+    confirmSubmitting: 'Sending...',
+    confirmSubmitted: 'Thanks — your update has been sent.',
+    confirmFailed: 'Could not send your update. Please try again.',
   },
 };

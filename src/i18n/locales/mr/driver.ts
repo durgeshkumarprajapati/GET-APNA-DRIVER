@@ -185,5 +185,13 @@ export const driverMr = {
     gpsCheckNotice: 'कृपया अचूक नेव्हिगेशनसाठी तुमच्या स्थान सेवा सक्षम ठेवा.',
     viewPickupMap: 'पिकअप नकाशा पहा',
     support: 'सपोर्ट',
+    confirmPromptTitle: 'त्वरित चेक-इन',
+    confirmStillTravelling: 'अजूनही प्रवास चालू आहे',
+    confirmArrived: 'मी पोहोचलो आहे',
+    confirmDelayed: 'उशीर होत आहे',
+    confirmUnableToContinue: 'पुढे सुरू ठेवू शकत नाही',
+    confirmSubmitting: 'पाठवत आहे...',
+    confirmSubmitted: 'धन्यवाद — तुमचे अपडेट पाठवले गेले आहे.',
+    confirmFailed: 'तुमचे अपडेट पाठवताना समस्या आली. कृपया पुन्हा प्रयत्न करा.',
   },
 };

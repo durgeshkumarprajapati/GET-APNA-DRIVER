@@ -185,5 +185,13 @@ export const driverTe = {
     gpsCheckNotice: 'దయచేసి ఖచ్చితమైన నావిగేషన్ కోసం మీ లొకేషన్ సేవలను ప్రారంభంలో ఉంచండి.',
     viewPickupMap: 'పికప్ మ్యాప్ చూడండి',
     support: 'సపోర్ట్',
+    confirmPromptTitle: 'త్వరిత చెక్-ఇన్',
+    confirmStillTravelling: 'ఇంకా ప్రయాణంలో ఉన్నాను',
+    confirmArrived: 'నేను చేరుకున్నాను',
+    confirmDelayed: 'ఆలస్యం అవుతోంది',
+    confirmUnableToContinue: 'కొనసాగించలేను',
+    confirmSubmitting: 'పంపుతోంది...',
+    confirmSubmitted: 'ధన్యవాదాలు — మీ అప్‌డేట్ పంపబడింది.',
+    confirmFailed: 'మీ అప్‌డేట్ పంపడంలో సమస్య వచ్చింది. దయచేసి మళ్ళీ ప్రయత్నించండి.',
   },
 };
