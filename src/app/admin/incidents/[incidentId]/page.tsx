@@ -42,7 +42,27 @@ interface IncidentDetail {
     notes: string | null;
     createdAt: string;
   }>;
+  recoveryAttempts: Array<{
+    id: string;
+    action: string;
+    status: string;
+    attemptNumber: number;
+    triggeredBy: string;
+    driverResponse: string | null;
+    failureCode: string | null;
+    failureSummary: string | null;
+    startedAt: string;
+    completedAt: string | null;
+  }>;
 }
+
+const ATTEMPT_STATUS_TONE: Record<string, StatusBadgeTone> = {
+  SUCCEEDED: 'success',
+  FAILED: 'danger',
+  PROCESSING: 'info',
+  PENDING: 'neutral',
+  CANCELLED: 'neutral',
+};
 
 const SEVERITY_TONE: Record<string, StatusBadgeTone> = {
   CRITICAL: 'danger',
@@ -151,6 +171,28 @@ export default function AdminIncidentDetailPage({
     }
   };
 
+  const handleDismiss = async () => {
+    const reason = window.prompt('Reason for dismissing this incident as a false positive:');
+    if (!reason || !reason.trim()) return;
+    setActionPending(true);
+    try {
+      const res = await fetch(`/api/admin/incidents/${incidentId}/dismiss`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'Dismiss failed');
+      setActionToast('Incident dismissed as a false positive.');
+      await fetchDetail();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Dismiss failed';
+      setError(message);
+    } finally {
+      setActionPending(false);
+    }
+  };
+
   if (loading) {
     return (
       <ControlStationLayout activePersona="admin">
@@ -248,6 +290,14 @@ export default function AdminIncidentDetailPage({
             >
               ✅ Mark Resolved
             </button>
+
+            <button
+              onClick={handleDismiss}
+              disabled={actionPending || incident.status === 'DISMISSED'}
+              className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
+            >
+              🚫 Dismiss (False Positive)
+            </button>
           </div>
         </div>
 
@@ -319,6 +369,55 @@ export default function AdminIncidentDetailPage({
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Recovery Attempt History */}
+        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <h2 className="text-base font-bold text-slate-100">Recovery Attempt History</h2>
+          {incident.recoveryAttempts.length === 0 ? (
+            <p className="text-xs text-slate-400">No recovery attempts recorded yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="text-slate-400 border-b border-slate-800">
+                    <th className="py-2 pr-4">#</th>
+                    <th className="py-2 pr-4">Action</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">Triggered By</th>
+                    <th className="py-2 pr-4">Started</th>
+                    <th className="py-2 pr-4">Outcome</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incident.recoveryAttempts.map((attempt) => (
+                    <tr key={attempt.id} className="border-b border-slate-800/60">
+                      <td className="py-2 pr-4 text-slate-300">{attempt.attemptNumber}</td>
+                      <td className="py-2 pr-4 text-slate-200 font-mono">{attempt.action}</td>
+                      <td className="py-2 pr-4">
+                        <StatusBadge
+                          label={attempt.status}
+                          tone={ATTEMPT_STATUS_TONE[attempt.status] || 'neutral'}
+                        />
+                      </td>
+                      <td className="py-2 pr-4 text-slate-300">
+                        {attempt.triggeredBy}
+                        {attempt.driverResponse ? ` (${attempt.driverResponse})` : ''}
+                      </td>
+                      <td className="py-2 pr-4 text-slate-400">
+                        {new Date(attempt.startedAt).toLocaleString('en-IN', {
+                          timeZone: 'Asia/Kolkata',
+                        })}
+                      </td>
+                      <td className="py-2 pr-4 text-slate-400">
+                        {attempt.failureSummary || attempt.failureCode || '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {mapOpen && (

@@ -185,5 +185,13 @@ export const driverTa = {
       'துல்லியமான வழிசெலுத்தலுக்கு உங்கள் இருப்பிட சேவைகளை இயக்கத்தில் வைத்திருக்கவும்.',
     viewPickupMap: 'பிக்கப் வரைபடத்தைக் காண்க',
     support: 'ஆதரவு',
+    confirmPromptTitle: 'விரைவு செக்-இன்',
+    confirmStillTravelling: 'இன்னும் பயணத்தில் உள்ளேன்',
+    confirmArrived: 'நான் வந்துவிட்டேன்',
+    confirmDelayed: 'தாமதமாகிறது',
+    confirmUnableToContinue: 'தொடர முடியவில்லை',
+    confirmSubmitting: 'அனுப்பப்படுகிறது...',
+    confirmSubmitted: 'நன்றி — உங்கள் புதுப்பிப்பு அனுப்பப்பட்டது.',
+    confirmFailed: 'உங்கள் புதுப்பிப்பை அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
   },
 };

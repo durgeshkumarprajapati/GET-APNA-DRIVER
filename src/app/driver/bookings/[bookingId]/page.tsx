@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -102,6 +102,16 @@ export default function DriverJourneyControlPage({
   const [locationIntel, setLocationIntel] = useState<Record<string, unknown> | null>(null);
   const [journeyData, setJourneyData] = useState<DriverJourneyDTO | null>(null);
 
+  const refetchReliability = useCallback(() => {
+    if (!bookingId) return;
+    fetch(`/api/driver/bookings/${bookingId}/reliability`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.reliability) setReliability(data.reliability);
+      })
+      .catch(() => {});
+  }, [bookingId]);
+
   useEffect(() => {
     if (!bookingId) return;
 
@@ -119,12 +129,7 @@ export default function DriverJourneyControlPage({
       })
       .catch(() => {});
 
-    fetch(`/api/driver/bookings/${bookingId}/reliability`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data) setReliability(data.data);
-      })
-      .catch(() => {});
+    refetchReliability();
 
     fetch(`/api/driver/bookings/${bookingId}/location-intelligence`)
       .then((res) => (res.ok ? res.json() : null))
@@ -132,7 +137,7 @@ export default function DriverJourneyControlPage({
         if (data?.locationIntelligence) setLocationIntel(data.locationIntelligence);
       })
       .catch(() => {});
-  }, [bookingId]);
+  }, [bookingId, refetchReliability]);
 
   const [callingCustomer, setCallingCustomer] = useState(false);
   const [customerCallData, setCustomerCallData] = useState<DirectCallResponse | null>(null);
@@ -313,7 +318,9 @@ export default function DriverJourneyControlPage({
         <PostTripPaymentCard bookingId={bookingId} role="DRIVER" />
         {locationIntel && <LocationETACard locationIntelligence={locationIntel} variant="driver" />}
         {intelligence && <SmartPickupAssistant intelligence={intelligence} bookingId={bookingId} />}
-        {reliability && <DriverPickupReliabilityCard reliability={reliability} />}
+        {reliability && (
+          <DriverPickupReliabilityCard reliability={reliability} onConfirmed={refetchReliability} />
+        )}
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>

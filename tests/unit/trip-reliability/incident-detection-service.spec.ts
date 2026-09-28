@@ -60,4 +60,26 @@ describe('IncidentDetectionService', () => {
     expect(result).toBeNull();
     expect(prisma.tripReliabilityIncident.create).not.toHaveBeenCalled();
   });
+
+  it('returns the existing active incident instead of creating a duplicate for an ongoing condition', async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    const existingIncident = {
+      id: 'inc_existing',
+      bookingId: 'b101',
+      type: 'ASSIGNMENT_TIMEOUT',
+      status: 'RECOVERING',
+      severity: 'MEDIUM',
+    };
+    (prisma.tripReliabilityIncident.findFirst as jest.Mock).mockResolvedValue(existingIncident);
+
+    const result = await detectionService.evaluateBookingReliability({
+      bookingId: 'b101',
+      status: 'SEARCHING_DRIVER',
+      createdAt: tenMinutesAgo,
+      customerId: 'cust_1',
+    });
+
+    expect(result).toBe(existingIncident);
+    expect(prisma.tripReliabilityIncident.create).not.toHaveBeenCalled();
+  });
 });
