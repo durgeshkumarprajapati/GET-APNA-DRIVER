@@ -16,6 +16,7 @@ import { processDueScheduledRides } from '@/modules/scheduled-rides/application/
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 import { runAssignmentExpirySweep } from './jobs/assignment-expiry-sweep-job';
 import { runTripReliabilitySweep } from './jobs/trip-reliability-sweep-job';
+import { runOperationsExecutionReconciliation } from './jobs/operations-execution-reconciliation-job';
 
 /** Hard ceiling on how long shutdown waits for the current batch to drain before forcing exit. */
 const SHUTDOWN_FORCE_EXIT_MS = 30_000;
@@ -79,6 +80,12 @@ async function bootstrapWorker(): Promise<void> {
       // self-gates on its own configurable interval and a Redis lock, so an
       // idle tick here is just an early return, not wasted work.
       await runTripReliabilitySweep();
+
+      // Reconciles any OperationsDecisionExecution row left stuck
+      // PROCESSING by a crash/restart mid-action (see
+      // operations-execution-reconciliation-job.ts). Safe to call every
+      // iteration — self-gated on its own interval and a Redis lock.
+      await runOperationsExecutionReconciliation();
 
       // Periodically process due scheduled rides
       iteration++;

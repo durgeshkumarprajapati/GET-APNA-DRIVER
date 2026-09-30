@@ -30,6 +30,15 @@ const adminPrincipal: AuthenticatedPrincipal = {
   permissions: [PERMISSIONS.DISPATCH_BOOKING_OVERRIDE, PERMISSIONS.BOOKINGS_CANCEL],
 };
 
+// A minimal stateful in-memory fake for the two Phase 85 models — this test
+// exercises the full evaluate -> upsert -> fetch -> status-update -> execute
+// flow, where each step's effect must be visible to the next, which a plain
+// fixed-return jest.fn() can't express.
+let decisionRows: Array<Record<string, unknown>> = [];
+let executionRows: Array<Record<string, unknown>> = [];
+let decisionSeq = 0;
+let executionSeq = 0;
+
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     booking: {
@@ -75,6 +84,63 @@ jest.mock('@/shared/database/prisma', () => ({
     auditLog: {
       create: jest.fn().mockResolvedValue({}),
     },
+    operationsDecision: {
+      findUnique: jest.fn().mockImplementation(({ where }) => {
+        const row = decisionRows.find((d) =>
+          where.id ? d.id === where.id : d.fingerprint === where.fingerprint,
+        );
+        return Promise.resolve(row ?? null);
+      }),
+      create: jest.fn().mockImplementation(({ data }) => {
+        const row = {
+          id: `dec-${++decisionSeq}`,
+          status: 'DETECTED',
+          acknowledgedBy: null,
+          acknowledgedAt: null,
+          resolvedAt: null,
+          dismissedBy: null,
+          dismissedAt: null,
+          dismissalReason: null,
+          escalatedAt: null,
+          expiresAt: null,
+          createdAt: new Date(),
+          evaluatedAt: new Date(),
+          ...data,
+        };
+        decisionRows.push(row);
+        return Promise.resolve(row);
+      }),
+      update: jest.fn().mockImplementation(({ where, data }) => {
+        const row = decisionRows.find((d) => d.fingerprint === where.fingerprint)!;
+        Object.assign(row, data);
+        return Promise.resolve(row);
+      }),
+      updateMany: jest.fn().mockImplementation(({ where, data }) => {
+        const row = decisionRows.find((d) => d.id === where.id);
+        if (!row || (where.status?.notIn ?? []).includes(row.status)) {
+          return Promise.resolve({ count: 0 });
+        }
+        Object.assign(row, data);
+        return Promise.resolve({ count: 1 });
+      }),
+    },
+    operationsDecisionExecution: {
+      count: jest
+        .fn()
+        .mockImplementation(({ where }) =>
+          Promise.resolve(executionRows.filter((e) => e.decisionId === where.decisionId).length),
+        ),
+      create: jest.fn().mockImplementation(({ data }) => {
+        const row = { id: `exec-${++executionSeq}`, startedAt: new Date(), ...data };
+        executionRows.push(row);
+        return Promise.resolve(row);
+      }),
+      update: jest.fn().mockImplementation(({ where, data }) => {
+        const row = executionRows.find((e) => e.id === where.id)!;
+        Object.assign(row, data);
+        return Promise.resolve(row);
+      }),
+    },
   },
 }));
 
@@ -86,6 +152,11 @@ jest.mock('@/shared/infrastructure/redis-lock-service', () => ({
 }));
 
 describe('Operations Command & Decision Engine Spec', () => {
+  beforeEach(() => {
+    decisionRows = [];
+    executionRows = [];
+  });
+
   it('collectOperationsSignals aggregates real-time domain signals correctly', async () => {
     const signals = await collectOperationsSignals();
 

@@ -6,7 +6,34 @@ jest.mock('@/modules/operations/application/capacity-forecast-service', () => ({
   getCapacityForecastSummary: jest.fn(),
 }));
 
-jest.mock('@/shared/database/prisma', () => ({ prisma: {} }));
+let decisionRows: Array<Record<string, unknown>> = [];
+let decisionSeq = 0;
+
+jest.mock('@/shared/database/prisma', () => ({
+  prisma: {
+    operationsDecision: {
+      findUnique: jest
+        .fn()
+        .mockImplementation(({ where }) =>
+          Promise.resolve(
+            decisionRows.find((d) =>
+              where.id ? d.id === where.id : d.fingerprint === where.fingerprint,
+            ) ?? null,
+          ),
+        ),
+      create: jest.fn().mockImplementation(({ data }) => {
+        const row = { id: `dec-${++decisionSeq}`, status: 'DETECTED', ...data };
+        decisionRows.push(row);
+        return Promise.resolve(row);
+      }),
+      update: jest.fn().mockImplementation(({ where, data }) => {
+        const row = decisionRows.find((d) => d.fingerprint === where.fingerprint)!;
+        Object.assign(row, data);
+        return Promise.resolve(row);
+      }),
+    },
+  },
+}));
 jest.mock('@/shared/audit/audit-service', () => ({ recordAuditLog: jest.fn() }));
 jest.mock('@/shared/logging/logger', () => ({
   logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
@@ -54,6 +81,7 @@ describe('evaluateOperationsDecisions — CAPACITY_FORECAST_RISK rule', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCollectSignals.mockResolvedValue(QUIET_SIGNALS);
+    decisionRows = [];
   });
 
   it('emits a CRITICAL decision citing the worst at-risk zone when one is forecasted', async () => {

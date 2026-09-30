@@ -3725,3 +3725,158 @@ model ExperienceDismissal {
   @@index([userId, experienceType])
   @@map("experience_dismissals")
 }
+
+// ---------------------------------------------------------------------------
+// Phase 85: Persistent Operations Intelligence & Decision Reliability
+//
+// operations-decision-service.ts (Phase 50/83/84) previously kept every
+// OperationsDecision in a plain in-memory Map, recomputed from scratch on
+// every call — decisions never survived a restart, weren't shared across
+// instances, and (since evaluateOperationsDecisions minted a fresh
+// timestamp-based `id` every call) the same still-active condition quietly
+// spawned a brand-new "decision" on every single evaluation cycle rather
+// than being recognized as the one already open. These two models make a
+// decision's identity durable (upsert-by-fingerprint) and give every
+// execution attempt against it the same idempotent, retry-bounded,
+// concurrency-safe tracking Phase 82 already proved out for
+// TripReliabilityRecoveryAttempt — reused here rather than re-invented.
+// ---------------------------------------------------------------------------
+
+enum OperationsDecisionType {
+  DISPATCH_PRESSURE
+  DRIVER_SHORTAGE
+  BOOKING_BACKLOG
+  TRIP_RELIABILITY_PRESSURE
+  SAFETY_PRESSURE
+  SUPPORT_BACKLOG
+  SCHEDULED_RIDE_RISK
+  PLATFORM_DEGRADATION
+  DEPENDENCY_DEGRADATION
+  LOCATION_TELEMETRY_DEGRADATION
+  CAPACITY_FORECAST_RISK
+
+  @@map("operations_decision_type")
+}
+
+enum OperationsSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("operations_severity")
+}
+
+enum OperationsConfidence {
+  HIGH
+  MEDIUM
+  LOW
+
+  @@map("operations_confidence")
+}
+
+enum OperationsDecisionStatus {
+  DETECTED
+  ACKNOWLEDGED
+  ACTION_PENDING
+  ACTION_IN_PROGRESS
+  RESOLVED
+  DISMISSED
+  ESCALATED
+
+  @@map("operations_decision_status")
+}
+
+enum OperationsExecutionStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+
+  @@map("operations_execution_status")
+}
+
+/// A durable operational decision produced by the deterministic rule engine
+/// in operations-decision-service.ts. Upserted by `fingerprint` (a
+/// deterministic hash of decisionType + zoneId + a 5-minute time bucket, see
+/// generateDecisionFingerprint) so the same still-unresolved condition keeps
+/// refreshing one row's evidence/evaluatedAt rather than spawning a
+/// duplicate every evaluation cycle.
+model OperationsDecision {
+  id                 String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fingerprint        String                   @unique
+  decisionType       OperationsDecisionType   @map("decision_type")
+  severity           OperationsSeverity
+  confidence         OperationsConfidence
+  status             OperationsDecisionStatus @default(DETECTED)
+  title              String
+  summary            String
+  why                String
+  zoneId             String?                  @map("zone_id")
+  bookingId          String?                  @map("booking_id") @db.Uuid
+  incidentId         String?                  @map("incident_id") @db.Uuid
+  evidence           Json
+  recommendedActions Json                     @map("recommended_actions")
+  expectedImpact     String                   @map("expected_impact")
+  metadata           Json?
+
+  acknowledgedBy  String?   @map("acknowledged_by") @db.Uuid
+  acknowledgedAt  DateTime? @map("acknowledged_at") @db.Timestamptz(6)
+  resolvedAt      DateTime? @map("resolved_at") @db.Timestamptz(6)
+  dismissedBy     String?   @map("dismissed_by") @db.Uuid
+  dismissedAt     DateTime? @map("dismissed_at") @db.Timestamptz(6)
+  dismissalReason String?   @map("dismissal_reason")
+  escalatedAt     DateTime? @map("escalated_at") @db.Timestamptz(6)
+  expiresAt       DateTime? @map("expires_at") @db.Timestamptz(6)
+
+  detectedAt  DateTime @default(now()) @map("detected_at") @db.Timestamptz(6)
+  evaluatedAt DateTime @default(now()) @map("evaluated_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  executions OperationsDecisionExecution[]
+
+  @@index([status, severity])
+  @@index([decisionType, status])
+  @@index([zoneId])
+  @@index([bookingId])
+  @@index([incidentId])
+  @@index([createdAt])
+  @@map("operations_decisions")
+}
+
+/// A single traceable, idempotent attempt to execute a recommended action
+/// against an OperationsDecision — automated or operator-triggered. Mirrors
+/// TripReliabilityRecoveryAttempt's attemptNumber/idempotencyKey/status
+/// shape: attemptNumber + a unique (decisionId, attemptNumber) constraint
+/// make concurrent double-execution impossible (the loser's insert fails the
+/// unique check rather than racing the domain action itself).
+model OperationsDecisionExecution {
+  id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  decisionId String             @map("decision_id") @db.Uuid
+  decision   OperationsDecision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+
+  actionId       String                    @map("action_id")
+  actionType     String                    @map("action_type")
+  status         OperationsExecutionStatus @default(PENDING)
+  attemptNumber  Int                       @map("attempt_number")
+  idempotencyKey String                    @unique @map("idempotency_key")
+  actorUserId    String                    @map("actor_user_id") @db.Uuid
+  reason         String?
+  resultMessage  String?                   @map("result_message")
+  failureCode    String?                   @map("failure_code")
+  failureSummary String?                   @map("failure_summary")
+  details        Json?
+
+  startedAt   DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([decisionId, attemptNumber])
+  @@index([decisionId, status])
+  @@index([status, startedAt])
+  @@map("operations_decision_executions")
+}
