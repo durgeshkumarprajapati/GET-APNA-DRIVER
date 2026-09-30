@@ -2,7 +2,6 @@
 
 import { use, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ControlStationLayout } from '@/components/control-station-layout';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
 import { LocationMapModal } from '@/components/maps/location-map-modal';
@@ -195,24 +194,24 @@ export default function AdminIncidentDetailPage({
 
   if (loading) {
     return (
-      <ControlStationLayout activePersona="admin">
+      <>
         <LoadingState message="Loading incident telemetry and evidence timeline..." />
-      </ControlStationLayout>
+      </>
     );
   }
 
   if (error || !incident) {
     return (
-      <ControlStationLayout activePersona="admin">
+      <>
         <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
           {error || 'Incident record not found'}
         </div>
-      </ControlStationLayout>
+      </>
     );
   }
 
   return (
-    <ControlStationLayout activePersona="admin">
+    <>
       <div className="space-y-6 max-w-6xl mx-auto">
         {/* Breadcrumb & Navigation Header */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -443,6 +442,6 @@ export default function AdminIncidentDetailPage({
           />
         )}
       </div>
-    </ControlStationLayout>
+    </>
   );
 }

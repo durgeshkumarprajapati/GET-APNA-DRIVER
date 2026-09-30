@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ControlStationLayout } from '@/components/control-station-layout';
 import { useTranslation } from '@/i18n/context';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -211,7 +210,7 @@ export default function AdminLiveOpsConsolePage() {
     }) ?? [];
 
   return (
-    <ControlStationLayout activePersona="admin" activePath="admin-live-ops-map">
+    <>
       <div className="w-full px-4 sm:px-6 py-6 flex flex-col gap-6 max-w-[1800px] mx-auto">
         {/* Banner Alert Toast */}
         {actionToast && (
@@ -709,6 +708,6 @@ export default function AdminLiveOpsConsolePage() {
           })
         }
       />
-    </ControlStationLayout>
+    </>
   );
 }
