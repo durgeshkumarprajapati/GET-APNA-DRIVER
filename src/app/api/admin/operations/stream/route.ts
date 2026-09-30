@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
-import { getOperationsCommandSummary, getReliabilityIntelligence } from '@/modules/operations';
+import {
+  getOperationsCommandSummary,
+  getReliabilityIntelligence,
+  getCapacityForecastSummary,
+} from '@/modules/operations';
 import { logger } from '@/shared/logging/logger';
 
 export const GET = withPermission(PERMISSIONS.ADMIN_OPERATIONS_READ, async (req: NextRequest) => {
@@ -14,15 +18,17 @@ export const GET = withPermission(PERMISSIONS.ADMIN_OPERATIONS_READ, async (req:
       const sendUpdate = async () => {
         if (isClosed) return;
         try {
-          const [summary, intelligence] = await Promise.all([
+          const [summary, intelligence, capacityForecast] = await Promise.all([
             getOperationsCommandSummary(),
             getReliabilityIntelligence(7),
+            getCapacityForecastSummary('1h'),
           ]);
 
           const payload = JSON.stringify({
             timestamp: new Date().toISOString(),
             summary,
             intelligence,
+            capacityForecast,
           });
 
           controller.enqueue(encoder.encode(`data: ${payload}\n\n`));

@@ -1,6 +1,9 @@
 import 'server-only';
 import { prisma, type Db } from '@/shared/database/prisma';
+import { logger } from '@/shared/logging/logger';
+import { recordAuditLog } from '@/shared/audit/audit-service';
 import { collectOperationsSignals } from './operations-signal-service';
+import { getCapacityForecastSummary } from './capacity-forecast-service';
 import type { OperationsDecision, OperationsDecisionStatus } from '../domain/operations-types';
 
 // In-memory decision cache & deduplication store for high-performance decision lookup
@@ -301,6 +304,92 @@ export async function evaluateOperationsDecisions(db: Db = prisma): Promise<Oper
     });
   }
 
+  // 7. CAPACITY_FORECAST_RISK — a forward-looking signal, distinct from
+  // DRIVER_SHORTAGE above (which only compares searching-vs-available RIGHT
+  // NOW): this compares FORECASTED near-term demand per zone against
+  // expected eligible supply, surfacing a shortage before it materializes.
+  try {
+    const capacityForecast = await getCapacityForecastSummary('1h', db);
+    const zonesAtRisk = capacityForecast.zones.filter(
+      (z) => z.status === 'SHORTAGE' || z.status === 'CRITICAL_SHORTAGE',
+    );
+    if (zonesAtRisk.length > 0 && capacityForecast.worstZone) {
+      const worst = capacityForecast.worstZone;
+      const isCritical = worst.status === 'CRITICAL_SHORTAGE';
+      const fingerprint = generateDecisionFingerprint(
+        'CAPACITY_FORECAST_RISK',
+        worst.zoneId,
+        timeBucket,
+      );
+      decisions.push({
+        id: `dec-capacity-${now.getTime()}`,
+        fingerprint,
+        decisionType: 'CAPACITY_FORECAST_RISK',
+        severity: isCritical ? 'CRITICAL' : 'HIGH',
+        confidence: worst.confidence === 'INSUFFICIENT_DATA' ? 'LOW' : worst.confidence,
+        status: 'DETECTED',
+        title: 'Predicted Capacity Shortfall in Upcoming Window',
+        summary: `${zonesAtRisk.length} zone(s) forecasted to face a driver capacity shortage in the next hour; most severe: ${worst.zoneName} (${worst.forecastedDemand} forecasted requests vs ${worst.expectedEligibleSupply} eligible drivers).`,
+        why: 'Forecasted near-term demand is projected to exceed expected dispatch-eligible driver supply, which will increase pickup wait times if left unaddressed.',
+        zoneId: worst.zoneId,
+        evidence: [
+          {
+            key: 'forecastedDemand',
+            label: 'Forecasted Demand (1h)',
+            value: worst.forecastedDemand,
+          },
+          {
+            key: 'expectedSupply',
+            label: 'Expected Eligible Supply',
+            value: worst.expectedEligibleSupply,
+            expected: `>= ${worst.forecastedDemand}`,
+          },
+          { key: 'gapRatio', label: 'Capacity Gap Ratio', value: worst.gapRatio },
+          { key: 'zonesAtRisk', label: 'Zones At Risk', value: zonesAtRisk.length },
+        ],
+        recommendedActions: [
+          {
+            id: 'act-capacity-zone',
+            type: 'VIEW_ZONE',
+            label: 'Review Zone Capacity',
+            category: 'OBSERVE_ONLY',
+            href: '/admin/marketplace-intelligence/forecast',
+            params: worst.zoneId ? { zoneId: worst.zoneId } : undefined,
+            requiresConfirmation: false,
+            impactSummary: 'Opens the demand forecast dashboard for detailed zone-level review.',
+          },
+          {
+            id: 'act-capacity-drivers',
+            type: 'VIEW_DRIVERS',
+            label: 'Review Driver Directory',
+            category: 'OBSERVE_ONLY',
+            href: '/admin/drivers',
+            requiresConfirmation: false,
+            impactSummary:
+              'Identify off-shift drivers who could be encouraged online ahead of the predicted demand window.',
+          },
+        ],
+        expectedImpact:
+          'Enables proactive driver activation or incentive targeting before the shortage materializes, rather than reacting after pickup wait times rise.',
+        createdAt: now,
+        evaluatedAt: now,
+        metadata: {
+          zonesAtRisk: zonesAtRisk.map((z) => ({
+            zoneId: z.zoneId,
+            zoneName: z.zoneName,
+            gapRatio: z.gapRatio,
+            status: z.status,
+          })),
+        },
+      });
+    }
+  } catch (err) {
+    // Forecast computation spans two modules and several tables; a failure
+    // here must not take down the rest of the decision engine, which the
+    // purely-reactive rules above still depend on.
+    logger.error({ err }, 'Failed to evaluate CAPACITY_FORECAST_RISK; skipping this cycle');
+  }
+
   // Store decisions in memory store
   decisions.forEach((d) => memoryDecisionStore.set(d.id, d));
 
@@ -328,10 +417,12 @@ export async function updateOperationsDecisionStatus(
   decisionId: string,
   status: OperationsDecisionStatus,
   adminUserId: string,
+  db: Db = prisma,
 ): Promise<OperationsDecision | null> {
   const decision = memoryDecisionStore.get(decisionId);
   if (!decision) return null;
 
+  const fromStatus = decision.status;
   decision.status = status;
   decision.evaluatedAt = new Date();
   if (status === 'ACKNOWLEDGED') {
@@ -344,5 +435,19 @@ export async function updateOperationsDecisionStatus(
   }
 
   memoryDecisionStore.set(decisionId, decision);
+
+  // Operator actions on operational decisions were not previously audited —
+  // every other admin-facing mutation in this codebase (incident
+  // escalation, configuration changes, support responses) writes an audit
+  // log entry, and this one should too.
+  await recordAuditLog(db, {
+    actorUserId: adminUserId,
+    action: 'operations.decision.status_changed',
+    entityType: 'OperationsDecision',
+    entityId: decisionId,
+    beforeState: { status: fromStatus },
+    afterState: { status, decisionType: decision.decisionType, zoneId: decision.zoneId },
+  });
+
   return decision;
 }
