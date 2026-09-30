@@ -136,6 +136,7 @@ export default function UnifiedOperationsCommandCenterPage() {
 
   // Filters for Decisions
   const [decisionSeverityFilter, setDecisionSeverityFilter] = useState<string>('ALL');
+  const [decisionStatusFilter, setDecisionStatusFilter] = useState<string>('ALL');
 
   // Drawer / Modal States
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
@@ -173,7 +174,9 @@ export default function UnifiedOperationsCommandCenterPage() {
     try {
       const [summaryRes, decisionsRes, intelligenceRes, capacityRes] = await Promise.all([
         fetch('/api/admin/operations'),
-        fetch(`/api/admin/operations/decisions?severity=${decisionSeverityFilter}`),
+        fetch(
+          `/api/admin/operations/decisions?severity=${decisionSeverityFilter}&status=${decisionStatusFilter}`,
+        ),
         fetch('/api/admin/operations/reliability-intelligence?days=7'),
         fetch(`/api/admin/operations/capacity-forecast?horizon=${forecastHorizon}`),
       ]);
@@ -202,7 +205,7 @@ export default function UnifiedOperationsCommandCenterPage() {
     } finally {
       setLoading(false);
     }
-  }, [decisionSeverityFilter, forecastHorizon]);
+  }, [decisionSeverityFilter, decisionStatusFilter, forecastHorizon]);
 
   // Fetch Incidents List
   const fetchIncidents = useCallback(async () => {
@@ -734,6 +737,19 @@ export default function UnifiedOperationsCommandCenterPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-[#87948b]">Filter Status:</span>
+                  <select
+                    value={decisionStatusFilter}
+                    onChange={(e) => setDecisionStatusFilter(e.target.value)}
+                    className="bg-[#0f131c] border border-[#262a33] text-[#dfe2ee] text-xs font-mono rounded-lg px-2.5 py-1"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="DETECTED">Detected</option>
+                    <option value="ACKNOWLEDGED">Acknowledged</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="DISMISSED">Dismissed</option>
+                    <option value="ESCALATED">Escalated</option>
+                  </select>
                   <span className="text-xs font-mono text-[#87948b]">Filter Severity:</span>
                   <select
                     value={decisionSeverityFilter}

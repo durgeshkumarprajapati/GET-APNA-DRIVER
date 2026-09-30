@@ -283,7 +283,11 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
 
                       <button
                         onClick={() => handleExecuteAction(action.id, action.type)}
-                        disabled={executingActionId === action.id || decision.status === 'RESOLVED'}
+                        disabled={
+                          executingActionId === action.id ||
+                          decision.status === 'RESOLVED' ||
+                          decision.status === 'DISMISSED'
+                        }
                         className="w-full py-2 px-3 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {executingActionId === action.id ? (
@@ -291,8 +295,8 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                             <span className="w-3 h-3 border-2 border-[#00311f] border-t-transparent rounded-full animate-spin" />
                             Dispatching Action...
                           </>
-                        ) : decision.status === 'RESOLVED' ? (
-                          'Action Already Executed'
+                        ) : decision.status === 'RESOLVED' || decision.status === 'DISMISSED' ? (
+                          `Decision Already ${decision.status}`
                         ) : (
                           <>
                             <span className="material-symbols-outlined text-sm">bolt</span>
@@ -300,6 +304,55 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                           </>
                         )}
                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Execution History */}
+            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-4">
+              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#70d2ff] text-base">history</span>
+                Execution History
+              </h3>
+
+              {!decision.executions || decision.executions.length === 0 ? (
+                <div className="p-4 rounded-lg bg-[#0f131c] border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
+                  No execution attempts recorded yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {decision.executions.map((execution) => (
+                    <div
+                      key={execution.id}
+                      className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-1.5 text-xs font-mono"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#dfe2ee] font-bold">
+                          #{execution.attemptNumber} — {execution.actionType}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                            execution.status === 'SUCCEEDED'
+                              ? 'bg-[#1b2b00] text-[#a4f542] border-[#3f6300]'
+                              : execution.status === 'FAILED'
+                                ? 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]'
+                                : 'bg-[#0f2438] text-[#82cfff] border-[#004a77]'
+                          }`}
+                        >
+                          {execution.status}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-[#87948b]">
+                        {new Date(execution.startedAt).toLocaleString()}
+                      </div>
+                      {execution.resultMessage && (
+                        <p className="text-[#68dba9]">{execution.resultMessage}</p>
+                      )}
+                      {execution.failureSummary && (
+                        <p className="text-[#ff8e8e]">{execution.failureSummary}</p>
+                      )}
                     </div>
                   ))}
                 </div>
