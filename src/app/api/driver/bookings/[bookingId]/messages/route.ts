@@ -16,6 +16,7 @@ type RouteParams = { params: Promise<{ bookingId: string }> };
 const sendMessageSchema = z.object({
   body: z.string().trim().min(1).max(500),
   messageType: z.enum(['TEXT', 'QUICK_REPLY']).optional(),
+  idempotencyKey: z.string().optional(),
 });
 
 export const GET = withPermission<RouteParams>(
@@ -66,6 +67,7 @@ export const POST = withPermission<RouteParams>(
       const parsed = sendMessageSchema.parse(body);
       const message = await sendBookingMessage(principal.userId, bookingId, parsed.body, {
         messageType: parsed.messageType,
+        idempotencyKey: parsed.idempotencyKey,
       });
       return NextResponse.json({ message }, { status: 201 });
     } catch (err: unknown) {

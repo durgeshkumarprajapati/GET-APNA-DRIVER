@@ -1,27 +1,19 @@
-export type OperationsDecisionType =
-  | 'DISPATCH_PRESSURE'
-  | 'DRIVER_SHORTAGE'
-  | 'BOOKING_BACKLOG'
-  | 'TRIP_RELIABILITY_PRESSURE'
-  | 'SAFETY_PRESSURE'
-  | 'SUPPORT_BACKLOG'
-  | 'SCHEDULED_RIDE_RISK'
-  | 'PLATFORM_DEGRADATION'
-  | 'DEPENDENCY_DEGRADATION'
-  | 'LOCATION_TELEMETRY_DEGRADATION';
+// Phase 85 made these Prisma-backed enums (operations_decisions is now a
+// durable table, not an in-memory Map) — aliased under their original
+// names so every existing consumer of this module keeps working unchanged.
+import type {
+  OperationsDecisionType as PrismaOperationsDecisionType,
+  OperationsSeverity as PrismaOperationsSeverity,
+  OperationsConfidence as PrismaOperationsConfidence,
+  OperationsDecisionStatus as PrismaOperationsDecisionStatus,
+  OperationsExecutionStatus as PrismaOperationsExecutionStatus,
+} from '@prisma/client';
 
-export type OperationsSeverity = 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-
-export type OperationsConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
-
-export type OperationsDecisionStatus =
-  | 'DETECTED'
-  | 'ACKNOWLEDGED'
-  | 'ACTION_PENDING'
-  | 'ACTION_IN_PROGRESS'
-  | 'RESOLVED'
-  | 'DISMISSED'
-  | 'ESCALATED';
+export type OperationsDecisionType = PrismaOperationsDecisionType;
+export type OperationsSeverity = PrismaOperationsSeverity;
+export type OperationsConfidence = PrismaOperationsConfidence;
+export type OperationsDecisionStatus = PrismaOperationsDecisionStatus;
+export type OperationsExecutionStatus = PrismaOperationsExecutionStatus;
 
 export type OperationsActionCategory =
   'OBSERVE_ONLY' | 'MANUAL_CONFIRMATION' | 'AUTOMATED_LOW_RISK';
@@ -60,6 +52,24 @@ export interface OperationsActionDefinition {
   impactSummary: string;
 }
 
+export interface OperationsDecisionExecution {
+  id: string;
+  decisionId: string;
+  actionId: string;
+  actionType: string;
+  status: OperationsExecutionStatus;
+  attemptNumber: number;
+  idempotencyKey: string;
+  actorUserId: string;
+  reason?: string | null;
+  resultMessage?: string | null;
+  failureCode?: string | null;
+  failureSummary?: string | null;
+  details?: Record<string, unknown> | null;
+  startedAt: Date;
+  completedAt?: Date | null;
+}
+
 export interface OperationsDecision {
   id: string;
   fingerprint: string;
@@ -70,19 +80,25 @@ export interface OperationsDecision {
   title: string;
   summary: string;
   why: string;
-  zoneId?: string;
-  bookingId?: string;
-  incidentId?: string;
+  zoneId?: string | null;
+  bookingId?: string | null;
+  incidentId?: string | null;
   evidence: OperationsEvidenceItem[];
   recommendedActions: OperationsActionDefinition[];
   expectedImpact: string;
   createdAt: Date;
   evaluatedAt: Date;
-  acknowledgedBy?: string;
-  acknowledgedAt?: Date;
-  resolvedAt?: Date;
-  dismissedAt?: Date;
-  metadata?: Record<string, unknown>;
+  acknowledgedBy?: string | null;
+  acknowledgedAt?: Date | null;
+  resolvedAt?: Date | null;
+  dismissedBy?: string | null;
+  dismissedAt?: Date | null;
+  dismissalReason?: string | null;
+  escalatedAt?: Date | null;
+  expiresAt?: Date | null;
+  metadata?: Record<string, unknown> | null;
+  /** Only populated by the single-decision detail lookup, not the list endpoint. */
+  executions?: OperationsDecisionExecution[];
 }
 
 export interface OperationsCommandSummary {

@@ -3,6 +3,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
+ * Defensive reset — Tailwind's Preflight (bundled into the plain
+ * `@import 'tailwindcss'` above) already zeroes html/body margin, so this
+ * is redundant in every browser tested against. Kept explicit anyway: it's
+ * a zero-risk safeguard against a stray top-of-viewport gap in front of the
+ * app's `position: fixed` header/sidebar (which anchor to the viewport, so
+ * any residual margin here would show as a sliver of body background above
+ * them on every page).
+ */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/*
  * Centralized design tokens for Get Apna Driver landing page & application UI.
  * Full Material-3-style dark palette (single theme — this app is dark-only
  * today, hence :root and .dark carry identical values rather than a real

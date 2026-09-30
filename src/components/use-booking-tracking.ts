@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useRealTimeStream } from '@/components/use-realtime-stream';
 
 export interface TrackedBookingLocation {
   pickupLocation: { latitude: number; longitude: number; address: string; label: string | null };
@@ -60,6 +61,7 @@ export interface UseBookingTrackingResult<TBooking extends TrackedBooking> {
   driverLocation: TrackedDriverLocation | null;
   loading: boolean;
   error: string | null;
+  connectionState?: string;
   refetch: () => Promise<void>;
 }
 
@@ -132,24 +134,16 @@ export function useBookingTracking<TBooking extends TrackedBooking = TrackedBook
     };
   }, [bookingId, fetchBooking]);
 
-  useEffect(() => {
-    if (!bookingId) return;
-    let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource(`/api/bookings/${bookingId}/stream`);
-      eventSource.addEventListener('booking_update', () => {
-        void fetchBooking();
-      });
-      eventSource.onerror = () => {
-        eventSource?.close();
-      };
-    } catch {
-      // Fall back to polling
-    }
-    return () => {
-      eventSource?.close();
-    };
-  }, [bookingId, fetchBooking]);
+  const { connectionState } = useRealTimeStream({
+    bookingId,
+    enabled: !!bookingId,
+    onBookingUpdate: () => {
+      void fetchBooking();
+    },
+    onReconcile: () => {
+      void fetchBooking();
+    },
+  });
 
   useEffect(() => {
     if (!booking || !ACTIVE_TRACKING_STATES.includes(booking.status)) {
@@ -176,6 +170,7 @@ export function useBookingTracking<TBooking extends TrackedBooking = TrackedBook
     // showing a loading spinner for a fetch that was never started.
     loading: bookingId ? loading : false,
     error,
+    connectionState,
     refetch: fetchBooking,
   };
 }

@@ -185,5 +185,13 @@ export const driverKn = {
     gpsCheckNotice: 'ನಿಖರವಾದ ಸಂಚರಣೆಗಾಗಿ ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸ್ಥಳ ಸೇವೆಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ.',
     viewPickupMap: 'ಪಿಕಪ್ ನಕ್ಷೆ ವೀಕ್ಷಿಸಿ',
     support: 'ಬೆಂಬಲ',
+    confirmPromptTitle: 'ತ್ವರಿತ ಚೆಕ್-ಇನ್',
+    confirmStillTravelling: 'ಇನ್ನೂ ಪ್ರಯಾಣದಲ್ಲಿದ್ದೇನೆ',
+    confirmArrived: 'ನಾನು ತಲುಪಿದ್ದೇನೆ',
+    confirmDelayed: 'ತಡವಾಗುತ್ತಿದೆ',
+    confirmUnableToContinue: 'ಮುಂದುವರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ',
+    confirmSubmitting: 'ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...',
+    confirmSubmitted: 'ಧನ್ಯವಾದಗಳು — ನಿಮ್ಮ ಅಪ್‌ಡೇಟ್ ಕಳುಹಿಸಲಾಗಿದೆ.',
+    confirmFailed: 'ನಿಮ್ಮ ಅಪ್‌ಡೇಟ್ ಕಳುಹಿಸುವಲ್ಲಿ ಸಮಸ್ಯೆ ಆಯಿತು. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
   },
 };

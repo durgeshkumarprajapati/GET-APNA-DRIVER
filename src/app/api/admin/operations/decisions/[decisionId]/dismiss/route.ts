@@ -12,10 +12,15 @@ export const POST = withPermission(
         return NextResponse.json({ success: false, error: 'Missing parameters' }, { status: 400 });
       }
       const { decisionId } = await routeContext.params;
+      const body = await req.json().catch(() => ({}));
+      const dismissalReason =
+        typeof body?.reason === 'string' && body.reason.trim() ? body.reason.trim() : undefined;
       const updated = await updateOperationsDecisionStatus(
         decisionId,
         'DISMISSED',
         context.principal.userId,
+        undefined,
+        { dismissalReason },
       );
 
       if (!updated) {

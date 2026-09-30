@@ -185,5 +185,13 @@ export const driverGu = {
     gpsCheckNotice: 'કૃપા કરીને ચોક્કસ નેવિગેશન માટે તમારી લોકેશન સેવાઓ સક્ષમ રાખો.',
     viewPickupMap: 'પિકઅપ મેપ જુઓ',
     support: 'સપોર્ટ',
+    confirmPromptTitle: 'ઝડપી ચેક-ઇન',
+    confirmStillTravelling: 'હજુ મુસાફરી ચાલુ છે',
+    confirmArrived: 'હું પહોંચી ગયો છું',
+    confirmDelayed: 'મોડું થઈ રહ્યું છે',
+    confirmUnableToContinue: 'ચાલુ રાખી શકતો નથી',
+    confirmSubmitting: 'મોકલાઈ રહ્યું છે...',
+    confirmSubmitted: 'આભાર — તમારું અપડેટ મોકલાઈ ગયું છે.',
+    confirmFailed: 'તમારું અપડેટ મોકલવામાં સમસ્યા આવી. કૃપા કરી ફરી પ્રયાસ કરો.',
   },
 };

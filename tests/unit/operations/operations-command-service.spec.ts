@@ -10,6 +10,7 @@ import { SYSTEM_ROLE_CODES } from '@/modules/identity/domain/role-catalog';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import type { AuthenticatedPrincipal } from '@/modules/identity/domain/types';
 import { restartBookingSearch } from '@/modules/booking/application/dispatch-service';
+import { prisma } from '@/shared/database/prisma';
 
 // RESTART_DISPATCH/CANCEL_BOOKING delegate to dispatch-service.ts's own
 // permission-checked, state-machine-validated functions (see
@@ -28,6 +29,15 @@ const adminPrincipal: AuthenticatedPrincipal = {
   roles: [SYSTEM_ROLE_CODES.ADMINISTRATOR],
   permissions: [PERMISSIONS.DISPATCH_BOOKING_OVERRIDE, PERMISSIONS.BOOKINGS_CANCEL],
 };
+
+// A minimal stateful in-memory fake for the two Phase 85 models — this test
+// exercises the full evaluate -> upsert -> fetch -> status-update -> execute
+// flow, where each step's effect must be visible to the next, which a plain
+// fixed-return jest.fn() can't express.
+let decisionRows: Array<Record<string, unknown>> = [];
+let executionRows: Array<Record<string, unknown>> = [];
+let decisionSeq = 0;
+let executionSeq = 0;
 
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
@@ -60,6 +70,77 @@ jest.mock('@/shared/database/prisma', () => ({
     scheduledRide: {
       count: jest.fn().mockResolvedValue(1),
     },
+    // No active zones configured in this test's fixture — the new
+    // CAPACITY_FORECAST_RISK rule (capacity-forecast-service.ts) degrades
+    // gracefully to a platform-wide-only forecast with nothing to flag,
+    // which is exactly what's under test in
+    // tests/unit/operations/capacity-forecast-service.spec.ts instead.
+    marketplaceZone: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    driverCurrentLocation: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    auditLog: {
+      create: jest.fn().mockResolvedValue({}),
+    },
+    operationsDecision: {
+      findUnique: jest.fn().mockImplementation(({ where }) => {
+        const row = decisionRows.find((d) =>
+          where.id ? d.id === where.id : d.fingerprint === where.fingerprint,
+        );
+        return Promise.resolve(row ?? null);
+      }),
+      create: jest.fn().mockImplementation(({ data }) => {
+        const row = {
+          id: `dec-${++decisionSeq}`,
+          status: 'DETECTED',
+          acknowledgedBy: null,
+          acknowledgedAt: null,
+          resolvedAt: null,
+          dismissedBy: null,
+          dismissedAt: null,
+          dismissalReason: null,
+          escalatedAt: null,
+          expiresAt: null,
+          createdAt: new Date(),
+          evaluatedAt: new Date(),
+          ...data,
+        };
+        decisionRows.push(row);
+        return Promise.resolve(row);
+      }),
+      update: jest.fn().mockImplementation(({ where, data }) => {
+        const row = decisionRows.find((d) => d.fingerprint === where.fingerprint)!;
+        Object.assign(row, data);
+        return Promise.resolve(row);
+      }),
+      updateMany: jest.fn().mockImplementation(({ where, data }) => {
+        const row = decisionRows.find((d) => d.id === where.id);
+        if (!row || (where.status?.notIn ?? []).includes(row.status)) {
+          return Promise.resolve({ count: 0 });
+        }
+        Object.assign(row, data);
+        return Promise.resolve({ count: 1 });
+      }),
+    },
+    operationsDecisionExecution: {
+      count: jest
+        .fn()
+        .mockImplementation(({ where }) =>
+          Promise.resolve(executionRows.filter((e) => e.decisionId === where.decisionId).length),
+        ),
+      create: jest.fn().mockImplementation(({ data }) => {
+        const row = { id: `exec-${++executionSeq}`, startedAt: new Date(), ...data };
+        executionRows.push(row);
+        return Promise.resolve(row);
+      }),
+      update: jest.fn().mockImplementation(({ where, data }) => {
+        const row = executionRows.find((e) => e.id === where.id)!;
+        Object.assign(row, data);
+        return Promise.resolve(row);
+      }),
+    },
   },
 }));
 
@@ -71,6 +152,11 @@ jest.mock('@/shared/infrastructure/redis-lock-service', () => ({
 }));
 
 describe('Operations Command & Decision Engine Spec', () => {
+  beforeEach(() => {
+    decisionRows = [];
+    executionRows = [];
+  });
+
   it('collectOperationsSignals aggregates real-time domain signals correctly', async () => {
     const signals = await collectOperationsSignals();
 
@@ -104,13 +190,23 @@ describe('Operations Command & Decision Engine Spec', () => {
     expect(retrieved?.id).toBe(firstId);
   });
 
-  it('updateOperationsDecisionStatus updates decision state to ACKNOWLEDGED', async () => {
+  it('updateOperationsDecisionStatus updates decision state to ACKNOWLEDGED and records an audit log entry', async () => {
     const decisions = await evaluateOperationsDecisions();
     const targetId = decisions[0].id;
 
     const updated = await updateOperationsDecisionStatus(targetId, 'ACKNOWLEDGED', 'admin-1');
     expect(updated?.status).toBe('ACKNOWLEDGED');
     expect(updated?.acknowledgedBy).toBe('admin-1');
+    expect(prisma.auditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          actorUserId: 'admin-1',
+          action: 'operations.decision.status_changed',
+          entityType: 'OperationsDecision',
+          entityId: targetId,
+        }),
+      }),
+    );
   });
 
   it('executeOperationsAction executes action with RedisLockService concurrency safety', async () => {

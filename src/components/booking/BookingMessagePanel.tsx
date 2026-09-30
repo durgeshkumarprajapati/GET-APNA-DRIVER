@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from '@/i18n/context';
 import { formatLanguagesList } from '@/shared/constants/languages';
+import { useRealTimeStream } from '@/components/use-realtime-stream';
+import { useMultiTabSync } from '@/components/use-multi-tab-sync';
 
 export interface BookingMessage {
   id: string;
@@ -47,33 +49,57 @@ export function BookingMessagePanel({
   const [calling, setCalling] = useState(false);
   const listEndRef = useRef<HTMLDivElement | null>(null);
 
-  const customerQuickReplies = [
-    t('booking.communication.custPickupLocation', { defaultValue: 'I am at the pickup location.' }),
-    t('booking.communication.custPleaseCall', { defaultValue: 'Please call me.' }),
-    t('booking.communication.custNearMainGate', { defaultValue: 'I am near the main gate.' }),
-    t('booking.communication.custWait5Min', { defaultValue: 'Please wait 5 minutes.' }),
-    t('booking.communication.custCannotFindPickup', { defaultValue: 'I cannot find the pickup point.' }),
-    t('booking.communication.custCheckInstructions', { defaultValue: 'Please check the pickup instructions.' }),
-    t('booking.communication.custWaitingReception', { defaultValue: 'I am waiting near the reception.' }),
-    t('booking.communication.custWearingBlueShirt', { defaultValue: 'I am wearing a blue shirt.' }),
-  ];
+  const bookingId = apiBasePath.match(/\/bookings\/([^\/]+)/)?.[1] ?? null;
 
-  const driverQuickReplies = [
-    t('booking.communication.driverOnWay', { defaultValue: 'I am on my way.' }),
-    t('booking.communication.driverArrived', { defaultValue: 'I have arrived at the pickup point.' }),
-    t('booking.communication.driverPleaseCome', { defaultValue: 'Please come to the pickup location.' }),
-    t('booking.communication.driverWaitingGate', { defaultValue: 'I am waiting near the gate.' }),
-    t('booking.communication.driverPleaseCall', { defaultValue: 'Please call me.' }),
-    t('booking.communication.driverCannotLocate', { defaultValue: 'I cannot locate the pickup point.' }),
-  ];
+  // Smart Contextual Quick Replies based on Lifecycle State
+  const customerQuickReplies =
+    bookingStatus === 'DRIVER_ARRIVED'
+      ? [
+          t('booking.communication.custWait5Min', { defaultValue: 'Please wait 5 minutes.' }),
+          t('booking.communication.custWaitingReception', { defaultValue: 'I am waiting near the reception.' }),
+          t('booking.communication.custWearingBlueShirt', { defaultValue: 'I am wearing a blue shirt.' }),
+          t('booking.communication.custPickupLocation', { defaultValue: 'I am at the pickup location.' }),
+        ]
+      : [
+          t('booking.communication.custPickupLocation', { defaultValue: 'I am at the pickup location.' }),
+          t('booking.communication.custPleaseCall', { defaultValue: 'Please call me.' }),
+          t('booking.communication.custNearMainGate', { defaultValue: 'I am near the main gate.' }),
+          t('booking.communication.custWait5Min', { defaultValue: 'Please wait 5 minutes.' }),
+          t('booking.communication.custCannotFindPickup', { defaultValue: 'I cannot find the pickup point.' }),
+          t('booking.communication.custCheckInstructions', { defaultValue: 'Please check the pickup instructions.' }),
+        ];
+
+  const driverQuickReplies =
+    bookingStatus === 'DRIVER_ARRIVED'
+      ? [
+          t('booking.communication.driverArrived', { defaultValue: 'I have arrived at the pickup point.' }),
+          t('booking.communication.driverPleaseCome', { defaultValue: 'Please come to the pickup location.' }),
+          t('booking.communication.driverWaitingGate', { defaultValue: 'I am waiting near the gate.' }),
+        ]
+      : [
+          t('booking.communication.driverOnWay', { defaultValue: 'I am on my way.' }),
+          t('booking.communication.driverArrived', { defaultValue: 'I have arrived at the pickup point.' }),
+          t('booking.communication.driverPleaseCall', { defaultValue: 'Please call me.' }),
+          t('booking.communication.driverCannotLocate', { defaultValue: 'I cannot locate the pickup point.' }),
+        ];
 
   const quickReplies = viewerRole === 'CUSTOMER' ? customerQuickReplies : driverQuickReplies;
+
+  // Multi-tab sync hook
+  const { broadcast } = useMultiTabSync(bookingId, (event) => {
+    if (event.type === 'MESSAGES_READ') {
+      setUnreadCount(0);
+    } else if (event.type === 'MESSAGE_SENT') {
+      void fetchMessages();
+    }
+  });
 
   const fetchMessages = useCallback(async () => {
     try {
       const res = await fetch(apiBasePath);
       if (res.ok) {
         const data = await res.json();
+        // Merge without duplicates
         setMessages(data.messages ?? []);
         setUnreadCount(data.unreadCount ?? 0);
         if (data.canCommunicate) {
@@ -85,29 +111,46 @@ export function BookingMessagePanel({
 
         // Mark incoming messages read if unread count > 0
         if (data.unreadCount > 0) {
-          void fetch(`${apiBasePath}/read`, { method: 'POST' });
+          void fetch(`${apiBasePath}/read`, { method: 'POST' }).then(() => {
+            broadcast('MESSAGES_READ');
+          });
         }
       }
     } catch {
-      // Silent error fallback
+      // Silent fallback
     } finally {
       setLoading(false);
     }
-  }, [apiBasePath]);
+  }, [apiBasePath, broadcast]);
+
+  // Realtime stream with exponential backoff & event deduplication
+  const { connectionState, forceReconnect } = useRealTimeStream({
+    bookingId,
+    enabled: !!bookingId,
+    onBookingUpdate: () => {
+      void fetchMessages();
+    },
+    onReconcile: () => {
+      void fetchMessages();
+    },
+  });
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       if (isMounted) await fetchMessages();
     })();
+    // Fallback polling interval (10s) only if SSE is disconnected
     const interval = setInterval(() => {
-      if (isMounted) void fetchMessages();
-    }, 4000);
+      if (isMounted && connectionState !== 'CONNECTED') {
+        void fetchMessages();
+      }
+    }, 10000);
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [fetchMessages]);
+  }, [fetchMessages, connectionState]);
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -119,18 +162,29 @@ export function BookingMessagePanel({
 
     setSending(true);
     setError(null);
+
+    // Client-generated idempotency key
+    const idempotencyKey = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
     try {
       const res = await fetch(apiBasePath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body, messageType: type }),
+        body: JSON.stringify({ body, messageType: type, idempotencyKey }),
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Failed to send message.');
       }
       if (!textToSend) setDraft('');
-      setMessages((prev) => [...prev, data.message]);
+
+      setMessages((prev) => {
+        // Prevent duplicate appending
+        if (prev.some((m) => m.id === data.message.id)) return prev;
+        return [...prev, data.message];
+      });
+
+      broadcast('MESSAGE_SENT');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message.');
     } finally {
@@ -148,11 +202,13 @@ export function BookingMessagePanel({
       const res = await fetch(targetUrl, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Call connection failed.');
+        throw new Error(data.message || 'Failed to initiate call.');
       }
-      alert(`Masked call initiated: ${data.maskedNumber || 'Connecting...'}`);
+      if (data.callUrl) {
+        window.location.href = data.callUrl;
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Call connection failed.');
+      setError(err instanceof Error ? err.message : 'Could not initiate masked telephony call.');
     } finally {
       setCalling(false);
     }
@@ -160,6 +216,39 @@ export function BookingMessagePanel({
 
   return (
     <div className="rounded-2xl bg-slate-900 border border-slate-800 flex flex-col overflow-hidden shadow-xl">
+      {/* Realtime Connection Status Banner */}
+      {connectionState !== 'CONNECTED' && (
+        <div
+          className={`px-4 py-1.5 text-[11px] font-mono flex items-center justify-between transition-colors ${
+            connectionState === 'RECONNECTING'
+              ? 'bg-amber-950/80 text-amber-300 border-b border-amber-800/60'
+              : connectionState === 'FAILED'
+                ? 'bg-rose-950/80 text-rose-300 border-b border-rose-800/60'
+                : 'bg-slate-800/80 text-slate-300 border-b border-slate-700'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+            <span>
+              {connectionState === 'RECONNECTING'
+                ? 'Reconnecting to live channel…'
+                : connectionState === 'FAILED'
+                  ? 'Connection interrupted.'
+                  : 'Connecting stream…'}
+            </span>
+          </div>
+          {connectionState === 'FAILED' && (
+            <button
+              type="button"
+              onClick={forceReconnect}
+              className="px-2 py-0.5 rounded bg-rose-900/60 hover:bg-rose-800 border border-rose-700 text-[10px] font-bold text-white transition-colors"
+            >
+              Retry Connection
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="px-4 py-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -260,38 +349,34 @@ export function BookingMessagePanel({
               );
             }
 
-            const isMine = m.senderRole === viewerRole;
-            const isRead = !!m.readAt;
-
+            const isMe = m.senderRole === viewerRole;
             return (
-              <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={m.id}
+                className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%] ${
+                  isMe ? 'self-end' : 'self-start'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1 px-1">
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    {isMe ? 'You' : m.senderRole === 'CUSTOMER' ? 'Customer' : 'Driver'}
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    {new Date(m.createdAt).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+
                 <div
-                  className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-xs ${
-                    isMine
-                      ? 'bg-emerald-600 text-white rounded-br-none shadow-md'
-                      : 'bg-slate-800 text-slate-100 border border-slate-700 rounded-bl-none shadow-sm'
+                  className={`px-3.5 py-2 rounded-2xl text-xs leading-relaxed break-words shadow-sm ${
+                    isMe
+                      ? 'bg-emerald-600 text-white rounded-br-none font-medium'
+                      : 'bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700/80'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words leading-relaxed">{m.body}</p>
-                  <div
-                    className={`flex items-center justify-end gap-1.5 mt-1 text-[10px] ${
-                      isMine ? 'text-emerald-100/75' : 'text-slate-400'
-                    }`}
-                  >
-                    <span>
-                      {new Date(m.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                    {isMine && (
-                      <span
-                        className={isRead ? 'text-emerald-200 font-bold' : 'text-emerald-300/60'}
-                      >
-                        {isRead ? '✓✓' : '✓'}
-                      </span>
-                    )}
-                  </div>
+                  {m.body}
                 </div>
               </div>
             );
@@ -320,49 +405,57 @@ export function BookingMessagePanel({
         </div>
       )}
 
-      {/* Closed State Banner */}
-      {!canCommunicate.allowed && (
-        <div className="px-4 py-2.5 bg-slate-800/60 border-t border-slate-800 text-center text-xs text-slate-400">
-          🔒 {canCommunicate.reason || 'Communication is closed for this service.'}
+      {/* Error Message & Retry Banner */}
+      {error && (
+        <div className="px-4 py-2 bg-rose-950/80 border-t border-rose-800/80 text-rose-300 text-xs flex items-center justify-between gap-2">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => void handleSend()}
+            className="px-2 py-0.5 rounded bg-rose-900 hover:bg-rose-800 text-[10px] font-bold text-white transition-colors"
+          >
+            Retry
+          </button>
         </div>
       )}
 
-      {/* Input Composer */}
-      {canCommunicate.allowed && (
-        <div className="p-3 bg-slate-900 border-t border-slate-800 flex flex-col gap-2">
-          {error && <p className="text-[11px] text-red-400">{error}</p>}
-          <div className="flex items-center gap-2">
+      {/* Message Input Box */}
+      <div className="p-3 bg-slate-900 border-t border-slate-800">
+        {!canCommunicate.allowed ? (
+          <div className="px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-800 text-slate-400 text-xs text-center font-medium">
+            🔒 {canCommunicate.reason || 'Communication closed for this booking status.'}
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleSend();
+            }}
+            className="flex items-center gap-2"
+          >
             <input
               type="text"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  void handleSend();
-                }
-              }}
-              placeholder={t('booking.communication.messagePlaceholder', {
-                defaultValue: `Message ${viewerRole === 'CUSTOMER' ? 'driver' : 'customer'}…`,
-              })}
+              placeholder="Message driver..."
+              disabled={sending}
               maxLength={500}
-              className="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/80 min-h-[44px]"
+              className="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/30 transition-all disabled:opacity-50 min-h-[40px]"
             />
             <button
-              type="button"
-              onClick={() => void handleSend()}
+              type="submit"
               disabled={sending || !draft.trim()}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-semibold transition-colors flex items-center justify-center min-h-[44px] min-w-[48px]"
+              className="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:hover:bg-emerald-500 text-slate-950 flex items-center justify-center transition-all shrink-0 font-bold"
             >
               {sending ? (
-                <span className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                <span className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-base">send</span>
+                <span className="material-symbols-outlined text-lg">send</span>
               )}
             </button>
-          </div>
-        </div>
-      )}
+          </form>
+        )}
+      </div>
     </div>
   );
 }

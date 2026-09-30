@@ -388,7 +388,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
         </header>
 
         {/* MAIN BODY AREA */}
-        <main className="w-full pt-14 pb-8 px-3 sm:px-4 bg-[#0f131c] min-h-screen">{children}</main>
+        <main className="w-full pt-16 pb-8 px-3 sm:px-4 bg-[#0f131c] min-h-screen">{children}</main>
       </div>
     </div>
   );

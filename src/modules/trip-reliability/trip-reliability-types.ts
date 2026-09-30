@@ -91,6 +91,7 @@ export interface RecoveryResult {
 export interface CustomerReliabilityView {
   bookingId: string;
   hasActiveIncident: boolean;
+  incidentId?: string;
   incidentType?: IncidentType;
   severity?: IncidentSeverity;
   statusTitle: string;
@@ -111,6 +112,7 @@ export interface CustomerReliabilityView {
 export interface DriverReliabilityView {
   bookingId: string;
   hasActiveIncident: boolean;
+  incidentId?: string;
   incidentType?: IncidentType;
   severity?: IncidentSeverity;
   statusTitle: string;

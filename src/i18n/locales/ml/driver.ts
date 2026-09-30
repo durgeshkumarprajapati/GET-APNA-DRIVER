@@ -184,5 +184,13 @@ export const driverMl = {
     gpsCheckNotice: 'കൃത്യമായ നാവിഗേഷനായി നിങ്ങളുടെ ലൊക്കേഷൻ സേവനങ്ങൾ എനേബിൾ ചെയ്യുക.',
     viewPickupMap: 'പിക്കപ്പ് മാപ്പ് കാണുക',
     support: 'സപ്പോർട്ട്',
+    confirmPromptTitle: 'ദ്രുത ചെക്ക്-ഇൻ',
+    confirmStillTravelling: 'ഇപ്പോഴും യാത്രയിലാണ്',
+    confirmArrived: 'ഞാൻ എത്തിച്ചേർന്നു',
+    confirmDelayed: 'വൈകുന്നു',
+    confirmUnableToContinue: 'തുടരാൻ കഴിയില്ല',
+    confirmSubmitting: 'അയക്കുന്നു...',
+    confirmSubmitted: 'നന്ദി — നിങ്ങളുടെ അപ്ഡേറ്റ് അയച്ചു.',
+    confirmFailed: 'നിങ്ങളുടെ അപ്ഡേറ്റ് അയക്കുന്നതിൽ പ്രശ്നം ഉണ്ടായി. വീണ്ടും ശ്രമിക്കുക.',
   },
 };

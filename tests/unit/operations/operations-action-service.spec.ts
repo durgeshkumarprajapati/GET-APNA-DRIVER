@@ -29,6 +29,14 @@ jest.mock('@/modules/booking/application/dispatch-service');
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     tripReliabilityIncident: { update: jest.fn().mockResolvedValue({}) },
+    operationsDecision: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'dec-1', status: 'DETECTED' }),
+    },
+    operationsDecisionExecution: {
+      count: jest.fn().mockResolvedValue(0),
+      create: jest.fn().mockResolvedValue({ id: 'exec-1' }),
+      update: jest.fn().mockResolvedValue({}),
+    },
   },
 }));
 

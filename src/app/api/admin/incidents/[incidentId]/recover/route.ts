@@ -12,7 +12,9 @@ export const POST = withPermission<RouteParams>(
   async (req, { principal }, routeContext) => {
     try {
       const { incidentId } = await routeContext!.params;
-      const result = await service.triggerAutomatedRecovery(incidentId, principal.userId);
+      const result = await service.triggerAutomatedRecovery(incidentId, principal.userId, {
+        isManualOverride: true,
+      });
       return NextResponse.json({ success: result.success, data: result }, { status: 200 });
     } catch (err: unknown) {
       return toErrorResponse(err, req.nextUrl.pathname);

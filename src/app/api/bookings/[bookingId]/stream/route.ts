@@ -37,11 +37,40 @@ export const GET = withPermission<RouteParams>(
 
     const stream = new ReadableStream({
       start(controller) {
-        controller.enqueue(
-          encoder.encode(
-            `event: connected\ndata: ${JSON.stringify({ bookingId, status: booking.status })}\n\n`,
-          ),
-        );
+        const sendConnectedEvent = () => {
+          try {
+            controller.enqueue(
+              encoder.encode(
+                `event: connected\ndata: ${JSON.stringify({
+                  bookingId,
+                  status: booking.status,
+                  driverProfileId: booking.driverProfileId,
+                  timestamp: new Date().toISOString(),
+                  eventId: `conn_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                })}\n\n`,
+              ),
+            );
+          } catch {
+            // Stream closed
+          }
+        };
+
+        sendConnectedEvent();
+
+        const pingInterval = setInterval(() => {
+          try {
+            controller.enqueue(
+              encoder.encode(
+                `event: ping\ndata: ${JSON.stringify({
+                  timestamp: new Date().toISOString(),
+                  eventId: `ping_${Date.now()}`,
+                })}\n\n`,
+              ),
+            );
+          } catch {
+            clearInterval(pingInterval);
+          }
+        }, 15000);
 
         const unsubscribe = realtime.subscribeBookingUpdates(
           bookingId,
@@ -57,6 +86,7 @@ export const GET = withPermission<RouteParams>(
         );
 
         req.signal.addEventListener('abort', () => {
+          clearInterval(pingInterval);
           unsubscribe();
         });
       },
