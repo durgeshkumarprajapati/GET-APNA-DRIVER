@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { ControlStationLayout } from '@/components/control-station-layout';
 
 import type {
   OperationsCommandSummary,
@@ -460,7 +459,7 @@ export default function UnifiedOperationsCommandCenterPage() {
   });
 
   return (
-    <ControlStationLayout activePersona="admin" activePath="admin-operations">
+    <>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header Control Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262a33] pb-5">
@@ -1683,6 +1682,6 @@ export default function UnifiedOperationsCommandCenterPage() {
           </div>
         </div>
       )}
-    </ControlStationLayout>
+    </>
   );
 }

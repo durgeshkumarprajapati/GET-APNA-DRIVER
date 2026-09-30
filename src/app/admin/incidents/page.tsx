@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ControlStationLayout } from '@/components/control-station-layout';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
@@ -93,7 +92,7 @@ export default function AdminIncidentsListPage() {
   }, [fetchIncidents]);
 
   return (
-    <ControlStationLayout activePersona="admin">
+    <>
       <div className="space-y-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -230,6 +229,6 @@ export default function AdminIncidentsListPage() {
           </div>
         )}
       </div>
-    </ControlStationLayout>
+    </>
   );
 }

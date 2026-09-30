@@ -401,7 +401,7 @@ export function AdminLayout({ children, userEmail = null }: AdminLayoutProps) {
         </header>
 
         {/* MAIN BODY AREA */}
-        <main className="relative w-full pt-14 bg-[#0f131c] min-h-screen p-3.5 sm:p-4">
+        <main className="relative w-full pt-16 bg-[#0f131c] min-h-screen p-3.5 sm:p-4">
           {children}
         </main>
       </div>
