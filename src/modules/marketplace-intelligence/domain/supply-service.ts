@@ -39,12 +39,16 @@ export async function getSupplyMetrics(
           .findMany({
             where: {
               approvalStatus: DriverApprovalStatus.APPROVED,
-              ...(vehicleCategory ? { vehicleCategory } : {}),
+              // DriverProfile has no scalar vehicleCategory field — capability
+              // is a many-to-many join (DriverVehicleCapability), matched here
+              // by the category's code rather than a direct column.
+              ...(vehicleCategory
+                ? { vehicleCapabilities: { some: { vehicleCategory: { code: vehicleCategory } } } }
+                : {}),
             },
             select: {
               id: true,
               availabilityStatus: true,
-              vehicleCategory: true,
             },
           })
           .catch(() => [])

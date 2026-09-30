@@ -7,7 +7,10 @@ import type {
   OperationsCommandSummary,
   OperationsDecision,
   OperationsActionDefinition,
+  CapacityForecastSummary,
 } from '@/modules/operations';
+
+type ForecastHorizon = '30m' | '1h' | '2h' | '4h';
 
 interface ReliabilityIntelligenceData {
   timeframeDays: number;
@@ -107,7 +110,7 @@ const DEFAULT_SUMMARY: OperationsCommandSummary = {
 
 export default function UnifiedOperationsCommandCenterPage() {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'incidents' | 'reliability' | 'actions'
+    'overview' | 'incidents' | 'reliability' | 'capacity' | 'actions'
   >('overview');
 
   // Core Data States
@@ -115,6 +118,8 @@ export default function UnifiedOperationsCommandCenterPage() {
   const [decisions, setDecisions] = useState<OperationsDecision[]>([]);
   const [intelligence, setIntelligence] = useState<ReliabilityIntelligenceData | null>(null);
   const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  const [capacityForecast, setCapacityForecast] = useState<CapacityForecastSummary | null>(null);
+  const [forecastHorizon, setForecastHorizon] = useState<ForecastHorizon>('1h');
 
   // Telemetry & Real-Time Connection
   const [sseConnected, setSseConnected] = useState(false);
@@ -154,14 +159,23 @@ export default function UnifiedOperationsCommandCenterPage() {
   const [submittingIncidentAction, setSubmittingIncidentAction] = useState(false);
 
   const eventSourceRef = useRef<EventSource | null>(null);
+  // The SSE stream always pushes the 1h-horizon capacity forecast (see
+  // stream/route.ts) — a ref (not state) lets the long-lived onmessage
+  // closure below check the *current* horizon selection without tearing
+  // down and reconnecting the EventSource every time the admin changes it.
+  const forecastHorizonRef = useRef<ForecastHorizon>(forecastHorizon);
+  useEffect(() => {
+    forecastHorizonRef.current = forecastHorizon;
+  }, [forecastHorizon]);
 
   // Fetch Operations Summary & Intelligence Data
   const fetchData = useCallback(async () => {
     try {
-      const [summaryRes, decisionsRes, intelligenceRes] = await Promise.all([
+      const [summaryRes, decisionsRes, intelligenceRes, capacityRes] = await Promise.all([
         fetch('/api/admin/operations'),
         fetch(`/api/admin/operations/decisions?severity=${decisionSeverityFilter}`),
         fetch('/api/admin/operations/reliability-intelligence?days=7'),
+        fetch(`/api/admin/operations/capacity-forecast?horizon=${forecastHorizon}`),
       ]);
 
       if (summaryRes.ok) {
@@ -176,6 +190,10 @@ export default function UnifiedOperationsCommandCenterPage() {
         const iData = await intelligenceRes.json();
         setIntelligence(iData.data ?? null);
       }
+      if (capacityRes.ok) {
+        const cData = await capacityRes.json();
+        setCapacityForecast(cData.data ?? null);
+      }
 
       setLastSyncTime(new Date());
       setError(null);
@@ -184,7 +202,7 @@ export default function UnifiedOperationsCommandCenterPage() {
     } finally {
       setLoading(false);
     }
-  }, [decisionSeverityFilter]);
+  }, [decisionSeverityFilter, forecastHorizon]);
 
   // Fetch Incidents List
   const fetchIncidents = useCallback(async () => {
@@ -249,6 +267,16 @@ export default function UnifiedOperationsCommandCenterPage() {
           const payload = JSON.parse(event.data);
           if (payload.summary) setSummary(payload.summary);
           if (payload.intelligence) setIntelligence(payload.intelligence);
+          // Only apply the SSE-pushed forecast when it matches the admin's
+          // currently selected horizon (the stream always computes '1h') —
+          // otherwise the 15s polling fallback (which does respect the
+          // selected horizon) is what keeps this panel current.
+          if (
+            payload.capacityForecast &&
+            payload.capacityForecast.horizon === forecastHorizonRef.current
+          ) {
+            setCapacityForecast(payload.capacityForecast);
+          }
           setLastSyncTime(new Date());
         } catch {
           // Parse error silent fallback
@@ -406,6 +434,19 @@ export default function UnifiedOperationsCommandCenterPage() {
     }
   };
 
+  const getCapacityStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'CRITICAL_SHORTAGE':
+        return 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]';
+      case 'SHORTAGE':
+        return 'bg-[#3a2000] text-[#ffb957] border-[#7d4e00]';
+      case 'SURPLUS':
+        return 'bg-[#1b2b00] text-[#a4f542] border-[#3f6300]';
+      default:
+        return 'bg-[#0f2438] text-[#82cfff] border-[#004a77]';
+    }
+  };
+
   // Filtered incidents by client-side search query
   const filteredIncidents = incidents.filter((inc) => {
     if (!incidentSearchQuery.trim()) return true;
@@ -431,8 +472,8 @@ export default function UnifiedOperationsCommandCenterPage() {
               </h1>
             </div>
             <p className="text-xs text-[#87948b] mt-1 font-mono">
-              Unified operational control, deterministic decision evaluation, automated
-              reliability analytics & auditable manual actions
+              Unified operational control, deterministic decision evaluation, automated reliability
+              analytics & auditable manual actions
             </p>
           </div>
 
@@ -512,6 +553,18 @@ export default function UnifiedOperationsCommandCenterPage() {
           >
             <span className="material-symbols-outlined text-base">analytics</span>
             Reliability Intelligence
+          </button>
+
+          <button
+            onClick={() => setActiveTab('capacity')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              activeTab === 'capacity'
+                ? 'bg-[#25a475] text-[#00311f] font-bold'
+                : 'text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">query_stats</span>
+            Capacity & Forecast
           </button>
 
           <button
@@ -642,9 +695,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                   <span className="text-3xl font-bold font-['Space_Grotesk'] text-[#ffb957]">
                     {intelligence?.dispatchPressure.delayedBookingsCount ?? 0}
                   </span>
-                  <span className="text-xs font-mono text-[#87948b]">
-                    High customer wait risk
-                  </span>
+                  <span className="text-xs font-mono text-[#87948b]">High customer wait risk</span>
                 </div>
                 <p className="text-[11px] text-[#87948b] font-mono">
                   Tracked by dispatch engine sweep for assignment timeout intervention.
@@ -961,9 +1012,7 @@ export default function UnifiedOperationsCommandCenterPage() {
               <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
                 <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
                   <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9]">
-                      verified_user
-                    </span>
+                    <span className="material-symbols-outlined text-[#68dba9]">verified_user</span>
                     Recovery Success Rate Analytics
                   </h3>
                   <span className="text-xs font-mono text-[#68dba9] font-bold">
@@ -1130,6 +1179,138 @@ export default function UnifiedOperationsCommandCenterPage() {
           </div>
         )}
 
+        {/* TAB: CAPACITY & FORECAST */}
+        {activeTab === 'capacity' && (
+          <div className="space-y-6">
+            <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
+                <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#68dba9]">query_stats</span>
+                  Predictive Demand vs. Supply Forecast
+                </h3>
+                <div className="flex items-center gap-1.5 font-mono text-xs">
+                  {(['30m', '1h', '2h', '4h'] as ForecastHorizon[]).map((h) => (
+                    <button
+                      key={h}
+                      onClick={() => setForecastHorizon(h)}
+                      className={`px-3 py-1.5 rounded-lg transition-colors ${
+                        forecastHorizon === h
+                          ? 'bg-[#25a475] text-[#00311f] font-bold'
+                          : 'bg-[#0f131c] text-[#87948b] border border-[#262a33] hover:text-[#dfe2ee]'
+                      }`}
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {!capacityForecast ? (
+                <div className="p-8 text-center text-xs font-mono text-[#87948b]">
+                  Computing demand/supply forecast...
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
+                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33]">
+                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                        Forecasted Demand ({forecastHorizon})
+                      </span>
+                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                        {capacityForecast.overall.forecastedDemand}
+                      </span>
+                    </div>
+                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33]">
+                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                        Expected Eligible Supply
+                      </span>
+                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                        {capacityForecast.overall.expectedEligibleSupply}
+                      </span>
+                    </div>
+                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33]">
+                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                        Capacity Gap Ratio
+                      </span>
+                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                        {capacityForecast.overall.gapRatio}
+                      </span>
+                    </div>
+                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between">
+                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                        Overall Status
+                      </span>
+                      <span
+                        className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold border w-fit ${getCapacityStatusBadgeClass(
+                          capacityForecast.overall.status,
+                        )}`}
+                      >
+                        {capacityForecast.overall.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#87948b] font-mono leading-relaxed">
+                    {capacityForecast.overall.explanation} Confidence:{' '}
+                    <span className="text-[#dfe2ee] font-bold">
+                      {capacityForecast.overall.confidence}
+                    </span>
+                    .
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
+              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2 border-b border-[#262a33] pb-3">
+                <span className="material-symbols-outlined text-[#ffb957]">map</span>
+                Zone-Level Capacity Breakdown
+              </h3>
+
+              {!capacityForecast || capacityForecast.zones.length === 0 ? (
+                <div className="text-center py-6 text-xs font-mono text-[#87948b]">
+                  No active marketplace zones configured — showing platform-wide forecast only.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-[#0f131c] text-[#87948b] border-b border-[#262a33]">
+                      <tr>
+                        <th className="px-4 py-2.5">Zone</th>
+                        <th className="px-4 py-2.5">Forecasted Demand</th>
+                        <th className="px-4 py-2.5">Eligible Supply</th>
+                        <th className="px-4 py-2.5">Gap Ratio</th>
+                        <th className="px-4 py-2.5">Status</th>
+                        <th className="px-4 py-2.5">Confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#262a33] text-[#dfe2ee]">
+                      {capacityForecast.zones.map((zone) => (
+                        <tr key={zone.zoneId ?? zone.zoneCode}>
+                          <td className="px-4 py-2.5 font-bold">{zone.zoneName}</td>
+                          <td className="px-4 py-2.5">{zone.forecastedDemand}</td>
+                          <td className="px-4 py-2.5">{zone.expectedEligibleSupply}</td>
+                          <td className="px-4 py-2.5">{zone.gapRatio}</td>
+                          <td className="px-4 py-2.5">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCapacityStatusBadgeClass(
+                                zone.status,
+                              )}`}
+                            >
+                              {zone.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 text-[#87948b]">{zone.confidence}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* TAB 4: ACTIONS & AUDIT TRAIL */}
         {activeTab === 'actions' && (
           <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4 font-mono text-xs">
@@ -1165,7 +1346,8 @@ export default function UnifiedOperationsCommandCenterPage() {
                   </div>
                   {d.recommendedActions.length > 0 && (
                     <div className="text-[10px] text-[#87948b] pt-1">
-                      Action Available: {d.recommendedActions[0].label} (Type: {d.recommendedActions[0].type})
+                      Action Available: {d.recommendedActions[0].label} (Type:{' '}
+                      {d.recommendedActions[0].type})
                     </div>
                   )}
                 </div>
@@ -1183,9 +1365,7 @@ export default function UnifiedOperationsCommandCenterPage() {
               {/* Drawer Header */}
               <div className="flex items-center justify-between border-b border-[#262a33] pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#ffb957] text-2xl">
-                    warning
-                  </span>
+                  <span className="material-symbols-outlined text-[#ffb957] text-2xl">warning</span>
                   <div>
                     <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
                       Incident {selectedIncidentDetail?.incidentNumber ?? selectedIncidentId}
@@ -1320,7 +1500,8 @@ export default function UnifiedOperationsCommandCenterPage() {
                   {/* Timeline Entries */}
                   <div className="space-y-2">
                     <span className="text-[10px] font-bold text-[#87948b] uppercase tracking-wider block">
-                      Incident Audit Timeline ({selectedIncidentDetail.timelineEntries?.length || 0})
+                      Incident Audit Timeline ({selectedIncidentDetail.timelineEntries?.length || 0}
+                      )
                     </span>
                     <div className="space-y-2">
                       {selectedIncidentDetail.timelineEntries.map((t) => (
