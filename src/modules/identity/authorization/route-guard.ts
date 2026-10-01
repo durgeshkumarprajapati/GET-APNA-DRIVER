@@ -79,7 +79,7 @@ function logOutcome(
  * Wraps a route handler to require an active, authenticated user.
  */
 export function withAuth<P = unknown>(handler: AuthenticatedRouteHandler<P>) {
-  return async (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
+  return async (req: NextRequest, routeContext: P): Promise<NextResponse> => {
     const startedAt = Date.now();
     try {
       const principal = await getPrincipalFromRequest(req);
@@ -102,7 +102,7 @@ export function withAuth<P = unknown>(handler: AuthenticatedRouteHandler<P>) {
  * Wraps a route handler to require a specific system role.
  */
 export function withRole<P = unknown>(roleCode: string, handler: AuthenticatedRouteHandler<P>) {
-  return async (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
+  return async (req: NextRequest, routeContext: P): Promise<NextResponse> => {
     const startedAt = Date.now();
     try {
       const principal = await getPrincipalFromRequest(req);
@@ -128,7 +128,7 @@ export function withPermission<P = unknown>(
   permissionCode: string,
   handler: AuthenticatedRouteHandler<P>,
 ) {
-  return async (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
+  return async (req: NextRequest, routeContext: P): Promise<NextResponse> => {
     const startedAt = Date.now();
     try {
       const principal = await getPrincipalFromRequest(req);

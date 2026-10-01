@@ -45,7 +45,10 @@ describe('GET /api/customer/tax-invoices', () => {
 
   it('rejects an unauthenticated request with 401', async () => {
     mockedGetPrincipal.mockResolvedValue(null);
-    const res = await listInvoicesGet(authRequest('http://localhost/api/customer/tax-invoices'));
+    const res = await listInvoicesGet(
+      authRequest('http://localhost/api/customer/tax-invoices'),
+      undefined,
+    );
     expect(res.status).toBe(401);
     expect(mockedGetCustomerInvoices).not.toHaveBeenCalled();
   });
@@ -54,13 +57,17 @@ describe('GET /api/customer/tax-invoices', () => {
     mockedGetCustomerInvoices.mockResolvedValue([]);
     await listInvoicesGet(
       authRequest('http://localhost/api/customer/tax-invoices?customerId=customer-b'),
+      undefined,
     );
     expect(mockedGetCustomerInvoices).toHaveBeenCalledWith('customer-a');
   });
 
   it('returns the invoices wrapped in the standard envelope', async () => {
     mockedGetCustomerInvoices.mockResolvedValue([{ id: 'inv-1', invoiceNumber: 'INV-1' }]);
-    const res = await listInvoicesGet(authRequest('http://localhost/api/customer/tax-invoices'));
+    const res = await listInvoicesGet(
+      authRequest('http://localhost/api/customer/tax-invoices'),
+      undefined,
+    );
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body).toEqual({ success: true, invoices: [{ id: 'inv-1', invoiceNumber: 'INV-1' }] });

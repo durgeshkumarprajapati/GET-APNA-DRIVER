@@ -71,26 +71,29 @@ function req(url = 'http://localhost:3000/api/driver/x', body?: unknown) {
  * "allows a DRIVER through" case, since the reject-path tests never reach
  * request-body parsing (the role guard runs first).
  */
-const ROUTES: { name: string; handler: (req: NextRequest) => Promise<Response>; body?: unknown }[] =
-  [
-    { name: 'GET /api/driver/availability', handler: availabilityGet },
-    { name: 'GET /api/driver/documents', handler: documentsGet },
-    {
-      name: 'POST /api/driver/documents/upload-url',
-      handler: uploadUrlPost,
-      body: {
-        documentType: 'DRIVING_LICENSE',
-        fileName: 'license.jpg',
-        contentType: 'image/jpeg',
-        fileSizeBytes: 1024,
-      },
+const ROUTES: {
+  name: string;
+  handler: (req: NextRequest, routeContext: unknown) => Promise<Response>;
+  body?: unknown;
+}[] = [
+  { name: 'GET /api/driver/availability', handler: availabilityGet },
+  { name: 'GET /api/driver/documents', handler: documentsGet },
+  {
+    name: 'POST /api/driver/documents/upload-url',
+    handler: uploadUrlPost,
+    body: {
+      documentType: 'DRIVING_LICENSE',
+      fileName: 'license.jpg',
+      contentType: 'image/jpeg',
+      fileSizeBytes: 1024,
     },
-    { name: 'GET /api/driver/onboarding', handler: onboardingGet },
-    { name: 'POST /api/driver/onboarding/submit', handler: onboardingSubmitPost },
-    { name: 'GET /api/driver/profile', handler: profileGet },
-    { name: 'GET /api/driver/portfolio', handler: portfolioGet },
-    { name: 'GET /api/driver/reviews', handler: reviewsGet },
-  ];
+  },
+  { name: 'GET /api/driver/onboarding', handler: onboardingGet },
+  { name: 'POST /api/driver/onboarding/submit', handler: onboardingSubmitPost },
+  { name: 'GET /api/driver/profile', handler: profileGet },
+  { name: 'GET /api/driver/portfolio', handler: portfolioGet },
+  { name: 'GET /api/driver/reviews', handler: reviewsGet },
+];
 
 describe('Driver-only route gate (Phase 24)', () => {
   beforeEach(() => {
@@ -99,7 +102,7 @@ describe('Driver-only route gate (Phase 24)', () => {
 
   it.each(ROUTES)('$name rejects an unauthenticated request with 401', async ({ handler }) => {
     mockedGetPrincipal.mockResolvedValue(null);
-    const res = await handler(req());
+    const res = await handler(req(), undefined);
     expect(res.status).toBe(401);
   });
 
@@ -112,7 +115,7 @@ describe('Driver-only route gate (Phase 24)', () => {
         roles: ['CUSTOMER'],
         permissions: ['users.profile.read', 'reviews.read'],
       });
-      const res = await handler(req());
+      const res = await handler(req(), undefined);
       expect(res.status).toBe(403);
     },
   );
@@ -124,7 +127,7 @@ describe('Driver-only route gate (Phase 24)', () => {
       roles: ['DRIVER'],
       permissions: [],
     });
-    const res = await handler(req('http://localhost:3000/api/driver/x', body));
+    const res = await handler(req('http://localhost:3000/api/driver/x', body), undefined);
     expect(res.status).toBeLessThan(400);
   });
 });

@@ -63,7 +63,10 @@ describe('Driver Schedule RBAC & IDOR Security Unit Tests', () => {
   describe('Driver Schedule Routes RBAC (/api/driver/schedule)', () => {
     it('GET /api/driver/schedule rejects unauthenticated request with 401', async () => {
       mockedGetPrincipal.mockResolvedValue(null);
-      const res = await driverScheduleGet(makeReq('http://localhost:3000/api/driver/schedule'));
+      const res = await driverScheduleGet(
+        makeReq('http://localhost:3000/api/driver/schedule'),
+        undefined,
+      );
       expect(res.status).toBe(401);
     });
 
@@ -74,7 +77,10 @@ describe('Driver Schedule RBAC & IDOR Security Unit Tests', () => {
         roles: ['CUSTOMER'],
         permissions: ['customer.booking.read'],
       });
-      const res = await driverScheduleGet(makeReq('http://localhost:3000/api/driver/schedule'));
+      const res = await driverScheduleGet(
+        makeReq('http://localhost:3000/api/driver/schedule'),
+        undefined,
+      );
       expect(res.status).toBe(403);
     });
 
@@ -85,7 +91,10 @@ describe('Driver Schedule RBAC & IDOR Security Unit Tests', () => {
         roles: ['DRIVER'],
         permissions: ['driver.schedule.read'],
       });
-      const res = await driverScheduleGet(makeReq('http://localhost:3000/api/driver/schedule'));
+      const res = await driverScheduleGet(
+        makeReq('http://localhost:3000/api/driver/schedule'),
+        undefined,
+      );
       expect(res.status).toBe(200);
     });
 
@@ -106,6 +115,7 @@ describe('Driver Schedule RBAC & IDOR Security Unit Tests', () => {
             },
           ],
         }),
+        undefined,
       );
       expect(res.status).toBe(403);
     });

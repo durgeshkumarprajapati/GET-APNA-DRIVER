@@ -46,7 +46,7 @@ describe('Operations decisions routes — authorization & pass-through', () => {
       'http://localhost:3000/api/admin/operations/decisions?status=RESOLVED&severity=HIGH&page=2&pageSize=10',
     );
 
-    const res = await listDecisionsRoute(req);
+    const res = await listDecisionsRoute(req, undefined);
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -67,7 +67,7 @@ describe('Operations decisions routes — authorization & pass-through', () => {
       'http://localhost:3000/api/admin/operations/decisions?status=ALL&severity=ALL',
     );
 
-    await listDecisionsRoute(req);
+    await listDecisionsRoute(req, undefined);
 
     expect(mockList).toHaveBeenCalledWith(
       expect.objectContaining({ status: undefined, severity: undefined }),
@@ -78,7 +78,7 @@ describe('Operations decisions routes — authorization & pass-through', () => {
     mockEvaluate.mockRejectedValue(new Error('db unavailable'));
     const req = new NextRequest('http://localhost:3000/api/admin/operations/decisions');
 
-    const res = await listDecisionsRoute(req);
+    const res = await listDecisionsRoute(req, undefined);
     const body = await res.json();
 
     expect(res.status).toBe(200);

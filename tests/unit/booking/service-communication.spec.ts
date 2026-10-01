@@ -71,6 +71,10 @@ describe('Phase 80 — Customer ↔ Driver Service Communication & Live Journey'
       ]),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       count: jest.fn().mockResolvedValue(1),
+      findFirst: jest.fn().mockResolvedValue(null),
+    },
+    customerPreference: {
+      findUnique: jest.fn().mockResolvedValue(null),
     },
     outboxEvent: {
       create: jest.fn().mockResolvedValue({ id: 'outbox-1' }),
