@@ -247,7 +247,10 @@ export async function createBooking(
   if (rawCatId) {
     const category = await db.vehicleCategory.findUnique({ where: { id: rawCatId } });
     if (!category || !category.isActive) {
-      throw new ValidationError(`Invalid or inactive vehicle category selection: '${rawCatId}'.`, 'INVALID_VEHICLE_CATEGORY');
+      throw new ValidationError(
+        `Invalid or inactive vehicle category selection: '${rawCatId}'.`,
+        'INVALID_VEHICLE_CATEGORY',
+      );
     }
     resolvedVehicleCategoryId = category.id;
   } else if (rawCatCode) {
@@ -257,7 +260,10 @@ export async function createBooking(
       .replace(/[\s-]+/g, '_');
     const category = await db.vehicleCategory.findUnique({ where: { code: normalizedCode } });
     if (!category || !category.isActive) {
-      throw new ValidationError(`Invalid or inactive vehicle category selection: '${rawCatCode}'.`, 'INVALID_VEHICLE_CATEGORY');
+      throw new ValidationError(
+        `Invalid or inactive vehicle category selection: '${rawCatCode}'.`,
+        'INVALID_VEHICLE_CATEGORY',
+      );
     }
     resolvedVehicleCategoryId = category.id;
   }
@@ -275,17 +281,26 @@ export async function createBooking(
   if (input.serviceRecipient) {
     const rawName = (input.serviceRecipient.fullName || '').trim();
     if (!rawName) {
-      throw new ValidationError('Service recipient full name is required.', 'INVALID_RECIPIENT_NAME');
+      throw new ValidationError(
+        'Service recipient full name is required.',
+        'INVALID_RECIPIENT_NAME',
+      );
     }
     const rawPhone = input.serviceRecipient.phone || '';
     const normalizedPhone = rawPhone ? normalizePhoneNumber(rawPhone) : '';
     const email = input.serviceRecipient.email?.trim() || null;
 
     if (rawPhone && !isValidE164PhoneNumber(normalizedPhone)) {
-      throw new ValidationError('Valid mobile number is required for the service recipient.', 'INVALID_RECIPIENT_PHONE');
+      throw new ValidationError(
+        'Valid mobile number is required for the service recipient.',
+        'INVALID_RECIPIENT_PHONE',
+      );
     }
     if (!normalizedPhone && !email) {
-      throw new ValidationError('Either email or phone number is required when booking for someone else.', 'INVALID_RECIPIENT_CONTACT');
+      throw new ValidationError(
+        'Either email or phone number is required when booking for someone else.',
+        'INVALID_RECIPIENT_CONTACT',
+      );
     }
 
     validatedRecipient = {
@@ -460,6 +475,22 @@ export async function createBooking(
       isForSomeoneElse: Boolean(validatedRecipient),
     },
   });
+
+  // Phase 87 activation tracking — a dedicated audit action (rather than a
+  // flag buried in booking.created's afterState) so first-booking
+  // completion is directly queryable without parsing every booking event.
+  const priorBookingCount = await db.booking.count({
+    where: { customerId: customerUserId, id: { not: booking.id } },
+  });
+  if (priorBookingCount === 0) {
+    await recordAuditLog(db, {
+      actorUserId: customerUserId,
+      action: 'customer.activation.first_booking_completed',
+      entityType: 'Booking',
+      entityId: booking.id,
+      afterState: { customerId: customerUserId },
+    });
+  }
 
   // 4. Trigger driver matching
   try {

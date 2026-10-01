@@ -17,6 +17,8 @@ import {
 } from '@/modules/booking/domain/booking-policy';
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { VehicleCategorySelector } from '@/components/booking/VehicleCategorySelector';
+import { useDraftPersistence } from '@/components/use-draft-persistence';
+import { ContextualTip } from '@/components/ui/contextual-tip';
 
 interface FareEstimateData {
   estimatedDistanceKm: number;
@@ -38,6 +40,35 @@ interface LocationField {
   label: string | null;
   latitude: number;
   longitude: number;
+}
+
+/** The subset of booking-form state worth resuming — deliberately excludes
+ * anything derived from a server fetch (saved locations, nearby/favorite
+ * drivers, fare estimate) since those are re-fetched fresh on load anyway. */
+interface BookingDraft {
+  pickup: LocationField;
+  dropoff: LocationField;
+  includeDropoff: boolean;
+  selectedBookingType: BookingType;
+  selectedTab: BookingTypeTab;
+  bookingMode: 'NOW' | 'SCHEDULE';
+  scheduleType: 'ONE_TIME' | 'RECURRING';
+  scheduledDate: string;
+  scheduledTime: string;
+  recurrenceFrequency: 'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS';
+  selectedDays: number[];
+  isForSomeoneElse: boolean;
+  recipientFullName: string;
+  recipientPhone: string;
+  recipientRelationship: string;
+  recipientEmail: string;
+  recipientNotes: string;
+}
+
+const BOOKING_DRAFT_KEY = 'gad.booking-draft.v1';
+
+function isMeaningfulDraft(draft: BookingDraft): boolean {
+  return draft.pickup.address.trim().length > 0 || draft.dropoff.address.trim().length > 0;
 }
 
 interface SavedLocationRecord {
@@ -245,6 +276,98 @@ function BookDriverPageInner() {
     }>
   >([]);
   const [savePersonForFuture, setSavePersonForFuture] = useState<boolean>(false);
+
+  const { restoredDraft, saveDraft, clearDraft } =
+    useDraftPersistence<BookingDraft>(BOOKING_DRAFT_KEY);
+  const [draftBannerDismissed, setDraftBannerDismissed] = useState(false);
+  const showResumeBanner =
+    !draftBannerDismissed && restoredDraft !== null && isMeaningfulDraft(restoredDraft);
+
+  const applyDraft = useCallback((draft: BookingDraft) => {
+    setPickup(draft.pickup);
+    setPickupReady(draft.pickup.latitude !== 0 || draft.pickup.longitude !== 0);
+    setDropoff(draft.dropoff);
+    setDropoffReady(draft.dropoff.latitude !== 0 || draft.dropoff.longitude !== 0);
+    setIncludeDropoff(draft.includeDropoff);
+    setSelectedBookingType(draft.selectedBookingType);
+    setSelectedTab(draft.selectedTab);
+    setBookingMode(draft.bookingMode);
+    setScheduleType(draft.scheduleType);
+    setScheduledDate(draft.scheduledDate);
+    setScheduledTime(draft.scheduledTime);
+    setRecurrenceFrequency(draft.recurrenceFrequency);
+    setSelectedDays(draft.selectedDays);
+    setIsForSomeoneElse(draft.isForSomeoneElse);
+    setRecipientFullName(draft.recipientFullName);
+    setRecipientPhone(draft.recipientPhone);
+    setRecipientRelationship(draft.recipientRelationship);
+    setRecipientEmail(draft.recipientEmail);
+    setRecipientNotes(draft.recipientNotes);
+  }, []);
+
+  // Autosave the in-progress draft (debounced via the effect's own
+  // dependency-change timing) whenever a meaningful trip-defining field
+  // changes — skipped while a just-restored draft is still awaiting the
+  // customer's explicit "Resume" action, so it can't overwrite itself with
+  // the pre-restore empty state.
+  useEffect(() => {
+    if (showResumeBanner) return;
+    const draft: BookingDraft = {
+      pickup,
+      dropoff,
+      includeDropoff,
+      selectedBookingType,
+      selectedTab,
+      bookingMode,
+      scheduleType,
+      scheduledDate,
+      scheduledTime,
+      recurrenceFrequency,
+      selectedDays,
+      isForSomeoneElse,
+      recipientFullName,
+      recipientPhone,
+      recipientRelationship,
+      recipientEmail,
+      recipientNotes,
+    };
+    if (!isMeaningfulDraft(draft)) return;
+    const timeoutId = setTimeout(() => saveDraft(draft), 500);
+    return () => clearTimeout(timeoutId);
+  }, [
+    pickup,
+    dropoff,
+    includeDropoff,
+    selectedBookingType,
+    selectedTab,
+    bookingMode,
+    scheduleType,
+    scheduledDate,
+    scheduledTime,
+    recurrenceFrequency,
+    selectedDays,
+    isForSomeoneElse,
+    recipientFullName,
+    recipientPhone,
+    recipientRelationship,
+    recipientEmail,
+    recipientNotes,
+    showResumeBanner,
+    saveDraft,
+  ]);
+
+  // Fire-and-forget onboarding-funnel signal (Phase 87) — paired with
+  // customer.activation.first_booking_completed recorded server-side in
+  // createBooking on successful submission.
+  useEffect(() => {
+    void fetch('/api/customer/activation/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'first_booking_flow_started' }),
+    }).catch(() => {
+      // Tracking is best-effort — never blocks or surfaces an error to the booking flow itself.
+    });
+  }, []);
 
   const handleApplyCoupon = useCallback(async () => {
     if (!couponCodeInput.trim() || !fareEstimate) return;
@@ -800,6 +923,7 @@ function BookDriverPageInner() {
                 : t('scheduledRides.failedCreate', { defaultValue: 'Failed to create schedule.' })),
           );
         } else {
+          clearDraft();
           router.push('/customer/scheduled-rides');
         }
       } else {
@@ -852,6 +976,7 @@ function BookDriverPageInner() {
                     : t('customer.booking.dispatchFailedError')),
           );
         } else {
+          clearDraft();
           router.push(`/bookings/${data.booking.id}`);
         }
       }
@@ -898,6 +1023,47 @@ function BookDriverPageInner() {
   return (
     <CustomerLayout>
       <div className="w-full flex flex-col gap-6">
+        {showResumeBanner && restoredDraft && (
+          <div className="rounded-xl border border-[#68dba9]/40 bg-[#003825]/30 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 text-xs text-[#dfe2ee]">
+              <span
+                className="material-symbols-outlined text-base text-[#68dba9]"
+                aria-hidden="true"
+              >
+                history
+              </span>
+              <span>You have an unfinished booking from earlier. Resume where you left off?</span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  applyDraft(restoredDraft);
+                  setDraftBannerDismissed(true);
+                }}
+                className="min-h-[36px] px-3.5 rounded-lg bg-[#25a475] text-[#042116] font-bold text-xs hover:bg-[#68dba9] transition-colors"
+              >
+                Resume
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearDraft();
+                  setDraftBannerDismissed(true);
+                }}
+                className="min-h-[36px] px-3.5 rounded-lg bg-transparent border border-[#262a33] text-[#bccac0] text-xs hover:border-[#363b47] transition-colors"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
+
+        <ContextualTip id="first-booking-pickup-dropoff">
+          Tip: pick up where you&apos;ve already got saved places set for faster future bookings —
+          you can save this trip&apos;s addresses as you go.
+        </ContextualTip>
+
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
           {/* Left Panel: Booking Configuration (42% width) */}
           <section className="w-full xl:w-[42%] flex flex-col gap-4 shrink-0">
