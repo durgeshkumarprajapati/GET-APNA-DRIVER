@@ -45,9 +45,11 @@ export async function getUserNotificationPreferences(
   userId: string,
   db: Db = prisma,
 ): Promise<NotificationPreference[]> {
-  const existing = await db.notificationPreference.findMany({
-    where: { userId },
-  });
+  const existing = db.notificationPreference?.findMany
+    ? await db.notificationPreference.findMany({
+        where: { userId },
+      }).catch(() => [])
+    : [];
 
   const map = new Map(existing.map((p) => [p.category, p]));
 
