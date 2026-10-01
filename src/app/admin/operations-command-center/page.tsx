@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import type {
   OperationsCommandSummary,
@@ -1471,9 +1472,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                       {selectedIncidentDetail.recoveryAttempts?.length || 0})
                     </span>
                     {selectedIncidentDetail.recoveryAttempts?.length === 0 ? (
-                      <div className="p-3 bg-[#0f131c] rounded-lg border border-[#262a33] text-[#87948b]">
-                        No recovery attempts recorded yet.
-                      </div>
+                      <EmptyState icon="history" message="No recovery attempts recorded yet." />
                     ) : (
                       <div className="space-y-2">
                         {selectedIncidentDetail.recoveryAttempts.map((attempt) => (

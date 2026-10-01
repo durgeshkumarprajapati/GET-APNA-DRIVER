@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useTranslation } from '@/i18n/context';
 
 interface OccurrenceLog {
@@ -363,7 +364,7 @@ export default function ScheduledRideDetailPage() {
               </h2>
 
               {!ride.occurrenceLogs || ride.occurrenceLogs.length === 0 ? (
-                <p className="text-xs text-[#87948b] font-mono">No occurrences generated yet.</p>
+                <EmptyState icon="history" message="No occurrences generated yet." />
               ) : (
                 <div className="space-y-2">
                   {ride.occurrenceLogs.map((log) => (

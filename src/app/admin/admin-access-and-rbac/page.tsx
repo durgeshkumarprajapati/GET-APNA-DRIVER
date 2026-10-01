@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface RoleCatalogEntry {
   code: string;
@@ -212,7 +213,7 @@ export default function AdminAccessAndRBACPage() {
         {loadingUsers ? (
           <p className="text-[#87948b] text-sm py-8 text-center">Loading users…</p>
         ) : !users || users.users.length === 0 ? (
-          <p className="text-[#87948b] text-sm py-8 text-center">No users found.</p>
+          <EmptyState icon="group" message="No users found." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs border-collapse">

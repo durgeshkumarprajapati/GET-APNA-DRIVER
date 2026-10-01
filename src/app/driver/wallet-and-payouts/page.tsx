@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DriverLayout } from '@/components/driver-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface WalletSummary {
   driverProfileId: string;
@@ -240,9 +241,7 @@ export default function DriverWalletPage() {
                 Settlement History
               </h3>
               {settlements.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-sm">
-                  No settlements have been processed yet.
-                </div>
+                <EmptyState icon="payments" message="No settlements have been processed yet." />
               ) : (
                 <div className="space-y-3">
                   {settlements.map((settlement) => (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '@/i18n/context';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface PricingPolicy {
   id: string;
@@ -370,9 +371,7 @@ export default function AdminDynamicPricingPage() {
               Pricing Policies
             </h2>
             {policies.length === 0 ? (
-              <div className="text-xs text-[#87948b] py-8 text-center">
-                No pricing policies configured yet.
-              </div>
+              <EmptyState icon="payments" message="No pricing policies configured yet." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-[#dfe2ee]">

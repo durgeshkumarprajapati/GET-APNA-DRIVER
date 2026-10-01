@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CorporateLayout } from '@/components/corporate-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Member {
   id: string;
@@ -133,10 +134,12 @@ export default function CorporateMembersPage() {
         ) : (
           <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
             {members.length === 0 ? (
-              <div className="p-12 text-center text-[#bccac0] text-xs font-mono">
-                No active employee members found. Click &quot;Invite Employee&quot; to invite team
-                members.
-              </div>
+              <EmptyState
+                icon="group"
+                message={
+                  'No active employee members found. Click "Invite Employee" to invite team members.'
+                }
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -197,6 +200,7 @@ export default function CorporateMembersPage() {
                   type="button"
                   onClick={() => setInviteModalOpen(false)}
                   className="text-[#bccac0] hover:text-[#dfe2ee]"
+                  aria-label="Close invite employee dialog"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>

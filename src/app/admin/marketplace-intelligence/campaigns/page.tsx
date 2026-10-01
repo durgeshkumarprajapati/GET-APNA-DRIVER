@@ -60,8 +60,10 @@ export default function AdminCampaignSignalsPage() {
           <span className="material-symbols-outlined text-sm mr-1">arrow_back</span> Back to Console
         </Link>
         <button
+          type="button"
           onClick={() => void fetchCampaigns()}
           className="p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-800 flex items-center justify-center"
+          aria-label="Refresh campaigns"
         >
           <span className={`material-symbols-outlined text-base ${loading ? 'animate-spin' : ''}`}>
             refresh

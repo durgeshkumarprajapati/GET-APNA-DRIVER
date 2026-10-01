@@ -4,6 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
+const LINK_BUTTON_CLASSES =
+  'inline-flex w-full min-h-[48px] items-center justify-center rounded-xl bg-[#25a475] text-[#042116] font-bold text-sm hover:bg-[#68dba9] transition-colors';
+
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -59,72 +62,28 @@ function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: '420px',
-        padding: '2.5rem',
-        borderRadius: '1rem',
-        backgroundColor: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        textAlign: 'center',
-        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-      }}
-    >
+    <div className="w-full max-w-[420px] p-10 rounded-2xl bg-[#181c24] border border-[#262a33] text-center shadow-xl">
       {status === 'PENDING' && (
         <div>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              marginBottom: '1rem',
-              color: 'var(--color-text-primary)',
-            }}
-          >
+          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-4">
             Verifying Email...
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
-            Please wait while we confirm your email address.
-          </p>
+          <p className="text-sm text-[#bccac0]">Please wait while we confirm your email address.</p>
         </div>
       )}
 
       {status === 'SUCCESS' && (
         <div>
-          <div style={{ fontSize: '3rem', color: '#16a34a', marginBottom: '1rem' }}>✓</div>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              marginBottom: '0.5rem',
-              color: 'var(--color-text-primary)',
-            }}
-          >
+          <div className="text-5xl text-[#68dba9] mb-4" aria-hidden="true">
+            ✓
+          </div>
+          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-2">
             Email Verified!
           </h1>
-          <p
-            style={{
-              color: 'var(--color-text-secondary)',
-              fontSize: '0.875rem',
-              marginBottom: '2rem',
-            }}
-          >
+          <p className="text-sm text-[#bccac0] mb-8">
             Your email address has been successfully verified.
           </p>
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-block',
-              width: '100%',
-              padding: '0.875rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'var(--color-primary)',
-              color: '#ffffff',
-              fontWeight: 600,
-              fontSize: '1rem',
-              textDecoration: 'none',
-            }}
-          >
+          <Link href="/login" className={LINK_BUTTON_CLASSES}>
             Continue to Sign In
           </Link>
         </div>
@@ -132,36 +91,14 @@ function VerifyEmailContent() {
 
       {status === 'ERROR' && (
         <div>
-          <div style={{ fontSize: '3rem', color: 'var(--color-danger)', marginBottom: '1rem' }}>
+          <div className="text-5xl text-[#fda4af] mb-4" aria-hidden="true">
             ✕
           </div>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              marginBottom: '0.5rem',
-              color: 'var(--color-text-primary)',
-            }}
-          >
+          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-2">
             Verification Failed
           </h1>
-          <p style={{ color: 'var(--color-danger)', fontSize: '0.875rem', marginBottom: '2rem' }}>
-            {errorMsg}
-          </p>
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-block',
-              width: '100%',
-              padding: '0.875rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'var(--color-primary)',
-              color: '#ffffff',
-              fontWeight: 600,
-              fontSize: '1rem',
-              textDecoration: 'none',
-            }}
-          >
+          <p className="text-sm text-[#fda4af] mb-8">{errorMsg}</p>
+          <Link href="/login" className={LINK_BUTTON_CLASSES}>
             Return to Login
           </Link>
         </div>
@@ -172,16 +109,8 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1.5rem',
-      }}
-    >
-      <Suspense fallback={<div>Loading...</div>}>
+    <main className="min-h-screen flex items-center justify-center p-6 bg-[#0a0e16]">
+      <Suspense fallback={<div className="text-[#87948b] text-sm">Loading...</div>}>
         <VerifyEmailContent />
       </Suspense>
     </main>

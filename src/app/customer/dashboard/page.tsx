@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CustomerExperienceSection } from '@/components/experience/customer-experience-section';
 import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useTranslation } from '@/i18n/context';
 import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
 import type { CustomerDashboardData } from '@/modules/customer/application/customer-dashboard-service';
@@ -482,9 +483,7 @@ export default function CustomerDashboardPage() {
                 </Link>
               </div>
               {recentServices.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-xs">
-                  No previous driver services found.
-                </div>
+                <EmptyState icon="history" message="No previous driver services found." />
               ) : (
                 <div className="space-y-2">
                   {recentServices.map((service) => (

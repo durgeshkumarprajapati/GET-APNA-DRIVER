@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { LocationMapModal } from '@/components/maps/location-map-modal';
 
 interface IncidentDetail {
@@ -139,11 +140,13 @@ export default function AdminIncidentDetailPage({
         body: JSON.stringify({ reason: 'Operator requested emergency escalation.' }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Escalation failed');
+      if (!res.ok)
+        throw new Error(data.error || 'Could not escalate this incident. Please try again.');
       setActionToast('Incident escalated to operational support team.');
       await fetchDetail();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Escalation failed';
+      const message =
+        err instanceof Error ? err.message : 'Could not escalate this incident. Please try again.';
       setError(message);
     } finally {
       setActionPending(false);
@@ -159,11 +162,13 @@ export default function AdminIncidentDetailPage({
         body: JSON.stringify({ notes: 'Manually verified and resolved by operator.' }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Resolution failed');
+      if (!res.ok)
+        throw new Error(data.error || 'Could not resolve this incident. Please try again.');
       setActionToast('Incident resolved.');
       await fetchDetail();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Resolution failed';
+      const message =
+        err instanceof Error ? err.message : 'Could not resolve this incident. Please try again.';
       setError(message);
     } finally {
       setActionPending(false);
@@ -181,11 +186,15 @@ export default function AdminIncidentDetailPage({
         body: JSON.stringify({ reason: reason.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || 'Dismiss failed');
+      if (!res.ok)
+        throw new Error(
+          data.error || data.message || 'Could not dismiss this incident. Please try again.',
+        );
       setActionToast('Incident dismissed as a false positive.');
       await fetchDetail();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Dismiss failed';
+      const message =
+        err instanceof Error ? err.message : 'Could not dismiss this incident. Please try again.';
       setError(message);
     } finally {
       setActionPending(false);
@@ -374,7 +383,7 @@ export default function AdminIncidentDetailPage({
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
           <h2 className="text-base font-bold text-slate-100">Recovery Attempt History</h2>
           {incident.recoveryAttempts.length === 0 ? (
-            <p className="text-xs text-slate-400">No recovery attempts recorded yet.</p>
+            <EmptyState icon="history" message="No recovery attempts recorded yet." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">

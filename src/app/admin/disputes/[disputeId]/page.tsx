@@ -115,10 +115,12 @@ export default function AdminDisputeDetailPage({
         await fetchDispute();
       } else {
         const err = await res.json();
-        showToast(err.error || 'Resolution failed');
+        showToast(
+          err.error || 'Could not resolve this dispute. Please review the details and try again.',
+        );
       }
     } catch {
-      showToast('Error resolving dispute');
+      showToast('Could not resolve this dispute. Check your connection and try again.');
     }
   };
 

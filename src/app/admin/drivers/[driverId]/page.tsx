@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { RatingSummary } from '@/components/ui/rating-summary';
 import { MetricCard } from '@/components/ui/metric-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/shared/formatting/money';
 
 interface DriverPerformance {
@@ -404,7 +405,7 @@ export default function AdminDriverDetailPage({
           </h2>
 
           {driver.documents.length === 0 ? (
-            <p className="text-[#87948b] text-sm py-4">No documents uploaded yet.</p>
+            <EmptyState icon="description" message="No documents uploaded yet." />
           ) : (
             <div className="space-y-4">
               {driver.documents.map((doc) => (
