@@ -6,11 +6,18 @@ import {
 } from '../../domain/driver-insights-types';
 import { recordAuditLog } from '@/shared/audit/audit-service';
 import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
+import { generateTicketNumber } from '@/modules/support/application/services/customer-support-service';
+import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
-import { SupportTicketCategory, SupportTicketPriority } from '@prisma/client';
+import { SupportTicketCategory, SupportTicketAuthorRole, SupportTicketPriority } from '@prisma/client';
 
 /**
- * Creates a formal issue report / support ticket for a driver.
+ * Creates a formal issue report / support ticket for a driver. Reuses the
+ * same ticket-numbering scheme and outbox event
+ * (support.ticket_created — see support-event-handlers.ts, which sends the
+ * "request received" confirmation off it) as the customer-facing
+ * createSupportTicket, rather than a second, inconsistent ticket format
+ * nothing else in the system recognizes.
  */
 export async function reportDriverIssue(
   driverProfileId: string,
@@ -18,6 +25,19 @@ export async function reportDriverIssue(
   input: DriverIssueReportInput,
   db: Db = prisma,
 ): Promise<DriverIssueReportResult> {
+  // A booking referenced in the report must actually belong to this driver
+  // — without this check, any driver could attach any other driver's
+  // booking to their own ticket.
+  if (input.bookingId) {
+    const booking = await db.booking.findUnique({
+      where: { id: input.bookingId },
+      select: { driverProfileId: true },
+    });
+    if (!booking || booking.driverProfileId !== driverProfileId) {
+      throw new BookingNotFoundError(input.bookingId);
+    }
+  }
+
   return await db.$transaction(async (tx) => {
     const title = `[Driver Issue] ${input.issueCategory.replace(/_/g, ' ')}`;
 
@@ -26,10 +46,13 @@ export async function reportDriverIssue(
     else if (input.issueCategory === 'CUSTOMER_NO_SHOW') category = SupportTicketCategory.BOOKING_ISSUE;
     else if (input.issueCategory === 'APP_GLITCH' || input.issueCategory === 'ROUTE_PROBLEM') category = SupportTicketCategory.APP_TECHNICAL;
 
-    const ticketNumber = `TICK-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const ticketNumber = await generateTicketNumber(tx);
     const ticket = await tx.supportTicket.create({
       data: {
         ticketNumber,
+        // SupportTicket.customerId is a generic "submitting user" field —
+        // the existing customer-facing flow is just the only caller that's
+        // used it so far; a driver's own userId belongs here the same way.
         customerId: userId,
         subject: title,
         description: input.description,
@@ -37,6 +60,14 @@ export async function reportDriverIssue(
         priority: SupportTicketPriority.NORMAL,
         category,
         bookingId: input.bookingId ?? null,
+        messages: {
+          create: {
+            authorUserId: userId,
+            authorRole: SupportTicketAuthorRole.DRIVER,
+            isInternalNote: false,
+            body: input.description,
+          },
+        },
       },
     });
 
@@ -53,14 +84,15 @@ export async function reportDriverIssue(
     });
 
     await insertOutboxEvent(tx, {
-      eventType: 'driver.issue.reported',
+      eventType: 'support.ticket_created',
       aggregateType: 'SupportTicket',
       aggregateId: ticket.id,
       payload: {
         ticketId: ticket.id,
-        driverProfileId,
-        userId,
-        issueCategory: input.issueCategory,
+        ticketNumber: ticket.ticketNumber,
+        customerId: userId,
+        category: ticket.category,
+        subject: ticket.subject,
       },
     });
 

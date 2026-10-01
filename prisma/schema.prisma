@@ -2398,6 +2398,7 @@ enum SupportTicketPriority {
 
 enum SupportTicketAuthorRole {
   CUSTOMER
+  DRIVER
   SUPPORT_AGENT
   SYSTEM
 

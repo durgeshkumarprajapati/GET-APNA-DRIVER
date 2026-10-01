@@ -13,10 +13,8 @@ interface InsightsData {
   };
   earningsBreakdown: {
     todayNetEarnings: string;
-    tripFaresTotal: string;
-    incentivesEarned: string;
-    tipsTotal: string;
-    commissionDeducted: string;
+    completedTripsToday: number;
+    lifetimeEarnings: string;
     pendingSettlementAmount: string;
     settlementCycleStatus: 'PENDING' | 'PROCESSING' | 'SETTLED';
     settlementCycleRange: string;
@@ -96,6 +94,17 @@ export function DriverPerformanceInsightsWidget() {
 
   if (loading) return <LoadingState message="Loading driver performance & shift insights…" />;
 
+  // A fetch failure previously fell straight through to `if (!data) return
+  // null`, below the error-rendering block — the error message and the
+  // only "Report Driver Issue" entry point silently disappeared together.
+  if (error && !data) {
+    return (
+      <div className="p-3 rounded-lg border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-xs">
+        {error}
+      </div>
+    );
+  }
+
   if (!data) return null;
 
   const { shiftSummary, earningsBreakdown, performanceInsights } = data;
@@ -150,17 +159,15 @@ export function DriverPerformanceInsightsWidget() {
           <div className="text-2xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">
             ₹{earningsBreakdown.todayNetEarnings}
           </div>
-          <p className="text-[11px] text-[#87948b]">Fares: ₹{earningsBreakdown.tripFaresTotal} | Bonus: ₹{earningsBreakdown.incentivesEarned}</p>
+          <p className="text-[11px] text-[#87948b]">{earningsBreakdown.completedTripsToday} trips completed today</p>
         </div>
 
         <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-1">
           <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
-            Commission & Tips
+            Lifetime Earnings
           </span>
-          <div className="text-xl font-bold text-[#dfe2ee]">
-            +₹{earningsBreakdown.tipsTotal} <span className="text-xs font-normal text-[#87948b]">(Tips)</span>
-          </div>
-          <p className="text-[11px] text-[#87948b]">Commission Deducted: -₹{earningsBreakdown.commissionDeducted}</p>
+          <div className="text-xl font-bold text-[#dfe2ee]">₹{earningsBreakdown.lifetimeEarnings}</div>
+          <p className="text-[11px] text-[#87948b]">Total earned since joining</p>
         </div>
 
         <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-1">
@@ -264,7 +271,17 @@ export function DriverPerformanceInsightsWidget() {
                 <label className="block text-[#87948b] mb-1">Issue Category</label>
                 <select
                   value={issueCategory}
-                  onChange={(e) => setIssueCategory(e.target.value as any)}
+                  onChange={(e) =>
+                    setIssueCategory(
+                      e.target.value as
+                        | 'FARE_DISPUTE'
+                        | 'CUSTOMER_NO_SHOW'
+                        | 'VEHICLE_TROUBLE'
+                        | 'APP_GLITCH'
+                        | 'ROUTE_PROBLEM'
+                        | 'OTHER',
+                    )
+                  }
                   className="w-full px-3 py-2 bg-[#0a0e16] border border-[#262a33] rounded text-[#dfe2ee]"
                 >
                   <option value="FARE_DISPUTE">Fare / Commission Dispute</option>

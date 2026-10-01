@@ -5,6 +5,7 @@ import { withPermission } from '@/modules/identity/authorization/route-guard';
 import { PERMISSIONS } from '@/modules/identity/domain/permission-catalog';
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { reportDriverIssue } from '@/modules/driver/application/services/driver-issue-report-service';
+import { toErrorResponse } from '@/shared/errors/app-error';
 
 const reportIssueSchema = z.object({
   bookingId: z.string().optional(),
@@ -22,12 +23,16 @@ const reportIssueSchema = z.object({
 export const POST = withPermission(
   PERMISSIONS.DRIVER_PROFILE_MANAGE,
   async (req, { principal }) => {
-    const body = await req.json();
-    const parsed = reportIssueSchema.parse(body);
+    try {
+      const body = await req.json();
+      const parsed = reportIssueSchema.parse(body);
 
-    const profile = await getOrCreateDriverProfile(principal.userId);
-    const result = await reportDriverIssue(profile.id, principal.userId, parsed);
+      const profile = await getOrCreateDriverProfile(principal.userId);
+      const result = await reportDriverIssue(profile.id, principal.userId, parsed);
 
-    return NextResponse.json({ success: true, result }, { status: 201 });
+      return NextResponse.json({ success: true, result }, { status: 201 });
+    } catch (err: unknown) {
+      return toErrorResponse(err, req.nextUrl.pathname);
+    }
   },
 );

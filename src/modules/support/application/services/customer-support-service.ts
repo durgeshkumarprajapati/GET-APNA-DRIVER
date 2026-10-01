@@ -14,7 +14,7 @@ import type {
   AddCustomerMessageInput,
 } from '../../domain/types';
 
-async function generateTicketNumber(tx: Db): Promise<string> {
+export async function generateTicketNumber(tx: Db): Promise<string> {
   const count = await tx.supportTicket.count();
   const seq = (count + 1).toString().padStart(6, '0');
   const candidate = `GAD-${seq}`;
