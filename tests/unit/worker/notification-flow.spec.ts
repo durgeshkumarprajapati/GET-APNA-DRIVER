@@ -7,6 +7,9 @@ interface MockDb {
   outboxEvent: {
     update: jest.Mock;
   };
+  customerPreference: {
+    findUnique: jest.Mock;
+  };
   notification: {
     findUnique: jest.Mock;
     create: jest.Mock;
@@ -41,6 +44,9 @@ describe('Notification Integration Flow', () => {
       $queryRaw: jest.fn(),
       outboxEvent: {
         update: jest.fn().mockResolvedValue({}),
+      },
+      customerPreference: {
+        findUnique: jest.fn().mockResolvedValue(null),
       },
       notification: {
         findUnique: jest.fn().mockResolvedValue(null),

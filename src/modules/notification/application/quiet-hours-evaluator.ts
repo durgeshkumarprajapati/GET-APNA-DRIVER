@@ -1,4 +1,5 @@
 import { QuietHoursSettings, NON_URGENT_CATEGORIES } from '../domain/notification-intelligence-types';
+import { getLocalMinutesFromMidnight } from '@/modules/driver/application/services/driver-schedule-service';
 
 /**
  * Checks if a specific Date/time falls within quiet hours based on HH:mm start & end settings.
@@ -20,10 +21,10 @@ export function isInQuietHours(
     return false;
   }
 
-  const currentH = currentTime.getHours();
-  const currentM = currentTime.getMinutes();
-
-  const currentMinutes = currentH * 60 + currentM;
+  // In the user's own timezone, not the server process's — otherwise a
+  // server running in UTC checks "22:00-07:00" against UTC clock time,
+  // shifting the effective window by the server/user UTC offset.
+  const currentMinutes = getLocalMinutesFromMidnight(currentTime, config.timezone);
   const startMinutes = startH * 60 + startM;
   const endMinutes = endH * 60 + endM;
 

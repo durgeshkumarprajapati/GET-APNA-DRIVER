@@ -29,15 +29,24 @@ export async function isFrequencyCapExceeded(
 
   const nonUrgentCategoriesList = Array.from(NON_URGENT_CATEGORIES);
 
-  const count = db.notification?.count
-    ? await db.notification.count({
-        where: {
-          userId,
-          category: { in: nonUrgentCategoriesList },
-          createdAt: { gte: twentyFourHoursAgo },
-        },
-      }).catch(() => 0)
-    : 0;
+  // Only counts notifications that were actually delivered to the user's
+  // in-app inbox — a row createNotification saved as SKIPPED (suppressed by
+  // quiet hours or this very cap) must not keep counting against the cap,
+  // or a user who hit the cap once stays capped forever. HIGH/URGENT rows
+  // bypass the cap check above but are still saved in a non-urgent
+  // category, so they're excluded here too — bypassing the cap shouldn't
+  // also consume another notification's budget.
+  const count = await db.notification
+    .count({
+      where: {
+        userId,
+        category: { in: nonUrgentCategoriesList },
+        priority: { notIn: ['HIGH', 'URGENT'] },
+        createdAt: { gte: twentyFourHoursAgo },
+        deliveries: { some: { channel: 'IN_APP', status: 'DELIVERED' } },
+      },
+    })
+    .catch(() => 0);
 
   return count >= config.maxNonUrgentPerDay;
 }

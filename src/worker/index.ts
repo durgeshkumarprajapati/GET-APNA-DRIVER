@@ -17,6 +17,8 @@ import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 import { runAssignmentExpirySweep } from './jobs/assignment-expiry-sweep-job';
 import { runTripReliabilitySweep } from './jobs/trip-reliability-sweep-job';
 import { runOperationsExecutionReconciliation } from './jobs/operations-execution-reconciliation-job';
+import { runNotificationRetrySweep } from './jobs/notification-retry-sweep-job';
+import { runBookingReminderSweep } from './jobs/booking-reminder-sweep-job';
 
 /** Hard ceiling on how long shutdown waits for the current batch to drain before forcing exit. */
 const SHUTDOWN_FORCE_EXIT_MS = 30_000;
@@ -86,6 +88,17 @@ async function bootstrapWorker(): Promise<void> {
       // operations-execution-reconciliation-job.ts). Safe to call every
       // iteration — self-gated on its own interval and a Redis lock.
       await runOperationsExecutionReconciliation();
+
+      // Retries stuck/failed push deliveries and triggers SMS/email
+      // fallback once retries are exhausted (see
+      // notification-retry-sweep-job.ts). Self-gated on its own interval
+      // and a Redis lock.
+      await runNotificationRetrySweep();
+
+      // Sends scheduled-ride reminders ahead of the next occurrence (see
+      // booking-reminder-sweep-job.ts). Self-gated on its own interval and
+      // a Redis lock.
+      await runBookingReminderSweep();
 
       // Periodically process due scheduled rides
       iteration++;

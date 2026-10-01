@@ -58,7 +58,7 @@ export const PUT = withAuth(async (req, { principal }) => {
       ...(parsed.quietHoursEnd !== undefined && { quietHoursEnd: parsed.quietHoursEnd }),
       ...(parsed.frequencyCapEnabled !== undefined && { frequencyCapEnabled: parsed.frequencyCapEnabled }),
       ...(parsed.maxNonUrgentPerDay !== undefined && { maxNonUrgentPerDay: parsed.maxNonUrgentPerDay }),
-    } as any);
+    });
   }
 
   const [preferences, intelligenceConfig] = await Promise.all([

@@ -1,4 +1,4 @@
-import { DeliveryChannel } from '@prisma/client';
+import { DeliveryChannel, type Notification } from '@prisma/client';
 
 export interface QuietHoursSettings {
   quietHoursEnabled: boolean;
@@ -50,6 +50,9 @@ export interface NotificationEvaluationResult {
   suppressedReason?: 'QUIET_HOURS' | 'FREQUENCY_CAP_EXCEEDED' | 'DUPLICATE_IDEMPOTENCY' | 'CATEGORY_DISABLED';
   deliverableChannels: DeliveryChannel[];
   originalCategory: string;
+  /** Set only when suppressedReason is DUPLICATE_IDEMPOTENCY — the row the
+   * duplicate lookup already found, so the caller doesn't re-query it. */
+  existingNotification?: Notification;
 }
 
 export interface ReminderGenerationResult {

@@ -500,6 +500,22 @@ model CustomerPreference {
   preferredPickupInstructions String? @map("preferred_pickup_instructions")
   preferredDriverProfileId    String? @map("preferred_driver_profile_id") @db.Uuid
 
+  /// Phase 89 — personalization opt-out. The experience-orchestration master
+  /// toggle; false suppresses every personalized recommendation.
+  personalizationEnabled           Boolean @default(true) @map("personalization_enabled")
+  favoriteDriverSuggestionsEnabled Boolean @default(true) @map("favorite_driver_suggestions_enabled")
+  promotionSuggestionsEnabled      Boolean @default(true) @map("promotion_suggestions_enabled")
+  personalizedShortcutsEnabled     Boolean @default(true) @map("personalized_shortcuts_enabled")
+
+  /// Phase 90 — notification quiet hours & daily frequency cap. HH:mm strings
+  /// in `notificationTimezone`, evaluated by quiet-hours-evaluator.ts.
+  quietHoursEnabled    Boolean @default(true) @map("quiet_hours_enabled")
+  quietHoursStart      String  @default("22:00") @map("quiet_hours_start")
+  quietHoursEnd        String  @default("07:00") @map("quiet_hours_end")
+  notificationTimezone String  @default("Asia/Kolkata") @map("notification_timezone")
+  frequencyCapEnabled  Boolean @default(true) @map("frequency_cap_enabled")
+  maxNonUrgentPerDay   Int     @default(3) @map("max_non_urgent_per_day")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 

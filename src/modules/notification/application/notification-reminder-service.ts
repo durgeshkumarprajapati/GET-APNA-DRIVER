@@ -16,31 +16,37 @@ export async function generateBookingAndScheduleReminders(
   let remindersCreated = 0;
   let skippedDuplicates = 0;
 
-  // 1. Scheduled Ride Reminders (Rides scheduled within next 2 hours)
+  // 1. Scheduled Ride Reminders (next occurrence due within the next 2 hours)
+  // nextOccurrenceAt is the actual next pickup instant the scheduling engine
+  // computed for BOTH one-time and recurring rides — scheduledDate is only
+  // the date part of a one-time ride's original input (the time of day
+  // lives in the separate scheduledTime string) and is null for recurring
+  // rides, and startAt is when the schedule itself starts, not its next
+  // occurrence, so neither is the right value to compare against "now".
   const upcomingRides = await db.scheduledRide.findMany({
     where: {
       status: 'ACTIVE',
+      nextOccurrenceAt: { gte: now, lte: twoHoursFromNow },
     },
     select: {
       id: true,
       customerId: true,
       pickupAddress: true,
-      scheduledTime: true,
-      scheduledDate: true,
-      startAt: true,
+      nextOccurrenceAt: true,
+      timezone: true,
     },
   });
 
   for (const ride of upcomingRides) {
-    const targetDate = ride.scheduledDate || ride.startAt;
-    if (targetDate < now || targetDate > twoHoursFromNow) {
-      continue;
-    }
+    const targetDate = ride.nextOccurrenceAt;
+    if (!targetDate) continue;
 
-    const formattedTime = ride.scheduledTime || targetDate.toLocaleTimeString('en-US', {
+    const formattedTime = new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-    });
+      hour12: true,
+      timeZone: ride.timezone,
+    }).format(targetDate);
     const dateKey = targetDate.toISOString().slice(0, 13); // YYYY-MM-DDTHH
     const idempotencyKey = `reminder:scheduled:${ride.id}:${dateKey}`;
 
@@ -85,71 +91,15 @@ export async function generateBookingAndScheduleReminders(
     targetUserIds.push(ride.customerId);
   }
 
-  // 2. Active Booking Departure Reminders (DRIVER_EN_ROUTE or DRIVER_ASSIGNED)
-  const activeBookings = await db.booking.findMany({
-    where: {
-      status: { in: ['DRIVER_ASSIGNED', 'DRIVER_EN_ROUTE'] },
-      createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-    },
-    select: {
-      id: true,
-      customerId: true,
-      pickupAddress: true,
-      status: true,
-      driverProfile: {
-        select: {
-          displayName: true,
-          firstName: true,
-        },
-      },
-    },
-  });
-
-  for (const booking of activeBookings) {
-    const idempotencyKey = `reminder:booking:${booking.id}:${booking.status}`;
-
-    const evalResult = await evaluateNotificationIntelligence(
-      {
-        userId: booking.customerId,
-        category: 'BOOKING',
-        priority: 'HIGH',
-        idempotencyKey,
-        currentTime: now,
-      },
-      db,
-    );
-
-    if (!evalResult.allowed) {
-      if (evalResult.suppressedReason === 'DUPLICATE_IDEMPOTENCY') {
-        skippedDuplicates++;
-      }
-      continue;
-    }
-
-    const driverName =
-      booking.driverProfile?.displayName || booking.driverProfile?.firstName || 'Your Chauffeur';
-
-    await createNotification(
-      {
-        userId: booking.customerId,
-        type: 'BOOKING_DRIVER_EN_ROUTE',
-        category: 'BOOKING',
-        title: `Trip Reminder: Chauffeur En Route`,
-        body: `${driverName} is currently on the way to ${booking.pickupAddress.split(',')[0]}. Please be ready.`,
-        actionUrl: `/customer/active-tracking?bookingId=${booking.id}`,
-        priority: 'HIGH',
-        idempotencyKey,
-        data: {
-          bookingId: booking.id,
-          pickupAddress: booking.pickupAddress,
-        },
-      },
-      db,
-    );
-
-    remindersCreated++;
-    targetUserIds.push(booking.customerId);
-  }
+  // Active-booking "driver en route" reminders are deliberately not
+  // duplicated here — src/worker/jobs/notification-event-handlers.ts
+  // already sends BOOKING_DRIVER_EN_ROUTE in real time off the
+  // 'booking.driver.en_route' outbox event the moment the status actually
+  // transitions. A polling duplicate here fired on every ACTIVE
+  // DRIVER_ASSIGNED or DRIVER_EN_ROUTE booking, saying "is currently on the
+  // way" even for ones still only DRIVER_ASSIGNED (not yet moving), under a
+  // different idempotency key than the real-time event — customers got the
+  // same message twice, one of them factually wrong.
 
   return {
     remindersCreated,
