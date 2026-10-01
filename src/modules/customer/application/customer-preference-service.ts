@@ -15,6 +15,10 @@ export interface UpdateCustomerPreferenceInput {
   preferredServiceType?: string | null;
   preferredPickupInstructions?: string | null;
   preferredDriverProfileId?: string | null;
+  personalizationEnabled?: boolean;
+  favoriteDriverSuggestionsEnabled?: boolean;
+  promotionSuggestionsEnabled?: boolean;
+  personalizedShortcutsEnabled?: boolean;
 }
 
 /**

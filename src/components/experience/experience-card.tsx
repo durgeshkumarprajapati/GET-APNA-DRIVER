@@ -83,15 +83,17 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
         )}
       </div>
 
-      {/* Description & Reason */}
-      <div className="space-y-1 text-xs">
+      {/* Description & Reason (Explainability) */}
+      <div className="space-y-1.5 text-xs">
         <p className="text-[#bccac0] text-[11px] leading-relaxed line-clamp-2">
           {recommendation.description}
         </p>
-        <span className="text-[9.5px] font-mono text-[#87948b] flex items-center gap-1">
-          <span className="material-symbols-outlined text-[11px]">info</span>
-          {recommendation.reason}
-        </span>
+        <div className="p-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-[10px] font-mono text-[#87948b] flex items-start gap-1.5">
+          <span className="material-symbols-outlined text-xs text-[#68dba9] shrink-0 mt-0.5">
+            help_outline
+          </span>
+          <span className="leading-snug">{recommendation.reason}</span>
+        </div>
       </div>
 
       {/* Action CTA */}

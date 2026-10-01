@@ -18,6 +18,10 @@ const updatePreferenceSchema = z.object({
   preferredVehicleCategory: z.string().nullable().optional(),
   preferredServiceType: z.string().nullable().optional(),
   preferredPickupInstructions: z.string().nullable().optional(),
+  personalizationEnabled: z.boolean().optional(),
+  favoriteDriverSuggestionsEnabled: z.boolean().optional(),
+  promotionSuggestionsEnabled: z.boolean().optional(),
+  personalizedShortcutsEnabled: z.boolean().optional(),
 });
 
 export const GET = withAuth(async (_req, { principal }) => {

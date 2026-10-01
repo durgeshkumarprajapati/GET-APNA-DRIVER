@@ -17,6 +17,7 @@ export async function getCustomerExperienceContext(
     promotions,
     userRefCode,
     safetyIncidents,
+    customerPreference,
   ] = await Promise.all([
     // Completed Bookings (Last 5)
     prisma.booking.findMany({
@@ -127,6 +128,7 @@ export async function getCustomerExperienceContext(
       where: { status: 'ACTIVE' },
       take: 5,
       select: {
+        id: true,
         code: true,
         name: true,
         discountType: true,
@@ -153,6 +155,11 @@ export async function getCustomerExperienceContext(
         severity: true,
       },
     }),
+
+    // Customer Preference
+    prisma.customerPreference.findUnique({
+      where: { userId },
+    }),
   ]);
 
   // Fetch referrals completed count if referral code exists
@@ -175,6 +182,7 @@ export async function getCustomerExperienceContext(
       dropoffLat: Number(b.dropoffLatitude || 0),
       dropoffLng: Number(b.dropoffLongitude || 0),
       vehicleCategory: b.bookingType,
+      bookingType: b.bookingType,
       completedAt: b.tripCompletedAt || new Date(),
       driverProfileId: b.driverProfileId || undefined,
       driverName: b.driverProfile?.displayName || b.driverProfile?.firstName || 'Chauffeur',
@@ -222,12 +230,15 @@ export async function getCustomerExperienceContext(
         }
       : null,
     eligiblePromotions: promotions.map((p) => ({
+      id: p.id,
       code: p.code || 'PROMO',
       title: p.name,
       discountValue:
         p.discountType === 'PERCENTAGE'
           ? `${Number(p.discountValue)}% OFF`
           : `₹${Number(p.discountValue)} OFF`,
+      discountPercentage: p.discountType === 'PERCENTAGE' ? Number(p.discountValue) : undefined,
+      discountAmount: p.discountType === 'FIXED' ? Number(p.discountValue) : undefined,
       expiresAt: p.endsAt,
     })),
     referralCode: userRefCode
@@ -243,6 +254,7 @@ export async function getCustomerExperienceContext(
       severity: String(si.severity),
       title: String(si.type).replace(/_/g, ' '),
     })),
+    customerPreference: customerPreference ? (customerPreference as Record<string, unknown>) : null,
   };
 }
 
