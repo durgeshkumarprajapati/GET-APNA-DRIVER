@@ -7,12 +7,15 @@ import { getDismissedFingerprints } from './experience-dismissal-service';
 import { rankAndLimitRecommendations } from './experience-ranking-service';
 import { evaluateBookAgainRule } from '../rules/book-again-rule';
 import { evaluateFavoriteDriverRule } from '../rules/favorite-driver-rule';
+import { evaluateFavoriteDriverAvailabilityRule } from '../rules/favorite-driver-availability-rule';
 import { evaluateScheduledRideRule } from '../rules/scheduled-ride-rule';
 import { evaluateLoyaltyRule } from '../rules/loyalty-rule';
 import { evaluatePromotionRule } from '../rules/promotion-rule';
+import { evaluateContextualPromotionRule } from '../rules/contextual-promotion-rule';
 import { evaluateReferralRule } from '../rules/referral-rule';
 import { evaluateDriverIncentiveRule } from '../rules/driver-incentive-rule';
 import { evaluateTripActionRule } from '../rules/trip-action-rule';
+import { evaluatePersonalizedShortcutRule } from '../rules/personalized-shortcut-rule';
 import {
   MAX_CUSTOMER_RECOMMENDATIONS,
   MAX_DRIVER_RECOMMENDATIONS,
@@ -45,33 +48,49 @@ export class ExperienceOrchestrationService {
 
       const candidates: ExperienceRecommendation[] = [];
 
-      // 1. Trip Actions, Safety Alerts, Active Booking
+      // 1. Trip Actions, Safety Alerts, Active Booking (Always evaluated)
       const tripActions = evaluateTripActionRule(context);
       candidates.push(...tripActions);
 
-      // 2. Book Again
-      const bookAgain = evaluateBookAgainRule(context);
-      if (bookAgain) candidates.push(bookAgain);
+      // Master Personalization Control Toggle Check
+      const prefRecord = context.customerPreference as Record<string, unknown> | undefined;
+      const isPersonalizationEnabled = prefRecord?.personalizationEnabled !== false;
 
-      // 3. Favorite Driver
-      const favoriteDriver = evaluateFavoriteDriverRule(context);
-      if (favoriteDriver) candidates.push(favoriteDriver);
+      if (isPersonalizationEnabled) {
+        // 2. Book Again
+        const bookAgain = evaluateBookAgainRule(context);
+        if (bookAgain) candidates.push(bookAgain);
 
-      // 4. Scheduled Ride
-      const scheduledRide = evaluateScheduledRideRule(context);
-      if (scheduledRide) candidates.push(scheduledRide);
+        // 3. Favorite Driver (General & Availability)
+        const favoriteDriver = evaluateFavoriteDriverRule(context);
+        if (favoriteDriver) candidates.push(favoriteDriver);
 
-      // 5. Loyalty Progress & Rewards
-      const loyalty = evaluateLoyaltyRule(context);
-      if (loyalty) candidates.push(loyalty);
+        const favDriverAvail = evaluateFavoriteDriverAvailabilityRule(context);
+        if (favDriverAvail) candidates.push(favDriverAvail);
 
-      // 6. Promotions
-      const promotion = evaluatePromotionRule(context);
-      if (promotion) candidates.push(promotion);
+        // 4. Personalized Travel Shortcuts
+        const shortcuts = evaluatePersonalizedShortcutRule(context);
+        candidates.push(...shortcuts);
 
-      // 7. Referral
-      const referral = evaluateReferralRule(context);
-      if (referral) candidates.push(referral);
+        // 5. Scheduled Ride
+        const scheduledRide = evaluateScheduledRideRule(context);
+        if (scheduledRide) candidates.push(scheduledRide);
+
+        // 6. Loyalty Progress & Rewards
+        const loyalty = evaluateLoyaltyRule(context);
+        if (loyalty) candidates.push(loyalty);
+
+        // 7. Promotions (General & Contextual)
+        const promotion = evaluatePromotionRule(context);
+        if (promotion) candidates.push(promotion);
+
+        const contextualPromo = evaluateContextualPromotionRule(context);
+        if (contextualPromo) candidates.push(contextualPromo);
+
+        // 8. Referral
+        const referral = evaluateReferralRule(context);
+        if (referral) candidates.push(referral);
+      }
 
       // Rank, deduplicate, and limit recommendations
       const ranked = rankAndLimitRecommendations(
@@ -82,7 +101,7 @@ export class ExperienceOrchestrationService {
 
       // Update telemetry metrics
       const elapsed = Date.now() - startTime;
-      this.recordMetrics('CUSTOMER', ranked, elapsed, 7);
+      this.recordMetrics('CUSTOMER', ranked, elapsed, 10);
 
       return ranked;
     } catch (error) {

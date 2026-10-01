@@ -10,6 +10,7 @@ export interface CustomerExperienceContext {
     dropoffLat: number;
     dropoffLng: number;
     vehicleCategory: string;
+    bookingType?: string;
     completedAt: Date;
     driverProfileId?: string;
     driverName?: string;
@@ -50,9 +51,12 @@ export interface CustomerExperienceContext {
     availableRewardsCount: number;
   } | null;
   eligiblePromotions: Array<{
+    id?: string;
     code: string;
     title: string;
     discountValue: string;
+    discountPercentage?: number;
+    discountAmount?: number;
     expiresAt?: Date | null;
   }>;
   referralCode?: {
@@ -66,6 +70,7 @@ export interface CustomerExperienceContext {
     severity: string;
     title: string;
   }>;
+  customerPreference?: Record<string, unknown> | null;
 }
 
 export interface DriverExperienceContext {
