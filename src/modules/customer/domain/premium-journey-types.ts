@@ -1,11 +1,22 @@
+import type { BookingStatus } from '@prisma/client';
+
 export interface PremiumDriverTrustProfile {
   driverId: string;
   fullName: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   rating: number;
   totalTripsCompleted: number;
   verificationBadges: string[];
-  vehicle: {
+  /**
+   * Omitted rather than fabricated: nothing in the schema stores a
+   * driver's actual vehicle make/model/color/plate (only an abstract
+   * VehicleCategory requirement like "SUV"), so there's no real value to
+   * put here. A future phase that adds real per-vehicle records should
+   * populate this; until then, showing a made-up plate number would be
+   * actively misleading for a feature whose purpose is pickup safety
+   * verification.
+   */
+  vehicle?: {
     make: string;
     model: string;
     color: string;
@@ -20,7 +31,7 @@ export interface LiveJourneyVisualization {
   estimatedArrivalMins: number;
   remainingDistanceKm: number;
   progressPercent: number;
-  status: 'DRIVER_ASSIGNED' | 'DRIVER_EN_ROUTE' | 'DRIVER_ARRIVED' | 'TRIP_IN_PROGRESS' | 'TRIP_COMPLETED' | 'CANCELLED';
+  status: BookingStatus;
   statusLabel: string;
 }
 
@@ -31,8 +42,8 @@ export interface PaymentRefundStatus {
   taxes: number;
   discountAmount: number;
   totalFare: number;
-  paymentMethod: 'CASH' | 'UPI' | 'CREDIT_CARD' | 'WALLET' | 'CORPORATE_BILLING';
-  paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+  paymentMethod: string | null;
+  paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
   refundStatus: 'NOT_APPLICABLE' | 'ELIGIBLE' | 'PROCESSING' | 'COMPLETED';
   refundableAmount: number;
 }
