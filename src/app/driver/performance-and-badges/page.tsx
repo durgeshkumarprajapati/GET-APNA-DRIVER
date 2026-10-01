@@ -7,6 +7,7 @@ import { MetricCard } from '@/components/ui/metric-card';
 import { RatingSummary } from '@/components/ui/rating-summary';
 import { LoadingState } from '@/components/ui/loading-state';
 import { formatCurrency } from '@/shared/formatting/money';
+import { DriverPerformanceInsightsWidget } from '@/components/driver/driver-performance-insights-widget';
 
 interface PerformanceMetrics {
   averageRating: number;
@@ -60,9 +61,11 @@ export default function DriverPerformancePage() {
       <div className="flex flex-col w-full px-6 py-6 gap-6">
         <PageHeader
           eyebrow="Chauffeur Performance"
-          title="Performance Metrics"
-          subtitle="Your quality score, service completion, and earnings — computed from your real service history."
+          title="Performance & Shift Insights"
+          subtitle="Your quality score, availability, earnings breakdown, and issue reporting."
         />
+
+        <DriverPerformanceInsightsWidget />
 
         {error && (
           <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
