@@ -49,6 +49,7 @@ jest.mock('@/shared/database/prisma', () => ({
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      count: jest.fn().mockResolvedValue(1),
     },
     auditLog: {
       create: jest.fn(),

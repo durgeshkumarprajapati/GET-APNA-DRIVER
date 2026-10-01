@@ -48,6 +48,10 @@ jest.mock('@/shared/database/prisma', () => ({
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      // Phase 87 activation tracking's first-booking check — defaults to
+      // "not the first" so existing tests don't need to care about it;
+      // the dedicated first-booking test below overrides this.
+      count: jest.fn().mockResolvedValue(1),
     },
     customerFavoriteDriver: {
       findUnique: jest.fn(),
@@ -87,6 +91,7 @@ jest.mock('@/modules/driver/application/services/driver-eligibility-service', ()
 }));
 
 import { prisma } from '@/shared/database/prisma';
+import { recordAuditLog } from '@/shared/audit/audit-service';
 
 describe('BookingService', () => {
   const mockFindUnique = prisma.booking.findUnique as jest.Mock;
@@ -94,6 +99,8 @@ describe('BookingService', () => {
   const mockFavoriteFindUnique = prisma.customerFavoriteDriver.findUnique as jest.Mock;
   const mockDriverProfileFindUnique = prisma.driverProfile.findUnique as jest.Mock;
   const mockBookingFindMany = prisma.booking.findMany as jest.Mock;
+  const mockBookingCount = prisma.booking.count as jest.Mock;
+  const mockRecordAuditLog = recordAuditLog as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -137,6 +144,80 @@ describe('BookingService', () => {
       expect(result.id).toBe('bk-1');
       expect(result.status).toBe(BookingStatus.SEARCHING_DRIVER);
       expect(result.pickupLocation.address).toBe('Connaught Place, New Delhi');
+    });
+
+    it("records a customer.activation.first_booking_completed audit event when this is the customer's only booking", async () => {
+      const mockBooking = {
+        id: 'bk-first',
+        customerId: 'cust-new',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.ONE_WAY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        pickupAddress: 'Connaught Place, New Delhi',
+        requestedAt: new Date(),
+        searchStartedAt: new Date(),
+        expiresAt: new Date(Date.now() + 300000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        driverProfile: null,
+      };
+      mockTx.booking.create.mockResolvedValue(mockBooking);
+      mockFindUniqueOrThrow.mockResolvedValue(mockBooking);
+      mockBookingCount.mockResolvedValue(0);
+
+      await createBooking('cust-new', {
+        pickupLocation: {
+          latitude: 28.6139,
+          longitude: 77.209,
+          address: 'Connaught Place, New Delhi',
+        },
+        bookingType: BookingType.ONE_WAY,
+      });
+
+      expect(mockRecordAuditLog).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          action: 'customer.activation.first_booking_completed',
+          actorUserId: 'cust-new',
+          entityId: 'bk-first',
+        }),
+      );
+    });
+
+    it('does not record a first-booking activation event when the customer already has prior bookings', async () => {
+      const mockBooking = {
+        id: 'bk-second',
+        customerId: 'cust-returning',
+        status: BookingStatus.SEARCHING_DRIVER,
+        bookingType: BookingType.ONE_WAY,
+        pickupLatitude: 28.6139,
+        pickupLongitude: 77.209,
+        pickupAddress: 'Connaught Place, New Delhi',
+        requestedAt: new Date(),
+        searchStartedAt: new Date(),
+        expiresAt: new Date(Date.now() + 300000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        driverProfile: null,
+      };
+      mockTx.booking.create.mockResolvedValue(mockBooking);
+      mockFindUniqueOrThrow.mockResolvedValue(mockBooking);
+      mockBookingCount.mockResolvedValue(3);
+
+      await createBooking('cust-returning', {
+        pickupLocation: {
+          latitude: 28.6139,
+          longitude: 77.209,
+          address: 'Connaught Place, New Delhi',
+        },
+        bookingType: BookingType.ONE_WAY,
+      });
+
+      expect(mockRecordAuditLog).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ action: 'customer.activation.first_booking_completed' }),
+      );
     });
 
     it('handles idempotency key and returns existing booking', async () => {
