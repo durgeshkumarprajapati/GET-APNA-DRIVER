@@ -43,7 +43,7 @@ export interface UpfrontPaymentSummary {
   baseFare: number;
   distanceFare: number;
   durationFare: number;
-  taxesAndFees: number;
+  platformFee: number;
   discountAmount: number;
   totalFare: number;
   estimatedDistanceKm: number;
@@ -88,6 +88,7 @@ export async function getSmartBookingDefaults(
           driverProfile: {
             select: { id: true, displayName: true, firstName: true, lastName: true },
           },
+          vehicleCategory: { select: { code: true } },
         },
       }),
       dbClient.savedLocation.findMany({
@@ -160,11 +161,14 @@ export async function getSmartBookingDefaults(
     ? (lastBooking.bookingType as BookingType)
     : 'ONE_WAY';
 
-  // Vehicle Category default
+  // Vehicle Category default — must be a real VehicleCategory.code (see
+  // prisma/seed.ts: MINI_CAR/CAR/LONG_CAR/SUV/...), never a free-form label
+  // like "Sedan" — createBooking validates this against the actual table
+  // and throws INVALID_VEHICLE_CATEGORY otherwise.
+  const lastBookingVehicleCategory = lastBooking?.vehicleCategory as
+    { code: string } | null | undefined;
   const vehicleCategory: string =
-    customerPref?.preferredVehicleCategory ||
-    (lastBooking?.vehicleCategory as string) ||
-    'SEDAN';
+    customerPref?.preferredVehicleCategory || lastBookingVehicleCategory?.code || 'CAR';
 
   // Payment Method default
   const paymentMethod = 'CASH';
@@ -226,6 +230,7 @@ export async function getQuickRebookTemplates(
       include: {
         serviceRecipient: true,
         driverProfile: { select: { id: true, displayName: true } },
+        vehicleCategory: { select: { code: true } },
       },
     }),
     dbClient.savedLocation.findMany({
@@ -268,6 +273,7 @@ export async function getQuickRebookTemplates(
     const fare = Number(trip.finalFareAmount ?? trip.estimatedFareAmount ?? 450);
     const driverProfile = trip.driverProfile as Record<string, unknown> | undefined;
     const serviceRecipient = trip.serviceRecipient as Record<string, unknown> | undefined;
+    const tripVehicleCategory = trip.vehicleCategory as { code: string } | null | undefined;
 
     const title =
       pickupLoc.label && dropoffLoc?.label
@@ -287,7 +293,7 @@ export async function getQuickRebookTemplates(
       bookingType: trip.bookingType as BookingType,
       pickupLocation: pickupLoc,
       dropoffLocation: dropoffLoc,
-      vehicleCategory: (trip.vehicleCategory as string) || 'SEDAN',
+      vehicleCategory: tripVehicleCategory?.code || 'CAR',
       serviceRecipientName: (serviceRecipient?.fullName as string) || null,
       preferredDriverId: (driverProfile?.id as string) || null,
       preferredDriverName: (driverProfile?.displayName as string) || null,
@@ -298,8 +304,12 @@ export async function getQuickRebookTemplates(
 
   // If customer has saved locations like Home & Office, generate a Saved Route card
   if (savedLocations.length >= 2 && cards.length < 3) {
-    const home = savedLocations.find((l) => l.label.toLowerCase().includes('home')) || savedLocations[0];
-    const work = savedLocations.find((l) => l.label.toLowerCase().includes('work') || l.label.toLowerCase().includes('office')) || savedLocations[1];
+    const home =
+      savedLocations.find((l) => l.label.toLowerCase().includes('home')) || savedLocations[0];
+    const work =
+      savedLocations.find(
+        (l) => l.label.toLowerCase().includes('work') || l.label.toLowerCase().includes('office'),
+      ) || savedLocations[1];
 
     if (home && work && home.id !== work.id) {
       const routeKey = `${home.id}->${work.id}`;
@@ -321,7 +331,7 @@ export async function getQuickRebookTemplates(
             latitude: Number(work.latitude),
             longitude: Number(work.longitude),
           },
-          vehicleCategory: 'SEDAN',
+          vehicleCategory: 'CAR',
           estimatedFare: 350,
         });
       }
@@ -335,7 +345,7 @@ export async function getQuickRebookTemplates(
  * Calculates upfront service & payment summary for 1-tap booking review step.
  */
 export async function calculateUpfrontSummary(
-  _customerId: string,
+  customerId: string,
   params: {
     pickupLocation: LocationDetail;
     dropoffLocation?: LocationDetail | null;
@@ -346,28 +356,26 @@ export async function calculateUpfrontSummary(
   },
   dbClient: Db = prisma,
 ): Promise<UpfrontServiceSummary> {
-  const { pickupLocation, dropoffLocation, bookingType, vehicleCategory = 'SEDAN', savedPersonId, preferredDriverId } = params;
+  const {
+    pickupLocation,
+    dropoffLocation,
+    bookingType,
+    vehicleCategory = 'CAR',
+    savedPersonId,
+    preferredDriverId,
+  } = params;
 
-  // Calculate distance & estimated fare
-  let distanceKm = 15.0;
-  let durationMins = 35;
-
-  if (pickupLocation && dropoffLocation) {
-    const latDiff = Math.abs(pickupLocation.latitude - dropoffLocation.latitude);
-    const lngDiff = Math.abs(pickupLocation.longitude - dropoffLocation.longitude);
-    const approxDist = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 111;
-    if (approxDist > 0) {
-      distanceKm = Math.round(approxDist * 10) / 10;
-      durationMins = Math.round(distanceKm * 2.5);
-    }
-  }
-
+  // Distance/duration come from calculateEstimatedFare's own real route
+  // estimate (estimateRoute) — never approximated here — so this preview
+  // exactly matches what createBooking will independently compute and
+  // actually charge for the same trip.
   const fareEstimate = await calculateEstimatedFare(
     {
       bookingType,
       pickup: { latitude: pickupLocation.latitude, longitude: pickupLocation.longitude },
-      dropoff: dropoffLocation ? { latitude: dropoffLocation.latitude, longitude: dropoffLocation.longitude } : null,
-      estimatedDurationMinutes: durationMins,
+      dropoff: dropoffLocation
+        ? { latitude: dropoffLocation.latitude, longitude: dropoffLocation.longitude }
+        : null,
     },
     dbClient,
   );
@@ -375,10 +383,14 @@ export async function calculateUpfrontSummary(
   const baseFare = Number(fareEstimate.breakdown.baseFareAmount);
   const distanceFare = Number(fareEstimate.breakdown.distanceFareAmount);
   const durationFare = Number(fareEstimate.breakdown.durationFareAmount);
+  const platformFee = Number(fareEstimate.breakdown.platformFeeAmount);
   const totalFare = Number(fareEstimate.breakdown.totalFareAmount);
-  const taxesAndFees = Math.round(totalFare * 0.18); // 18% GST
 
-  // Fetch recipient details if savedPersonId provided
+  // Fetch recipient details if savedPersonId provided — scoped to this
+  // customer's own saved people (findFirst with both id AND customerId in
+  // the where clause) so a forged savedPersonId from another customer's
+  // saved contacts can never leak that person's name/phone into this
+  // customer's booking.
   let serviceRecipient: UpfrontServiceSummary['serviceRecipient'] = {
     fullName: 'You',
     phone: null,
@@ -386,8 +398,8 @@ export async function calculateUpfrontSummary(
   };
 
   if (savedPersonId) {
-    const person = await dbClient.customerSavedPerson.findUnique({
-      where: { id: savedPersonId },
+    const person = await dbClient.customerSavedPerson.findFirst({
+      where: { id: savedPersonId, customerId },
     });
     if (person) {
       serviceRecipient = {
@@ -409,7 +421,9 @@ export async function calculateUpfrontSummary(
       preferredDriver = {
         id: driver.id,
         displayName:
-          driver.displayName || [driver.firstName, driver.lastName].filter(Boolean).join(' ') || 'Chauffeur',
+          driver.displayName ||
+          [driver.firstName, driver.lastName].filter(Boolean).join(' ') ||
+          'Chauffeur',
       };
     }
   }
@@ -425,11 +439,11 @@ export async function calculateUpfrontSummary(
       baseFare,
       distanceFare,
       durationFare,
-      taxesAndFees,
+      platformFee,
       discountAmount: 0,
-      totalFare: totalFare + taxesAndFees,
-      estimatedDistanceKm: distanceKm,
-      estimatedDurationMinutes: durationMins,
+      totalFare,
+      estimatedDistanceKm: fareEstimate.estimatedDistanceKm,
+      estimatedDurationMinutes: fareEstimate.estimatedDurationMinutes,
       paymentMethod: 'CASH',
     },
   };

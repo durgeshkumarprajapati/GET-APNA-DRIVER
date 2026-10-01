@@ -1,9 +1,3 @@
-import {
-  getSmartBookingDefaults,
-  getQuickRebookTemplates,
-  calculateUpfrontSummary,
-} from '@/modules/booking/application/smart-rebooking-service';
-
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     booking: {
@@ -20,7 +14,7 @@ jest.mock('@/shared/database/prisma', () => ({
           dropoffLabel: 'Office',
           dropoffLatitude: 28.495,
           dropoffLongitude: 77.089,
-          vehicleCategory: 'SEDAN',
+          vehicleCategory: { code: 'CAR' },
           status: 'TRIP_COMPLETED',
           finalFareAmount: 550,
           createdAt: new Date('2026-09-30T10:00:00Z'),
@@ -56,7 +50,7 @@ jest.mock('@/shared/database/prisma', () => ({
     customerPreference: {
       findUnique: jest.fn().mockResolvedValue({
         userId: 'cust-101',
-        preferredVehicleCategory: 'SEDAN',
+        preferredVehicleCategory: 'CAR',
         defaultPaymentMethod: 'CASH',
       }),
     },
@@ -71,12 +65,20 @@ jest.mock('@/shared/database/prisma', () => ({
           isActive: true,
         },
       ]),
-      findUnique: jest.fn().mockResolvedValue({
-        id: 'person-1',
-        customerId: 'cust-101',
-        fullName: 'Mom',
-        phone: '+919876543210',
-        relationship: 'Mother',
+      // Ownership-scoped lookup used by calculateUpfrontSummary — only
+      // resolves when both id AND customerId match, matching the real
+      // findFirst({ where: { id, customerId } }) call.
+      findFirst: jest.fn().mockImplementation(({ where }) => {
+        if (where.id === 'person-1' && where.customerId === 'cust-101') {
+          return Promise.resolve({
+            id: 'person-1',
+            customerId: 'cust-101',
+            fullName: 'Mom',
+            phone: '+919876543210',
+            relationship: 'Mother',
+          });
+        }
+        return Promise.resolve(null);
       }),
     },
     customerFavoriteDriver: {
@@ -97,6 +99,12 @@ jest.mock('@/shared/database/prisma', () => ({
   },
 }));
 
+import {
+  getSmartBookingDefaults,
+  getQuickRebookTemplates,
+  calculateUpfrontSummary,
+} from '@/modules/booking/application/smart-rebooking-service';
+
 describe('Phase 88 — Smart Rebooking & One-Tap Booking Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,7 +117,10 @@ describe('Phase 88 — Smart Rebooking & One-Tap Booking Service', () => {
     expect(defaults.pickupLocation?.address).toBe('Connaught Place, New Delhi');
     expect(defaults.dropoffLocation?.address).toBe('Cyber City, Gurugram');
     expect(defaults.bookingType).toBe('ONE_WAY');
-    expect(defaults.vehicleCategory).toBe('SEDAN');
+    // Must be a real VehicleCategory.code (see prisma/seed.ts) — 'SEDAN' is
+    // not a seeded code and would make createBooking reject every one-tap
+    // booking with INVALID_VEHICLE_CATEGORY.
+    expect(defaults.vehicleCategory).toBe('CAR');
     expect(defaults.savedPersonName).toBe('Mom');
     expect(defaults.preferredDriverId).toBe('dp-1');
   });
@@ -121,6 +132,7 @@ describe('Phase 88 — Smart Rebooking & One-Tap Booking Service', () => {
     expect(cards[0].pickupLocation.address).toContain('Connaught Place');
     expect(cards[0].dropoffLocation?.address).toContain('Cyber City');
     expect(cards[0].estimatedFare).toBe(550);
+    expect(cards[0].vehicleCategory).toBe('CAR');
   });
 
   it('calculateUpfrontSummary calculates upfront fare breakdown and service details', async () => {
@@ -136,7 +148,7 @@ describe('Phase 88 — Smart Rebooking & One-Tap Booking Service', () => {
         longitude: 77.089,
       },
       bookingType: 'ONE_WAY',
-      vehicleCategory: 'SEDAN',
+      vehicleCategory: 'CAR',
       savedPersonId: 'person-1',
       preferredDriverId: 'dp-1',
     });
@@ -146,6 +158,25 @@ describe('Phase 88 — Smart Rebooking & One-Tap Booking Service', () => {
     expect(summary.serviceRecipient.isForSomeoneElse).toBe(true);
     expect(summary.preferredDriver?.displayName).toBe('Durgesh Prajapati');
     expect(summary.paymentSummary.totalFare).toBeGreaterThan(0);
-    expect(summary.paymentSummary.taxesAndFees).toBeGreaterThan(0);
+    // Real platform fee from the actual fare-calculation engine — not a
+    // fabricated tax line that doesn't exist anywhere else in the pricing
+    // system and would overstate this preview above what createBooking
+    // actually charges for the identical trip.
+    expect(summary.paymentSummary.platformFee).toBeGreaterThanOrEqual(0);
+  });
+
+  it("never uses another customer's saved person as the service recipient, even when given their id", async () => {
+    const summary = await calculateUpfrontSummary('cust-999', {
+      pickupLocation: {
+        address: 'Connaught Place, New Delhi',
+        latitude: 28.6315,
+        longitude: 77.2167,
+      },
+      bookingType: 'ONE_WAY',
+      savedPersonId: 'person-1', // belongs to cust-101, not cust-999
+    });
+
+    expect(summary.serviceRecipient.fullName).toBe('You');
+    expect(summary.serviceRecipient.isForSomeoneElse).toBe(false);
   });
 });

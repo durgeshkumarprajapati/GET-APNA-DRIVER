@@ -90,7 +90,7 @@ export function SmartRebookingWidget() {
       pickupLocation: defaults.pickupLocation,
       dropoffLocation: defaults.dropoffLocation,
       bookingType: defaults.bookingType || 'ONE_WAY',
-      vehicleCategory: defaults.vehicleCategory || 'SEDAN',
+      vehicleCategory: defaults.vehicleCategory || 'CAR',
       savedPersonId: defaults.savedPersonId,
       savedPersonName: defaults.savedPersonName,
       preferredDriverId: defaults.preferredDriverId,

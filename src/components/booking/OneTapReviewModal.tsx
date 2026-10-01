@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
 
@@ -27,7 +27,7 @@ interface UpfrontSummary {
   baseFare: number;
   distanceFare: number;
   durationFare: number;
-  taxesAndFees: number;
+  platformFee: number;
   totalFare: number;
   estimatedDistanceKm: number;
   estimatedDurationMinutes: number;
@@ -58,9 +58,17 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
   const [summary, setSummary] = useState<UpfrontSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paymentMode, setPaymentMode] = useState<string>('CASH');
+  // Generated once per review session (not per submit attempt) so retrying
+  // after an error reuses the same key — createBooking recognizes it and
+  // returns the already-created booking instead of creating a duplicate.
+  // A ref rather than state: nothing needs to re-render when it's set, and
+  // mutating a ref inside an effect (unlike calling a state setter) isn't
+  // subject to React's set-state-in-effect restriction.
+  const idempotencyKeyRef = useRef<string>('');
 
   useEffect(() => {
     if (!isOpen || !params) return;
+    idempotencyKeyRef.current = crypto.randomUUID();
 
     let active = true;
     async function fetchEstimate() {
@@ -74,7 +82,7 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
             pickupLocation: params!.pickupLocation,
             dropoffLocation: params!.dropoffLocation,
             bookingType: params!.bookingType,
-            vehicleCategory: params!.vehicleCategory || 'SEDAN',
+            vehicleCategory: params!.vehicleCategory || 'CAR',
             savedPersonId: params!.savedPersonId,
             preferredDriverId: params!.preferredDriverId,
           }),
@@ -117,10 +125,11 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
           pickupLocation: params.pickupLocation,
           dropoffLocation: params.dropoffLocation,
           bookingType: params.bookingType,
-          vehicleCategoryCode: params.vehicleCategory || 'SEDAN',
+          vehicleCategoryCode: params.vehicleCategory || 'CAR',
           savedPersonId: params.savedPersonId,
           preferredDriverId: params.preferredDriverId,
           customerNotes: `One-Tap Rebooking (${params.title || 'Smart Rebook'})`,
+          idempotencyKey: idempotencyKeyRef.current,
         }),
       });
 
@@ -230,7 +239,7 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
               {params.bookingType}
             </span>
             <span className="px-2.5 py-1 rounded-md bg-[#181c24] border border-[#262a33] text-[#dfe2ee] font-bold text-[11px]">
-              {params.vehicleCategory || 'SEDAN'}
+              {params.vehicleCategory || 'CAR'}
             </span>
             {params.savedPersonName && (
               <span className="px-2.5 py-1 rounded-md bg-[#25a475]/20 border border-[#25a475] text-[#68dba9] font-bold text-[11px] flex items-center gap-1">
@@ -278,8 +287,8 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
             )}
 
             <div className="flex justify-between text-[#87948b]">
-              <span>Taxes &amp; Fees (GST 18%)</span>
-              <span>{formatCurrency(summary.taxesAndFees)}</span>
+              <span>Platform Fee</span>
+              <span>{formatCurrency(summary.platformFee)}</span>
             </div>
 
             <div className="flex justify-between text-[#68dba9] font-bold text-sm pt-2 border-t border-[#262a33]">
