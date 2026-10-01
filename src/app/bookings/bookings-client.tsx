@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { useTranslation } from '@/i18n/context';
 import { CustomerBookingCardItem } from '@/modules/booking/application/customer-booking-query-service';
@@ -248,13 +249,11 @@ export default function BookingsListPage() {
         {!loading && !error && (
           <div className="space-y-4">
             {bookings.length === 0 ? (
-              <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl p-12 text-center space-y-4">
-                <span className="material-symbols-outlined text-4xl text-slate-600 block">
-                  calendar_today
-                </span>
-                <p className="text-white font-bold text-lg">No services found</p>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  {statusTab === 'UPCOMING'
+              <EmptyState
+                icon="calendar_today"
+                title="No services found"
+                message={
+                  statusTab === 'UPCOMING'
                     ? 'No upcoming scheduled chauffeur rides.'
                     : statusTab === 'ACTIVE'
                       ? 'No active ride in progress.'
@@ -262,15 +261,16 @@ export default function BookingsListPage() {
                         ? 'No completed driver trips yet.'
                         : statusTab === 'CANCELLED'
                           ? 'No cancelled services found.'
-                          : 'Your booking history will appear here once you book a driver.'}
-                </p>
+                          : 'Your booking history will appear here once you book a driver.'
+                }
+              >
                 <Link
                   href="/bookings/new"
                   className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-[#68dba9] text-[#003825] font-bold text-xs rounded-xl transition-colors"
                 >
                   Book Chauffeur Now
                 </Link>
-              </div>
+              </EmptyState>
             ) : (
               bookings.map((booking) => (
                 <div

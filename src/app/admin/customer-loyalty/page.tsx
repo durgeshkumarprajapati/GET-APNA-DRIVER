@@ -115,7 +115,11 @@ export default function AdminCustomerLoyaltyPage() {
         setAdjustSuccess(null);
       }, 2500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Adjustment failed');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not adjust this customer's points. Please try again.",
+      );
     } finally {
       setAdjusting(false);
     }

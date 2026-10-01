@@ -220,6 +220,7 @@ export default function TaxInvoicesPage() {
                 type="button"
                 onClick={() => setSelectedInvoice(null)}
                 className="text-[#bccac0] hover:text-[#dfe2ee]"
+                aria-label={t('common.actions.close')}
               >
                 <span className="material-symbols-outlined">close</span>
               </button>

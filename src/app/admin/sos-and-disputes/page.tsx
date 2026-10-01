@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface SafetyIncidentItem {
   id: string;
@@ -378,12 +379,7 @@ export default function AdminSosAndDisputesPage() {
             </div>
           )
         ) : disputes.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            <span className="material-symbols-outlined text-4xl block mb-2 text-slate-600">
-              gavel
-            </span>
-            No booking disputes found.
-          </div>
+          <EmptyState icon="gavel" message="No booking disputes found." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">

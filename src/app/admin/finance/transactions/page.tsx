@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface LedgerEntry {
   id: string;
@@ -65,9 +66,7 @@ export default function AdminFinanceTransactionsPage() {
           {error}
         </div>
       ) : transactions.length === 0 ? (
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-12 text-center text-[#87948b] text-sm">
-          No financial transactions posted yet.
-        </div>
+        <EmptyState icon="receipt_long" message="No financial transactions posted yet." />
       ) : (
         <div className="space-y-4">
           {transactions.map((txn) => (

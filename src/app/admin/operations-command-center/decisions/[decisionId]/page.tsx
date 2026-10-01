@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, use } from 'react';
 import Link from 'next/link';
+import { EmptyState } from '@/components/ui/empty-state';
 import type { OperationsDecision } from '@/modules/operations';
 
 interface DecisionDetailPageProps {
@@ -318,9 +319,7 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
               </h3>
 
               {!decision.executions || decision.executions.length === 0 ? (
-                <div className="p-4 rounded-lg bg-[#0f131c] border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
-                  No execution attempts recorded yet.
-                </div>
+                <EmptyState icon="history" message="No execution attempts recorded yet." />
               ) : (
                 <div className="space-y-3">
                   {decision.executions.map((execution) => (

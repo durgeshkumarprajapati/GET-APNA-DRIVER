@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CorporateLayout } from '@/components/corporate-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface CorporateBooking {
   id: string;
@@ -80,15 +81,14 @@ export default function CorporateBookingsPage() {
         ) : (
           <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
             {bookings.length === 0 ? (
-              <div className="p-12 text-center text-[#bccac0] text-xs font-mono space-y-3">
-                <p>No corporate travel bookings found.</p>
+              <EmptyState icon="local_taxi" message="No corporate travel bookings found.">
                 <Link
                   href="/corporate/bookings/new"
                   className="inline-block px-4 py-2 bg-[#25a475] text-[#00311f] font-bold rounded-lg text-xs"
                 >
                   Create First Corporate Booking
                 </Link>
-              </div>
+              </EmptyState>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">

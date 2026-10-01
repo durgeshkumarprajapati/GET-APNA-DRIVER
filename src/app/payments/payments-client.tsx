@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Payment {
   id: string;
@@ -93,12 +94,11 @@ export default function PaymentsListPage() {
             {error}
           </div>
         ) : payments.length === 0 ? (
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-12 text-center space-y-2">
-            <p className="text-slate-300 font-medium text-lg">No payments yet.</p>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Payments are created automatically once a trip is completed.
-            </p>
-          </div>
+          <EmptyState
+            icon="receipt_long"
+            title="No payments yet."
+            message="Payments are created automatically once a trip is completed."
+          />
         ) : (
           <div className="space-y-4">
             {payments.map((payment) => (

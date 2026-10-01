@@ -8,6 +8,11 @@ import { UnifiedMap } from '@/components/maps/unified-map';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
 import { DriverCapabilitySelector } from '@/components/driver/DriverCapabilitySelector';
 import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
+import { Button } from '@/components/ui/button';
+import { Input, Textarea } from '@/components/ui/input';
+import { FormField, FieldGroup } from '@/components/ui/form-field';
+import { Alert } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 
 interface DriverProfileData {
   firstName: string;
@@ -189,208 +194,74 @@ export default function DriverProfileEditPage() {
 
   return (
     <DriverLayout>
-      <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-        <header
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1rem',
-            marginBottom: '2rem',
-            paddingBottom: '1rem',
-            borderBottom: '1px solid var(--color-border)',
-          }}
-        >
+      <div className="w-full max-w-[800px] mx-auto">
+        <header className="flex flex-wrap justify-between items-center gap-4 mb-8 pb-4 border-b border-[#262a33]">
           <div>
-            <h1
-              style={{
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                margin: 0,
-                color: 'var(--color-text-primary)',
-              }}
-            >
+            <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
               Driver Professional Profile
             </h1>
-            <p
-              style={{
-                margin: '0.25rem 0 0 0',
-                fontSize: '0.875rem',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
+            <p className="mt-1 text-sm text-[#bccac0]">
               Provide your driving experience and primary operational service area.
             </p>
           </div>
           <Link
             href="/driver"
-            className="transition-colors hover:bg-[color:var(--color-surface-container-high)] active:bg-[color:var(--color-surface-container-highest)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '0.375rem',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              color: 'var(--color-text-primary)',
-              textDecoration: 'none',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-            }}
+            className="px-4 py-2 rounded-md border border-[#262a33] bg-[#0a0e16] text-[#dfe2ee] text-sm font-medium transition-colors hover:bg-[#181c24] active:bg-[#262a33] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
           >
             ← Driver Portal
           </Link>
         </header>
 
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '0.75rem',
-            padding: '2rem',
-          }}
-        >
+        <Card className="p-8">
           {message && (
-            <div
-              style={{
-                padding: '0.75rem 1rem',
-                borderRadius: '0.5rem',
-                marginBottom: '1.5rem',
-                backgroundColor:
-                  message.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(220, 38, 38, 0.1)',
-                border: `1px solid ${message.type === 'success' ? '#22c55e' : 'var(--color-danger)'}`,
-                color: message.type === 'success' ? '#22c55e' : 'var(--color-danger)',
-                fontSize: '0.875rem',
-              }}
-            >
+            <Alert tone={message.type === 'success' ? 'success' : 'error'} className="mb-6">
               {message.text}
-            </div>
+            </Alert>
           )}
 
           {loading ? (
-            <p style={{ color: 'var(--color-text-secondary)' }}>Loading profile data...</p>
+            <p className="text-[#bccac0]">Loading profile data...</p>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
-              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1rem' }}>
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    First Name
-                  </label>
-                  <input
+            <form onSubmit={handleSubmit} className="grid gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="First Name">
+                  <Input
                     type="text"
                     required
                     value={form.firstName}
                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                    }}
                   />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    Last Name
-                  </label>
-                  <input
+                </FormField>
+                <FormField label="Last Name">
+                  <Input
                     type="text"
                     required
                     value={form.lastName}
                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                    }}
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Display Name
-                </label>
-                <input
+              <FormField label="Display Name">
+                <Input
                   type="text"
                   placeholder="e.g. Captain Ramesh"
                   value={form.displayName}
                   onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                  }}
                 />
-              </div>
+              </FormField>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1rem' }}>
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    Date of Birth (Min 18 Yrs)
-                  </label>
-                  <input
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Date of Birth (Min 18 Yrs)">
+                  <Input
                     type="date"
                     required
                     value={form.dateOfBirth}
                     onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                    }}
                   />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    Driving Experience (Years)
-                  </label>
-                  <input
+                </FormField>
+                <FormField label="Driving Experience (Years)">
+                  <Input
                     type="number"
                     min={1}
                     required
@@ -401,74 +272,36 @@ export default function DriverProfileEditPage() {
                         drivingExperienceYears: parseInt(e.target.value, 10) || 0,
                       })
                     }
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                    }}
                   />
-                </div>
+                </FormField>
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Primary Service Area
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Bengaluru, Koramangala, Indiranagar"
-                  value={form.primaryServiceArea}
-                  onChange={(e) => setForm({ ...form, primaryServiceArea: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                />
-                <div style={{ marginTop: '0.5rem' }}>
+                <FormField label="Primary Service Area">
+                  <Input
+                    type="text"
+                    required
+                    placeholder="e.g. Bengaluru, Koramangala, Indiranagar"
+                    value={form.primaryServiceArea}
+                    onChange={(e) => setForm({ ...form, primaryServiceArea: e.target.value })}
+                  />
+                </FormField>
+                <div className="mt-2">
                   <CurrentLocationButton onLocated={handleUseCurrentLocation} />
                 </div>
 
                 {resolvingAddress && (
-                  <p
-                    style={{
-                      marginTop: '0.5rem',
-                      fontSize: '0.8125rem',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
+                  <p className="mt-2 text-[13px] text-[#bccac0]">
                     Resolving address from your location…
                   </p>
                 )}
 
                 {locationError && (
-                  <p
-                    style={{
-                      marginTop: '0.5rem',
-                      fontSize: '0.8125rem',
-                      color: 'var(--color-danger)',
-                    }}
-                  >
-                    {locationError}
-                  </p>
+                  <p className="mt-2 text-[13px] text-[#fda4af]">{locationError}</p>
                 )}
 
                 {capturedCoords && (
-                  <div style={{ marginTop: '0.75rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                  <div className="mt-3 rounded-lg overflow-hidden">
                     <UnifiedMap
                       markers={[
                         {
@@ -489,7 +322,7 @@ export default function DriverProfileEditPage() {
               </div>
 
               {/* Spoken & Understood Languages Selector */}
-              <div className="pt-4 border-t border-slate-800">
+              <div className="pt-4 border-t border-[#262a33]">
                 <SpokenLanguageSelector
                   selectedLanguages={form.languagesSpoken}
                   onChange={(langs) => setForm({ ...form, languagesSpoken: langs })}
@@ -498,166 +331,64 @@ export default function DriverProfileEditPage() {
                 />
               </div>
 
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
-                >
-                  Professional Biography
-                </label>
-                <textarea
+              <FormField label="Professional Biography">
+                <Textarea
                   rows={3}
                   placeholder="Tell riders about your driving experience..."
                   value={form.bio}
                   onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '0.625rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'var(--color-background)',
-                    color: 'var(--color-text-primary)',
-                  }}
                 />
-              </div>
+              </FormField>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    marginBottom: '0.375rem',
-                  }}
+                <FormField
+                  label="Hire Rates (₹)"
+                  hint="Set your own price for a full daily, weekly, or monthly hire. Customers browsing drivers for these bookings will see this rate and pick you directly at it. Leave a field blank to opt out of that hire type."
                 >
-                  Hire Rates (₹)
-                </label>
-                <p
-                  style={{
-                    margin: '0 0 0.75rem 0',
-                    fontSize: '0.8125rem',
-                    color: 'var(--color-text-secondary)',
-                  }}
-                >
-                  Set your own price for a full daily, weekly, or monthly hire. Customers browsing
-                  drivers for these bookings will see this rate and pick you directly at it. Leave a
-                  field blank to opt out of that hire type.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3" style={{ gap: '1rem' }}>
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.75rem',
-                        color: 'var(--color-text-secondary)',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      Per Day
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="e.g. 2500"
-                      value={form.dailyHireRate}
-                      onChange={(e) => setForm({ ...form, dailyHireRate: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        borderRadius: '0.375rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-background)',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.75rem',
-                        color: 'var(--color-text-secondary)',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      Per Week
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="e.g. 15000"
-                      value={form.weeklyHireRate}
-                      onChange={(e) => setForm({ ...form, weeklyHireRate: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        borderRadius: '0.375rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-background)',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.75rem',
-                        color: 'var(--color-text-secondary)',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      Per Month
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="e.g. 45000"
-                      value={form.monthlyHireRate}
-                      onChange={(e) => setForm({ ...form, monthlyHireRate: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem',
-                        borderRadius: '0.375rem',
-                        border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-background)',
-                        color: 'var(--color-text-primary)',
-                      }}
-                    />
-                  </div>
-                </div>
+                  <FieldGroup className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <FormField label="Per Day">
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="e.g. 2500"
+                        value={form.dailyHireRate}
+                        onChange={(e) => setForm({ ...form, dailyHireRate: e.target.value })}
+                      />
+                    </FormField>
+                    <FormField label="Per Week">
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="e.g. 15000"
+                        value={form.weeklyHireRate}
+                        onChange={(e) => setForm({ ...form, weeklyHireRate: e.target.value })}
+                      />
+                    </FormField>
+                    <FormField label="Per Month">
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="e.g. 45000"
+                        value={form.monthlyHireRate}
+                        onChange={(e) => setForm({ ...form, monthlyHireRate: e.target.value })}
+                      />
+                    </FormField>
+                  </FieldGroup>
+                </FormField>
               </div>
 
-              <div style={{ marginTop: '1rem' }}>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="min-h-[48px] min-w-[200px] transition-all hover:brightness-110 active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] disabled:cursor-not-allowed"
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: 'var(--color-primary)',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                    opacity: saving ? 0.7 : 1,
-                  }}
-                >
+              <div className="mt-4">
+                <Button type="submit" isLoading={saving} size="lg" className="min-w-[200px]">
                   {saving ? 'Saving Profile...' : 'Save Profile Details'}
-                </button>
+                </Button>
               </div>
             </form>
           )}
 
-          <div style={{ marginTop: '2rem' }}>
+          <div className="mt-8">
             <DriverCapabilitySelector />
           </div>
-        </div>
+        </Card>
       </div>
     </DriverLayout>
   );

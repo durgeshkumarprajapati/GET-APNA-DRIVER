@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface CustomerDetail {
   id: string;
@@ -204,7 +205,7 @@ export default function AdminCustomerDetailPage({
             Recent Bookings
           </h2>
           {customer.recentBookings.length === 0 ? (
-            <p className="text-[#87948b] text-sm">No bookings yet.</p>
+            <EmptyState icon="local_taxi" message="No bookings yet." />
           ) : (
             <div className="space-y-2">
               {customer.recentBookings.map((booking) => (
@@ -230,7 +231,7 @@ export default function AdminCustomerDetailPage({
             Recent Payments
           </h2>
           {customer.recentPayments.length === 0 ? (
-            <p className="text-[#87948b] text-sm">No payments yet.</p>
+            <EmptyState icon="payments" message="No payments yet." />
           ) : (
             <div className="space-y-2">
               {customer.recentPayments.map((payment) => (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DriverLayout } from '@/components/driver-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface DriverDocument {
   id: string;
@@ -327,11 +328,10 @@ export default function DriverDocumentsPage() {
           <h2 className="text-xl font-semibold text-white mb-4">Your Uploaded Documents</h2>
 
           {documents.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-slate-700 rounded-xl">
-              <p className="text-slate-400">
-                No documents uploaded yet. Upload required documents above.
-              </p>
-            </div>
+            <EmptyState
+              icon="description"
+              message="No documents uploaded yet. Upload required documents above."
+            />
           ) : (
             <div className="divide-y divide-slate-700/60">
               {documents.map((doc) => (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Organization {
   id: string;
@@ -107,8 +108,11 @@ export default function AdminCorporatePage() {
       ) : (
         <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
           {organizations.length === 0 ? (
-            <div className="p-12 text-center text-[#bccac0] text-xs font-mono">
-              No corporate business accounts registered on platform yet.
+            <div className="p-12">
+              <EmptyState
+                icon="domain"
+                message="No corporate business accounts registered on platform yet."
+              />
             </div>
           ) : (
             <div className="overflow-x-auto">

@@ -40,7 +40,11 @@ export default function WorkerHealthPage() {
           setError(json.message);
         }
       })
-      .catch(() => setError('Failed to fetch worker health'))
+      .catch(() =>
+        setError(
+          'Could not load worker health status. Check your connection and refresh the page.',
+        ),
+      )
       .finally(() => setLoading(false));
   }, []);
 

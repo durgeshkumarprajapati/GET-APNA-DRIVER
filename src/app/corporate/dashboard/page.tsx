@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CorporateLayout } from '@/components/corporate-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface DashboardReport {
   totalSpend: number;
@@ -224,10 +225,12 @@ export default function CorporateDashboardPage() {
 
                 <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
                   {report.recentRides.length === 0 ? (
-                    <div className="p-8 text-center text-[#bccac0] text-xs font-mono">
-                      No corporate bookings recorded yet. Click &quot;Book Corporate Driver&quot; to
-                      schedule the first booking.
-                    </div>
+                    <EmptyState
+                      icon="local_taxi"
+                      message={
+                        'No corporate bookings recorded yet. Click "Book Corporate Driver" to schedule the first booking.'
+                      }
+                    />
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">

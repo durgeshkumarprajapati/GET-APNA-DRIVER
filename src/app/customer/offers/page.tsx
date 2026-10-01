@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EnhancedOfferCard } from '@/components/ui/enhanced-offer-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { CUSTOMER_OFFERS_CATALOG } from '@/modules/promotion/domain/offers-catalog';
 import { useTranslation } from '@/i18n/context';
 
@@ -233,7 +234,7 @@ export default function CustomerOffersPage() {
         {activeTab === 'USED' && liveOffers && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {liveOffers.used.length === 0 ? (
-              <p className="text-xs text-[#87948b]">No redeemed coupons yet.</p>
+              <EmptyState icon="redeem" message="No redeemed coupons yet." />
             ) : (
               liveOffers.used.map((promo) => (
                 <div

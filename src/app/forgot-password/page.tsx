@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { FormField } from '@/components/ui/form-field';
+import { Alert } from '@/components/ui/alert';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -43,144 +47,48 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1.5rem',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '420px',
-          padding: '2rem',
-          borderRadius: '1rem',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1
-            style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              margin: '0 0 0.5rem 0',
-              color: 'var(--color-text-primary)',
-            }}
-          >
+    <main className="min-h-screen flex items-center justify-center p-6 bg-[#0a0e16]">
+      <div className="w-full max-w-[420px] p-8 rounded-2xl bg-[#181c24] border border-[#262a33] shadow-xl">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
             Forgot Password
           </h1>
-          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+          <p className="mt-1.5 text-sm text-[#bccac0]">
             Enter your email address to reset your password
           </p>
         </div>
 
         {error && (
-          <div
-            style={{
-              padding: '0.75rem 1rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'rgba(220,38,38,0.1)',
-              border: '1px solid var(--color-danger)',
-              color: 'var(--color-danger)',
-              fontSize: '0.875rem',
-              marginBottom: '1.5rem',
-            }}
-          >
+          <Alert tone="error" className="mb-6">
             {error}
-          </div>
+          </Alert>
         )}
 
         {message && (
-          <div
-            style={{
-              padding: '0.75rem 1rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'rgba(37,99,235,0.1)',
-              border: '1px solid var(--color-primary)',
-              color: 'var(--color-primary)',
-              fontSize: '0.875rem',
-              marginBottom: '1.5rem',
-            }}
-          >
+          <Alert tone="success" className="mb-6">
             {message}
-          </div>
+          </Alert>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
-        >
-          <div>
-            <label
-              htmlFor="email"
-              style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                marginBottom: '0.375rem',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <FormField label="Email Address">
+            <Input
               type="email"
               required
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-background)',
-                color: 'var(--color-text-primary)',
-                outline: 'none',
-                fontSize: '1rem',
-              }}
             />
-          </div>
+          </FormField>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'var(--color-primary)',
-              color: '#ffffff',
-              fontWeight: 600,
-              fontSize: '1rem',
-              border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
+          <Button type="submit" isLoading={loading} fullWidth size="lg">
             {loading ? 'Submitting...' : 'Send Reset Instructions'}
-          </button>
+          </Button>
         </form>
 
-        <p
-          style={{
-            marginTop: '2rem',
-            textAlign: 'center',
-            fontSize: '0.875rem',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
+        <p className="mt-8 text-center text-sm text-[#bccac0]">
           Remembered your password?{' '}
-          <Link
-            href="/login"
-            style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
-          >
+          <Link href="/login" className="text-[#68dba9] font-bold hover:text-[#85f8c4]">
             Sign In
           </Link>
         </p>
