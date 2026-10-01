@@ -8,6 +8,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useTranslation } from '@/i18n/context';
 import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
+import { SmartRebookingWidget } from '@/components/booking/SmartRebookingWidget';
 import type { CustomerDashboardData } from '@/modules/customer/application/customer-dashboard-service';
 
 function statusBadgeClass(status: string): string {
@@ -136,6 +137,9 @@ export default function CustomerDashboardPage() {
                 </Link>
               </div>
             </section>
+
+            {/* 1-Tap Quick Booking & Smart Rebooking Widget */}
+            <SmartRebookingWidget />
 
             {/* Getting Started — shown only to a brand-new customer with no booking history yet */}
             {!activeService && recentServices.length === 0 && (
