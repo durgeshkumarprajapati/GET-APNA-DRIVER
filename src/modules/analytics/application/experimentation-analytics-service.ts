@@ -11,9 +11,7 @@ import {
 /**
  * Calculates booking funnel conversion metrics and stage drop-offs.
  */
-export async function getBookingFunnelAnalytics(
-  _db: Db = prisma,
-): Promise<FunnelAnalyticsDTO> {
+export async function getBookingFunnelAnalytics(_db: Db = prisma): Promise<FunnelAnalyticsDTO> {
   const totalVisitors = 10000;
   const searchVisitors = 7500;
   const offerAccepted = 5800;

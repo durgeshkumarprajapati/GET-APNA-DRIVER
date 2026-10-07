@@ -37,8 +37,11 @@ describe('Phase 99 — Product Analytics & Experimentation Platform', () => {
     // many synthetic experiment keys for the same user should produce more
     // than one distinct variant.
     const variants = new Set(
-      Array.from({ length: 50 }, (_, i) =>
-        evaluateFeatureFlag({ experimentKey: `exp_synthetic_${i}`, userId: 'user-001' }).assignedVariant,
+      Array.from(
+        { length: 50 },
+        (_, i) =>
+          evaluateFeatureFlag({ experimentKey: `exp_synthetic_${i}`, userId: 'user-001' })
+            .assignedVariant,
       ),
     );
 

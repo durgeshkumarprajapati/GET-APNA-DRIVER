@@ -17,24 +17,18 @@ const evaluateVitalsSchema = z.object({
 
 const networkTypeSchema = z.enum(['SLOW_2G', '2G', '3G', '4G', 'WIFI']);
 
-export const GET = withPermission(
-  PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
-  async (req) => {
-    const { searchParams } = new URL(req.url);
-    const network = networkTypeSchema.parse(searchParams.get('network') ?? '4G');
+export const GET = withPermission(PERMISSIONS.ADMIN_PLATFORM_METRICS_READ, async (req) => {
+  const { searchParams } = new URL(req.url);
+  const network = networkTypeSchema.parse(searchParams.get('network') ?? '4G');
 
-    const report = await getMobilePerformanceReport(network);
-    return NextResponse.json(report, { status: 200 });
-  },
-);
+  const report = await getMobilePerformanceReport(network);
+  return NextResponse.json(report, { status: 200 });
+});
 
-export const POST = withPermission(
-  PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
-  async (req) => {
-    const body = await req.json();
-    const parsed = evaluateVitalsSchema.parse(body);
+export const POST = withPermission(PERMISSIONS.ADMIN_PLATFORM_METRICS_READ, async (req) => {
+  const body = await req.json();
+  const parsed = evaluateVitalsSchema.parse(body);
 
-    const evaluated = evaluateCoreWebVitals(parsed);
-    return NextResponse.json({ success: true, evaluated }, { status: 200 });
-  },
-);
+  const evaluated = evaluateCoreWebVitals(parsed);
+  return NextResponse.json({ success: true, evaluated }, { status: 200 });
+});

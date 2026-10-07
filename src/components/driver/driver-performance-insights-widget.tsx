@@ -38,7 +38,14 @@ export function DriverPerformanceInsightsWidget() {
 
   // Issue Reporting Modal State
   const [showModal, setShowModal] = useState(false);
-  const [issueCategory, setIssueCategory] = useState<'FARE_DISPUTE' | 'CUSTOMER_NO_SHOW' | 'VEHICLE_TROUBLE' | 'APP_GLITCH' | 'ROUTE_PROBLEM' | 'OTHER'>('FARE_DISPUTE');
+  const [issueCategory, setIssueCategory] = useState<
+    | 'FARE_DISPUTE'
+    | 'CUSTOMER_NO_SHOW'
+    | 'VEHICLE_TROUBLE'
+    | 'APP_GLITCH'
+    | 'ROUTE_PROBLEM'
+    | 'OTHER'
+  >('FARE_DISPUTE');
   const [issueDescription, setIssueDescription] = useState('');
   const [submittingIssue, setSubmittingIssue] = useState(false);
   const [issueSuccessMsg, setIssueSuccessMsg] = useState<string | null>(null);
@@ -82,7 +89,9 @@ export function DriverPerformanceInsightsWidget() {
         throw new Error(resData.message ?? 'Failed to submit issue report.');
       }
 
-      setIssueSuccessMsg(`Issue logged successfully! Ticket ID: #${resData.result.ticketId.slice(0, 8)}`);
+      setIssueSuccessMsg(
+        `Issue logged successfully! Ticket ID: #${resData.result.ticketId.slice(0, 8)}`,
+      );
       setIssueDescription('');
       setTimeout(() => setShowModal(false), 2500);
     } catch (err) {
@@ -159,14 +168,18 @@ export function DriverPerformanceInsightsWidget() {
           <div className="text-2xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">
             ₹{earningsBreakdown.todayNetEarnings}
           </div>
-          <p className="text-[11px] text-[#87948b]">{earningsBreakdown.completedTripsToday} trips completed today</p>
+          <p className="text-[11px] text-[#87948b]">
+            {earningsBreakdown.completedTripsToday} trips completed today
+          </p>
         </div>
 
         <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-1">
           <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
             Lifetime Earnings
           </span>
-          <div className="text-xl font-bold text-[#dfe2ee]">₹{earningsBreakdown.lifetimeEarnings}</div>
+          <div className="text-xl font-bold text-[#dfe2ee]">
+            ₹{earningsBreakdown.lifetimeEarnings}
+          </div>
           <p className="text-[11px] text-[#87948b]">Total earned since joining</p>
         </div>
 
@@ -188,7 +201,9 @@ export function DriverPerformanceInsightsWidget() {
           <div className="text-xl font-bold text-[#dfe2ee]">
             ₹{earningsBreakdown.pendingSettlementAmount}
           </div>
-          <p className="text-[11px] text-[#87948b]">Cycle: {earningsBreakdown.settlementCycleRange}</p>
+          <p className="text-[11px] text-[#87948b]">
+            Cycle: {earningsBreakdown.settlementCycleRange}
+          </p>
         </div>
       </div>
 
@@ -201,8 +216,12 @@ export function DriverPerformanceInsightsWidget() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="p-3 rounded-lg bg-[#11141c] border border-[#262a33]">
             <span className="text-xs text-[#87948b]">Rating</span>
-            <div className="text-lg font-bold text-[#dfe2ee]">{performanceInsights.averageRating}★</div>
-            <span className="text-[10px] text-[#87948b]">({performanceInsights.totalReviews} Reviews)</span>
+            <div className="text-lg font-bold text-[#dfe2ee]">
+              {performanceInsights.averageRating}★
+            </div>
+            <span className="text-[10px] text-[#87948b]">
+              ({performanceInsights.totalReviews} Reviews)
+            </span>
           </div>
 
           <div className="p-3 rounded-lg bg-[#11141c] border border-[#262a33]">
@@ -233,7 +252,9 @@ export function DriverPerformanceInsightsWidget() {
         {/* Actionable Tips */}
         {performanceInsights.actionableTips.length > 0 && (
           <div className="p-3 rounded-lg bg-[#11141c] border border-[#262a33] space-y-2">
-            <span className="text-[11px] font-bold text-[#68dba9] uppercase">💡 Personalized Actionable Insights</span>
+            <span className="text-[11px] font-bold text-[#68dba9] uppercase">
+              💡 Personalized Actionable Insights
+            </span>
             <ul className="space-y-1 text-xs text-[#dfe2ee] list-disc list-inside">
               {performanceInsights.actionableTips.map((tip, idx) => (
                 <li key={idx}>{tip}</li>

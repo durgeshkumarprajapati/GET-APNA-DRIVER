@@ -102,7 +102,9 @@ export async function getMarketplaceZoneCoverage(
   };
 
   const activeDriverSupplyCount = driverLocations.filter(
-    (d) => d.currentLocation && isWithinClosestZone(d.currentLocation.latitude, d.currentLocation.longitude),
+    (d) =>
+      d.currentLocation &&
+      isWithinClosestZone(d.currentLocation.latitude, d.currentLocation.longitude),
   ).length;
 
   const openBookingDemandCount = openBookings.filter((b) =>
@@ -189,11 +191,16 @@ export async function listMarketplaceZonesWithAnalytics(
 
   const [activeDriversCount, activeBookingsCount] = await Promise.all([
     db.driverProfile.count({ where: { availabilityStatus: 'AVAILABLE' } }),
-    db.booking.count({ where: { status: { in: ['DRAFT', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED', 'TRIP_IN_PROGRESS'] } } }),
+    db.booking.count({
+      where: {
+        status: { in: ['DRAFT', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED', 'TRIP_IN_PROGRESS'] },
+      },
+    }),
   ]);
 
   return zones.map((z) => {
-    const demandSupplyRatio = activeDriversCount > 0 ? Number((activeBookingsCount / activeDriversCount).toFixed(2)) : 0;
+    const demandSupplyRatio =
+      activeDriversCount > 0 ? Number((activeBookingsCount / activeDriversCount).toFixed(2)) : 0;
     return {
       zoneId: z.id,
       code: z.code,

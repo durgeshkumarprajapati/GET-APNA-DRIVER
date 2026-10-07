@@ -4,7 +4,10 @@ import {
   getUnifiedOffersAndRewardsCenter,
 } from '@/modules/loyalty/application/offers-rewards-center-service';
 import { validateCouponForPreview } from '@/modules/promotion/application/services/promotion-eligibility-service';
-import { listLoyaltyTiers, evaluateTierForPoints } from '@/modules/loyalty/application/services/loyalty-tier-service';
+import {
+  listLoyaltyTiers,
+  evaluateTierForPoints,
+} from '@/modules/loyalty/application/services/loyalty-tier-service';
 
 jest.mock('@/modules/promotion/application/services/promotion-eligibility-service', () => ({
   validateCouponForPreview: jest.fn(),
@@ -22,10 +25,30 @@ const mockEvaluateTierForPoints = evaluateTierForPoints as jest.Mock;
 type MockDb = Partial<Db> & Record<string, unknown>;
 
 const TIERS = [
-  { id: 'tier-bronze', name: 'Bronze Member', minimumLifetimePoints: 0, benefits: { description: 'Base 1x points' } },
-  { id: 'tier-silver', name: 'Silver Chauffeur', minimumLifetimePoints: 500, benefits: { description: '1.15x points' } },
-  { id: 'tier-gold', name: 'Gold Executive', minimumLifetimePoints: 2000, benefits: { description: '1.30x points' } },
-  { id: 'tier-platinum', name: 'Platinum Elite', minimumLifetimePoints: 5000, benefits: { description: '1.50x points' } },
+  {
+    id: 'tier-bronze',
+    name: 'Bronze Member',
+    minimumLifetimePoints: 0,
+    benefits: { description: 'Base 1x points' },
+  },
+  {
+    id: 'tier-silver',
+    name: 'Silver Chauffeur',
+    minimumLifetimePoints: 500,
+    benefits: { description: '1.15x points' },
+  },
+  {
+    id: 'tier-gold',
+    name: 'Gold Executive',
+    minimumLifetimePoints: 2000,
+    benefits: { description: '1.30x points' },
+  },
+  {
+    id: 'tier-platinum',
+    name: 'Platinum Elite',
+    minimumLifetimePoints: 5000,
+    benefits: { description: '1.50x points' },
+  },
 ];
 
 describe('Phase 93 — Offers, Loyalty & Membership Experience 2.0', () => {
@@ -82,7 +105,9 @@ describe('Phase 93 — Offers, Loyalty & Membership Experience 2.0', () => {
         }),
       } as unknown as Db['customerLoyaltyAccount'],
       promotion: { findMany: jest.fn().mockResolvedValue([]) } as unknown as Db['promotion'],
-      loyaltyReward: { findMany: jest.fn().mockResolvedValue([]) } as unknown as Db['loyaltyReward'],
+      loyaltyReward: {
+        findMany: jest.fn().mockResolvedValue([]),
+      } as unknown as Db['loyaltyReward'],
       loyaltyRewardRedemption: {
         findMany: jest.fn().mockResolvedValue([]),
       } as unknown as Db['loyaltyRewardRedemption'],

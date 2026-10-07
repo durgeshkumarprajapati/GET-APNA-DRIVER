@@ -41,7 +41,9 @@ function buildPushDeliveryRow(attemptCount: number) {
 
 function buildMockDb(deliveryRow: ReturnType<typeof buildPushDeliveryRow>) {
   const update = jest.fn().mockResolvedValue({});
-  const create = jest.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'fallback-delivery-1', ...data }));
+  const create = jest
+    .fn()
+    .mockImplementation(({ data }) => Promise.resolve({ id: 'fallback-delivery-1', ...data }));
   return {
     db: {
       notificationDelivery: {

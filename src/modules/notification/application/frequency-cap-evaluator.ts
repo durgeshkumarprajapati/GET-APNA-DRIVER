@@ -1,5 +1,8 @@
 import { prisma, type Db } from '@/shared/database/prisma';
-import { FrequencyCapSettings, NON_URGENT_CATEGORIES } from '../domain/notification-intelligence-types';
+import {
+  FrequencyCapSettings,
+  NON_URGENT_CATEGORIES,
+} from '../domain/notification-intelligence-types';
 
 /**
  * Checks if sending a non-urgent notification would exceed the user's daily frequency cap.

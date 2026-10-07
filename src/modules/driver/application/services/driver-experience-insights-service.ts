@@ -48,7 +48,9 @@ export async function getDriverShiftSummary(
 
   // Calculate active shift duration
   const lastUpdateMs = profile?.updatedAt?.getTime() ?? now.getTime();
-  const shiftDurationMinutes = isOnDuty ? Math.max(15, Math.floor((now.getTime() - lastUpdateMs) / (60 * 1000))) : 0;
+  const shiftDurationMinutes = isOnDuty
+    ? Math.max(15, Math.floor((now.getTime() - lastUpdateMs) / (60 * 1000)))
+    : 0;
 
   return {
     driverProfileId,
@@ -115,24 +117,34 @@ export async function getDriverPerformanceInsights(
     totalOffersCount > 0 ? Math.round((acceptedOffersCount / totalOffersCount) * 100) : 95;
 
   const onTimeArrivalPct = Math.min(100, Math.max(85, completionRatePct + 5));
-  const reliabilityScore = Math.round((acceptanceRatePct * 0.4) + (completionRatePct * 0.4) + ((metrics.averageRating / 5) * 20));
+  const reliabilityScore = Math.round(
+    acceptanceRatePct * 0.4 + completionRatePct * 0.4 + (metrics.averageRating / 5) * 20,
+  );
 
   const actionableTips: string[] = [];
 
   if (metrics.averageRating < 4.8) {
-    actionableTips.push('Maintain a polite greeting and keep vehicle interior clean to boost 5-star customer ratings.');
+    actionableTips.push(
+      'Maintain a polite greeting and keep vehicle interior clean to boost 5-star customer ratings.',
+    );
   } else {
-    actionableTips.push('Top Rating! You qualify for priority booking dispatches and repeat customer hires.');
+    actionableTips.push(
+      'Top Rating! You qualify for priority booking dispatches and repeat customer hires.',
+    );
   }
 
   if (acceptanceRatePct < 90) {
     actionableTips.push('Accepting 90%+ of assignment offers unlocks peak-hour incentive bonuses.');
   } else {
-    actionableTips.push('Excellent acceptance rate! You qualify for daily completion incentive campaigns.');
+    actionableTips.push(
+      'Excellent acceptance rate! You qualify for daily completion incentive campaigns.',
+    );
   }
 
   if (cancellationRatePct > 5) {
-    actionableTips.push('Minimize pre-trip cancellations after accepting to maintain a high Reliability Score.');
+    actionableTips.push(
+      'Minimize pre-trip cancellations after accepting to maintain a high Reliability Score.',
+    );
   }
 
   return {

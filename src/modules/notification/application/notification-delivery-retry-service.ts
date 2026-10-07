@@ -71,8 +71,12 @@ export async function processNotificationDeliveryRetries(
     }
 
     const { notification } = delivery;
-    const emailIdent = notification.user.identities.find((i) => i.providerName === 'email' || i.email);
-    const phoneIdent = notification.user.identities.find((i) => i.providerName === 'phone' || i.phoneNumber);
+    const emailIdent = notification.user.identities.find(
+      (i) => i.providerName === 'email' || i.email,
+    );
+    const phoneIdent = notification.user.identities.find(
+      (i) => i.providerName === 'phone' || i.phoneNumber,
+    );
     const userEmail = emailIdent?.email || null;
     const userPhone = phoneIdent?.phoneNumber || null;
 
@@ -83,7 +87,7 @@ export async function processNotificationDeliveryRetries(
           {
             title: notification.title,
             body: notification.body,
-            data: { ...(notification.data as object ?? {}), actionUrl: notification.actionUrl },
+            data: { ...((notification.data as object) ?? {}), actionUrl: notification.actionUrl },
           },
           db,
         );
@@ -123,7 +127,12 @@ export async function processNotificationDeliveryRetries(
           // send up to MAX_ATTEMPTS duplicate fallback messages for one
           // notification.
           if (retriesExhausted) {
-            const fallbackTriggered = await triggerFallbackChannel(notification, userEmail, userPhone, db);
+            const fallbackTriggered = await triggerFallbackChannel(
+              notification,
+              userEmail,
+              userPhone,
+              db,
+            );
             if (fallbackTriggered) {
               fallbackTriggeredCount++;
             } else {
@@ -173,10 +182,7 @@ export async function processNotificationDeliveryRetries(
         else failedCount++;
       }
     } catch (err) {
-      logger.error(
-        { err, deliveryId: delivery.id },
-        'Error during notification delivery retry',
-      );
+      logger.error({ err, deliveryId: delivery.id }, 'Error during notification delivery retry');
       await db.notificationDelivery.update({
         where: { id: delivery.id },
         data: {

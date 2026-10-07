@@ -1,14 +1,14 @@
-import { QuietHoursSettings, NON_URGENT_CATEGORIES } from '../domain/notification-intelligence-types';
+import {
+  QuietHoursSettings,
+  NON_URGENT_CATEGORIES,
+} from '../domain/notification-intelligence-types';
 import { getLocalMinutesFromMidnight } from '@/modules/driver/application/services/driver-schedule-service';
 
 /**
  * Checks if a specific Date/time falls within quiet hours based on HH:mm start & end settings.
  * Handles overnight time ranges (e.g. 22:00 to 07:00).
  */
-export function isInQuietHours(
-  currentTime: Date,
-  config: QuietHoursSettings,
-): boolean {
+export function isInQuietHours(currentTime: Date, config: QuietHoursSettings): boolean {
   if (!config.quietHoursEnabled) {
     return false;
   }

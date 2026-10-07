@@ -42,7 +42,11 @@ export function evaluatePersonalizedShortcutRule(
   const dropoffAddr = lastTrip.dropoffAddress?.split(',')[0] || 'your outstation destination';
   const bookingTypeLabel = (lastTrip.bookingType ?? 'DAILY').toLowerCase();
 
-  const fingerprint = createExperienceFingerprint(context.userId, 'BOOK_AGAIN', `outstation:${lastTrip.id}`);
+  const fingerprint = createExperienceFingerprint(
+    context.userId,
+    'BOOK_AGAIN',
+    `outstation:${lastTrip.id}`,
+  );
 
   return [
     buildRecommendation({

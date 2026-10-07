@@ -68,7 +68,14 @@ describe('Phase 96 — Premium Journey & Trust Experience', () => {
       } as unknown as Db;
 
       mockGetTelemetry.mockResolvedValue({
-        driverLocation: { latitude: 12.92, longitude: 77.52, speed: 10, heading: 0, accuracy: 5, capturedAt: new Date() },
+        driverLocation: {
+          latitude: 12.92,
+          longitude: 77.52,
+          speed: 10,
+          heading: 0,
+          accuracy: 5,
+          capturedAt: new Date(),
+        },
       });
 
       const details = await getPremiumJourneyTrustDetails('bkg-101', 'cust-101', mockDb);
@@ -125,9 +132,9 @@ describe('Phase 96 — Premium Journey & Trust Experience', () => {
         booking: { findFirst: jest.fn().mockResolvedValue(null) },
       } as unknown as Db;
 
-      await expect(getPremiumJourneyTrustDetails('missing', 'cust-101', mockDb)).rejects.toBeInstanceOf(
-        BookingNotFoundError,
-      );
+      await expect(
+        getPremiumJourneyTrustDetails('missing', 'cust-101', mockDb),
+      ).rejects.toBeInstanceOf(BookingNotFoundError);
     });
   });
 
@@ -153,7 +160,11 @@ describe('Phase 96 — Premium Journey & Trust Experience', () => {
         expect.anything(),
       );
       expect(mockCreateSupportTicket).toHaveBeenCalledWith(
-        expect.objectContaining({ customerId: 'cust-101', bookingId: 'bkg-101', category: 'SAFETY_CONCERN' }),
+        expect.objectContaining({
+          customerId: 'cust-101',
+          bookingId: 'bkg-101',
+          category: 'SAFETY_CONCERN',
+        }),
         expect.anything(),
       );
       expect(feedback.feedbackId).toBe('review-1');

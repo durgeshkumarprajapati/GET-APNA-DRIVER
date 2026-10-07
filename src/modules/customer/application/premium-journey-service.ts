@@ -123,7 +123,12 @@ export async function getPremiumJourneyTrustDetails(
 
   let remainingDistanceKm = 0;
   let estimatedArrivalMins = 0;
-  if (!isCancelled && driverLocation && targetLocation.latitude != null && targetLocation.longitude != null) {
+  if (
+    !isCancelled &&
+    driverLocation &&
+    targetLocation.latitude != null &&
+    targetLocation.longitude != null
+  ) {
     const meters = calculateHaversineDistance(
       driverLocation.latitude,
       driverLocation.longitude,
@@ -132,7 +137,8 @@ export async function getPremiumJourneyTrustDetails(
     );
     remainingDistanceKm = Math.round((meters / 1000) * 10) / 10;
     const speedKmh = driverLocation.speed ? driverLocation.speed * 3.6 : 20; // m/s -> km/h, 20km/h fallback
-    estimatedArrivalMins = speedKmh > 0 ? Math.max(1, Math.round((remainingDistanceKm / speedKmh) * 60)) : 0;
+    estimatedArrivalMins =
+      speedKmh > 0 ? Math.max(1, Math.round((remainingDistanceKm / speedKmh) * 60)) : 0;
   }
 
   const breakdown = readPricingSnapshot(booking.pricingSnapshot);
@@ -208,7 +214,12 @@ export async function submitPostServiceFeedback(
   db: Db = prisma,
 ): Promise<FeedbackResolutionResult> {
   const review = await createReview(
-    { bookingId, customerUserId: customerId, rating: input.rating, comment: input.issueDetails ?? null },
+    {
+      bookingId,
+      customerUserId: customerId,
+      rating: input.rating,
+      comment: input.issueDetails ?? null,
+    },
     db,
   );
 
@@ -223,7 +234,8 @@ export async function submitPostServiceFeedback(
         bookingId,
         category: mapIssueCategoryToSupportCategory(input.issueCategory),
         subject: `Post-trip issue: ${input.issueCategory.replace(/_/g, ' ').toLowerCase()}`,
-        description: input.issueDetails || `Customer reported ${input.issueCategory} after trip completion.`,
+        description:
+          input.issueDetails || `Customer reported ${input.issueCategory} after trip completion.`,
       },
       db,
     );

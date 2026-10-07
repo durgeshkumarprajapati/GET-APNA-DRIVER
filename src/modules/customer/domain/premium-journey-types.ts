@@ -62,7 +62,8 @@ export interface PostServiceFeedbackInput {
   rating: number;
   tipAmount?: number;
   feedbackTags?: string[];
-  issueCategory?: 'OVERCHARGED' | 'UNSAFE_DRIVING' | 'DRIVER_NO_SHOW' | 'CLEANLINESS_ISSUE' | 'OTHER';
+  issueCategory?:
+    'OVERCHARGED' | 'UNSAFE_DRIVING' | 'DRIVER_NO_SHOW' | 'CLEANLINESS_ISSUE' | 'OTHER';
   issueDetails?: string;
 }
 

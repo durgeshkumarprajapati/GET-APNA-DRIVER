@@ -94,7 +94,8 @@ export async function getEnhancedReferralDashboard(
   ]);
 
   const total = baseDashboard.totalReferrals;
-  const conversionRatePercentage = total > 0 ? Math.round((baseDashboard.rewardedReferrals / total) * 100) : 0;
+  const conversionRatePercentage =
+    total > 0 ? Math.round((baseDashboard.rewardedReferrals / total) * 100) : 0;
 
   return {
     referralCode: baseDashboard.referralCode,
@@ -115,7 +116,8 @@ export async function getEnhancedReferralDashboard(
       referrerBonus: '₹250 Wallet Credit per successful referral',
       refereeBonus: '₹200 Instant Discount on first booking',
       expiryDays: 90,
-      termsAndConditions: 'Referral rewards are credited once the referee completes their first driver trip. Valid for 90 days.',
+      termsAndConditions:
+        'Referral rewards are credited once the referee completes their first driver trip. Valid for 90 days.',
     },
     activeCampaigns: baseDashboard.activeCampaigns,
     recentReferrals: baseDashboard.recentReferrals.map((r) => ({

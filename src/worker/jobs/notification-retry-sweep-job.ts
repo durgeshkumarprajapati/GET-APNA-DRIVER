@@ -19,20 +19,40 @@ let lastRunAt = 0;
  * route. This registers it as a real periodic sweep, self-gated like the
  * other jobs in this loop.
  */
-export async function runNotificationRetrySweep(db: Db = prisma): Promise<DeliveryRetryResult & { skipped: boolean }> {
+export async function runNotificationRetrySweep(
+  db: Db = prisma,
+): Promise<DeliveryRetryResult & { skipped: boolean }> {
   const enabled = await getBoolean('notifications.retry_sweep.enabled', true, db);
   if (!enabled) {
-    return { processedCount: 0, retriedCount: 0, fallbackTriggeredCount: 0, failedCount: 0, skipped: true };
+    return {
+      processedCount: 0,
+      retriedCount: 0,
+      fallbackTriggeredCount: 0,
+      failedCount: 0,
+      skipped: true,
+    };
   }
 
   const intervalSeconds = await getInteger('notifications.retry_sweep.interval_seconds', 60, db);
   if (Date.now() - lastRunAt < intervalSeconds * 1000) {
-    return { processedCount: 0, retriedCount: 0, fallbackTriggeredCount: 0, failedCount: 0, skipped: true };
+    return {
+      processedCount: 0,
+      retriedCount: 0,
+      fallbackTriggeredCount: 0,
+      failedCount: 0,
+      skipped: true,
+    };
   }
 
   const acquired = await RedisLockService.acquireLock(LOCK_KEY, 60_000);
   if (!acquired) {
-    return { processedCount: 0, retriedCount: 0, fallbackTriggeredCount: 0, failedCount: 0, skipped: true };
+    return {
+      processedCount: 0,
+      retriedCount: 0,
+      fallbackTriggeredCount: 0,
+      failedCount: 0,
+      skipped: true,
+    };
   }
 
   try {

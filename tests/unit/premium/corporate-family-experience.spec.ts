@@ -6,9 +6,15 @@ import {
   evaluateCorporateBookingPolicy,
   generateConsolidatedBillingReport,
 } from '@/modules/corporate/application/corporate-family-service';
-import { listSavedPeople, createSavedPerson } from '@/modules/customer/application/customer-saved-people-service';
+import {
+  listSavedPeople,
+  createSavedPerson,
+} from '@/modules/customer/application/customer-saved-people-service';
 import { getCorporateSpendReport } from '@/modules/corporate/domain/corporate-reporting-service';
-import { evaluateTravelPolicy, getActivePolicy } from '@/modules/corporate/domain/corporate-policy-service';
+import {
+  evaluateTravelPolicy,
+  getActivePolicy,
+} from '@/modules/corporate/domain/corporate-policy-service';
 
 jest.mock('@/modules/customer/application/customer-saved-people-service', () => ({
   listSavedPeople: jest.fn(),
@@ -94,8 +100,20 @@ describe('Phase 97 — Corporate & Family Experience 2.0', () => {
       totalMembersCount: 12,
       activePoliciesCount: 1,
       departmentBreakdown: [
-        { departmentId: 'd-1', departmentCode: 'ENG', departmentName: 'Engineering', spend: 18000, rideCount: 30 },
-        { departmentId: 'd-2', departmentCode: 'SALES', departmentName: 'Sales & Operations', spend: 11400, rideCount: 18 },
+        {
+          departmentId: 'd-1',
+          departmentCode: 'ENG',
+          departmentName: 'Engineering',
+          spend: 18000,
+          rideCount: 30,
+        },
+        {
+          departmentId: 'd-2',
+          departmentCode: 'SALES',
+          departmentName: 'Sales & Operations',
+          spend: 11400,
+          rideCount: 18,
+        },
       ],
       costCenterBreakdown: [],
       recentRides: [],
@@ -113,7 +131,9 @@ describe('Phase 97 — Corporate & Family Experience 2.0', () => {
 
   it('throws when the organization does not exist', async () => {
     const mockDb: MockDb = {
-      organization: { findUnique: jest.fn().mockResolvedValue(null) } as unknown as Db['organization'],
+      organization: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      } as unknown as Db['organization'],
     };
 
     await expect(getCorporateExpenseSummary('org-missing', mockDb as Db)).rejects.toThrow(

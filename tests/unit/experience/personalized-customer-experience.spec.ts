@@ -146,7 +146,8 @@ describe('Phase 89 — Personalized Customer Experience & Recommendation Engine'
   });
 
   it('ExperienceOrchestrationService generates customer recommendations with explainability reasons, and never duplicates the same subject across two cards', async () => {
-    const recommendations = await ExperienceOrchestrationService.generateCustomerExperiences('cust-101');
+    const recommendations =
+      await ExperienceOrchestrationService.generateCustomerExperiences('cust-101');
 
     expect(recommendations.length).toBeGreaterThan(0);
     expect(recommendations.every((r) => r.reason.length > 0)).toBe(true);
@@ -170,7 +171,8 @@ describe('Phase 89 — Personalized Customer Experience & Recommendation Engine'
       } as CustomerExperienceContext['customerPreference'],
     });
 
-    const recommendations = await ExperienceOrchestrationService.generateCustomerExperiences('cust-101');
+    const recommendations =
+      await ExperienceOrchestrationService.generateCustomerExperiences('cust-101');
 
     expect(recommendations.some((r) => r.type === 'FAVORITE_DRIVER')).toBe(false);
     expect(recommendations.some((r) => r.type === 'PROMOTION')).toBe(false);

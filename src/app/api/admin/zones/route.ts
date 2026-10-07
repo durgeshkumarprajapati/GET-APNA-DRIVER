@@ -18,13 +18,10 @@ const createZoneSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
-export const GET = withPermission(
-  PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_READ,
-  async (_req) => {
-    const zones = await listMarketplaceZonesWithAnalytics();
-    return NextResponse.json({ zones }, { status: 200 });
-  },
-);
+export const GET = withPermission(PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_READ, async (_req) => {
+  const zones = await listMarketplaceZonesWithAnalytics();
+  return NextResponse.json({ zones }, { status: 200 });
+});
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE,

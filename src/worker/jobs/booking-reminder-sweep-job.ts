@@ -26,7 +26,11 @@ export async function runBookingReminderSweep(
     return { remindersCreated: 0, skippedDuplicates: 0, targetUserIds: [], skipped: true };
   }
 
-  const intervalSeconds = await getInteger('notifications.reminder_sweep.interval_seconds', 300, db);
+  const intervalSeconds = await getInteger(
+    'notifications.reminder_sweep.interval_seconds',
+    300,
+    db,
+  );
   if (Date.now() - lastRunAt < intervalSeconds * 1000) {
     return { remindersCreated: 0, skippedDuplicates: 0, targetUserIds: [], skipped: true };
   }

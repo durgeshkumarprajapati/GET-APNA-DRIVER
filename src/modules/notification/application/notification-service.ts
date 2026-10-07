@@ -76,13 +76,16 @@ export async function createNotification(
       notificationId: notification.id,
       channel: DeliveryChannel.IN_APP,
       status: evalResult.allowed ? DeliveryStatus.DELIVERED : DeliveryStatus.SKIPPED,
-      failureReason: evalResult.suppressedReason ? `Suppressed: ${evalResult.suppressedReason}` : undefined,
+      failureReason: evalResult.suppressedReason
+        ? `Suppressed: ${evalResult.suppressedReason}`
+        : undefined,
       deliveredAt: evalResult.allowed ? new Date() : undefined,
     },
   });
 
   // Check if Push delivery is allowed by preferences & intelligence
-  const pushEnabled = evalResult.allowed && evalResult.deliverableChannels.includes(DeliveryChannel.PUSH);
+  const pushEnabled =
+    evalResult.allowed && evalResult.deliverableChannels.includes(DeliveryChannel.PUSH);
 
   if (pushEnabled) {
     // Attempt Push Delivery

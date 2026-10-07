@@ -1,5 +1,8 @@
 import type { Db } from '@/shared/database/prisma';
-import { isInQuietHours, shouldSuppressForQuietHours } from '@/modules/notification/application/quiet-hours-evaluator';
+import {
+  isInQuietHours,
+  shouldSuppressForQuietHours,
+} from '@/modules/notification/application/quiet-hours-evaluator';
 import { isFrequencyCapExceeded } from '@/modules/notification/application/frequency-cap-evaluator';
 import { evaluateNotificationIntelligence } from '@/modules/notification/application/notification-intelligence-service';
 import { generateBookingAndScheduleReminders } from '@/modules/notification/application/notification-reminder-service';
@@ -40,14 +43,29 @@ describe('Phase 90 — Customer Engagement & Notification Intelligence', () => {
 
     it('suppresses PROMOTION during quiet hours', () => {
       const lateNight = new Date('2026-10-01T23:30:00');
-      const shouldSuppress = shouldSuppressForQuietHours('PROMOTION', 'NORMAL', lateNight, overnightConfig);
+      const shouldSuppress = shouldSuppressForQuietHours(
+        'PROMOTION',
+        'NORMAL',
+        lateNight,
+        overnightConfig,
+      );
       expect(shouldSuppress).toBe(true);
     });
 
     it('allows HIGH priority or SAFETY notifications during quiet hours', () => {
       const lateNight = new Date('2026-10-01T23:30:00');
-      const shouldSuppressSafety = shouldSuppressForQuietHours('SAFETY', 'NORMAL', lateNight, overnightConfig);
-      const shouldSuppressHigh = shouldSuppressForQuietHours('PROMOTION', 'HIGH', lateNight, overnightConfig);
+      const shouldSuppressSafety = shouldSuppressForQuietHours(
+        'SAFETY',
+        'NORMAL',
+        lateNight,
+        overnightConfig,
+      );
+      const shouldSuppressHigh = shouldSuppressForQuietHours(
+        'PROMOTION',
+        'HIGH',
+        lateNight,
+        overnightConfig,
+      );
 
       expect(shouldSuppressSafety).toBe(false);
       expect(shouldSuppressHigh).toBe(false);
@@ -63,10 +81,18 @@ describe('Phase 90 — Customer Engagement & Notification Intelligence', () => {
       } as unknown as Db;
 
       const capConfig = { frequencyCapEnabled: true, maxNonUrgentPerDay: 3 };
-      const isExceeded = await isFrequencyCapExceeded('user-1', 'PROMOTION', 'HIGH', capConfig, mockDb);
+      const isExceeded = await isFrequencyCapExceeded(
+        'user-1',
+        'PROMOTION',
+        'HIGH',
+        capConfig,
+        mockDb,
+      );
 
       expect(isExceeded).toBe(false);
-      expect((mockDb as unknown as { notification: { count: jest.Mock } }).notification.count).not.toHaveBeenCalled();
+      expect(
+        (mockDb as unknown as { notification: { count: jest.Mock } }).notification.count,
+      ).not.toHaveBeenCalled();
     });
 
     it('detects when frequency cap threshold is reached for non-urgent notifications', async () => {
@@ -74,7 +100,13 @@ describe('Phase 90 — Customer Engagement & Notification Intelligence', () => {
       const mockDb = { notification: { count: mockCount } } as unknown as Db;
 
       const capConfig = { frequencyCapEnabled: true, maxNonUrgentPerDay: 3 };
-      const isExceeded = await isFrequencyCapExceeded('user-1', 'PROMOTION', 'NORMAL', capConfig, mockDb);
+      const isExceeded = await isFrequencyCapExceeded(
+        'user-1',
+        'PROMOTION',
+        'NORMAL',
+        capConfig,
+        mockDb,
+      );
 
       expect(isExceeded).toBe(true);
       expect(mockCount).toHaveBeenCalled();
@@ -127,7 +159,7 @@ describe('Phase 90 — Customer Engagement & Notification Intelligence', () => {
       expect(result.existingNotification).toBe(existing);
     });
 
-    it("reads quiet-hours/frequency-cap settings straight off the real CustomerPreference columns — these must not be a no-op after a customer saves them", async () => {
+    it('reads quiet-hours/frequency-cap settings straight off the real CustomerPreference columns — these must not be a no-op after a customer saves them', async () => {
       const mockDb = {
         notification: {
           findUnique: jest.fn().mockResolvedValue(null),
@@ -181,7 +213,10 @@ describe('Phase 90 — Customer Engagement & Notification Intelligence', () => {
         expect.objectContaining({
           where: expect.objectContaining({
             status: 'ACTIVE',
-            nextOccurrenceAt: expect.objectContaining({ gte: expect.any(Date), lte: expect.any(Date) }),
+            nextOccurrenceAt: expect.objectContaining({
+              gte: expect.any(Date),
+              lte: expect.any(Date),
+            }),
           }),
         }),
       );

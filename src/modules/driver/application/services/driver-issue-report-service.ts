@@ -9,7 +9,11 @@ import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 import { generateTicketNumber } from '@/modules/support/application/services/customer-support-service';
 import { BookingNotFoundError } from '@/modules/booking/domain/errors';
 
-import { SupportTicketCategory, SupportTicketAuthorRole, SupportTicketPriority } from '@prisma/client';
+import {
+  SupportTicketCategory,
+  SupportTicketAuthorRole,
+  SupportTicketPriority,
+} from '@prisma/client';
 
 /**
  * Creates a formal issue report / support ticket for a driver. Reuses the
@@ -43,8 +47,10 @@ export async function reportDriverIssue(
 
     let category: SupportTicketCategory = SupportTicketCategory.OTHER;
     if (input.issueCategory === 'FARE_DISPUTE') category = SupportTicketCategory.PAYMENT_FARE;
-    else if (input.issueCategory === 'CUSTOMER_NO_SHOW') category = SupportTicketCategory.BOOKING_ISSUE;
-    else if (input.issueCategory === 'APP_GLITCH' || input.issueCategory === 'ROUTE_PROBLEM') category = SupportTicketCategory.APP_TECHNICAL;
+    else if (input.issueCategory === 'CUSTOMER_NO_SHOW')
+      category = SupportTicketCategory.BOOKING_ISSUE;
+    else if (input.issueCategory === 'APP_GLITCH' || input.issueCategory === 'ROUTE_PROBLEM')
+      category = SupportTicketCategory.APP_TECHNICAL;
 
     const ticketNumber = await generateTicketNumber(tx);
     const ticket = await tx.supportTicket.create({

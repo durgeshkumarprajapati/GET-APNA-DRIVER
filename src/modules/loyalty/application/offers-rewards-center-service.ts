@@ -142,7 +142,9 @@ export async function getUnifiedOffersAndRewardsCenter(
       description: p.description ?? `Get special discount with code ${p.code}`,
       discountType: String(p.discountType),
       discountValue:
-        p.discountType === 'PERCENTAGE' ? `${Number(p.discountValue)}% OFF` : `₹${Number(p.discountValue)} OFF`,
+        p.discountType === 'PERCENTAGE'
+          ? `${Number(p.discountValue)}% OFF`
+          : `₹${Number(p.discountValue)} OFF`,
       expiresAt: p.endsAt ? p.endsAt.toISOString() : null,
     })),
     availableRewards: rewards.map((r) => ({

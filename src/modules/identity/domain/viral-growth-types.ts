@@ -8,7 +8,12 @@ export interface ShareableReferralPayload {
 
 export interface ReferralFraudCheckResult {
   isEligible: boolean;
-  reason?: 'SELF_REFERRAL' | 'REFERRAL_LOOP' | 'ALREADY_REFERRED' | 'IP_FINGERPRINT_DUPLICATE' | 'CAMPAIGN_EXPIRED';
+  reason?:
+    | 'SELF_REFERRAL'
+    | 'REFERRAL_LOOP'
+    | 'ALREADY_REFERRED'
+    | 'IP_FINGERPRINT_DUPLICATE'
+    | 'CAMPAIGN_EXPIRED';
 }
 
 export interface EnhancedReferralDashboardDTO {

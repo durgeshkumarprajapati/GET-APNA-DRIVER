@@ -2,7 +2,8 @@ import { processAiConciergeMessage } from '@/modules/ai/application/ai-booking-c
 
 describe('Phase 95 — AI Booking Concierge 2.0', () => {
   it('parses natural language booking requests and prefills draft booking details', async () => {
-    const prompt = 'I need an SUV tomorrow at 9 AM from Koramangala to Airport for my mother Mrs. Sharma';
+    const prompt =
+      'I need an SUV tomorrow at 9 AM from Koramangala to Airport for my mother Mrs. Sharma';
     const result = await processAiConciergeMessage('cust-101', { message: prompt });
 
     expect(result.intent).toBe('BOOKING_REQUEST');

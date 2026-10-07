@@ -31,7 +31,10 @@ const mockGenerateReferralCodeForUser = generateReferralCodeForUser as jest.Mock
 
 describe('Phase 92 — Referral & Viral Growth 2.0', () => {
   it('generates SVG QR Code Data URL containing referral code', () => {
-    const qrUrl = generateReferralQrDataUrl('REF-TEST101', 'https://getapnadriver.com/register?ref=REF-TEST101');
+    const qrUrl = generateReferralQrDataUrl(
+      'REF-TEST101',
+      'https://getapnadriver.com/register?ref=REF-TEST101',
+    );
 
     expect(qrUrl).toContain('data:image/svg+xml');
     expect(qrUrl).toContain('REF-TEST101');

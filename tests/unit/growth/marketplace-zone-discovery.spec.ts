@@ -80,10 +80,18 @@ describe('Phase 94 — Local Marketplace Expansion & Discovery', () => {
   it('skips a zone row with corrupt coordinates instead of crashing the request', async () => {
     const mockDb: MockDb = {
       marketplaceZone: {
-        findMany: jest.fn().mockResolvedValue([
-          { ...DELHI_ZONE, id: 'zone-corrupt', code: 'CORRUPT', centerLatitude: 999, centerLongitude: 999 },
-          DELHI_ZONE,
-        ]),
+        findMany: jest
+          .fn()
+          .mockResolvedValue([
+            {
+              ...DELHI_ZONE,
+              id: 'zone-corrupt',
+              code: 'CORRUPT',
+              centerLatitude: 999,
+              centerLongitude: 999,
+            },
+            DELHI_ZONE,
+          ]),
       } as unknown as Db['marketplaceZone'],
       driverProfile: {
         findMany: jest.fn().mockResolvedValue([]),
