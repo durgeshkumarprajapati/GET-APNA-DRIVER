@@ -17,6 +17,9 @@ describe('Phase 40 Notification & Engagement Center Service Unit Tests', () => {
 
   beforeEach(() => {
     mockDb = {
+      customerPreference: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
       notification: {
         findUnique: jest.fn(),
         create: jest.fn(),

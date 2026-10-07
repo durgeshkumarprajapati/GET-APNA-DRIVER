@@ -11,9 +11,7 @@ import {
 /**
  * Calculates booking funnel conversion metrics and stage drop-offs.
  */
-export async function getBookingFunnelAnalytics(
-  _db: Db = prisma,
-): Promise<FunnelAnalyticsDTO> {
+export async function getBookingFunnelAnalytics(_db: Db = prisma): Promise<FunnelAnalyticsDTO> {
   const totalVisitors = 10000;
   const searchVisitors = 7500;
   const offerAccepted = 5800;
@@ -99,13 +97,17 @@ export async function getCohortRetentionAnalytics(
 export function evaluateFeatureFlag(
   input: FeatureFlagEvaluationInput,
 ): FeatureFlagEvaluationResult {
-  // Simple deterministic hash based on userId characters
-  let charSum = 0;
-  for (let i = 0; i < input.userId.length; i++) {
-    charSum += input.userId.charCodeAt(i);
+  // Deterministic hash over experimentKey+userId — hashing userId alone
+  // meant a given user landed in the identical bucket (and thus the
+  // identical variant) across every experiment ever run, defeating the
+  // statistical independence A/B testing requires between experiments.
+  const hashInput = `${input.experimentKey}:${input.userId}`;
+  let hash = 0;
+  for (let i = 0; i < hashInput.length; i++) {
+    hash = (hash * 31 + hashInput.charCodeAt(i)) | 0;
   }
 
-  const hashBucket = charSum % 100;
+  const hashBucket = Math.abs(hash) % 100;
   let assignedVariant: 'control' | 'treatment_a' | 'treatment_b' = 'control';
 
   if (hashBucket < 50) {

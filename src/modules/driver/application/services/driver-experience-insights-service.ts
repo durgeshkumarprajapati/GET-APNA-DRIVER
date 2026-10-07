@@ -36,17 +36,21 @@ export async function getDriverShiftSummary(
     },
   });
 
-  const statusStr = String(profile?.availabilityStatus || 'OFFLINE');
-  const isOnDuty = statusStr === 'AVAILABLE' || statusStr === 'BUSY' || statusStr === 'ON_TRIP';
+  // DriverAvailabilityStatus is only ever OFFLINE/AVAILABLE/BUSY/UNAVAILABLE
+  // — 'ON_TRIP' and 'BREAK' were never real values this could hold.
+  const statusStr = profile?.availabilityStatus ?? 'OFFLINE';
+  const isOnDuty = statusStr === 'AVAILABLE' || statusStr === 'BUSY';
 
   let availabilityStatus: 'AVAILABLE' | 'ON_TRIP' | 'OFF_DUTY' | 'ON_BREAK' = 'OFF_DUTY';
   if (statusStr === 'AVAILABLE') availabilityStatus = 'AVAILABLE';
-  else if (statusStr === 'BUSY' || statusStr === 'ON_TRIP') availabilityStatus = 'ON_TRIP';
-  else if (statusStr === 'UNAVAILABLE' || statusStr === 'BREAK') availabilityStatus = 'ON_BREAK';
+  else if (statusStr === 'BUSY') availabilityStatus = 'ON_TRIP';
+  else if (statusStr === 'UNAVAILABLE') availabilityStatus = 'ON_BREAK';
 
   // Calculate active shift duration
   const lastUpdateMs = profile?.updatedAt?.getTime() ?? now.getTime();
-  const shiftDurationMinutes = isOnDuty ? Math.max(15, Math.floor((now.getTime() - lastUpdateMs) / (60 * 1000))) : 0;
+  const shiftDurationMinutes = isOnDuty
+    ? Math.max(15, Math.floor((now.getTime() - lastUpdateMs) / (60 * 1000)))
+    : 0;
 
   return {
     driverProfileId,
@@ -66,34 +70,26 @@ export async function getDriverEarningsBreakdown(
   now: Date = new Date(),
   db: Db = prisma,
 ): Promise<DriverEarningsBreakdown> {
+  // getDriverEarningsSummary already computes everything needed here
+  // (todayEarnings, completedTripsToday, pendingBalance, totalEarned) via
+  // the real DriverWallet/booking aggregates — no separate query needed.
+  // A prior version of this function additionally queried driverWallet
+  // directly, selecting `balance`/`pendingSettlementAmount`, neither of
+  // which exist on DriverWallet (the real columns are availableBalance/
+  // pendingBalance/reservedBalance/totalEarned), so that query threw on
+  // every call; it also reported this week's total (periodEarnings) as
+  // "today's" earnings, and fabricated a trip-fares/incentives/tips/
+  // commission split as fixed percentages of that number — none of which
+  // is backed by real per-category data anywhere in this platform.
   const earningsSummary = await getDriverEarningsSummary(driverProfileId, now, db);
 
-  const wallet = await db.driverWallet.findUnique({
-    where: { driverProfileId },
-    select: {
-      balance: true,
-      totalEarned: true,
-      pendingSettlementAmount: true,
-    },
-  });
-
-  const pendingSettlement = wallet?.pendingSettlementAmount
-    ? Number(wallet.pendingSettlementAmount).toFixed(2)
-    : '0.00';
-
-  const periodEarnings = Number(earningsSummary.periodEarnings);
-  const tripFaresTotal = (periodEarnings * 0.85).toFixed(2);
-  const incentivesEarned = (periodEarnings * 0.10).toFixed(2);
-  const tipsTotal = (periodEarnings * 0.05).toFixed(2);
-  const commissionDeducted = (periodEarnings * 0.15).toFixed(2);
+  const pendingSettlement = Number(earningsSummary.pendingBalance).toFixed(2);
 
   return {
     driverProfileId,
-    todayNetEarnings: periodEarnings.toFixed(2),
-    tripFaresTotal,
-    incentivesEarned,
-    tipsTotal,
-    commissionDeducted,
+    todayNetEarnings: Number(earningsSummary.todayEarnings).toFixed(2),
+    completedTripsToday: earningsSummary.completedTripsToday,
+    lifetimeEarnings: Number(earningsSummary.totalEarned).toFixed(2),
     pendingSettlementAmount: pendingSettlement,
     settlementCycleStatus: Number(pendingSettlement) > 0 ? 'PENDING' : 'SETTLED',
     settlementCycleRange: 'Mon - Sun (Weekly)',
@@ -110,13 +106,10 @@ export async function getDriverPerformanceInsights(
   const metrics = await getDriverPerformanceMetrics(driverProfileId, db);
 
   // Compute total offer assignments
-  const totalOffersCount = await db.bookingAssignmentAttempt.count({
-    where: { driverProfileId },
-  });
-
-  const acceptedOffersCount = await db.bookingAssignmentAttempt.count({
-    where: { driverProfileId, status: 'ACCEPTED' },
-  });
+  const [totalOffersCount, acceptedOffersCount] = await Promise.all([
+    db.bookingAssignmentAttempt.count({ where: { driverProfileId } }),
+    db.bookingAssignmentAttempt.count({ where: { driverProfileId, status: 'ACCEPTED' } }),
+  ]);
 
   const completionRatePct = Math.round(Number(metrics.completionRate) * 100);
   const cancellationRatePct = Math.round(Number(metrics.cancellationRate) * 100);
@@ -124,24 +117,34 @@ export async function getDriverPerformanceInsights(
     totalOffersCount > 0 ? Math.round((acceptedOffersCount / totalOffersCount) * 100) : 95;
 
   const onTimeArrivalPct = Math.min(100, Math.max(85, completionRatePct + 5));
-  const reliabilityScore = Math.round((acceptanceRatePct * 0.4) + (completionRatePct * 0.4) + ((metrics.averageRating / 5) * 20));
+  const reliabilityScore = Math.round(
+    acceptanceRatePct * 0.4 + completionRatePct * 0.4 + (metrics.averageRating / 5) * 20,
+  );
 
   const actionableTips: string[] = [];
 
   if (metrics.averageRating < 4.8) {
-    actionableTips.push('Maintain a polite greeting and keep vehicle interior clean to boost 5-star customer ratings.');
+    actionableTips.push(
+      'Maintain a polite greeting and keep vehicle interior clean to boost 5-star customer ratings.',
+    );
   } else {
-    actionableTips.push('Top Rating! You qualify for priority booking dispatches and repeat customer hires.');
+    actionableTips.push(
+      'Top Rating! You qualify for priority booking dispatches and repeat customer hires.',
+    );
   }
 
   if (acceptanceRatePct < 90) {
     actionableTips.push('Accepting 90%+ of assignment offers unlocks peak-hour incentive bonuses.');
   } else {
-    actionableTips.push('Excellent acceptance rate! You qualify for daily completion incentive campaigns.');
+    actionableTips.push(
+      'Excellent acceptance rate! You qualify for daily completion incentive campaigns.',
+    );
   }
 
   if (cancellationRatePct > 5) {
-    actionableTips.push('Minimize pre-trip cancellations after accepting to maintain a high Reliability Score.');
+    actionableTips.push(
+      'Minimize pre-trip cancellations after accepting to maintain a high Reliability Score.',
+    );
   }
 
   return {

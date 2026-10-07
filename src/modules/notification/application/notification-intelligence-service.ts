@@ -31,43 +31,23 @@ export async function getUserNotificationIntelligenceConfig(
   userId: string,
   db: Db = prisma,
 ): Promise<UserNotificationIntelligenceConfig> {
-  const custPref = db.customerPreference
-    ? await db.customerPreference.findUnique({
-        where: { userId },
-      }).catch(() => null)
-    : null;
+  const custPref = await db.customerPreference.findUnique({ where: { userId } }).catch(() => null);
 
-  const rawPref = custPref as Record<string, unknown> | null;
+  const quietHours: QuietHoursSettings = custPref
+    ? {
+        quietHoursEnabled: custPref.quietHoursEnabled,
+        quietHoursStart: custPref.quietHoursStart,
+        quietHoursEnd: custPref.quietHoursEnd,
+        timezone: custPref.notificationTimezone,
+      }
+    : DEFAULT_QUIET_HOURS;
 
-  const quietHours: QuietHoursSettings = {
-    quietHoursEnabled:
-      typeof rawPref?.quietHoursEnabled === 'boolean'
-        ? rawPref.quietHoursEnabled
-        : DEFAULT_QUIET_HOURS.quietHoursEnabled,
-    quietHoursStart:
-      typeof rawPref?.quietHoursStart === 'string'
-        ? rawPref.quietHoursStart
-        : DEFAULT_QUIET_HOURS.quietHoursStart,
-    quietHoursEnd:
-      typeof rawPref?.quietHoursEnd === 'string'
-        ? rawPref.quietHoursEnd
-        : DEFAULT_QUIET_HOURS.quietHoursEnd,
-    timezone:
-      typeof rawPref?.timezone === 'string'
-        ? rawPref.timezone
-        : DEFAULT_QUIET_HOURS.timezone,
-  };
-
-  const frequencyCap: FrequencyCapSettings = {
-    frequencyCapEnabled:
-      typeof rawPref?.frequencyCapEnabled === 'boolean'
-        ? rawPref.frequencyCapEnabled
-        : DEFAULT_FREQUENCY_CAP.frequencyCapEnabled,
-    maxNonUrgentPerDay:
-      typeof rawPref?.maxNonUrgentPerDay === 'number'
-        ? rawPref.maxNonUrgentPerDay
-        : DEFAULT_FREQUENCY_CAP.maxNonUrgentPerDay,
-  };
+  const frequencyCap: FrequencyCapSettings = custPref
+    ? {
+        frequencyCapEnabled: custPref.frequencyCapEnabled,
+        maxNonUrgentPerDay: custPref.maxNonUrgentPerDay,
+      }
+    : DEFAULT_FREQUENCY_CAP;
 
   return { quietHours, frequencyCap };
 }
@@ -94,6 +74,7 @@ export async function evaluateNotificationIntelligence(
         suppressedReason: 'DUPLICATE_IDEMPOTENCY',
         deliverableChannels: [],
         originalCategory: input.category,
+        existingNotification: existing,
       };
     }
   }

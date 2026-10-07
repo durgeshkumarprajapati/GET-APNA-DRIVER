@@ -53,12 +53,18 @@ export const PUT = withAuth(async (req, { principal }) => {
     parsed.maxNonUrgentPerDay !== undefined
   ) {
     await updateCustomerPreference(principal.userId, {
-      ...(parsed.quietHoursEnabled !== undefined && { quietHoursEnabled: parsed.quietHoursEnabled }),
+      ...(parsed.quietHoursEnabled !== undefined && {
+        quietHoursEnabled: parsed.quietHoursEnabled,
+      }),
       ...(parsed.quietHoursStart !== undefined && { quietHoursStart: parsed.quietHoursStart }),
       ...(parsed.quietHoursEnd !== undefined && { quietHoursEnd: parsed.quietHoursEnd }),
-      ...(parsed.frequencyCapEnabled !== undefined && { frequencyCapEnabled: parsed.frequencyCapEnabled }),
-      ...(parsed.maxNonUrgentPerDay !== undefined && { maxNonUrgentPerDay: parsed.maxNonUrgentPerDay }),
-    } as any);
+      ...(parsed.frequencyCapEnabled !== undefined && {
+        frequencyCapEnabled: parsed.frequencyCapEnabled,
+      }),
+      ...(parsed.maxNonUrgentPerDay !== undefined && {
+        maxNonUrgentPerDay: parsed.maxNonUrgentPerDay,
+      }),
+    });
   }
 
   const [preferences, intelligenceConfig] = await Promise.all([
@@ -66,5 +72,8 @@ export const PUT = withAuth(async (req, { principal }) => {
     getUserNotificationIntelligenceConfig(principal.userId),
   ]);
 
-  return NextResponse.json({ preferences, intelligenceConfig, updated: updatedCategoryPref }, { status: 200 });
+  return NextResponse.json(
+    { preferences, intelligenceConfig, updated: updatedCategoryPref },
+    { status: 200 },
+  );
 });

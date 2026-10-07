@@ -6,29 +6,7 @@ import {
   ZoneAnalyticsDTO,
 } from '../domain/marketplace-zone-types';
 import { recordAuditLog } from '@/shared/audit/audit-service';
-
-/**
- * Calculates Haversine distance in meters between two lat/lng coordinates.
- */
-export function calculateHaversineDistanceMeters(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number {
-  const R = 6371e3; // Earth radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return Math.round(R * c);
-}
+import { calculateHaversineDistance } from './distance-service';
 
 /**
  * Evaluates zone-based service availability, vehicle categories, and driver arrival ETA.
@@ -60,43 +38,78 @@ export async function getMarketplaceZoneCoverage(
     };
   }
 
-  // Find closest matching zone
+  // Find closest matching zone. A zone row with corrupt stored coordinates
+  // is skipped rather than letting it crash this public, unauthenticated
+  // request for every caller.
   let closestZone = activeZones[0];
-  let minDistance = calculateHaversineDistanceMeters(
-    latitude,
-    longitude,
-    closestZone.centerLatitude,
-    closestZone.centerLongitude,
-  );
-
+  let minDistance = Infinity;
   for (const zone of activeZones) {
-    const dist = calculateHaversineDistanceMeters(
-      latitude,
-      longitude,
-      zone.centerLatitude,
-      zone.centerLongitude,
-    );
-    if (dist < minDistance) {
-      minDistance = dist;
-      closestZone = zone;
+    try {
+      const dist = calculateHaversineDistance(
+        latitude,
+        longitude,
+        zone.centerLatitude,
+        zone.centerLongitude,
+      );
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestZone = zone;
+      }
+    } catch {
+      // Skip zones with invalid stored coordinates
     }
   }
 
   const isCovered = minDistance <= closestZone.radiusMeters;
 
-  // Query active driver supply in zone vicinity
-  const activeDriversCount = await db.driverProfile.count({
-    where: {
-      availabilityStatus: 'AVAILABLE',
-      approvalStatus: 'APPROVED',
-    },
-  });
+  // Real, zone-scoped driver supply and open-booking demand. A prior
+  // version counted ALL platform-wide available drivers and ALL open
+  // bookings regardless of distance from the queried point — every zone in
+  // the country reported the same numbers — then floored the driver count
+  // at a fabricated minimum of 5 even when the true nearby count was lower
+  // or zero.
+  //
+  // This intentionally does not call marketplace-intelligence's
+  // getSupplyMetrics/getDemandMetrics: those hardcode the global prisma
+  // client (this file's db param exists specifically so callers/tests can
+  // inject a fake one) and getSupplyMetrics additionally runs a dispatch-
+  // eligibility check per driver platform-wide — too expensive to repeat on
+  // every call to this unauthenticated, likely high-traffic endpoint.
+  const [driverLocations, openBookings] = await Promise.all([
+    db.driverProfile.findMany({
+      where: { availabilityStatus: 'AVAILABLE', approvalStatus: 'APPROVED' },
+      select: { currentLocation: { select: { latitude: true, longitude: true } } },
+    }),
+    db.booking.findMany({
+      where: { status: { in: ['DRAFT', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED'] } },
+      select: { pickupLatitude: true, pickupLongitude: true },
+    }),
+  ]);
 
-  const openBookingsCount = await db.booking.count({
-    where: {
-      status: { in: ['DRAFT', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED'] },
-    },
-  });
+  const isWithinClosestZone = (lat: number, lon: number): boolean => {
+    try {
+      return (
+        calculateHaversineDistance(
+          lat,
+          lon,
+          closestZone.centerLatitude,
+          closestZone.centerLongitude,
+        ) <= closestZone.radiusMeters
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const activeDriverSupplyCount = driverLocations.filter(
+    (d) =>
+      d.currentLocation &&
+      isWithinClosestZone(d.currentLocation.latitude, d.currentLocation.longitude),
+  ).length;
+
+  const openBookingDemandCount = openBookings.filter((b) =>
+    isWithinClosestZone(b.pickupLatitude, b.pickupLongitude),
+  ).length;
 
   const estimatedDriverArrivalMins = isCovered
     ? Math.max(3, Math.min(15, Math.round(minDistance / 500) + 4))
@@ -114,8 +127,8 @@ export async function getMarketplaceZoneCoverage(
     distanceFromCenterMeters: minDistance,
     availableVehicleCategories: ['HATCHBACK', 'SEDAN', 'SUV', 'LUXURY'],
     estimatedDriverArrivalMins,
-    activeDriverSupplyCount: Math.max(5, activeDriversCount),
-    openBookingDemandCount: openBookingsCount,
+    activeDriverSupplyCount,
+    openBookingDemandCount,
   };
 }
 
@@ -178,11 +191,16 @@ export async function listMarketplaceZonesWithAnalytics(
 
   const [activeDriversCount, activeBookingsCount] = await Promise.all([
     db.driverProfile.count({ where: { availabilityStatus: 'AVAILABLE' } }),
-    db.booking.count({ where: { status: { in: ['DRAFT', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED', 'TRIP_IN_PROGRESS'] } } }),
+    db.booking.count({
+      where: {
+        status: { in: ['DRAFT', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED', 'TRIP_IN_PROGRESS'] },
+      },
+    }),
   ]);
 
   return zones.map((z) => {
-    const demandSupplyRatio = activeDriversCount > 0 ? Number((activeBookingsCount / activeDriversCount).toFixed(2)) : 0;
+    const demandSupplyRatio =
+      activeDriversCount > 0 ? Number((activeBookingsCount / activeDriversCount).toFixed(2)) : 0;
     return {
       zoneId: z.id,
       code: z.code,

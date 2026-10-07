@@ -3,6 +3,10 @@ import { DeliveryChannel, DeliveryStatus } from '@prisma/client';
 import { sendPushToUser } from './push-notification-service';
 import { emailProvider } from '../infrastructure/email-provider';
 import { sendSmsNotification } from '../infrastructure/sms-provider';
+import {
+  isChannelEnabledForCategory,
+  type NotificationCategory,
+} from './notification-preference-service';
 import { DeliveryRetryResult } from '../domain/notification-intelligence-types';
 import { logger } from '@/shared/logging/logger';
 
@@ -67,8 +71,12 @@ export async function processNotificationDeliveryRetries(
     }
 
     const { notification } = delivery;
-    const emailIdent = notification.user.identities.find((i) => i.providerName === 'email' || i.email);
-    const phoneIdent = notification.user.identities.find((i) => i.providerName === 'phone' || i.phoneNumber);
+    const emailIdent = notification.user.identities.find(
+      (i) => i.providerName === 'email' || i.email,
+    );
+    const phoneIdent = notification.user.identities.find(
+      (i) => i.providerName === 'phone' || i.phoneNumber,
+    );
     const userEmail = emailIdent?.email || null;
     const userPhone = phoneIdent?.phoneNumber || null;
 
@@ -79,7 +87,7 @@ export async function processNotificationDeliveryRetries(
           {
             title: notification.title,
             body: notification.body,
-            data: { ...(notification.data as object ?? {}), actionUrl: notification.actionUrl },
+            data: { ...((notification.data as object) ?? {}), actionUrl: notification.actionUrl },
           },
           db,
         );
@@ -95,64 +103,86 @@ export async function processNotificationDeliveryRetries(
           });
           retriedCount++;
         } else {
-          // Push failed or no active subscriptions — trigger Fallback Channel
+          // Push failed or no active subscriptions. lastAttemptAt must be
+          // set on every attempt — otherwise the backoff check above
+          // (delivery.lastAttemptAt ?? Date.now()) keeps measuring from the
+          // original attempt and this row is immediately due again next run.
           const nextAttempt = delivery.attemptCount + 1;
+          const retriesExhausted = nextAttempt >= MAX_ATTEMPTS;
           await db.notificationDelivery.update({
             where: { id: delivery.id },
             data: {
-              status: nextAttempt >= MAX_ATTEMPTS ? DeliveryStatus.FAILED : DeliveryStatus.FAILED,
+              status: DeliveryStatus.FAILED,
               failedAt: new Date(),
-              failureReason: 'Push subscription unreachable — fallback initiated',
+              lastAttemptAt: new Date(),
+              failureReason: retriesExhausted
+                ? 'Push subscription unreachable — retries exhausted, fallback initiated'
+                : 'Push subscription unreachable — will retry',
               attemptCount: nextAttempt,
             },
           });
 
-          // Trigger Fallback Channel (Email or SMS) for critical notifications
-          const fallbackTriggered = await triggerFallbackChannel(notification, userEmail, userPhone, db);
-          if (fallbackTriggered) {
-            fallbackTriggeredCount++;
-          } else {
-            failedCount++;
+          // Fallback (SMS/email) fires exactly once, only after retries are
+          // exhausted — not on every failed attempt, which would otherwise
+          // send up to MAX_ATTEMPTS duplicate fallback messages for one
+          // notification.
+          if (retriesExhausted) {
+            const fallbackTriggered = await triggerFallbackChannel(
+              notification,
+              userEmail,
+              userPhone,
+              db,
+            );
+            if (fallbackTriggered) {
+              fallbackTriggeredCount++;
+            } else {
+              failedCount++;
+            }
           }
         }
       } else if (delivery.channel === DeliveryChannel.EMAIL && userEmail) {
-        await emailProvider.sendEmail({
+        const emailResult = await emailProvider.sendEmail({
           toEmail: userEmail,
           subject: notification.title,
           bodyText: notification.body,
           htmlBody: `<p>${notification.body}</p>`,
         });
+        const delivered = emailResult.status !== 'failed';
 
         await db.notificationDelivery.update({
           where: { id: delivery.id },
           data: {
-            status: DeliveryStatus.DELIVERED,
-            deliveredAt: new Date(),
+            status: delivered ? DeliveryStatus.DELIVERED : DeliveryStatus.FAILED,
+            deliveredAt: delivered ? new Date() : undefined,
+            failedAt: delivered ? undefined : new Date(),
+            lastAttemptAt: new Date(),
             attemptCount: delivery.attemptCount + 1,
           },
         });
-        retriedCount++;
+        if (delivered) retriedCount++;
+        else failedCount++;
       } else if (delivery.channel === DeliveryChannel.SMS && userPhone) {
-        await sendSmsNotification({
+        const smsResult = await sendSmsNotification({
           to: userPhone,
           message: `${notification.title}: ${notification.body}`,
         });
+        const delivered = smsResult.status !== 'failed';
 
         await db.notificationDelivery.update({
           where: { id: delivery.id },
           data: {
-            status: DeliveryStatus.DELIVERED,
-            deliveredAt: new Date(),
+            status: delivered ? DeliveryStatus.DELIVERED : DeliveryStatus.FAILED,
+            deliveredAt: delivered ? new Date() : undefined,
+            failedAt: delivered ? undefined : new Date(),
+            lastAttemptAt: new Date(),
             attemptCount: delivery.attemptCount + 1,
           },
         });
-        retriedCount++;
+        if (delivered) retriedCount++;
+        else failedCount++;
       }
     } catch (err) {
-      logger.error(
-        { err, deliveryId: delivery.id },
-        'Error during notification delivery retry',
-      );
+      logger.error({ err, deliveryId: delivery.id }, 'Error during notification delivery retry');
       await db.notificationDelivery.update({
         where: { id: delivery.id },
         data: {
@@ -186,42 +216,68 @@ async function triggerFallbackChannel(
   userPhone: string | null,
   db: Db,
 ): Promise<boolean> {
-  if (userPhone) {
-    // Dispatch SMS Fallback
-    await db.notificationDelivery.create({
+  // SAFETY always gets a fallback regardless of category toggles (business
+  // policy, matching isChannelEnabledForCategory's own SAFETY carve-out);
+  // every other category respects the user's per-category sms/email choice
+  // — a user who turned off SMS for PROMOTION must not get a 2am SMS just
+  // because the push retry failed.
+  const category = (notification.category ?? 'SYSTEM') as NotificationCategory;
+
+  if (userPhone && (await isChannelEnabledForCategory(notification.userId, category, 'sms', db))) {
+    const delivery = await db.notificationDelivery.create({
       data: {
         notificationId: notification.id,
         channel: DeliveryChannel.SMS,
-        status: DeliveryStatus.DELIVERED,
-        deliveredAt: new Date(),
+        status: DeliveryStatus.PROCESSING,
+        lastAttemptAt: new Date(),
         attemptCount: 1,
       },
     });
 
-    await sendSmsNotification({
+    const result = await sendSmsNotification({
       to: userPhone,
       message: `[GET APNA DRIVER] ${notification.title}: ${notification.body}`,
     });
-    return true;
-  } else if (userEmail) {
-    // Dispatch Email Fallback
-    await db.notificationDelivery.create({
+    const delivered = result.status !== 'failed';
+    await db.notificationDelivery.update({
+      where: { id: delivery.id },
+      data: {
+        status: delivered ? DeliveryStatus.DELIVERED : DeliveryStatus.FAILED,
+        deliveredAt: delivered ? new Date() : undefined,
+        failedAt: delivered ? undefined : new Date(),
+      },
+    });
+    return delivered;
+  } else if (
+    userEmail &&
+    (await isChannelEnabledForCategory(notification.userId, category, 'email', db))
+  ) {
+    const delivery = await db.notificationDelivery.create({
       data: {
         notificationId: notification.id,
         channel: DeliveryChannel.EMAIL,
-        status: DeliveryStatus.DELIVERED,
-        deliveredAt: new Date(),
+        status: DeliveryStatus.PROCESSING,
+        lastAttemptAt: new Date(),
         attemptCount: 1,
       },
     });
 
-    await emailProvider.sendEmail({
+    const result = await emailProvider.sendEmail({
       toEmail: userEmail,
       subject: notification.title,
       bodyText: notification.body,
       htmlBody: `<p>${notification.body}</p>`,
     });
-    return true;
+    const delivered = result.status !== 'failed';
+    await db.notificationDelivery.update({
+      where: { id: delivery.id },
+      data: {
+        status: delivered ? DeliveryStatus.DELIVERED : DeliveryStatus.FAILED,
+        deliveredAt: delivered ? new Date() : undefined,
+        failedAt: delivered ? undefined : new Date(),
+      },
+    });
+    return delivered;
   }
 
   return false;

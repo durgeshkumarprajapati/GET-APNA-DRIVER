@@ -254,7 +254,7 @@ export async function getCustomerExperienceContext(
       severity: String(si.severity),
       title: String(si.type).replace(/_/g, ' '),
     })),
-    customerPreference: customerPreference ? (customerPreference as Record<string, unknown>) : null,
+    customerPreference: customerPreference ?? null,
   };
 }
 

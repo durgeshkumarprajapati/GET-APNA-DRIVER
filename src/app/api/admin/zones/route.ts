@@ -14,17 +14,14 @@ const createZoneSchema = z.object({
   description: z.string().optional(),
   centerLatitude: z.number().min(-90).max(90),
   centerLongitude: z.number().min(-180).max(180),
-  radiusMeters: z.number().min(500).max(100000),
+  radiusMeters: z.number().int().min(500).max(100000),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
-export const GET = withPermission(
-  PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_READ,
-  async (_req) => {
-    const zones = await listMarketplaceZonesWithAnalytics();
-    return NextResponse.json({ zones }, { status: 200 });
-  },
-);
+export const GET = withPermission(PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_READ, async (_req) => {
+  const zones = await listMarketplaceZonesWithAnalytics();
+  return NextResponse.json({ zones }, { status: 200 });
+});
 
 export const POST = withPermission(
   PERMISSIONS.ADMIN_MARKETPLACE_INTELLIGENCE_MANAGE,

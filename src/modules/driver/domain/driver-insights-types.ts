@@ -9,11 +9,11 @@ export interface DriverShiftSummary {
 
 export interface DriverEarningsBreakdown {
   driverProfileId: string;
+  /** Gross fare revenue from trips completed since midnight today. */
   todayNetEarnings: string;
-  tripFaresTotal: string;
-  incentivesEarned: string;
-  tipsTotal: string;
-  commissionDeducted: string;
+  completedTripsToday: number;
+  /** Lifetime total — DriverWallet.totalEarned. */
+  lifetimeEarnings: string;
   pendingSettlementAmount: string;
   settlementCycleStatus: 'PENDING' | 'PROCESSING' | 'SETTLED';
   settlementCycleRange: string;

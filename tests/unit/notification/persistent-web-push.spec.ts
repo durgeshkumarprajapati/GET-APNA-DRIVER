@@ -30,6 +30,9 @@ const mockTx = {
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     $transaction: jest.fn((callback: (tx: unknown) => unknown) => callback(mockTx)),
+    customerPreference: {
+      findUnique: jest.fn().mockResolvedValue(null),
+    },
     pushSubscription: {
       upsert: jest.fn(),
       findUnique: jest.fn(),

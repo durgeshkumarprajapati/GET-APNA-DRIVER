@@ -1,3 +1,5 @@
+import type { CustomerPreference } from '@prisma/client';
+
 export interface CustomerExperienceContext {
   userId: string;
   category: 'CUSTOMER';
@@ -70,7 +72,7 @@ export interface CustomerExperienceContext {
     severity: string;
     title: string;
   }>;
-  customerPreference?: Record<string, unknown> | null;
+  customerPreference?: CustomerPreference | null;
 }
 
 export interface DriverExperienceContext {

@@ -9,10 +9,10 @@ const previewSchema = z.object({
   estimatedFare: z.number().positive(),
 });
 
-export const POST = withAuth(async (req) => {
+export const POST = withAuth(async (req, { principal }) => {
   const body = await req.json();
   const parsed = previewSchema.parse(body);
 
-  const preview = await previewCouponSavings(parsed.code, parsed.estimatedFare);
+  const preview = await previewCouponSavings(parsed.code, parsed.estimatedFare, principal.userId);
   return NextResponse.json({ preview }, { status: 200 });
 });

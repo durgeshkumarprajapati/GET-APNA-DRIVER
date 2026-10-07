@@ -34,18 +34,19 @@ export async function createNotification(
     db,
   );
 
-  // If duplicate idempotency key, return existing notification
-  if (!evalResult.allowed && evalResult.suppressedReason === 'DUPLICATE_IDEMPOTENCY' && input.idempotencyKey) {
-    const existing = await db.notification.findUnique({
-      where: { idempotencyKey: input.idempotencyKey },
-    });
-    if (existing) {
-      logger.info(
-        { idempotencyKey: input.idempotencyKey },
-        'Notification already created (idempotent duplicate)',
-      );
-      return existing;
-    }
+  // If duplicate idempotency key, return the already-created notification —
+  // evaluateNotificationIntelligence already looked it up, no need to
+  // re-query the same row.
+  if (
+    !evalResult.allowed &&
+    evalResult.suppressedReason === 'DUPLICATE_IDEMPOTENCY' &&
+    evalResult.existingNotification
+  ) {
+    logger.info(
+      { idempotencyKey: input.idempotencyKey },
+      'Notification already created (idempotent duplicate)',
+    );
+    return evalResult.existingNotification;
   }
 
   const actionUrl = input.actionUrl ?? meta.defaultActionUrl;
@@ -75,13 +76,16 @@ export async function createNotification(
       notificationId: notification.id,
       channel: DeliveryChannel.IN_APP,
       status: evalResult.allowed ? DeliveryStatus.DELIVERED : DeliveryStatus.SKIPPED,
-      failureReason: evalResult.suppressedReason ? `Suppressed: ${evalResult.suppressedReason}` : undefined,
+      failureReason: evalResult.suppressedReason
+        ? `Suppressed: ${evalResult.suppressedReason}`
+        : undefined,
       deliveredAt: evalResult.allowed ? new Date() : undefined,
     },
   });
 
   // Check if Push delivery is allowed by preferences & intelligence
-  const pushEnabled = evalResult.allowed && evalResult.deliverableChannels.includes(DeliveryChannel.PUSH);
+  const pushEnabled =
+    evalResult.allowed && evalResult.deliverableChannels.includes(DeliveryChannel.PUSH);
 
   if (pushEnabled) {
     // Attempt Push Delivery
@@ -124,6 +128,19 @@ export async function createNotification(
           data: {
             status: DeliveryStatus.DELIVERED,
             deliveredAt: new Date(),
+            attemptCount: 1,
+          },
+        });
+      } else if (pushRes.totalFailed > 0) {
+        // A real send attempt failed (not just "no subscriptions") — this
+        // must be FAILED, not SKIPPED, so processNotificationDeliveryRetries
+        // (which only selects FAILED/PROCESSING rows) actually retries it.
+        await db.notificationDelivery.update({
+          where: { id: delivery.id },
+          data: {
+            status: DeliveryStatus.FAILED,
+            failedAt: new Date(),
+            failureReason: 'Push delivery failed for all active subscriptions',
             attemptCount: 1,
           },
         });

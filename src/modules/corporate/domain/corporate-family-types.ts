@@ -36,8 +36,10 @@ export interface EvaluateCorporatePolicyInput {
   organizationId: string;
   employeeUserId: string;
   estimatedFare: number;
+  estimatedDistanceKm?: number;
   vehicleCategory: string;
   bookingTime?: string;
+  monthlySpentSoFar?: number;
 }
 
 export interface PolicyEvaluationResultDTO {

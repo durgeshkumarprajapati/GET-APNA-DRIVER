@@ -15,6 +15,9 @@ describe('NotificationService - push payload (actionUrl + tag propagation)', () 
     jest.clearAllMocks();
     mockSendPushToUser.mockResolvedValue({ totalSent: 1, totalFailed: 0 });
     mockDb = {
+      customerPreference: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
       notification: {
         findUnique: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockImplementation((args: { data: Record<string, unknown> }) =>

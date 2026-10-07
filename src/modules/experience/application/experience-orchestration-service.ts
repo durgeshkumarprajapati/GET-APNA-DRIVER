@@ -7,11 +7,9 @@ import { getDismissedFingerprints } from './experience-dismissal-service';
 import { rankAndLimitRecommendations } from './experience-ranking-service';
 import { evaluateBookAgainRule } from '../rules/book-again-rule';
 import { evaluateFavoriteDriverRule } from '../rules/favorite-driver-rule';
-import { evaluateFavoriteDriverAvailabilityRule } from '../rules/favorite-driver-availability-rule';
 import { evaluateScheduledRideRule } from '../rules/scheduled-ride-rule';
 import { evaluateLoyaltyRule } from '../rules/loyalty-rule';
 import { evaluatePromotionRule } from '../rules/promotion-rule';
-import { evaluateContextualPromotionRule } from '../rules/contextual-promotion-rule';
 import { evaluateReferralRule } from '../rules/referral-rule';
 import { evaluateDriverIncentiveRule } from '../rules/driver-incentive-rule';
 import { evaluateTripActionRule } from '../rules/trip-action-rule';
@@ -53,20 +51,16 @@ export class ExperienceOrchestrationService {
       candidates.push(...tripActions);
 
       // Master Personalization Control Toggle Check
-      const prefRecord = context.customerPreference as Record<string, unknown> | undefined;
-      const isPersonalizationEnabled = prefRecord?.personalizationEnabled !== false;
+      const isPersonalizationEnabled = context.customerPreference?.personalizationEnabled !== false;
 
       if (isPersonalizationEnabled) {
         // 2. Book Again
         const bookAgain = evaluateBookAgainRule(context);
         if (bookAgain) candidates.push(bookAgain);
 
-        // 3. Favorite Driver (General & Availability)
+        // 3. Favorite Driver
         const favoriteDriver = evaluateFavoriteDriverRule(context);
         if (favoriteDriver) candidates.push(favoriteDriver);
-
-        const favDriverAvail = evaluateFavoriteDriverAvailabilityRule(context);
-        if (favDriverAvail) candidates.push(favDriverAvail);
 
         // 4. Personalized Travel Shortcuts
         const shortcuts = evaluatePersonalizedShortcutRule(context);
@@ -80,12 +74,9 @@ export class ExperienceOrchestrationService {
         const loyalty = evaluateLoyaltyRule(context);
         if (loyalty) candidates.push(loyalty);
 
-        // 7. Promotions (General & Contextual)
+        // 7. Promotions
         const promotion = evaluatePromotionRule(context);
         if (promotion) candidates.push(promotion);
-
-        const contextualPromo = evaluateContextualPromotionRule(context);
-        if (contextualPromo) candidates.push(contextualPromo);
 
         // 8. Referral
         const referral = evaluateReferralRule(context);

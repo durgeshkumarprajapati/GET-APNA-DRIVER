@@ -82,16 +82,29 @@ export async function getEnhancedReferralDashboard(
   baseUrl = 'https://getapnadriver.com',
   db: Db = prisma,
 ): Promise<EnhancedReferralDashboardDTO> {
+  // getCustomerReferralDashboard and generateShareableReferralPayload each
+  // call generateReferralCodeForUser internally. Resolving it once up front
+  // means both of the calls below hit the fast findUnique path instead of
+  // two concurrent get-or-create attempts racing each other.
+  await generateReferralCodeForUser(userId, db);
+
   const [baseDashboard, sharePayload] = await Promise.all([
     getCustomerReferralDashboard(userId, baseUrl, db),
     generateShareableReferralPayload(userId, baseUrl, db),
   ]);
 
   const total = baseDashboard.totalReferrals;
-  const conversionRatePercentage = total > 0 ? Math.round((baseDashboard.rewardedReferrals / total) * 100) : 0;
+  const conversionRatePercentage =
+    total > 0 ? Math.round((baseDashboard.rewardedReferrals / total) * 100) : 0;
 
   return {
     referralCode: baseDashboard.referralCode,
+    // Top-level, flat field — src/app/customer/referral/page.tsx's Share
+    // button reads dashboard.shareUrl directly (matching the shape
+    // getCustomerReferralDashboard alone used to return); a prior version
+    // only nested it under sharePayload.shareUrl, which nothing read, so
+    // the Share button silently did nothing.
+    shareUrl: baseDashboard.shareUrl,
     sharePayload,
     totalReferrals: baseDashboard.totalReferrals,
     pendingReferrals: baseDashboard.pendingReferrals,
@@ -103,7 +116,8 @@ export async function getEnhancedReferralDashboard(
       referrerBonus: '₹250 Wallet Credit per successful referral',
       refereeBonus: '₹200 Instant Discount on first booking',
       expiryDays: 90,
-      termsAndConditions: 'Referral rewards are credited once the referee completes their first driver trip. Valid for 90 days.',
+      termsAndConditions:
+        'Referral rewards are credited once the referee completes their first driver trip. Valid for 90 days.',
     },
     activeCampaigns: baseDashboard.activeCampaigns,
     recentReferrals: baseDashboard.recentReferrals.map((r) => ({

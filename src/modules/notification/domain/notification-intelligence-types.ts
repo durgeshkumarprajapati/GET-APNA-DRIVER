@@ -1,10 +1,10 @@
-import { DeliveryChannel } from '@prisma/client';
+import { DeliveryChannel, type Notification } from '@prisma/client';
 
 export interface QuietHoursSettings {
   quietHoursEnabled: boolean;
   quietHoursStart: string; // HH:mm 24-hour format, e.g. "22:00"
-  quietHoursEnd: string;   // HH:mm 24-hour format, e.g. "07:00"
-  timezone: string;        // e.g. "Asia/Kolkata"
+  quietHoursEnd: string; // HH:mm 24-hour format, e.g. "07:00"
+  timezone: string; // e.g. "Asia/Kolkata"
 }
 
 export interface FrequencyCapSettings {
@@ -47,9 +47,13 @@ export interface NotificationEvaluationInput {
 
 export interface NotificationEvaluationResult {
   allowed: boolean;
-  suppressedReason?: 'QUIET_HOURS' | 'FREQUENCY_CAP_EXCEEDED' | 'DUPLICATE_IDEMPOTENCY' | 'CATEGORY_DISABLED';
+  suppressedReason?:
+    'QUIET_HOURS' | 'FREQUENCY_CAP_EXCEEDED' | 'DUPLICATE_IDEMPOTENCY' | 'CATEGORY_DISABLED';
   deliverableChannels: DeliveryChannel[];
   originalCategory: string;
+  /** Set only when suppressedReason is DUPLICATE_IDEMPOTENCY — the row the
+   * duplicate lookup already found, so the caller doesn't re-query it. */
+  existingNotification?: Notification;
 }
 
 export interface ReminderGenerationResult {
