@@ -14,7 +14,7 @@ const createZoneSchema = z.object({
   description: z.string().optional(),
   centerLatitude: z.number().min(-90).max(90),
   centerLongitude: z.number().min(-180).max(180),
-  radiusMeters: z.number().min(500).max(100000),
+  radiusMeters: z.number().int().min(500).max(100000),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
