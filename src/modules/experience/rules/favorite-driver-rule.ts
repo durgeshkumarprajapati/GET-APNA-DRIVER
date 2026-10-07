@@ -9,6 +9,10 @@ import { EXPERIENCE_PRIORITY_WEIGHTS } from '../domain/experience-policy';
 export function evaluateFavoriteDriverRule(
   context: CustomerExperienceContext,
 ): ExperienceRecommendation | null {
+  if (context.customerPreference?.favoriteDriverSuggestionsEnabled === false) {
+    return null;
+  }
+
   if (!context.favoriteDrivers || context.favoriteDrivers.length === 0) {
     return null;
   }
@@ -34,8 +38,8 @@ export function evaluateFavoriteDriverRule(
       ? `${availableDriver.driverName} is online and available for direct assignment.`
       : `Your saved favorite driver (${availableDriver.rating}★ rating).`,
     reason: availableDriver.isAvailable
-      ? 'Favorite driver is currently online'
-      : 'Saved favorite driver in your profile',
+      ? `Shown because ${availableDriver.driverName} is one of your favorite drivers and is online right now.`
+      : `Shown because ${availableDriver.driverName} is one of your favorite drivers.`,
     priority: EXPERIENCE_PRIORITY_WEIGHTS.FAVORITE_DRIVER + (availableDriver.isAvailable ? 10 : 0),
     isDismissable: true,
     isMandatory: false,

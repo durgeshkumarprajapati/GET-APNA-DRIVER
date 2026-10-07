@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export type ConnectionState = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'RECONNECTING' | 'FAILED';
+export type ConnectionState =
+  'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'RECONNECTING' | 'FAILED';
 
 export interface RealTimeEventPayload {
   eventId?: string;
@@ -40,6 +41,11 @@ export function useRealTimeStream({
   const retryDelayRef = useRef(INITIAL_RETRY_DELAY_MS);
   const attemptsRef = useRef(0);
   const processedEventIdsRef = useRef<Set<string>>(new Set());
+  // Holds the latest `connect` so the reconnect `setTimeout` below can call
+  // it without a self-reference inside `connect`'s own `useCallback` body —
+  // a self/forward reference there breaks the React Compiler's static
+  // dependency analysis even though it's safe at runtime via closures.
+  const connectRef = useRef<() => void>(() => {});
 
   const resetHeartbeat = useCallback(() => {
     if (heartbeatTimerRef.current) clearTimeout(heartbeatTimerRef.current);
@@ -107,7 +113,8 @@ export function useRealTimeStream({
         resetHeartbeat();
         try {
           const data = JSON.parse(e.data) as RealTimeEventPayload;
-          const eventId = data.eventId || (data.payload as Record<string, unknown>)?.messageId as string;
+          const eventId =
+            data.eventId || ((data.payload as Record<string, unknown>)?.messageId as string);
 
           // Event Deduplication check
           if (eventId && processedEventIdsRef.current.has(eventId)) {
@@ -150,7 +157,7 @@ export function useRealTimeStream({
         retryDelayRef.current = nextDelay;
 
         reconnectTimerRef.current = setTimeout(() => {
-          connect();
+          connectRef.current();
           if (onReconcile) onReconcile();
         }, nextDelay);
       };
@@ -158,6 +165,10 @@ export function useRealTimeStream({
       setConnectionState('FAILED');
     }
   }, [bookingId, enabled, onBookingUpdate, onReconcile, resetHeartbeat, clearTimers]);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   // Tab visibility & Window Online listener for immediate recovery and state reconciliation
   useEffect(() => {

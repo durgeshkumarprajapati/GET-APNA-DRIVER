@@ -311,6 +311,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                 type="button"
                 onClick={() => setSearchModalOpen(false)}
                 className="text-[#bccac0] hover:text-[#dfe2ee]"
+                aria-label={t('common.actions.close')}
               >
                 <span className="material-symbols-outlined">close</span>
               </button>

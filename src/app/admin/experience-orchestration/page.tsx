@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface ExperienceMetricsData {
   totalGenerated: number;
@@ -151,7 +152,7 @@ export default function AdminExperienceOrchestrationPage() {
               </div>
               <div className="space-y-2">
                 {Object.keys(metrics.generatedByType).length === 0 ? (
-                  <p className="text-xs text-[#87948b] italic">No recommendations recorded yet.</p>
+                  <EmptyState icon="insights" message="No recommendations recorded yet." />
                 ) : (
                   Object.entries(metrics.generatedByType).map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between text-xs">
@@ -172,7 +173,7 @@ export default function AdminExperienceOrchestrationPage() {
               </div>
               <div className="space-y-2">
                 {Object.keys(metrics.dismissalsByType).length === 0 ? (
-                  <p className="text-xs text-[#87948b] italic">No dismissals recorded yet.</p>
+                  <EmptyState icon="block" message="No dismissals recorded yet." />
                 ) : (
                   Object.entries(metrics.dismissalsByType).map(([type, count]) => (
                     <div key={type} className="flex items-center justify-between text-xs">

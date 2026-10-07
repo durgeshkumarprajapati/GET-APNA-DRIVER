@@ -58,31 +58,34 @@ describe('GET /api/customer/wallet — authorization', () => {
   });
 
   it('rejects an unauthenticated request with 401', async () => {
-    const res = await GET(requestWithQuery('', null));
+    const res = await GET(requestWithQuery('', null), undefined);
     expect(res.status).toBe(401);
     expect(mockedGetCustomerWallet).not.toHaveBeenCalled();
   });
 
   it('rejects a DRIVER-only account with 403 — driver cannot access the customer wallet', async () => {
-    const res = await GET(requestWithQuery('', ['DRIVER']));
+    const res = await GET(requestWithQuery('', ['DRIVER']), undefined);
     expect(res.status).toBe(403);
     expect(mockedGetCustomerWallet).not.toHaveBeenCalled();
   });
 
   it('rejects an ADMINISTRATOR-only account with 403 — admin must use existing admin finance APIs, not this customer endpoint', async () => {
-    const res = await GET(requestWithQuery('', ['ADMINISTRATOR']));
+    const res = await GET(requestWithQuery('', ['ADMINISTRATOR']), undefined);
     expect(res.status).toBe(403);
     expect(mockedGetCustomerWallet).not.toHaveBeenCalled();
   });
 
   it('allows a CUSTOMER account through and derives ownership only from the session principal', async () => {
-    const res = await GET(requestWithQuery('', ['CUSTOMER']));
+    const res = await GET(requestWithQuery('', ['CUSTOMER']), undefined);
     expect(res.status).toBe(200);
     expect(mockedGetCustomerWallet).toHaveBeenCalledWith('customer-1', expect.anything());
   });
 
   it('ignores any customerId/userId supplied in the query string — ownership always comes from the session', async () => {
-    await GET(requestWithQuery('?customerId=someone-else&userId=someone-else', ['CUSTOMER']));
+    await GET(
+      requestWithQuery('?customerId=someone-else&userId=someone-else', ['CUSTOMER']),
+      undefined,
+    );
     expect(mockedGetCustomerWallet).toHaveBeenCalledWith('customer-1', expect.anything());
   });
 });
@@ -94,7 +97,7 @@ describe('GET /api/customer/wallet — query validation', () => {
   });
 
   it('rejects an invalid type filter with 400 INVALID_INPUT', async () => {
-    const res = await GET(requestWithQuery('?type=not_a_real_filter'));
+    const res = await GET(requestWithQuery('?type=not_a_real_filter'), undefined);
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toBe('INVALID_INPUT');
@@ -102,23 +105,23 @@ describe('GET /api/customer/wallet — query validation', () => {
   });
 
   it('rejects a pageSize above the maximum with 400', async () => {
-    const res = await GET(requestWithQuery('?pageSize=100000'));
+    const res = await GET(requestWithQuery('?pageSize=100000'), undefined);
     expect(res.status).toBe(400);
     expect(mockedGetCustomerWallet).not.toHaveBeenCalled();
   });
 
   it('rejects a non-numeric page with 400', async () => {
-    const res = await GET(requestWithQuery('?page=not-a-number'));
+    const res = await GET(requestWithQuery('?page=not-a-number'), undefined);
     expect(res.status).toBe(400);
   });
 
   it('rejects a negative page with 400', async () => {
-    const res = await GET(requestWithQuery('?page=-1'));
+    const res = await GET(requestWithQuery('?page=-1'), undefined);
     expect(res.status).toBe(400);
   });
 
   it('passes valid page/pageSize/type through to the service', async () => {
-    await GET(requestWithQuery('?page=2&pageSize=10&type=refund'));
+    await GET(requestWithQuery('?page=2&pageSize=10&type=refund'), undefined);
     expect(mockedGetCustomerWallet).toHaveBeenCalledWith(
       'customer-1',
       expect.objectContaining({ page: 2, pageSize: 10, type: 'refund' }),
@@ -126,7 +129,7 @@ describe('GET /api/customer/wallet — query validation', () => {
   });
 
   it('defaults page/pageSize/type to undefined when omitted, letting the service apply defaults', async () => {
-    await GET(requestWithQuery(''));
+    await GET(requestWithQuery(''), undefined);
     expect(mockedGetCustomerWallet).toHaveBeenCalledWith(
       'customer-1',
       expect.objectContaining({ page: undefined, pageSize: undefined, type: undefined }),
@@ -134,7 +137,7 @@ describe('GET /api/customer/wallet — query validation', () => {
   });
 
   it('returns the service result wrapped in a { wallet } envelope', async () => {
-    const res = await GET(requestWithQuery('', ['CUSTOMER']));
+    const res = await GET(requestWithQuery('', ['CUSTOMER']), undefined);
     const body = await res.json();
     expect(body).toEqual({ wallet: EMPTY_WALLET });
   });

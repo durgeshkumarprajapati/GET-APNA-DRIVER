@@ -15,6 +15,16 @@ export interface UpdateCustomerPreferenceInput {
   preferredServiceType?: string | null;
   preferredPickupInstructions?: string | null;
   preferredDriverProfileId?: string | null;
+  personalizationEnabled?: boolean;
+  favoriteDriverSuggestionsEnabled?: boolean;
+  promotionSuggestionsEnabled?: boolean;
+  personalizedShortcutsEnabled?: boolean;
+  quietHoursEnabled?: boolean;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  notificationTimezone?: string;
+  frequencyCapEnabled?: boolean;
+  maxNonUrgentPerDay?: number;
 }
 
 /**
@@ -84,6 +94,32 @@ export async function updateCustomerPreference(
         }),
         ...(input.preferredDriverProfileId !== undefined && {
           preferredDriverProfileId: input.preferredDriverProfileId,
+        }),
+        ...(input.personalizationEnabled !== undefined && {
+          personalizationEnabled: input.personalizationEnabled,
+        }),
+        ...(input.favoriteDriverSuggestionsEnabled !== undefined && {
+          favoriteDriverSuggestionsEnabled: input.favoriteDriverSuggestionsEnabled,
+        }),
+        ...(input.promotionSuggestionsEnabled !== undefined && {
+          promotionSuggestionsEnabled: input.promotionSuggestionsEnabled,
+        }),
+        ...(input.personalizedShortcutsEnabled !== undefined && {
+          personalizedShortcutsEnabled: input.personalizedShortcutsEnabled,
+        }),
+        ...(input.quietHoursEnabled !== undefined && {
+          quietHoursEnabled: input.quietHoursEnabled,
+        }),
+        ...(input.quietHoursStart !== undefined && { quietHoursStart: input.quietHoursStart }),
+        ...(input.quietHoursEnd !== undefined && { quietHoursEnd: input.quietHoursEnd }),
+        ...(input.notificationTimezone !== undefined && {
+          notificationTimezone: input.notificationTimezone,
+        }),
+        ...(input.frequencyCapEnabled !== undefined && {
+          frequencyCapEnabled: input.frequencyCapEnabled,
+        }),
+        ...(input.maxNonUrgentPerDay !== undefined && {
+          maxNonUrgentPerDay: input.maxNonUrgentPerDay,
         }),
       },
     });

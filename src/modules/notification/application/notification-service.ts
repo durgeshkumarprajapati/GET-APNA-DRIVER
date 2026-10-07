@@ -10,36 +10,47 @@ import { prisma, type Db } from '@/shared/database/prisma';
 import { logger } from '@/shared/logging/logger';
 import { realtime } from '@/shared/realtime/realtime-provider';
 import { sendPushToUser } from './push-notification-service';
-import {
-  isChannelEnabledForCategory,
-  NotificationCategory,
-} from './notification-preference-service';
 import { getTemplateForNotificationType } from './notification-template-registry';
 import { CreateNotificationInput, NotificationFilterInput } from '../domain/types';
+
+import { evaluateNotificationIntelligence } from './notification-intelligence-service';
 
 export async function createNotification(
   input: CreateNotificationInput,
   db: Db = prisma,
 ): Promise<Notification> {
-  // Check idempotency if key provided
-  if (input.idempotencyKey) {
-    const existing = await db.notification.findUnique({
-      where: { idempotencyKey: input.idempotencyKey },
-    });
-    if (existing) {
-      logger.info(
-        { idempotencyKey: input.idempotencyKey },
-        'Notification already created (idempotent duplicate)',
-      );
-      return existing;
-    }
-  }
-
   const meta = getTemplateForNotificationType(input.type);
   const category = input.category ?? meta.category;
+  const priority = input.priority ?? meta.priority;
+
+  // Run Notification Intelligence evaluation (Quiet Hours, Frequency Capping, Idempotency)
+  const evalResult = await evaluateNotificationIntelligence(
+    {
+      userId: input.userId,
+      category,
+      priority,
+      idempotencyKey: input.idempotencyKey,
+    },
+    db,
+  );
+
+  // If duplicate idempotency key, return the already-created notification —
+  // evaluateNotificationIntelligence already looked it up, no need to
+  // re-query the same row.
+  if (
+    !evalResult.allowed &&
+    evalResult.suppressedReason === 'DUPLICATE_IDEMPOTENCY' &&
+    evalResult.existingNotification
+  ) {
+    logger.info(
+      { idempotencyKey: input.idempotencyKey },
+      'Notification already created (idempotent duplicate)',
+    );
+    return evalResult.existingNotification;
+  }
+
   const actionUrl = input.actionUrl ?? meta.defaultActionUrl;
   const imageAsset = input.imageAsset ?? meta.imageAsset ?? null;
-  const priority = input.priority ?? meta.priority;
   const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
 
   const notification = await db.notification.create({
@@ -64,18 +75,17 @@ export async function createNotification(
     data: {
       notificationId: notification.id,
       channel: DeliveryChannel.IN_APP,
-      status: DeliveryStatus.DELIVERED,
-      deliveredAt: new Date(),
+      status: evalResult.allowed ? DeliveryStatus.DELIVERED : DeliveryStatus.SKIPPED,
+      failureReason: evalResult.suppressedReason
+        ? `Suppressed: ${evalResult.suppressedReason}`
+        : undefined,
+      deliveredAt: evalResult.allowed ? new Date() : undefined,
     },
   });
 
-  // Check category preferences for Push delivery
-  const pushEnabled = await isChannelEnabledForCategory(
-    input.userId,
-    category as NotificationCategory,
-    'push',
-    db,
-  );
+  // Check if Push delivery is allowed by preferences & intelligence
+  const pushEnabled =
+    evalResult.allowed && evalResult.deliverableChannels.includes(DeliveryChannel.PUSH);
 
   if (pushEnabled) {
     // Attempt Push Delivery
@@ -118,6 +128,19 @@ export async function createNotification(
           data: {
             status: DeliveryStatus.DELIVERED,
             deliveredAt: new Date(),
+            attemptCount: 1,
+          },
+        });
+      } else if (pushRes.totalFailed > 0) {
+        // A real send attempt failed (not just "no subscriptions") — this
+        // must be FAILED, not SKIPPED, so processNotificationDeliveryRetries
+        // (which only selects FAILED/PROCESSING rows) actually retries it.
+        await db.notificationDelivery.update({
+          where: { id: delivery.id },
+          data: {
+            status: DeliveryStatus.FAILED,
+            failedAt: new Date(),
+            failureReason: 'Push delivery failed for all active subscriptions',
             attemptCount: 1,
           },
         });

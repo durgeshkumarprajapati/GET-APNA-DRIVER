@@ -386,8 +386,10 @@ export function ControlStationLayout({
                 Control Station Lookup
               </h3>
               <button
+                type="button"
                 onClick={() => setSearchModalOpen(false)}
                 className="text-[#bccac0] hover:text-[#dfe2ee]"
+                aria-label={t('common.actions.close')}
               >
                 <span className="material-symbols-outlined">close</span>
               </button>

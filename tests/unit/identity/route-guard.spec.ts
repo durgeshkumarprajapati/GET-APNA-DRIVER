@@ -27,7 +27,7 @@ describe('Route Guard Authorization Middlewares', () => {
     const handler = withAuth(async () => NextResponse.json({ ok: true }));
     const req = new NextRequest('http://localhost:3000/api/protected');
 
-    const res = await handler(req);
+    const res = await handler(req, undefined);
     expect(res.status).toBe(401);
   });
 
@@ -46,7 +46,7 @@ describe('Route Guard Authorization Middlewares', () => {
       headers: { authorization: 'Bearer mock-token' },
     });
 
-    const res = await handler(req);
+    const res = await handler(req, undefined);
     expect(res.status).toBe(200);
     const body = (await res.json()) as { userId: string };
     expect(body.userId).toBe('user-1');
@@ -65,7 +65,7 @@ describe('Route Guard Authorization Middlewares', () => {
       headers: { authorization: 'Bearer mock-token' },
     });
 
-    const res = await handler(req);
+    const res = await handler(req, undefined);
     expect(res.status).toBe(403);
   });
 
@@ -82,7 +82,7 @@ describe('Route Guard Authorization Middlewares', () => {
       headers: { authorization: 'Bearer mock-token' },
     });
 
-    const res = await adminHandler(req);
+    const res = await adminHandler(req, undefined);
     expect(res.status).toBe(403);
   });
 
@@ -99,7 +99,7 @@ describe('Route Guard Authorization Middlewares', () => {
       headers: { authorization: 'Bearer mock-token' },
     });
 
-    const res = await writeHandler(req);
+    const res = await writeHandler(req, undefined);
     expect(res.status).toBe(403);
   });
 });

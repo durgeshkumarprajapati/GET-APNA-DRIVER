@@ -55,7 +55,7 @@ export default function AdminDriverAchievementsPage() {
           activeStreaks: data.data.activeStreaks ?? 0,
         });
       } else {
-        setError('Failed to fetch admin achievement data');
+        setError('Could not load driver achievement data. Please refresh the page.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading admin data');
@@ -79,7 +79,8 @@ export default function AdminDriverAchievementsPage() {
             });
           }
         } else {
-          if (isMounted) setError('Failed to fetch admin achievement data');
+          if (isMounted)
+            setError('Could not load driver achievement data. Please refresh the page.');
         }
       } catch (err) {
         if (isMounted) setError(err instanceof Error ? err.message : 'Error loading admin data');

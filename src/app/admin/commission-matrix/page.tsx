@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { MetricCard } from '@/components/ui/metric-card';
 import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { formatDateTime } from '@/shared/formatting/date';
 
 interface CommissionPolicy {
@@ -169,7 +170,7 @@ export default function AdminCommissionMatrixPage() {
                 Rate Change History
               </h2>
               {history.length === 0 ? (
-                <p className="text-xs text-[#87948b]">No changes recorded yet.</p>
+                <EmptyState icon="history" message="No changes recorded yet." />
               ) : (
                 <div className="space-y-2 font-mono text-xs">
                   {history.map((entry) => (

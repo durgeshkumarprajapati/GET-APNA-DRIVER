@@ -9,6 +9,8 @@ import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge'
 import { useToast, ToastViewport } from '@/components/ui/toast';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import type { CapturedLocation } from '@/components/use-geolocation-capture';
+import { OnboardingProgress } from '@/components/ui/onboarding-progress';
+import { ContextualTip } from '@/components/ui/contextual-tip';
 
 interface DriverProfile {
   firstName: string | null;
@@ -287,8 +289,10 @@ export default function DriverOnboardingPage() {
               your documents are <StatusBadge label={profile.verificationStatus} tone="warning" />.
             </p>
             <p className="text-xs text-[#87948b]">
-              You&apos;ll be notified once our verification team reviews your submission. Dispatch
-              access is granted only after approval.
+              {documents.filter((d) => d.status === 'VERIFIED').length} of{' '}
+              {REQUIRED_DOCUMENT_TYPES.length} required documents verified so far. You&apos;ll be
+              notified once our verification team reviews your submission. Dispatch access is
+              granted only after approval.
             </p>
           </div>
         </div>
@@ -302,23 +306,31 @@ export default function DriverOnboardingPage() {
         <PageHeader
           eyebrow="Driver Onboarding"
           title="Complete Your Driver Application"
-          subtitle="All three steps are required before your application can be submitted for verification."
+          subtitle="All three steps are required before your application can be submitted for verification. You can close this page anytime — your progress is saved automatically."
         />
 
-        <div className="flex items-center gap-2 text-xs font-mono">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`flex-1 h-1.5 rounded-full ${step >= s ? 'bg-[#68dba9]' : 'bg-[#262a33]'}`}
-            />
-          ))}
-        </div>
+        <OnboardingProgress
+          steps={[
+            { label: 'Profile', status: step > 1 ? 'done' : step === 1 ? 'current' : 'pending' },
+            { label: 'Documents', status: step > 2 ? 'done' : step === 2 ? 'current' : 'pending' },
+            { label: 'Review & Submit', status: step === 3 ? 'current' : 'pending' },
+          ]}
+          detail={
+            step === 2
+              ? `${REQUIRED_DOCUMENT_TYPES.length - missingRequiredDocs.length} of ${REQUIRED_DOCUMENT_TYPES.length} required documents uploaded`
+              : undefined
+          }
+        />
 
         {step === 1 && (
           <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-xl">
             <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
               1. Personal & Profile Information
             </h2>
+            <ContextualTip id="driver-onboarding-step1">
+              Your primary service area and experience help us match you with nearby bookings — no
+              need for every field to be perfect, you can edit this later from your profile.
+            </ContextualTip>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="text-xs text-[#87948b] flex flex-col gap-1">
                 First Name
@@ -406,6 +418,10 @@ export default function DriverOnboardingPage() {
             <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
               2. Required Documents
             </h2>
+            <ContextualTip id="driver-onboarding-step2">
+              Only Driving License and Aadhaar Card are required to submit — the rest speed up
+              approval but can be added later from your profile.
+            </ContextualTip>
             {uploadError && <p className="text-xs text-[#ffb4ab]">{uploadError}</p>}
             <div className="space-y-3">
               {ALL_DOCUMENT_TYPES.map((type) => {

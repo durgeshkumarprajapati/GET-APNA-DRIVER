@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CustomerExperienceSection } from '@/components/experience/customer-experience-section';
 import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useTranslation } from '@/i18n/context';
 import { BookingMessagePanel } from '@/components/booking/BookingMessagePanel';
+import { SmartRebookingWidget } from '@/components/booking/SmartRebookingWidget';
 import type { CustomerDashboardData } from '@/modules/customer/application/customer-dashboard-service';
 
 function statusBadgeClass(status: string): string {
@@ -135,6 +137,58 @@ export default function CustomerDashboardPage() {
                 </Link>
               </div>
             </section>
+
+            {/* 1-Tap Quick Booking & Smart Rebooking Widget */}
+            <SmartRebookingWidget />
+
+            {/* Getting Started — shown only to a brand-new customer with no booking history yet */}
+            {!activeService && recentServices.length === 0 && (
+              <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4 animate-fade-in-up">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#25a475]/20 border border-[#25a475] flex items-center justify-center text-[#68dba9] shrink-0">
+                    <span className="material-symbols-outlined text-xl">waving_hand</span>
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                      Welcome! Let&apos;s get your first ride booked.
+                    </h2>
+                    <p className="text-xs text-[#87948b] mt-0.5">
+                      Three quick steps — most customers finish their first booking in under two
+                      minutes.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-base text-[#68dba9] shrink-0">
+                      pin_drop
+                    </span>
+                    <span className="text-[#bccac0]">Choose a pickup and drop-off location</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-base text-[#68dba9] shrink-0">
+                      directions_car
+                    </span>
+                    <span className="text-[#bccac0]">Pick a vehicle and confirm your fare</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-base text-[#68dba9] shrink-0">
+                      task_alt
+                    </span>
+                    <span className="text-[#bccac0]">Confirm and track your driver live</span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/bookings/new"
+                  className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-[#25a475] text-[#042116] font-bold text-xs hover:bg-[#68dba9] transition-colors gap-2"
+                >
+                  <span>Book Your First Ride</span>
+                  <span className="material-symbols-outlined text-base">arrow_forward</span>
+                </Link>
+              </section>
+            )}
 
             {/* Intelligent Experience Orchestration Engine */}
             <CustomerExperienceSection />
@@ -482,9 +536,7 @@ export default function CustomerDashboardPage() {
                 </Link>
               </div>
               {recentServices.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-xs">
-                  No previous driver services found.
-                </div>
+                <EmptyState icon="history" message="No previous driver services found." />
               ) : (
                 <div className="space-y-2">
                   {recentServices.map((service) => (

@@ -1,6 +1,7 @@
 import { evaluateJourneyIntelligence } from '@/modules/booking/application/journey-intelligence-service';
 import { sendBookingMessage } from '@/modules/booking/application/booking-messaging-service';
 import { BookingStatus } from '@prisma/client';
+import type { Db } from '@/shared/database/prisma';
 
 describe('Phase 81 — Realtime Communication Hardening & Journey Intelligence', () => {
   describe('Explainable Journey Intelligence', () => {
@@ -123,7 +124,7 @@ describe('Phase 81 — Realtime Communication Hardening & Journey Intelligence',
         'booking-idempotent-1',
         'I am at the pickup point',
         { messageType: 'TEXT', idempotencyKey: 'idemp-key-999' },
-        mockDb as any,
+        mockDb as unknown as Db,
       );
 
       expect(result.id).toBe('msg-existing-1');

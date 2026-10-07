@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { MetricCard } from '@/components/ui/metric-card';
 import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/shared/formatting/money';
 
 interface ReferralCampaign {
@@ -351,10 +352,10 @@ export default function AdminReferralGrowthPage() {
             </div>
 
             {campaigns.length === 0 ? (
-              <div className="p-8 text-center text-xs text-[#87948b] bg-[#181c24] rounded-2xl border border-[#262a33]">
-                No referral campaigns configured yet. Create a campaign to start growth acquisition
-                incentives.
-              </div>
+              <EmptyState
+                icon="campaign"
+                message="No referral campaigns configured yet. Create a campaign to start growth acquisition incentives."
+              />
             ) : (
               <div className="overflow-x-auto rounded-2xl border border-[#262a33] bg-[#181c24]">
                 <table className="w-full text-left text-xs text-[#dfe2ee]">
@@ -446,6 +447,7 @@ export default function AdminReferralGrowthPage() {
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="text-[#87948b] hover:text-[#dfe2ee]"
+                aria-label="Close create campaign dialog"
               >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>

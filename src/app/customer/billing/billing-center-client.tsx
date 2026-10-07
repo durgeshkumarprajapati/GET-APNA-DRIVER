@@ -381,6 +381,7 @@ export default function BillingCenterClient() {
                   type="button"
                   onClick={() => setSelectedRecord(null)}
                   className="p-1 text-slate-400 hover:text-white rounded-lg"
+                  aria-label="Close financial details"
                 >
                   <span className="material-symbols-outlined text-xl">close</span>
                 </button>

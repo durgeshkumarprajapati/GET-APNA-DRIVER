@@ -1064,6 +1064,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => setShowPersonModal(false)}
                   className="text-[#87948b] hover:text-[#dfe2ee]"
+                  aria-label="Close saved person form"
                 >
                   <span className="material-symbols-outlined text-lg">close</span>
                 </button>

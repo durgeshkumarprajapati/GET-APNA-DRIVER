@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Payment {
   id: string;
@@ -182,9 +183,7 @@ export default function AdminPaymentsPage() {
         </div>
       ) : activeTab === 'payments' ? (
         payments.length === 0 ? (
-          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-12 text-center text-[#87948b] text-sm">
-            No payments recorded yet.
-          </div>
+          <EmptyState icon="payments" message="No payments recorded yet." />
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-[#262a33]">
             <table className="w-full text-sm">

@@ -17,6 +17,10 @@ export interface BookingMessage {
   createdAt: string;
 }
 
+function generateIdempotencyKey(): string {
+  return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+}
+
 export interface BookingMessagePanelProps {
   /** Which side this viewer is on — used to align "me" vs "them" bubbles. */
   viewerRole: 'CUSTOMER' | 'DRIVER';
@@ -48,6 +52,11 @@ export function BookingMessagePanel({
   const [customerLangs, setCustomerLangs] = useState<string[]>([]);
   const [calling, setCalling] = useState(false);
   const listEndRef = useRef<HTMLDivElement | null>(null);
+  // Holds the latest `fetchMessages` so the multi-tab sync callback below
+  // (registered before `fetchMessages` exists) can call it without a
+  // forward reference — that would break the React Compiler's static
+  // dependency analysis even though it's safe at runtime via closures.
+  const fetchMessagesRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   const bookingId = apiBasePath.match(/\/bookings\/([^\/]+)/)?.[1] ?? null;
 
@@ -56,31 +65,53 @@ export function BookingMessagePanel({
     bookingStatus === 'DRIVER_ARRIVED'
       ? [
           t('booking.communication.custWait5Min', { defaultValue: 'Please wait 5 minutes.' }),
-          t('booking.communication.custWaitingReception', { defaultValue: 'I am waiting near the reception.' }),
-          t('booking.communication.custWearingBlueShirt', { defaultValue: 'I am wearing a blue shirt.' }),
-          t('booking.communication.custPickupLocation', { defaultValue: 'I am at the pickup location.' }),
+          t('booking.communication.custWaitingReception', {
+            defaultValue: 'I am waiting near the reception.',
+          }),
+          t('booking.communication.custWearingBlueShirt', {
+            defaultValue: 'I am wearing a blue shirt.',
+          }),
+          t('booking.communication.custPickupLocation', {
+            defaultValue: 'I am at the pickup location.',
+          }),
         ]
       : [
-          t('booking.communication.custPickupLocation', { defaultValue: 'I am at the pickup location.' }),
+          t('booking.communication.custPickupLocation', {
+            defaultValue: 'I am at the pickup location.',
+          }),
           t('booking.communication.custPleaseCall', { defaultValue: 'Please call me.' }),
           t('booking.communication.custNearMainGate', { defaultValue: 'I am near the main gate.' }),
           t('booking.communication.custWait5Min', { defaultValue: 'Please wait 5 minutes.' }),
-          t('booking.communication.custCannotFindPickup', { defaultValue: 'I cannot find the pickup point.' }),
-          t('booking.communication.custCheckInstructions', { defaultValue: 'Please check the pickup instructions.' }),
+          t('booking.communication.custCannotFindPickup', {
+            defaultValue: 'I cannot find the pickup point.',
+          }),
+          t('booking.communication.custCheckInstructions', {
+            defaultValue: 'Please check the pickup instructions.',
+          }),
         ];
 
   const driverQuickReplies =
     bookingStatus === 'DRIVER_ARRIVED'
       ? [
-          t('booking.communication.driverArrived', { defaultValue: 'I have arrived at the pickup point.' }),
-          t('booking.communication.driverPleaseCome', { defaultValue: 'Please come to the pickup location.' }),
-          t('booking.communication.driverWaitingGate', { defaultValue: 'I am waiting near the gate.' }),
+          t('booking.communication.driverArrived', {
+            defaultValue: 'I have arrived at the pickup point.',
+          }),
+          t('booking.communication.driverPleaseCome', {
+            defaultValue: 'Please come to the pickup location.',
+          }),
+          t('booking.communication.driverWaitingGate', {
+            defaultValue: 'I am waiting near the gate.',
+          }),
         ]
       : [
           t('booking.communication.driverOnWay', { defaultValue: 'I am on my way.' }),
-          t('booking.communication.driverArrived', { defaultValue: 'I have arrived at the pickup point.' }),
+          t('booking.communication.driverArrived', {
+            defaultValue: 'I have arrived at the pickup point.',
+          }),
           t('booking.communication.driverPleaseCall', { defaultValue: 'Please call me.' }),
-          t('booking.communication.driverCannotLocate', { defaultValue: 'I cannot locate the pickup point.' }),
+          t('booking.communication.driverCannotLocate', {
+            defaultValue: 'I cannot locate the pickup point.',
+          }),
         ];
 
   const quickReplies = viewerRole === 'CUSTOMER' ? customerQuickReplies : driverQuickReplies;
@@ -90,7 +121,7 @@ export function BookingMessagePanel({
     if (event.type === 'MESSAGES_READ') {
       setUnreadCount(0);
     } else if (event.type === 'MESSAGE_SENT') {
-      void fetchMessages();
+      void fetchMessagesRef.current();
     }
   });
 
@@ -122,6 +153,10 @@ export function BookingMessagePanel({
       setLoading(false);
     }
   }, [apiBasePath, broadcast]);
+
+  useEffect(() => {
+    fetchMessagesRef.current = fetchMessages;
+  }, [fetchMessages]);
 
   // Realtime stream with exponential backoff & event deduplication
   const { connectionState, forceReconnect } = useRealTimeStream({
@@ -164,7 +199,7 @@ export function BookingMessagePanel({
     setError(null);
 
     // Client-generated idempotency key
-    const idempotencyKey = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const idempotencyKey = generateIdempotencyKey();
 
     try {
       const res = await fetch(apiBasePath, {
@@ -311,7 +346,8 @@ export function BookingMessagePanel({
             )}
             {customerLangs.length > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-300">
-                👤 {t('booking.communication.customerLanguages')}: {formatLanguagesList(customerLangs)}
+                👤 {t('booking.communication.customerLanguages')}:{' '}
+                {formatLanguagesList(customerLangs)}
               </span>
             )}
           </div>

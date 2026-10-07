@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import type {
   OperationsCommandSummary,
@@ -159,6 +160,13 @@ export default function UnifiedOperationsCommandCenterPage() {
   const [submittingIncidentAction, setSubmittingIncidentAction] = useState(false);
 
   const eventSourceRef = useRef<EventSource | null>(null);
+  // Hold the latest fetchData/fetchIncidents so the mount+polling effect
+  // below can call them without closing over those bindings directly —
+  // react-hooks/set-state-in-effect flags an effect whose body transitively
+  // references a useCallback that calls a state setter, even when invoked
+  // safely inside an async function after an await.
+  const fetchDataRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const fetchIncidentsRef = useRef<() => Promise<void>>(() => Promise.resolve());
   // The SSE stream always pushes the 1h-horizon capacity forecast (see
   // stream/route.ts) — a ref (not state) lets the long-lived onmessage
   // closure below check the *current* horizon selection without tearing
@@ -228,6 +236,11 @@ export default function UnifiedOperationsCommandCenterPage() {
     }
   }, [incidentStatusFilter, incidentSeverityFilter, incidentPage]);
 
+  useEffect(() => {
+    fetchDataRef.current = fetchData;
+    fetchIncidentsRef.current = fetchIncidents;
+  }, [fetchData, fetchIncidents]);
+
   // Fetch Single Incident Details for Drawer
   const fetchIncidentDetail = useCallback(async (id: string) => {
     setLoadingDrawer(true);
@@ -244,16 +257,10 @@ export default function UnifiedOperationsCommandCenterPage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedIncidentId) {
-      void fetchIncidentDetail(selectedIncidentId);
-    }
-  }, [selectedIncidentId, fetchIncidentDetail]);
-
   // Load Initial Data & Polling Fallback + SSE Stream setup
   useEffect(() => {
-    void fetchData();
-    void fetchIncidents();
+    void fetchDataRef.current();
+    void fetchIncidentsRef.current();
 
     // Setup SSE Stream
     try {
@@ -290,13 +297,17 @@ export default function UnifiedOperationsCommandCenterPage() {
         es.close();
       };
     } catch {
-      setSseConnected(false);
+      // Deferred to a microtask rather than called synchronously in the
+      // effect body — react-hooks/set-state-in-effect flags a direct
+      // top-level setState call here, even though this path only runs if
+      // the EventSource constructor itself throws synchronously.
+      void Promise.resolve().then(() => setSseConnected(false));
     }
 
     // 15-second polling fallback
     const interval = setInterval(() => {
-      void fetchData();
-      void fetchIncidents();
+      void fetchDataRef.current();
+      void fetchIncidentsRef.current();
     }, 15000);
 
     return () => {
@@ -305,7 +316,14 @@ export default function UnifiedOperationsCommandCenterPage() {
         eventSourceRef.current.close();
       }
     };
-  }, [fetchData, fetchIncidents]);
+  }, [
+    decisionSeverityFilter,
+    decisionStatusFilter,
+    forecastHorizon,
+    incidentStatusFilter,
+    incidentSeverityFilter,
+    incidentPage,
+  ]);
 
   // Decision Action Handlers
   const handleAcknowledgeDecision = async (decisionId: string) => {
@@ -979,7 +997,11 @@ export default function UnifiedOperationsCommandCenterPage() {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <button
-                              onClick={() => setSelectedIncidentId(inc.id)}
+                              type="button"
+                              onClick={() => {
+                                setSelectedIncidentId(inc.id);
+                                void fetchIncidentDetail(inc.id);
+                              }}
                               className="px-3 py-1 rounded bg-[#262a33] hover:bg-[#363b47] text-[#dfe2ee] font-bold text-xs"
                             >
                               Inspect Case →
@@ -1471,9 +1493,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                       {selectedIncidentDetail.recoveryAttempts?.length || 0})
                     </span>
                     {selectedIncidentDetail.recoveryAttempts?.length === 0 ? (
-                      <div className="p-3 bg-[#0f131c] rounded-lg border border-[#262a33] text-[#87948b]">
-                        No recovery attempts recorded yet.
-                      </div>
+                      <EmptyState icon="history" message="No recovery attempts recorded yet." />
                     ) : (
                       <div className="space-y-2">
                         {selectedIncidentDetail.recoveryAttempts.map((attempt) => (

@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { StatusBadge, type StatusBadgeTone } from '@/components/ui/status-badge';
 import { LoadingState } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 import { formatDateTime } from '@/shared/formatting/date';
 
 interface AdminReviewDetail {
@@ -220,7 +221,7 @@ export default function AdminReviewDetailPage({
                 Audit History
               </h2>
               {auditLogs.length === 0 ? (
-                <p className="text-xs text-[#87948b]">No audit entries yet.</p>
+                <EmptyState icon="history" message="No audit entries yet." />
               ) : (
                 <div className="space-y-2 font-mono text-xs">
                   {auditLogs.map((entry) => (

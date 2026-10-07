@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface DispatchAssignmentAttempt {
   id: string;
@@ -229,7 +230,7 @@ export default function AdminDispatchConsolePage({
           Assignment Attempts
         </h2>
         {booking.assignmentAttempts.length === 0 ? (
-          <p className="text-[#87948b] text-sm">No assignment attempts yet.</p>
+          <EmptyState icon="history" message="No assignment attempts yet." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-mono text-xs">

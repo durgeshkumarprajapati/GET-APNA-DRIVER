@@ -49,7 +49,7 @@ describe('Admin Live Ops Console API Unit Tests', () => {
 
   it('rejects unauthenticated requests with 401', async () => {
     mockedGetPrincipal.mockResolvedValue(null);
-    const res = await liveOpsGet(makeReq());
+    const res = await liveOpsGet(makeReq(), undefined);
     expect(res.status).toBe(401);
   });
 
@@ -60,7 +60,7 @@ describe('Admin Live Ops Console API Unit Tests', () => {
       roles: ['DRIVER'],
       permissions: ['driver.schedule.read'],
     });
-    const res = await liveOpsGet(makeReq());
+    const res = await liveOpsGet(makeReq(), undefined);
     expect(res.status).toBe(403);
   });
 
@@ -86,7 +86,7 @@ describe('Admin Live Ops Console API Unit Tests', () => {
       .mockResolvedValueOnce([]) // online drivers
       .mockResolvedValueOnce([]); // pending kyc drivers
 
-    const res = await liveOpsGet(makeReq());
+    const res = await liveOpsGet(makeReq(), undefined);
     expect(res.status).toBe(200);
 
     const json = await res.json();

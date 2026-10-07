@@ -8,6 +8,7 @@ import { CustomerLayout } from '@/components/customer-layout';
 import { DriverLayout } from '@/components/driver-layout';
 import { AdminLayout } from '@/components/admin-layout';
 import { useAutoWebPush } from '@/components/use-auto-web-push';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface NotificationItem {
   id: string;
@@ -280,17 +281,11 @@ export default function UserNotificationsPage({ portal }: { portal: Portal }) {
               Loading activity stream...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-16 text-center flex flex-col items-center gap-3">
-              <span className="material-symbols-outlined text-5xl text-[#87948b]">
-                notifications_off
-              </span>
-              <span className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
-                No notifications found
-              </span>
-              <span className="text-xs font-mono text-[#87948b]">
-                You are all caught up! Important updates and rewards will appear here.
-              </span>
-            </div>
+            <EmptyState
+              icon="notifications_off"
+              title="No notifications found"
+              message="You are all caught up! Important updates and rewards will appear here."
+            />
           ) : (
             notifications.map((item) => (
               <div

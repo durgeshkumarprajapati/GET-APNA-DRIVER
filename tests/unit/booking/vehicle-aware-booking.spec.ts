@@ -12,6 +12,7 @@ jest.mock('@/shared/database/prisma', () => {
       findUnique: jest.fn(),
       findUniqueOrThrow: jest.fn(),
       create: jest.fn(),
+      count: jest.fn().mockResolvedValue(1),
     },
     bookingLog: {
       create: jest.fn(),

@@ -10,6 +10,9 @@ import {
 
 jest.mock('@/shared/database/prisma', () => ({
   prisma: {
+    customerPreference: {
+      findUnique: jest.fn().mockResolvedValue(null),
+    },
     driverProfile: {
       findUnique: jest.fn(),
     },

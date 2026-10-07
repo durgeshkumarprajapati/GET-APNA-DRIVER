@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CorporateLayout } from '@/components/corporate-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface ReportData {
   totalSpend: number;
@@ -116,9 +117,7 @@ export default function CorporateReportsPage() {
                 </div>
 
                 {report.departmentBreakdown.length === 0 ? (
-                  <div className="p-6 text-center text-[#bccac0] text-xs font-mono">
-                    No department spend recorded yet.
-                  </div>
+                  <EmptyState icon="bar_chart" message="No department spend recorded yet." />
                 ) : (
                   <div className="space-y-3">
                     {report.departmentBreakdown.map((d, i) => {
@@ -159,9 +158,10 @@ export default function CorporateReportsPage() {
                 </div>
 
                 {report.costCenterBreakdown.length === 0 ? (
-                  <div className="p-6 text-center text-[#bccac0] text-xs font-mono">
-                    No cost center breakdown recorded yet.
-                  </div>
+                  <EmptyState
+                    icon="account_balance"
+                    message="No cost center breakdown recorded yet."
+                  />
                 ) : (
                   <div className="space-y-3">
                     {report.costCenterBreakdown.map((cc, i) => {

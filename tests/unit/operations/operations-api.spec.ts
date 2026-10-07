@@ -1,16 +1,18 @@
 import { GET as getReliabilityIntelligenceRoute } from '@/app/api/admin/operations/reliability-intelligence/route';
-import { NextRequest } from 'next/server';
+import { NextRequest, type NextResponse } from 'next/server';
+import type { AuthenticatedRouteHandler } from '@/modules/identity/authorization/route-guard';
 
 jest.mock('@/modules/identity/authorization/route-guard', () => ({
-  withPermission: (permission: string, handler: any) => {
-    return (req: any, context?: any, routeContext?: any) => {
+  withPermission: <P>(permission: string, handler: AuthenticatedRouteHandler<P>) => {
+    return (req: NextRequest, routeContext?: P): Promise<NextResponse> => {
       // Simulate authorized principal
       const principal = {
         userId: 'admin-user-1',
+        accountStatus: 'ACTIVE' as const,
         roles: ['ADMINISTRATOR'],
         permissions: [permission],
       };
-      return handler(req, { principal, ...context }, routeContext);
+      return handler(req, { principal }, routeContext);
     };
   },
 }));
@@ -45,7 +47,7 @@ describe('Phase 83 — Operations & Reliability Intelligence API Routes', () => 
     const req = new NextRequest(
       'http://localhost:3000/api/admin/operations/reliability-intelligence?days=7',
     );
-    const res = await getReliabilityIntelligenceRoute(req);
+    const res = await getReliabilityIntelligenceRoute(req, undefined);
     const body = await res.json();
 
     expect(res.status).toBe(200);

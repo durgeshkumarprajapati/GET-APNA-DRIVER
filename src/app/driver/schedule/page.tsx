@@ -482,6 +482,7 @@ export default function DriverSchedulePage() {
                   type="button"
                   onClick={() => setShowExceptionModal(false)}
                   className="p-1.5 -m-1.5 rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  aria-label="Close leave exception form"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>

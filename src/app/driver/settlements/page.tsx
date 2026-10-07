@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DriverLayout } from '@/components/driver-layout';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Settlement {
   id: string;
@@ -84,10 +85,10 @@ export default function DriverSettlementsPage() {
             {error}
           </div>
         ) : settlements.length === 0 ? (
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-12 text-center text-slate-400 text-sm">
-            No settlements yet. Payouts are created by an administrator once your available balance
-            reaches the settlement minimum.
-          </div>
+          <EmptyState
+            icon="payments"
+            message="No settlements yet. Payouts are created by an administrator once your available balance reaches the settlement minimum."
+          />
         ) : (
           <div className="space-y-4">
             {settlements.map((settlement) => (

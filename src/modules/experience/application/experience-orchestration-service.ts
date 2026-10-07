@@ -13,6 +13,7 @@ import { evaluatePromotionRule } from '../rules/promotion-rule';
 import { evaluateReferralRule } from '../rules/referral-rule';
 import { evaluateDriverIncentiveRule } from '../rules/driver-incentive-rule';
 import { evaluateTripActionRule } from '../rules/trip-action-rule';
+import { evaluatePersonalizedShortcutRule } from '../rules/personalized-shortcut-rule';
 import {
   MAX_CUSTOMER_RECOMMENDATIONS,
   MAX_DRIVER_RECOMMENDATIONS,
@@ -45,33 +46,42 @@ export class ExperienceOrchestrationService {
 
       const candidates: ExperienceRecommendation[] = [];
 
-      // 1. Trip Actions, Safety Alerts, Active Booking
+      // 1. Trip Actions, Safety Alerts, Active Booking (Always evaluated)
       const tripActions = evaluateTripActionRule(context);
       candidates.push(...tripActions);
 
-      // 2. Book Again
-      const bookAgain = evaluateBookAgainRule(context);
-      if (bookAgain) candidates.push(bookAgain);
+      // Master Personalization Control Toggle Check
+      const isPersonalizationEnabled = context.customerPreference?.personalizationEnabled !== false;
 
-      // 3. Favorite Driver
-      const favoriteDriver = evaluateFavoriteDriverRule(context);
-      if (favoriteDriver) candidates.push(favoriteDriver);
+      if (isPersonalizationEnabled) {
+        // 2. Book Again
+        const bookAgain = evaluateBookAgainRule(context);
+        if (bookAgain) candidates.push(bookAgain);
 
-      // 4. Scheduled Ride
-      const scheduledRide = evaluateScheduledRideRule(context);
-      if (scheduledRide) candidates.push(scheduledRide);
+        // 3. Favorite Driver
+        const favoriteDriver = evaluateFavoriteDriverRule(context);
+        if (favoriteDriver) candidates.push(favoriteDriver);
 
-      // 5. Loyalty Progress & Rewards
-      const loyalty = evaluateLoyaltyRule(context);
-      if (loyalty) candidates.push(loyalty);
+        // 4. Personalized Travel Shortcuts
+        const shortcuts = evaluatePersonalizedShortcutRule(context);
+        candidates.push(...shortcuts);
 
-      // 6. Promotions
-      const promotion = evaluatePromotionRule(context);
-      if (promotion) candidates.push(promotion);
+        // 5. Scheduled Ride
+        const scheduledRide = evaluateScheduledRideRule(context);
+        if (scheduledRide) candidates.push(scheduledRide);
 
-      // 7. Referral
-      const referral = evaluateReferralRule(context);
-      if (referral) candidates.push(referral);
+        // 6. Loyalty Progress & Rewards
+        const loyalty = evaluateLoyaltyRule(context);
+        if (loyalty) candidates.push(loyalty);
+
+        // 7. Promotions
+        const promotion = evaluatePromotionRule(context);
+        if (promotion) candidates.push(promotion);
+
+        // 8. Referral
+        const referral = evaluateReferralRule(context);
+        if (referral) candidates.push(referral);
+      }
 
       // Rank, deduplicate, and limit recommendations
       const ranked = rankAndLimitRecommendations(
@@ -82,7 +92,7 @@ export class ExperienceOrchestrationService {
 
       // Update telemetry metrics
       const elapsed = Date.now() - startTime;
-      this.recordMetrics('CUSTOMER', ranked, elapsed, 7);
+      this.recordMetrics('CUSTOMER', ranked, elapsed, 10);
 
       return ranked;
     } catch (error) {
