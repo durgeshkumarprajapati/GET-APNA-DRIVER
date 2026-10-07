@@ -13,6 +13,7 @@ export interface ReferralFraudCheckResult {
 
 export interface EnhancedReferralDashboardDTO {
   referralCode: string;
+  shareUrl: string;
   sharePayload: ShareableReferralPayload;
   totalReferrals: number;
   pendingReferrals: number;

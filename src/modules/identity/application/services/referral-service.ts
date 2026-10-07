@@ -125,6 +125,14 @@ export interface ReferralGrowthFunnelAnalytics {
 
 /**
  * Generates a unique, server-authoritative uppercase referral code for a user.
+ *
+ * Concurrency safety: userId is unique on this table, so two concurrent
+ * calls for the same user that both miss the initial findUnique (neither
+ * has a code yet) will race on create — one succeeds, the other hits a
+ * P2002 unique violation on userId (not on code). On that specific
+ * conflict, re-fetch and return the row the other call just created
+ * instead of blindly retrying create with a different code, which would
+ * still fail (userId is still taken).
  */
 export async function generateReferralCodeForUser(
   userId: string,
@@ -146,15 +154,35 @@ export async function generateReferralCodeForUser(
         code,
       },
     });
-  } catch {
-    // Retry with secondary fallback suffix on unlikely collision
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const concurrent = await db.userReferralCode.findUnique({ where: { userId } });
+      if (concurrent) {
+        return concurrent;
+      }
+    }
+
+    // Retry with secondary fallback suffix on unlikely code collision
     const fallbackCode = `REF-${generateRandomToken(4).toUpperCase()}`;
-    return await db.userReferralCode.create({
-      data: {
-        userId,
-        code: fallbackCode,
-      },
-    });
+    try {
+      return await db.userReferralCode.create({
+        data: {
+          userId,
+          code: fallbackCode,
+        },
+      });
+    } catch (fallbackError: unknown) {
+      if (
+        fallbackError instanceof Prisma.PrismaClientKnownRequestError &&
+        fallbackError.code === 'P2002'
+      ) {
+        const concurrent = await db.userReferralCode.findUnique({ where: { userId } });
+        if (concurrent) {
+          return concurrent;
+        }
+      }
+      throw fallbackError;
+    }
   }
 }
 

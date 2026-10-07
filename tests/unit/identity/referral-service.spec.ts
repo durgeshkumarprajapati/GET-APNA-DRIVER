@@ -130,6 +130,35 @@ describe('Referral Service', () => {
         data: expect.objectContaining({ userId: 'user-2' }),
       });
     });
+
+    it('returns the concurrently-created row instead of throwing when a second caller races the same user to create', async () => {
+      // Two concurrent calls for the same new user both miss the initial
+      // findUnique, then race on create — this reproduces the second
+      // caller's create failing on the userId unique constraint (not the
+      // code constraint), which previously went uncaught.
+      mockDb.userReferralCode.findUnique
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 'code-3', userId: 'user-3', code: 'REF-WINNER' });
+      mockDb.userReferralCode.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      );
+
+      const res = await generateReferralCodeForUser('user-3', mockDb as never);
+
+      expect(res.code).toBe('REF-WINNER');
+    });
+
+    it('still throws when create fails for a reason other than a unique conflict', async () => {
+      mockDb.userReferralCode.findUnique.mockResolvedValue(null);
+      mockDb.userReferralCode.create.mockRejectedValue(new Error('connection lost'));
+
+      await expect(generateReferralCodeForUser('user-4', mockDb as never)).rejects.toThrow(
+        'connection lost',
+      );
+    });
   });
 
   describe('applyReferralCode', () => {
