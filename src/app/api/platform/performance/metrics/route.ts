@@ -15,11 +15,13 @@ const evaluateVitalsSchema = z.object({
   ttfbMs: z.number().min(0),
 });
 
+const networkTypeSchema = z.enum(['SLOW_2G', '2G', '3G', '4G', 'WIFI']);
+
 export const GET = withPermission(
   PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
   async (req) => {
     const { searchParams } = new URL(req.url);
-    const network = (searchParams.get('network') as any) || '4G';
+    const network = networkTypeSchema.parse(searchParams.get('network') ?? '4G');
 
     const report = await getMobilePerformanceReport(network);
     return NextResponse.json(report, { status: 200 });
