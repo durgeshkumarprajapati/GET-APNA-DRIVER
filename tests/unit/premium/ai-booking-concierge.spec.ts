@@ -23,7 +23,7 @@ describe('Phase 95 — AI Booking Concierge 2.0', () => {
     expect(result.confirmationRequired).toBe(false);
   });
 
-  it('finalizes booking upon explicit customer confirmation step', async () => {
+  it('never claims a booking was dispatched — there is no draft store or booking creation behind this intent', async () => {
     const prompt = 'Yes confirm booking';
     const result = await processAiConciergeMessage('cust-101', {
       message: prompt,
@@ -31,7 +31,12 @@ describe('Phase 95 — AI Booking Concierge 2.0', () => {
     });
 
     expect(result.intent).toBe('BOOKING_CONFIRMATION');
-    expect(result.actionTaken).toBe('BOOKING_CREATED');
-    expect(result.bookingDraft?.isConfirmed).toBe(true);
+    // A prior version fabricated a brand-new pickup/dropoff/fare here and
+    // claimed it had been "confirmed and dispatched to our top-rated
+    // drivers" — nothing is actually booked, so this must never report
+    // actionTaken: 'BOOKING_CREATED' or an isConfirmed draft again.
+    expect(result.actionTaken).toBeUndefined();
+    expect(result.bookingDraft).toBeUndefined();
+    expect(result.replyText.toLowerCase()).not.toContain('dispatched');
   });
 });

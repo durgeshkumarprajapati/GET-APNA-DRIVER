@@ -19,27 +19,23 @@ export async function processAiConciergeMessage(
   const message = input.message.trim();
   const lowerMsg = message.toLowerCase();
 
-  // Step 1: Check if user is explicitly confirming an existing draft
+  // Step 1: Check if user is explicitly confirming an existing draft.
+  //
+  // There is no persisted draft store anywhere in this service or the
+  // database — draftIdToConfirm is never looked up, and no Booking row is
+  // ever created here. A prior version claimed the ride had been
+  // "successfully confirmed and dispatched to our top-rated drivers"
+  // regardless, fabricating a brand-new pickup/dropoff/fare unrelated to
+  // whatever the customer had actually drafted. Telling a customer a ride
+  // is on its way when nothing was booked is exactly the kind of claim this
+  // platform must never make, so this is now honest that chat-based
+  // confirmation isn't available instead of pretending to have booked one.
   if (input.draftIdToConfirm || lowerMsg.includes('confirm booking') || lowerMsg.includes('yes proceed')) {
-    const draftId = input.draftIdToConfirm ?? `draft-${Date.now()}`;
     return {
-      replyText: `Your booking (Ref: ${draftId}) has been successfully confirmed and dispatched to our top-rated drivers!`,
+      replyText:
+        "I can't finalize bookings directly through chat yet — please review your trip details and confirm on the booking screen to complete your reservation.",
       intent: 'BOOKING_CONFIRMATION',
       confirmationRequired: false,
-      actionTaken: 'BOOKING_CREATED',
-      bookingDraft: {
-        draftId,
-        serviceType: 'ONE_WAY',
-        pickupAddress: 'Indiranagar, Bengaluru',
-        dropoffAddress: 'Kempegowda International Airport (BLR)',
-        scheduledTime: new Date(Date.now() + 86400000).toISOString(),
-        vehicleCategory: 'SEDAN',
-        estimatedDistanceKm: 38.5,
-        estimatedFare: 850,
-        currency: 'INR',
-        recommendationReason: 'Sedan selected for comfortable airport ride with luggage space.',
-        isConfirmed: true,
-      },
       recommendations: [],
     };
   }

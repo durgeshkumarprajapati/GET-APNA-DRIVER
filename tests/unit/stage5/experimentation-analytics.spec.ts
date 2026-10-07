@@ -31,6 +31,20 @@ describe('Phase 99 — Product Analytics & Experimentation Platform', () => {
     expect(['control', 'treatment_a', 'treatment_b']).toContain(resultA.assignedVariant);
   });
 
+  it('assigns variants independently per experiment, not the same bucket for every experiment a user sees', () => {
+    // A real bug once hashed only userId, so a given user landed in the
+    // identical variant across every experiment ever run. Sampling across
+    // many synthetic experiment keys for the same user should produce more
+    // than one distinct variant.
+    const variants = new Set(
+      Array.from({ length: 50 }, (_, i) =>
+        evaluateFeatureFlag({ experimentKey: `exp_synthetic_${i}`, userId: 'user-001' }).assignedVariant,
+      ),
+    );
+
+    expect(variants.size).toBeGreaterThan(1);
+  });
+
   it('triggers automated experiment rollback when error rate exceeds guardrail', () => {
     const normal = getExperimentGuardrailStatus('exp_test_1', 0.8);
     expect(normal.status).toBe('RUNNING');
