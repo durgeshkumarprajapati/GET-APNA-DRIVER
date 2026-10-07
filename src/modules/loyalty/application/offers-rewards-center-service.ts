@@ -5,78 +5,69 @@ import {
   MembershipTierComparison,
   UnifiedOffersAndRewardsDTO,
 } from '../domain/offers-rewards-types';
+import { validateCouponForPreview } from '../../promotion/application/services/promotion-eligibility-service';
+import { listLoyaltyTiers, evaluateTierForPoints } from './services/loyalty-tier-service';
 
-export const MEMBERSHIP_TIERS_CATALOG: Array<{
-  name: string;
-  minPoints: number;
-  benefits: string[];
-}> = [
-  {
-    name: 'Silver',
-    minPoints: 0,
-    benefits: ['Standard Chauffeur Booking', 'Basic Customer Support', 'Earn 1 Loyalty Point per ₹100 Spent'],
-  },
-  {
-    name: 'Gold',
-    minPoints: 1000,
-    benefits: ['5% Bonus Loyalty Points', 'Priority Driver Matching', '50% Off Cancellation Fees', 'Dedicated Support Hotline'],
-  },
-  {
-    name: 'Platinum',
-    minPoints: 2500,
-    benefits: ['10% Bonus Loyalty Points', 'Top-Rated Driver Priority Dispatch', 'Free Ride Scheduling', 'Zero Cancellation Fees', 'VIP Concierge Hotline'],
-  },
-];
+function extractTierBenefits(benefits: unknown): string[] {
+  if (Array.isArray(benefits)) {
+    return benefits.filter((b): b is string => typeof b === 'string');
+  }
+  if (benefits && typeof benefits === 'object') {
+    const obj = benefits as Record<string, unknown>;
+    if (typeof obj.description === 'string') return [obj.description];
+    if (Array.isArray(obj.benefits)) {
+      return obj.benefits.filter((b): b is string => typeof b === 'string');
+    }
+  }
+  return [];
+}
 
 /**
  * Calculates a transparent savings preview for a coupon code before booking.
+ * Delegates to validateCouponForPreview, the same engine the booking-creation
+ * preview flow uses — a prior version here only checked promotion.status,
+ * ignoring expiry windows, min-booking-value, first-ride-only eligibility,
+ * usage limits, and the maxDiscountAmount cap, so this preview could show a
+ * discount the booking flow would then refuse to apply.
  */
 export async function previewCouponSavings(
   couponCode: string,
   estimatedFare: number,
+  userId: string,
   db: Db = prisma,
 ): Promise<CouponSavingsPreview> {
   const cleanCode = couponCode.trim().toUpperCase();
 
-  const promotion = await db.promotion.findFirst({
-    where: {
-      code: cleanCode,
-      status: 'ACTIVE',
-    },
-  });
+  const result = await validateCouponForPreview(
+    { code: couponCode, fareAmount: estimatedFare.toString(), userId },
+    db,
+  );
 
-  if (!promotion) {
+  if (!result.valid) {
     return {
-      code: cleanCode,
+      code: result.code ?? cleanCode,
       isValid: false,
       discountType: 'FLAT',
       discountAmount: 0,
       originalFare: estimatedFare,
       finalEstimatedFare: estimatedFare,
-      savingsMessage: 'Invalid or expired promo code',
-      ineligibilityReason: 'Promo code does not exist or has expired.',
+      savingsMessage: result.errorMessage ?? 'Invalid or expired promo code',
+      ineligibilityReason: result.errorMessage ?? 'Promo code does not exist or has expired.',
     };
   }
 
-  const discountVal = Number(promotion.discountValue);
-  let discountAmount = 0;
-
-  if (promotion.discountType === 'PERCENTAGE') {
-    discountAmount = Math.round((estimatedFare * discountVal) / 100);
-  } else {
-    discountAmount = Math.min(estimatedFare, discountVal);
-  }
-
-  const finalEstimatedFare = Math.max(0, estimatedFare - discountAmount);
+  const discountAmount = Math.round(Number(result.discountAmount));
+  const finalEstimatedFare = Math.round(Number(result.finalFare));
+  const code = result.code ?? cleanCode;
 
   return {
-    code: cleanCode,
+    code,
     isValid: true,
-    discountType: String(promotion.discountType) === 'PERCENTAGE' ? 'PERCENTAGE' : 'FIXED',
+    discountType: result.discountType === 'PERCENTAGE' ? 'PERCENTAGE' : 'FIXED',
     discountAmount,
     originalFare: estimatedFare,
     finalEstimatedFare,
-    savingsMessage: `You save ₹${discountAmount} with promo code ${cleanCode}!`,
+    savingsMessage: `You save ₹${discountAmount} with promo code ${code}!`,
   };
 }
 
@@ -87,7 +78,7 @@ export async function getUnifiedOffersAndRewardsCenter(
   userId: string,
   db: Db = prisma,
 ): Promise<UnifiedOffersAndRewardsDTO> {
-  const [loyaltyAccount, promotions, rewards, redemptions] = await Promise.all([
+  const [loyaltyAccount, promotions, rewards, redemptions, tiers] = await Promise.all([
     db.customerLoyaltyAccount.findUnique({
       where: { customerId: userId },
       include: { currentTier: true },
@@ -106,40 +97,47 @@ export async function getUnifiedOffersAndRewardsCenter(
       orderBy: { redeemedAt: 'desc' },
       take: 10,
     }),
+    listLoyaltyTiers(db),
   ]);
 
   const pointsBalance = loyaltyAccount?.currentPoints ?? 0;
-  const currentTierName = loyaltyAccount?.currentTier?.name ?? 'Silver';
+  // Tier progression is driven by lifetime earned points (matching
+  // evaluateTierForPoints, the same rule loyalty-account-service uses to
+  // actually promote a customer), never the spendable currentPoints balance
+  // — otherwise redeeming points would demote a customer's tier.
+  const lifetimePoints = loyaltyAccount?.lifetimeEarnedPoints ?? 0;
+  const { currentTier, nextTier } = await evaluateTierForPoints(lifetimePoints, db);
 
-  // Calculate tier comparisons
-  const tierComparisons: MembershipTierComparison[] = MEMBERSHIP_TIERS_CATALOG.map((t) => {
-    const isCurrentTier = t.name.toLowerCase() === currentTierName.toLowerCase();
-    const pointsToNextTier = Math.max(0, t.minPoints - pointsBalance);
-    return {
-      tierName: t.name,
-      minPointsRequired: t.minPoints,
-      benefits: t.benefits,
-      isCurrentTier,
-      pointsToNextTier,
-    };
-  });
+  // A prior version compared loyaltyAccount.currentTier.name (a real seeded
+  // name like "Gold Executive") against a hardcoded catalog of
+  // Silver/Gold/Platinum — isCurrentTier could never match, and the
+  // minPoints/benefits shown were disconnected from the real LoyaltyTier
+  // rows entirely.
+  const tierComparisons: MembershipTierComparison[] = tiers.map((t) => ({
+    tierName: t.name,
+    minPointsRequired: t.minimumLifetimePoints,
+    benefits: extractTierBenefits(t.benefits),
+    isCurrentTier: t.id === currentTier.id,
+    pointsToNextTier: Math.max(0, t.minimumLifetimePoints - lifetimePoints),
+  }));
 
-  const nextTierObj = MEMBERSHIP_TIERS_CATALOG.find((t) => t.minPoints > pointsBalance) ?? MEMBERSHIP_TIERS_CATALOG[2];
-  const pointsToNextTier = Math.max(0, nextTierObj.minPoints - pointsBalance);
+  const pointsToNextTier = nextTier
+    ? Math.max(0, nextTier.minimumLifetimePoints - lifetimePoints)
+    : 0;
 
   return {
     currentLoyaltyAccount: {
       pointsBalance,
-      currentTier: currentTierName,
+      currentTier: loyaltyAccount?.currentTier?.name ?? currentTier.name,
       pointsToNextTier,
-      nextTierName: nextTierObj.name,
+      nextTierName: nextTier?.name ?? currentTier.name,
       pointsExpiringSoon: Math.floor(pointsBalance * 0.1),
       pointsExpiryDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
     },
     tierComparisons,
-    activePromotions: promotions.map((p: any) => ({
+    activePromotions: promotions.map((p) => ({
       id: p.id,
-      code: p.code,
+      code: p.code ?? '',
       name: p.name,
       description: p.description ?? `Get special discount with code ${p.code}`,
       discountType: String(p.discountType),
@@ -147,7 +145,7 @@ export async function getUnifiedOffersAndRewardsCenter(
         p.discountType === 'PERCENTAGE' ? `${Number(p.discountValue)}% OFF` : `₹${Number(p.discountValue)} OFF`,
       expiresAt: p.endsAt ? p.endsAt.toISOString() : null,
     })),
-    availableRewards: rewards.map((r: any) => ({
+    availableRewards: rewards.map((r) => ({
       id: r.id,
       title: r.title,
       description: r.description ?? 'Redeem points for ride discount vouchers',
@@ -155,7 +153,7 @@ export async function getUnifiedOffersAndRewardsCenter(
       discountValue: r.discountValue ? `₹${Number(r.discountValue)} OFF` : 'Discount Voucher',
       isClaimable: pointsBalance >= r.pointsRequired,
     })),
-    recentRedemptionHistory: redemptions.map((r: any) => ({
+    recentRedemptionHistory: redemptions.map((r) => ({
       id: r.id,
       rewardTitle: r.reward?.title || 'Loyalty Reward',
       pointsSpent: r.pointsDeducted,
