@@ -6,7 +6,7 @@ export interface TrustMatrixItem {
   serviceModule: string;
   dbTables: string[];
   realResultStatus: 'VERIFIED_END_TO_END' | 'UNSUPPORTED_EXPLICIT_NOTICE' | 'DEPRECATED';
-  dataIntegrityStatus: 'NO_MOCK_VALUES' | 'CANONICAL_VALIDATED';
+  dataIntegrityStatus: 'NO_MOCK_VALUES' | 'CANONICAL_VALIDATED' | 'KNOWN_GAPS_DOCUMENTED';
   lastAuditedAt: string;
 }
 

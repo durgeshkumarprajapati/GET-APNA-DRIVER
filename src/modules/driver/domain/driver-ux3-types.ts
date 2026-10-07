@@ -1,5 +1,11 @@
 export interface DriverUX3NextActionDTO {
-  actionType: 'ACCEPT_OFFER' | 'START_NAVIGATION' | 'CONFIRM_ARRIVAL' | 'START_TRIP' | 'COMPLETE_TRIP' | 'GO_ONLINE';
+  actionType:
+    | 'ACCEPT_OFFER'
+    | 'START_NAVIGATION'
+    | 'CONFIRM_ARRIVAL'
+    | 'START_TRIP'
+    | 'COMPLETE_TRIP'
+    | 'GO_ONLINE';
   title: string;
   subtitle: string;
   targetBookingId?: string;

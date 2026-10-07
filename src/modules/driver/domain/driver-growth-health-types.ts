@@ -1,5 +1,5 @@
 export interface DriverFunnelStageDTO {
-  stageName: 'SUBMITTED' | 'DOCUMENTS_VERIFIED' | 'BACKGROUND_CHECKED' | 'ACTIVATED';
+  stageName: 'SUBMITTED' | 'DOCUMENTS_VERIFIED' | 'ACTIVATED';
   count: number;
   conversionRatePercent: number;
 }

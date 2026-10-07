@@ -12,21 +12,15 @@ const toggleSchema = z.object({
   isEnabled: z.boolean(),
 });
 
-export const GET = withPermission(
-  PERMISSIONS.BOOKINGS_READ,
-  async (_req, { principal }) => {
-    const settings = await getPersonalization2Settings(principal.userId);
-    return NextResponse.json(settings, { status: 200 });
-  },
-);
+export const GET = withPermission(PERMISSIONS.BOOKINGS_READ, async (_req, { principal }) => {
+  const settings = await getPersonalization2Settings(principal.userId);
+  return NextResponse.json(settings, { status: 200 });
+});
 
-export const POST = withPermission(
-  PERMISSIONS.BOOKINGS_READ,
-  async (req, { principal }) => {
-    const body = await req.json();
-    const parsed = toggleSchema.parse(body);
+export const POST = withPermission(PERMISSIONS.BOOKINGS_READ, async (req, { principal }) => {
+  const body = await req.json();
+  const parsed = toggleSchema.parse(body);
 
-    const result = await togglePersonalization2State(principal.userId, parsed.isEnabled);
-    return NextResponse.json(result, { status: 200 });
-  },
-);
+  const result = await togglePersonalization2State(principal.userId, parsed.isEnabled);
+  return NextResponse.json(result, { status: 200 });
+});

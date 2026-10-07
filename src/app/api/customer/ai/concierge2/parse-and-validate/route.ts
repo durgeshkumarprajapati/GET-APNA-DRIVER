@@ -9,13 +9,10 @@ const parseSchema = z.object({
   prompt: z.string().min(3),
 });
 
-export const POST = withPermission(
-  PERMISSIONS.BOOKINGS_CREATE,
-  async (req, { principal }) => {
-    const body = await req.json();
-    const parsed = parseSchema.parse(body);
+export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
+  const body = await req.json();
+  const parsed = parseSchema.parse(body);
 
-    const result = await parseAndValidateAiConcierge2(principal.userId, parsed.prompt);
-    return NextResponse.json(result, { status: 200 });
-  },
-);
+  const result = await parseAndValidateAiConcierge2(principal.userId, parsed.prompt);
+  return NextResponse.json(result, { status: 200 });
+});

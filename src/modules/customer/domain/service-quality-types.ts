@@ -1,7 +1,7 @@
 export interface ServiceQualityTrustDetailsDTO {
   whoIsComing: {
     driverName: string;
-    avatarUrl: string;
+    avatarUrl: string | null;
     rating: number;
     completedRides: number;
     verificationBadges: string[];

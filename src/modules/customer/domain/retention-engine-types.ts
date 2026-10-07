@@ -9,7 +9,11 @@ export type CustomerLifecycleStage =
 
 export interface RetentionActionTriggerDTO {
   triggerId: string;
-  triggerType: 'BOOK_AGAIN_REMINDER' | 'POST_SERVICE_FOLLOWUP' | 'SCHEDULED_SERVICE_REMINDER' | 'INACTIVE_REACTIVATION';
+  triggerType:
+    | 'BOOK_AGAIN_REMINDER'
+    | 'POST_SERVICE_FOLLOWUP'
+    | 'SCHEDULED_SERVICE_REMINDER'
+    | 'INACTIVE_REACTIVATION';
   title: string;
   message: string;
   actionUrl: string;
