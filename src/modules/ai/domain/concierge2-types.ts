@@ -28,5 +28,5 @@ export interface Concierge2ConfirmResultDTO {
   success: boolean;
   bookingId?: string;
   message: string;
-  status: 'BOOKING_CREATED' | 'CANCELLED_BY_CUSTOMER';
+  status: 'BOOKING_CREATED' | 'CANCELLED_BY_CUSTOMER' | 'NOT_AVAILABLE';
 }

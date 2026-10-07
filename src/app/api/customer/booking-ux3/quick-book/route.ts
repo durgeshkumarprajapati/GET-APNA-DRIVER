@@ -19,13 +19,10 @@ const quickBookSchema = z.object({
   couponCode: z.string().optional(),
 });
 
-export const POST = withPermission(
-  PERMISSIONS.BOOKINGS_CREATE,
-  async (req, { principal }) => {
-    const body = await req.json();
-    const parsed = quickBookSchema.parse(body);
+export const POST = withPermission(PERMISSIONS.BOOKINGS_CREATE, async (req, { principal }) => {
+  const body = await req.json();
+  const parsed = quickBookSchema.parse(body);
 
-    const result = await processQuickBookUX3(principal.userId, parsed);
-    return NextResponse.json(result, { status: 200 });
-  },
-);
+  const result = await processQuickBookUX3(principal.userId, parsed);
+  return NextResponse.json(result, { status: 200 });
+});

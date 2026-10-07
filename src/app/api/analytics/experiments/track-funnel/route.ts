@@ -9,13 +9,10 @@ const trackSchema = z.object({
   experimentKey: z.string().optional(),
 });
 
-export const POST = withPermission(
-  PERMISSIONS.ADMIN_PLATFORM_METRICS_READ,
-  async (req) => {
-    const body = await req.json().catch(() => ({}));
-    const parsed = trackSchema.parse(body);
+export const POST = withPermission(PERMISSIONS.ADMIN_PLATFORM_METRICS_READ, async (req) => {
+  const body = await req.json().catch(() => ({}));
+  const parsed = trackSchema.parse(body);
 
-    const report = await trackAndGetGrowthExperimentReport(parsed.experimentKey);
-    return NextResponse.json(report, { status: 200 });
-  },
-);
+  const report = await trackAndGetGrowthExperimentReport(parsed.experimentKey);
+  return NextResponse.json(report, { status: 200 });
+});

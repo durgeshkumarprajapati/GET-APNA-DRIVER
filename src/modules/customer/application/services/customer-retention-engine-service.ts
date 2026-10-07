@@ -15,14 +15,29 @@ export async function getCustomerLifecycleStatus(
   customerId: string,
   db: Db = prisma,
 ): Promise<CustomerLifecycleStatusDTO> {
-  const completedRidesCount = await db.booking.count({
-    where: { customerId, status: 'TRIP_COMPLETED' },
-  });
-
-  const lastRide = await db.booking.findFirst({
-    where: { customerId, status: 'TRIP_COMPLETED' },
-    orderBy: { createdAt: 'desc' },
-  });
+  const [completedRidesCount, lastRide, favoriteDriver, repeatDiscountPromotion] =
+    await Promise.all([
+      db.booking.count({ where: { customerId, status: 'TRIP_COMPLETED' } }),
+      db.booking.findFirst({
+        where: { customerId, status: 'TRIP_COMPLETED' },
+        orderBy: { createdAt: 'desc' },
+      }),
+      // Real saved favorite, not an invented name — a prior version always
+      // claimed "Rajesh Kumar (Rating: 4.9)" regardless of whether the
+      // customer has a favorite driver at all.
+      db.customerFavoriteDriver.findFirst({
+        where: { customerId },
+        orderBy: { createdAt: 'desc' },
+        include: { driverProfile: { include: { ratingSummary: true } } },
+      }),
+      // A real, currently-active, non-first-ride-only promotion to recommend
+      // — a prior version always named 'REPEAT15', a code that doesn't exist
+      // anywhere in the system, so rebooking with it would fail validation.
+      db.promotion.findFirst({
+        where: { status: 'ACTIVE', firstRideOnly: false },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
 
   let stage: CustomerLifecycleStage = 'NEW';
   if (completedRidesCount >= 10) stage = 'ADVOCATE';
@@ -41,27 +56,47 @@ export async function getCustomerLifecycleStatus(
       triggerId: 'trig-book-again-7d',
       triggerType: 'BOOK_AGAIN_REMINDER',
       title: 'Need a Driver this Weekend?',
-      message: `Rebook your favorite route from ${lastRide?.pickupAddress || 'Home'} with 15% OFF!`,
+      message: repeatDiscountPromotion
+        ? `Rebook your favorite route from ${lastRide?.pickupAddress || 'Home'} and save with code ${repeatDiscountPromotion.code}!`
+        : `Rebook your favorite route from ${lastRide?.pickupAddress || 'Home'}.`,
       actionUrl: '/bookings/new?rebook=true',
-      discountOfferCode: 'REPEAT15',
+      discountOfferCode: repeatDiscountPromotion?.code ?? undefined,
       expiryHours: 48,
     });
   }
+
+  const driverProfile = favoriteDriver?.driverProfile;
+  const preferredDriverName = driverProfile
+    ? [
+        driverProfile.displayName ||
+          [driverProfile.firstName, driverProfile.lastName].filter(Boolean).join(' ') ||
+          'Driver',
+        driverProfile.ratingSummary
+          ? `(Rating: ${Number(driverProfile.ratingSummary.averageRating).toFixed(1)})`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(' ')
+    : undefined;
 
   return {
     customerId,
     stage,
     totalCompletedRides: completedRidesCount,
     daysSinceLastRide,
-    npsScore: 9,
-    preferredDriverName: 'Rajesh Kumar (Rating: 4.9)',
+    // No NPS survey/response system exists anywhere in this platform — a
+    // prior version claimed a fixed score of 9 for every customer.
+    npsScore: undefined,
+    preferredDriverName,
     activeReminders,
     suggestedNextBooking: lastRide
       ? {
           serviceType: lastRide.bookingType,
           pickupAddress: lastRide.pickupAddress,
           dropoffAddress: lastRide.dropoffAddress || 'Flexible Route',
-          discountMessage: 'Get 15% OFF when rebooking your recent route today.',
+          discountMessage: repeatDiscountPromotion
+            ? `Save with code ${repeatDiscountPromotion.code} when rebooking your recent route today.`
+            : 'Rebook your recent route today.',
         }
       : undefined,
   };
