@@ -7,6 +7,7 @@ import { useToast, ToastViewport } from '@/components/ui/toast';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
+import { useTheme } from '@/components/theme-provider';
 
 interface ProfileData {
   firstName: string | null;
@@ -61,9 +62,11 @@ interface PreferenceData {
 }
 
 export default function ProfilePage() {
+  const { setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<
     'profile' | 'people' | 'locations' | 'preferences' | 'security'
   >('profile');
+
 
   // Saved People State
   const [savedPeople, setSavedPeople] = useState<SavedPersonData[]>([]);
@@ -446,6 +449,7 @@ export default function ProfilePage() {
         throw new Error(errData.error?.message || 'Failed to update preferences');
       }
 
+      setTheme(preferences.theme as any);
       setPrefMessage({ type: 'success', text: 'Preferences saved successfully!' });
     } catch (err: unknown) {
       setPrefMessage({
@@ -456,6 +460,7 @@ export default function ProfilePage() {
       setPrefSaving(false);
     }
   };
+
 
   const handleSavePin = async (e: React.FormEvent) => {
     e.preventDefault();

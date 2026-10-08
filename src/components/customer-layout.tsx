@@ -10,6 +10,7 @@ import { useAutoWebPush } from './use-auto-web-push';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
 import { LanguageSelector } from './ui/language-selector';
 import { UserAvatar } from './ui/user-avatar';
+import { ThemeToggle } from './ui/theme-toggle';
 
 interface CustomerLayoutProps {
   children: ReactNode;
@@ -35,11 +36,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [fetchedUserName, setFetchedUserName] = useState<string | null>(null);
-  // Derived directly from the prop during render rather than mirrored into
-  // state via an effect — avoids a synchronous setState-in-effect (which
-  // triggers a redundant cascading render) for the common case where
-  // userEmail is already known; the effect below only needs to run the
-  // async profile fetch for the fallback case.
+
   const userName = userEmail ?? fetchedUserName;
   const sidebarRef = useRef<HTMLElement | null>(null);
   useAutoLocation('CUSTOMER');
@@ -66,7 +63,6 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
     };
   }, [userEmail]);
 
-  // Restore sidebar scroll position and scroll active item into view if out of bounds
   useEffect(() => {
     if (!sidebarRef.current) return;
 
@@ -158,7 +154,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
     pathname === href || (href !== '/customer/dashboard' && pathname?.startsWith(`${href}/`));
 
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
+    <div className="min-h-screen bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-on-primary">
       <MobileNavDrawer
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
@@ -169,26 +165,27 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       />
 
       {/* HEADER NAVBAR */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#0a0e16]/90 backdrop-blur-xl z-50 flex items-center justify-between px-3 sm:px-6 border-b border-[#262a33]">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl z-50 flex items-center justify-between px-3 sm:px-6 border-b border-border">
         <div className="flex items-center gap-2 sm:gap-5 min-w-0">
           <MobileNavTrigger onClick={() => setMobileNavOpen(true)} />
           <Link href="/customer/dashboard" className="flex items-center gap-3 group min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container font-bold shrink-0">
               <span className="material-symbols-outlined text-xl">directions_car</span>
             </div>
-            <span className="font-bold text-base tracking-tight text-[#dfe2ee] uppercase font-['Space_Grotesk'] hidden sm:inline truncate">
+            <span className="font-bold text-base tracking-tight text-on-surface uppercase font-['Space_Grotesk'] hidden sm:inline truncate">
               GET APNA DRIVER
             </span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSelector variant="dark" />
+          <ThemeToggle variant="compact" />
 
           <button
             type="button"
             onClick={() => setSearchModalOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1c2028] border border-[#262a33] text-xs text-[#bccac0] hover:text-[#dfe2ee] transition-colors"
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container border border-border text-xs text-on-surface-variant hover:text-on-surface transition-colors"
           >
             <span className="material-symbols-outlined text-sm">search</span>
             <span>{t('common.actions.search')}</span>
@@ -198,7 +195,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
 
           <Link href="/profile" className="flex items-center gap-2 pl-1">
             <div className="text-right flex flex-col items-end">
-              <div className="text-xs text-[#dfe2ee] font-semibold leading-tight max-w-[160px] truncate">
+              <div className="text-xs text-on-surface font-semibold leading-tight max-w-[160px] truncate">
                 {userName || userEmail || 'Customer'}
               </div>
             </div>
@@ -206,9 +203,9 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
               <UserAvatar
                 src={null}
                 name={userName || userEmail || 'Customer Profile'}
-                className="w-8 h-8 ring-1 ring-[#68dba9]"
+                className="w-8 h-8 ring-1 ring-primary"
               />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#68dba9] ring-2 ring-[#0a0e16]" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-surface" />
             </div>
           </Link>
 
@@ -223,7 +220,7 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
               router.push('/login');
               router.refresh();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-xs font-semibold text-red-300 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-error-container/40 hover:bg-error-container/60 border border-error/30 text-xs font-semibold text-on-error-container transition-colors"
             title="Log Out"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
@@ -238,12 +235,12 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
       <aside
         ref={sidebarRef}
         onScroll={handleSidebarScroll}
-        className="hidden md:flex fixed left-0 top-16 bottom-10 w-52 bg-[#0a0e16] z-40 overflow-y-auto px-2 py-3 flex-col justify-between border-r border-[#262a33]"
+        className="hidden md:flex fixed left-0 top-16 bottom-10 w-52 bg-surface-container-lowest z-40 overflow-y-auto px-2 py-3 flex-col justify-between border-r border-border"
       >
         <div className="space-y-4">
           {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <p className="px-2.5 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
+              <p className="px-2.5 text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                 {group.label}
               </p>
               <nav className="space-y-0.5">
@@ -255,15 +252,15 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                     className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
                       isActive(item.href)
                         ? item.href === '/customer/safety-sos'
-                          ? 'bg-[#93000a] text-[#ffdad6] font-bold'
-                          : 'bg-[#25a475] text-[#00311f] font-bold'
-                        : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                          ? 'bg-error-container text-on-error-container font-bold'
+                          : 'bg-primary text-on-primary font-bold shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                     }`}
                   >
                     <span
                       className={`material-symbols-outlined text-base ${
                         item.href === '/customer/safety-sos' && !isActive(item.href)
-                          ? 'text-[#ffb4ab]'
+                          ? 'text-error'
                           : ''
                       }`}
                     >
@@ -280,37 +277,37 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
 
       {/* MAIN BODY AREA */}
       <div className="md:pl-52">
-        <main className="w-full pt-16 pb-8 px-3 sm:px-4 min-h-screen bg-[#0f131c]">{children}</main>
+        <main className="w-full pt-16 pb-8 px-3 sm:px-4 min-h-screen bg-background">{children}</main>
       </div>
 
       {/* FOOTER BAR */}
-      <footer className="fixed bottom-0 left-0 right-0 h-10 bg-[#0a0e16] z-50 flex items-center justify-between px-3 sm:px-6 border-t border-[#262a33] gap-2">
-        <div className="hidden sm:flex items-center gap-2 font-mono text-xs text-[#bccac0] shrink-0">
-          <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse" />
+      <footer className="fixed bottom-0 left-0 right-0 h-10 bg-surface-container-lowest z-50 flex items-center justify-between px-3 sm:px-6 border-t border-border gap-2">
+        <div className="hidden sm:flex items-center gap-2 font-mono text-xs text-on-surface-variant shrink-0">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span>SYSTEM ONLINE</span>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-xs text-[#bccac0] min-w-0 ml-auto">
-          <span className="material-symbols-outlined text-[#ffb4ab] text-sm shrink-0">call</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-xs text-on-surface-variant min-w-0 ml-auto">
+          <span className="material-symbols-outlined text-error text-sm shrink-0">call</span>
           <span className="truncate">
             <span className="hidden sm:inline">EMERGENCY SOS: </span>
-            <strong className="text-[#ffb4ab]">+91 11 4099 2200</strong>
+            <strong className="text-error">+91 11 4099 2200</strong>
           </span>
         </div>
       </footer>
 
       {/* SEARCH MODAL */}
       {searchModalOpen && (
-        <div className="fixed inset-0 bg-[#0a0e16]/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#1c2028] border border-[#3d4a42] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-              <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9]">search</span>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-surface border border-border rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">search</span>
                 {t('common.actions.search')}
               </h3>
               <button
                 type="button"
                 onClick={() => setSearchModalOpen(false)}
-                className="text-[#bccac0] hover:text-[#dfe2ee]"
+                className="text-on-surface-variant hover:text-on-surface"
                 aria-label={t('common.actions.close')}
               >
                 <span className="material-symbols-outlined">close</span>
@@ -323,22 +320,22 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Type location, driver name, or booking ID..."
-                className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-4 py-3 text-sm text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
+                className="w-full bg-surface-container border border-border rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                 autoFocus
               />
             </div>
 
             <div className="space-y-2 pt-2 text-xs">
-              <span className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+              <span className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                 Quick Action Links
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   href="/customer/find-driver"
                   onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
+                  className="p-3 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-on-surface flex items-center gap-2 border border-border"
                 >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                  <span className="material-symbols-outlined text-primary text-base">
                     explore
                   </span>
                   {t('customer.nav.findDriver')}
@@ -346,30 +343,12 @@ export function CustomerLayout({ children, userEmail = null }: CustomerLayoutPro
                 <Link
                   href="/bookings"
                   onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
+                  className="p-3 bg-surface-container-low hover:bg-surface-container-high rounded-xl text-on-surface flex items-center gap-2 border border-border"
                 >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">
+                  <span className="material-symbols-outlined text-primary text-base">
                     calendar_month
                   </span>
                   {t('customer.nav.bookings')}
-                </Link>
-                <Link
-                  href="/bookings/new"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#181c24] hover:bg-[#262a33] rounded-xl text-[#dfe2ee] flex items-center gap-2 border border-[#262a33]"
-                >
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">add</span>
-                  {t('customer.nav.newBooking')}
-                </Link>
-                <Link
-                  href="/customer/safety-sos"
-                  onClick={() => setSearchModalOpen(false)}
-                  className="p-3 bg-[#93000a]/20 hover:bg-[#93000a]/40 rounded-xl text-[#ffdad6] flex items-center gap-2 border border-[#93000a]/50 font-bold"
-                >
-                  <span className="material-symbols-outlined text-[#ffb4ab] text-base">
-                    emergency
-                  </span>
-                  {t('customer.nav.safety')}
                 </Link>
               </div>
             </div>
