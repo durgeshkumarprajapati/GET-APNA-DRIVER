@@ -290,11 +290,11 @@ export default function DriverJourneyControlPage({
     return (
       <DriverLayout>
         <div className="flex items-center justify-center py-24">
-          <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 text-center space-y-4 shadow-xl">
-            <p className="text-red-400 font-medium text-sm">{error || 'Booking not found.'}</p>
+          <div className="max-w-md w-full bg-surface-container border border-border rounded-2xl p-6 text-center space-y-4 shadow-xl">
+            <p className="text-rose-600 dark:text-rose-400 font-medium text-sm">{error || 'Booking not found.'}</p>
             <Link
               href="/driver/bookings"
-              className="inline-flex min-h-[48px] items-center justify-center px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+              className="inline-flex min-h-[48px] items-center justify-center px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
             >
               ← Back to Assigned Bookings
             </Link>
@@ -322,18 +322,18 @@ export default function DriverJourneyControlPage({
           <DriverPickupReliabilityCard reliability={reliability} onConfirmed={refetchReliability} />
         )}
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-              <Link href="/driver/bookings" className="hover:text-emerald-400 transition-colors">
+            <div className="flex items-center gap-2 text-sm text-on-surface-variant mb-1">
+              <Link href="/driver/bookings" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 Assigned Bookings
               </Link>
               <span>/</span>
-              <span className="text-slate-200 font-medium">Journey Control</span>
+              <span className="text-on-surface font-medium">Journey Control</span>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-on-surface flex items-center gap-3">
               Driver Journey Controls
-              <span className="text-xs font-normal text-slate-400 font-mono">
+              <span className="text-xs font-normal text-on-surface-variant font-mono">
                 ({booking.id.substring(0, 8)})
               </span>
             </h1>
@@ -341,28 +341,28 @@ export default function DriverJourneyControlPage({
         </div>
 
         {actionMessage && (
-          <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-sm font-medium">
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-sm font-medium">
             ✓ {actionMessage}
           </div>
         )}
 
         {/* Current State & Primary Action Bar */}
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-700 pb-4">
+        <div className="bg-surface-container border border-border rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
+          <div className="flex items-center justify-between border-b border-border pb-4">
             <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider block">
+              <span className="text-xs text-on-surface-variant uppercase tracking-wider block">
                 Current Booking Status
               </span>
-              <span className="text-xl font-bold text-white uppercase tracking-wide">
+              <span className="text-xl font-bold text-on-surface uppercase tracking-wide">
                 {bookingStatusLabel(booking.status)}
               </span>
             </div>
-            <span className="h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
           </div>
 
           {booking.status === 'CANCELLED' && (
-            <div className="p-5 rounded-2xl bg-red-950/60 border border-red-500/60 space-y-2">
-              <div className="flex items-center gap-2.5 text-red-300 font-bold text-base">
+            <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 space-y-2">
+              <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-300 font-bold text-base">
                 <span className="material-symbols-outlined text-xl">cancel</span>
                 <span>
                   {booking.cancelledBy
@@ -371,7 +371,7 @@ export default function DriverJourneyControlPage({
                 </span>
               </div>
               {booking.cancellationReason && (
-                <p className="text-xs text-red-200">
+                <p className="text-xs text-rose-600 dark:text-rose-200">
                   Cancellation Reason:{' '}
                   <span className="font-semibold">{booking.cancellationReason}</span>
                 </p>
@@ -382,7 +382,7 @@ export default function DriverJourneyControlPage({
           {/* Action Trigger Buttons */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400 uppercase block">
+              <span className="text-xs font-medium text-on-surface-variant uppercase block">
                 Next Journey Step & Communication
               </span>
               {[
@@ -405,13 +405,13 @@ export default function DriverJourneyControlPage({
             </div>
 
             {customerCallData && (
-              <div className="p-3 rounded-lg bg-emerald-900/40 border border-emerald-500/50 text-xs text-emerald-300 space-y-1 font-mono">
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-600 dark:text-emerald-300 space-y-1 font-mono">
                 <div>Proxy Session ID: {customerCallData.callSessionId.substring(0, 8)}</div>
                 <div>
                   Masked Driver: {customerCallData.callerPhoneMasked} → Masked Customer:{' '}
                   {customerCallData.recipientPhoneMasked}
                 </div>
-                <div className="text-[11px] text-emerald-200">{customerCallData.instructions}</div>
+                <div className="text-[11px] text-emerald-600 dark:text-emerald-200">{customerCallData.instructions}</div>
               </div>
             )}
 
@@ -458,7 +458,7 @@ export default function DriverJourneyControlPage({
                 type="button"
                 onClick={() => setShowCancelModal(true)}
                 disabled={actionPending}
-                className="w-full min-h-[48px] py-2.5 bg-slate-800 hover:bg-red-950/60 active:bg-red-950 border border-slate-700 hover:border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 hover:text-red-300 font-semibold rounded-xl transition-all text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+                className="w-full min-h-[48px] py-2.5 bg-surface-container-high hover:bg-rose-500/10 active:bg-rose-500/20 border border-border hover:border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed text-on-surface hover:text-rose-600 dark:hover:text-rose-300 font-semibold rounded-xl transition-all text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
               >
                 Cancel Booking
               </button>
@@ -498,20 +498,20 @@ export default function DriverJourneyControlPage({
             )}
 
             {booking.status === 'TRIP_COMPLETED' && (
-              <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-3">
-                <div className="text-center text-emerald-400 font-bold text-sm">
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
+                <div className="text-center text-emerald-600 dark:text-emerald-400 font-bold text-sm">
                   ✓ Service Successfully Completed!
                 </div>
                 {review && (
                   <div className="pt-3 border-t border-emerald-500/20 space-y-1.5">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block text-center">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block text-center">
                       Customer Rating
                     </span>
                     <div className="flex justify-center">
                       <RatingStars value={review.rating} size="md" />
                     </div>
                     {review.comment && (
-                      <p className="text-xs text-slate-300 italic text-center">
+                      <p className="text-xs text-on-surface-variant italic text-center">
                         &quot;{review.comment}&quot;
                       </p>
                     )}
@@ -522,37 +522,37 @@ export default function DriverJourneyControlPage({
           </div>
 
           {/* Trip Details Card */}
-          <div className="space-y-4 pt-4 border-t border-slate-700/60">
+          <div className="space-y-4 pt-4 border-t border-border">
             {/* Service Recipient / Booked By Card */}
             {booking.isForSomeoneElse && booking.serviceRecipient ? (
-              <div className="bg-purple-950/40 border border-purple-500/40 p-4 rounded-xl space-y-3">
+              <div className="bg-purple-500/10 border border-purple-500/30 p-4 rounded-xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-purple-300 font-bold text-sm">
+                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-300 font-bold text-sm">
                     <span className="material-symbols-outlined text-base">person_pin</span>
                     <span>Service Recipient (Passenger)</span>
                   </div>
                   {booking.serviceRecipient.relationship && (
-                    <span className="px-2 py-0.5 rounded-full bg-purple-900/80 text-purple-200 font-mono text-[10px] font-semibold uppercase">
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-700 dark:text-purple-200 font-mono text-[10px] font-semibold uppercase">
                       {booking.serviceRecipient.relationship}
                     </span>
                   )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    <span className="text-on-surface-variant block text-[10px] uppercase font-mono">
                       Passenger Name
                     </span>
-                    <span className="text-white font-semibold text-sm">
+                    <span className="text-on-surface font-semibold text-sm">
                       {booking.serviceRecipient.fullName}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    <span className="text-on-surface-variant block text-[10px] uppercase font-mono">
                       Contact Phone
                     </span>
                     <a
                       href={`tel:${booking.serviceRecipient.phone}`}
-                      className="text-emerald-400 hover:underline font-mono font-medium flex items-center gap-1"
+                      className="text-emerald-600 dark:text-emerald-400 hover:underline font-mono font-medium flex items-center gap-1"
                     >
                       <span className="material-symbols-outlined text-xs">call</span>
                       {booking.serviceRecipient.phone}
@@ -560,23 +560,23 @@ export default function DriverJourneyControlPage({
                   </div>
                 </div>
                 {booking.serviceRecipient.notes && (
-                  <div className="text-xs bg-purple-900/20 p-2.5 rounded-lg border border-purple-500/20">
-                    <span className="text-purple-300 font-medium block text-[10px] uppercase">
+                  <div className="text-xs bg-purple-500/10 p-2.5 rounded-lg border border-purple-500/20">
+                    <span className="text-purple-600 dark:text-purple-300 font-medium block text-[10px] uppercase">
                       Recipient Notes / Instructions
                     </span>
-                    <p className="text-slate-200 mt-0.5">{booking.serviceRecipient.notes}</p>
+                    <p className="text-on-surface mt-0.5">{booking.serviceRecipient.notes}</p>
                   </div>
                 )}
                 {booking.bookedBy && (
-                  <div className="pt-2 border-t border-purple-500/20 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="pt-2 border-t border-purple-500/20 flex items-center justify-between text-[11px] text-on-surface-variant">
                     <span>
                       Booked By (Account Holder):{' '}
-                      <strong className="text-slate-200">{booking.bookedBy.fullName}</strong>
+                      <strong className="text-on-surface">{booking.bookedBy.fullName}</strong>
                     </span>
                     {booking.bookedBy.phone && (
                       <a
                         href={`tel:${booking.bookedBy.phone}`}
-                        className="text-slate-300 hover:text-emerald-400 font-mono"
+                        className="text-on-surface hover:text-emerald-600 dark:hover:text-emerald-400 font-mono"
                       >
                         {booking.bookedBy.phone}
                       </a>
@@ -586,19 +586,19 @@ export default function DriverJourneyControlPage({
               </div>
             ) : (
               booking.bookedBy && (
-                <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/80 flex items-center justify-between text-xs">
+                <div className="bg-surface-container-high p-3.5 rounded-xl border border-border flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-mono">
+                    <span className="text-on-surface-variant block text-[10px] uppercase font-mono">
                       Customer / Passenger
                     </span>
-                    <span className="text-white font-semibold text-sm">
+                    <span className="text-on-surface font-semibold text-sm">
                       {booking.bookedBy.fullName}
                     </span>
                   </div>
                   {booking.bookedBy.phone && (
                     <a
                       href={`tel:${booking.bookedBy.phone}`}
-                      className="text-emerald-400 hover:underline font-mono font-medium flex items-center gap-1"
+                      className="text-emerald-600 dark:text-emerald-400 hover:underline font-mono font-medium flex items-center gap-1"
                     >
                       <span className="material-symbols-outlined text-xs">call</span>
                       {booking.bookedBy.phone}
@@ -609,11 +609,11 @@ export default function DriverJourneyControlPage({
             )}
 
             <div>
-              <span className="text-xs text-slate-400 uppercase block">Pickup Location</span>
-              <p className="text-base font-semibold text-white mt-0.5">
+              <span className="text-xs text-on-surface-variant uppercase block">Pickup Location</span>
+              <p className="text-base font-semibold text-on-surface mt-0.5">
                 {booking.pickupLocation.address}
               </p>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs text-on-surface-variant font-mono">
                 Lat: {booking.pickupLocation.latitude.toFixed(6)}, Lng:{' '}
                 {booking.pickupLocation.longitude.toFixed(6)}
               </p>
@@ -645,21 +645,21 @@ export default function DriverJourneyControlPage({
             </div>
 
             {/* Fare & Driver Earnings Financial Breakdown */}
-            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-2">
-              <span className="text-xs font-bold text-slate-300 uppercase block font-mono">
+            <div className="bg-surface-container-high p-4 rounded-xl border border-border space-y-2">
+              <span className="text-xs font-bold text-on-surface uppercase block font-mono">
                 Service Earnings & Commission
               </span>
-              <div className="flex justify-between items-center text-xs font-mono text-slate-400">
+              <div className="flex justify-between items-center text-xs font-mono text-on-surface-variant">
                 <span>Estimated Duration:</span>
-                <span className="text-slate-200">
+                <span className="text-on-surface">
                   {booking.estimatedDurationMinutes ?? 30} mins
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xs font-mono text-slate-400">
+              <div className="flex justify-between items-center text-xs font-mono text-on-surface-variant">
                 <span>Platform Commission Rate:</span>
-                <span className="text-slate-200">20.00%</span>
+                <span className="text-on-surface">20.00%</span>
               </div>
-              <div className="flex justify-between items-center text-sm font-bold text-emerald-400 pt-2 border-t border-slate-800">
+              <div className="flex justify-between items-center text-sm font-bold text-emerald-600 dark:text-emerald-400 pt-2 border-t border-border">
                 <span>Estimated Driver Payout:</span>
                 <span>N/A (Calculated upon settlement)</span>
               </div>
@@ -667,8 +667,8 @@ export default function DriverJourneyControlPage({
 
             {booking.customerNotes && (
               <div>
-                <span className="text-xs text-slate-400 uppercase block">Customer Notes</span>
-                <p className="text-xs text-slate-200 bg-slate-900/60 p-3 rounded-lg border border-slate-700">
+                <span className="text-xs text-on-surface-variant uppercase block">Customer Notes</span>
+                <p className="text-xs text-on-surface bg-surface-container-high p-3 rounded-lg border border-border">
                   {booking.customerNotes}
                 </p>
               </div>
@@ -685,28 +685,28 @@ export default function DriverJourneyControlPage({
       />
 
       {showCancelModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
-            <h3 className="text-lg font-bold text-white">Cancel This Booking?</h3>
-            <p className="text-xs text-slate-300">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-surface border border-border rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
+            <h3 className="text-lg font-bold text-on-surface">Cancel This Booking?</h3>
+            <p className="text-xs text-on-surface-variant">
               The customer will be notified immediately, and any payment already captured for this
               booking will be automatically refunded.
             </p>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Reason (Optional)</label>
+              <label className="block text-xs text-on-surface-variant mb-1">Reason (Optional)</label>
               <input
                 type="text"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="e.g. Vehicle breakdown, emergency"
-                className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-xl bg-surface-container border border-border px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowCancelModal(false)}
-                className="min-h-[48px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                className="min-h-[48px] px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
               >
                 Keep Booking
               </button>
@@ -714,7 +714,7 @@ export default function DriverJourneyControlPage({
                 type="button"
                 onClick={handleCancelTrip}
                 disabled={cancelling}
-                className="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+                className="min-h-[48px] px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"
               >
                 {cancelling && (
                   <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />

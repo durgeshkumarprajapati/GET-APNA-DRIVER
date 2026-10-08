@@ -115,9 +115,9 @@ export default function DriverBookingsListPage() {
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Driver Journey Portal</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-on-surface">Driver Journey Portal</h1>
           </div>
           <button
             type="button"
@@ -125,27 +125,27 @@ export default function DriverBookingsListPage() {
               setLoading(true);
               void fetchBookings();
             }}
-            className="min-h-[48px] px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors self-start md:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+            className="min-h-[48px] px-4 py-2 bg-surface-container hover:bg-surface-container-high active:bg-surface-container-highest border border-border text-on-surface text-xs font-semibold rounded-xl transition-colors self-start md:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             Refresh Bookings
           </button>
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-sm font-medium">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-sm font-medium">
             {error}
           </div>
         )}
 
         {/* Active Trips Section */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
             Active Driver Assignments ({activeBookings.length})
           </h2>
 
           {activeBookings.length === 0 ? (
-            <div className="bg-slate-800/40 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
+            <div className="bg-surface-container border border-border rounded-2xl p-8 text-center text-on-surface-variant text-sm">
               No active booking assignments right now. Make sure your availability is set to
               AVAILABLE.
             </div>
@@ -155,30 +155,30 @@ export default function DriverBookingsListPage() {
                 <Link
                   key={b.id}
                   href={`/driver/bookings/${b.id}`}
-                  className="card-interactive group bg-slate-800/80 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-6 transition-all shadow-lg space-y-4 block"
+                  className="card-interactive group bg-surface-container hover:bg-surface-container-high border border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-6 transition-all shadow-lg space-y-4 block"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
                       {bookingStatusLabel(b.status)}
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-on-surface-variant font-mono">
                       #{b.id.substring(0, 8)}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                    <h3 className="text-sm font-semibold text-on-surface group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       {b.pickupLocation.address}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-on-surface-variant mt-1">
                       Type: {b.bookingType.replace(/_/g, ' ')} | Est:{' '}
                       {b.estimatedDurationMinutes || 60}m
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-700/60">
+                  <div className="flex items-center justify-between text-xs text-on-surface-variant pt-2 border-t border-border">
                     <span>Manage Booking Controls →</span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-on-surface-variant">
                       {new Date(b.createdAt).toLocaleTimeString()}
                     </span>
                   </div>
@@ -190,34 +190,34 @@ export default function DriverBookingsListPage() {
 
         {/* Past Trips Section */}
         {pastBookings.length > 0 && (
-          <div className="space-y-4 pt-6 border-t border-slate-800">
-            <h2 className="text-lg font-bold text-slate-300">
+          <div className="space-y-4 pt-6 border-t border-border">
+            <h2 className="text-lg font-bold text-on-surface">
               Completed & Past Bookings ({pastBookings.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
               {pastBookings.map((b) => (
                 <div
                   key={b.id}
-                  className="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 space-y-3 opacity-80"
+                  className="bg-surface-container border border-border rounded-2xl p-5 space-y-3 opacity-90"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-700 text-slate-300">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-surface-container-high text-on-surface">
                       {bookingStatusLabel(b.status)}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-on-surface-variant font-mono">
                       #{b.id.substring(0, 8)}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-200">{b.pickupLocation.address}</p>
+                    <p className="text-xs font-medium text-on-surface">{b.pickupLocation.address}</p>
                     {b.status === 'CANCELLED' ? (
-                      <p className="text-xs text-red-400 font-medium mt-1">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1">
                         {b.cancelledBy
                           ? `You have cancelled this booking${b.cancellationReason ? `: "${b.cancellationReason}"` : ''}`
                           : `Cancelled${b.cancellationReason ? `: "${b.cancellationReason}"` : ''}`}
                       </p>
                     ) : (
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[10px] text-on-surface-variant mt-0.5">
                         Completed:{' '}
                         {b.tripCompletedAt ? new Date(b.tripCompletedAt).toLocaleString() : 'N/A'}
                       </p>
