@@ -250,16 +250,16 @@ export function BookingMessagePanel({
   };
 
   return (
-    <div className="rounded-2xl bg-slate-900 border border-slate-800 flex flex-col overflow-hidden shadow-xl">
+    <div className="rounded-2xl bg-surface-container border border-border flex flex-col overflow-hidden shadow-xl">
       {/* Realtime Connection Status Banner */}
       {connectionState !== 'CONNECTED' && (
         <div
           className={`px-4 py-1.5 text-[11px] font-mono flex items-center justify-between transition-colors ${
             connectionState === 'RECONNECTING'
-              ? 'bg-amber-950/80 text-amber-300 border-b border-amber-800/60'
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-b border-amber-500/30'
               : connectionState === 'FAILED'
-                ? 'bg-rose-950/80 text-rose-300 border-b border-rose-800/60'
-                : 'bg-slate-800/80 text-slate-300 border-b border-slate-700'
+                ? 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-b border-rose-500/30'
+                : 'bg-surface-container-high text-on-surface-variant border-b border-border'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export function BookingMessagePanel({
             <button
               type="button"
               onClick={forceReconnect}
-              className="px-2 py-0.5 rounded bg-rose-900/60 hover:bg-rose-800 border border-rose-700 text-[10px] font-bold text-white transition-colors"
+              className="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 border border-rose-500 text-[10px] font-bold text-white transition-colors"
             >
               Retry Connection
             </button>
@@ -285,14 +285,14 @@ export function BookingMessagePanel({
       )}
 
       {/* Header */}
-      <div className="px-4 py-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-3">
+      <div className="px-4 py-3.5 bg-surface-container-high border-b border-border flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <span className="material-symbols-outlined text-lg">forum</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-on-surface uppercase tracking-wider">
                 {title || t('booking.communication.panelTitle')}
               </span>
               {unreadCount > 0 && (
@@ -302,9 +302,9 @@ export function BookingMessagePanel({
               )}
             </div>
             {bookingStatus && (
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-on-surface-variant">
                 Status:{' '}
-                <span className="text-slate-300 font-medium">
+                <span className="text-on-surface font-medium">
                   {bookingStatus.replace(/_/g, ' ')}
                 </span>
               </p>
@@ -317,7 +317,7 @@ export function BookingMessagePanel({
           type="button"
           onClick={() => void handleCall()}
           disabled={calling || !canCommunicate.allowed}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-emerald-400 text-xs font-medium border border-slate-700/60 transition-colors min-h-[36px]"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-container-highest hover:bg-surface-container disabled:opacity-40 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-border transition-colors min-h-[36px]"
           title="Call via Secure Masked Telephony"
         >
           <span className="material-symbols-outlined text-base">call</span>
@@ -331,21 +331,21 @@ export function BookingMessagePanel({
 
       {/* Spoken Languages Compatibility Bar */}
       {(driverLangs.length > 0 || customerLangs.length > 0) && (
-        <div className="px-4 py-2 bg-slate-950/80 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="material-symbols-outlined text-sm text-emerald-400">translate</span>
-            <span className="font-semibold text-slate-200">
+        <div className="px-4 py-2 bg-surface-container-highest/80 border-b border-border flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 text-on-surface-variant">
+            <span className="material-symbols-outlined text-sm text-emerald-600 dark:text-emerald-400">translate</span>
+            <span className="font-semibold text-on-surface">
               {t('booking.communication.spokenLanguages')}:
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px]">
             {driverLangs.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-300">
+              <span className="px-2 py-0.5 rounded-full bg-surface-container border border-border text-on-surface-variant">
                 👨‍✈️ {t('booking.communication.driverLanguages')}: {formatLanguagesList(driverLangs)}
               </span>
             )}
             {customerLangs.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/80 text-slate-300">
+              <span className="px-2 py-0.5 rounded-full bg-surface-container border border-border text-on-surface-variant">
                 👤 {t('booking.communication.customerLanguages')}:{' '}
                 {formatLanguagesList(customerLangs)}
               </span>
@@ -355,21 +355,21 @@ export function BookingMessagePanel({
       )}
 
       {/* Message Timeline */}
-      <div className="flex flex-col gap-3 p-4 min-h-[220px] max-h-[320px] overflow-y-auto bg-slate-950/40">
+      <div className="flex flex-col gap-3 p-4 min-h-[220px] max-h-[320px] overflow-y-auto bg-surface-container-high/40">
         {loading ? (
-          <div className="flex items-center justify-center py-8 text-xs text-slate-500 gap-2">
+          <div className="flex items-center justify-center py-8 text-xs text-on-surface-variant gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             Loading service communication…
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <span className="material-symbols-outlined text-3xl text-slate-600 mb-2">
+            <span className="material-symbols-outlined text-3xl text-on-surface-variant mb-2">
               chat_bubble_outline
             </span>
-            <p className="text-xs font-medium text-slate-400">
+            <p className="text-xs font-medium text-on-surface-variant">
               {t('booking.communication.panelTitle')}
             </p>
-            <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+            <p className="text-[11px] text-on-surface-variant mt-1 max-w-xs">
               {t('booking.communication.panelSubtitle')}
             </p>
           </div>
@@ -378,7 +378,7 @@ export function BookingMessagePanel({
             if (m.senderRole === 'SYSTEM' || m.messageType === 'SYSTEM') {
               return (
                 <div key={m.id} className="flex justify-center my-1">
-                  <div className="bg-slate-800/80 border border-slate-700/60 rounded-full px-3 py-1 text-[11px] text-slate-300 font-medium text-center shadow-sm">
+                  <div className="bg-surface-container-high border border-border rounded-full px-3 py-1 text-[11px] text-on-surface font-medium text-center shadow-sm">
                     ⚡ {m.body}
                   </div>
                 </div>
@@ -394,10 +394,10 @@ export function BookingMessagePanel({
                 }`}
               >
                 <div className="flex items-center gap-1.5 mb-1 px-1">
-                  <span className="text-[10px] font-semibold text-slate-400">
+                  <span className="text-[10px] font-semibold text-on-surface-variant">
                     {isMe ? 'You' : m.senderRole === 'CUSTOMER' ? 'Customer' : 'Driver'}
                   </span>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-on-surface-variant">
                     {new Date(m.createdAt).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -409,7 +409,7 @@ export function BookingMessagePanel({
                   className={`px-3.5 py-2 rounded-2xl text-xs leading-relaxed break-words shadow-sm ${
                     isMe
                       ? 'bg-emerald-600 text-white rounded-br-none font-medium'
-                      : 'bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700/80'
+                      : 'bg-surface-container-high text-on-surface rounded-bl-none border border-border'
                   }`}
                 >
                   {m.body}
@@ -423,8 +423,8 @@ export function BookingMessagePanel({
 
       {/* Quick Reply Chips */}
       {canCommunicate.allowed && (
-        <div className="px-3 py-2 bg-slate-900 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          <span className="text-[10px] uppercase font-bold text-slate-500 whitespace-nowrap mr-1">
+        <div className="px-3 py-2 bg-surface-container border-t border-border flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <span className="text-[10px] uppercase font-bold text-on-surface-variant whitespace-nowrap mr-1">
             {t('booking.communication.quickHeader')}:
           </span>
           {quickReplies.map((text) => (
@@ -433,7 +433,7 @@ export function BookingMessagePanel({
               type="button"
               onClick={() => void handleSend(text, 'QUICK_REPLY')}
               disabled={sending}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-[11px] text-slate-300 hover:text-white whitespace-nowrap transition-colors disabled:opacity-50 min-h-[32px]"
+              className="px-2.5 py-1 rounded-lg bg-surface-container-high hover:bg-surface-container-highest border border-border text-[11px] text-on-surface-variant hover:text-on-surface whitespace-nowrap transition-colors disabled:opacity-50 min-h-[32px]"
             >
               {text}
             </button>
@@ -443,12 +443,12 @@ export function BookingMessagePanel({
 
       {/* Error Message & Retry Banner */}
       {error && (
-        <div className="px-4 py-2 bg-rose-950/80 border-t border-rose-800/80 text-rose-300 text-xs flex items-center justify-between gap-2">
+        <div className="px-4 py-2 bg-rose-500/10 border-t border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs flex items-center justify-between gap-2">
           <span>{error}</span>
           <button
             type="button"
             onClick={() => void handleSend()}
-            className="px-2 py-0.5 rounded bg-rose-900 hover:bg-rose-800 text-[10px] font-bold text-white transition-colors"
+            className="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-[10px] font-bold text-white transition-colors"
           >
             Retry
           </button>
@@ -456,9 +456,9 @@ export function BookingMessagePanel({
       )}
 
       {/* Message Input Box */}
-      <div className="p-3 bg-slate-900 border-t border-slate-800">
+      <div className="p-3 bg-surface-container border-t border-border">
         {!canCommunicate.allowed ? (
-          <div className="px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-800 text-slate-400 text-xs text-center font-medium">
+          <div className="px-3 py-2 rounded-xl bg-surface-container-high border border-border text-on-surface-variant text-xs text-center font-medium">
             🔒 {canCommunicate.reason || 'Communication closed for this booking status.'}
           </div>
         ) : (
@@ -476,15 +476,15 @@ export function BookingMessagePanel({
               placeholder="Message driver..."
               disabled={sending}
               maxLength={500}
-              className="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/30 transition-all disabled:opacity-50 min-h-[40px]"
+              className="flex-1 px-3.5 py-2 rounded-xl bg-surface-container-high border border-border text-on-surface placeholder-on-surface-variant text-xs focus:outline-none focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/30 transition-all disabled:opacity-50 min-h-[40px]"
             />
             <button
               type="submit"
               disabled={sending || !draft.trim()}
-              className="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:hover:bg-emerald-500 text-slate-950 flex items-center justify-center transition-all shrink-0 font-bold"
+              className="w-10 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white flex items-center justify-center transition-all shrink-0 font-bold"
             >
               {sending ? (
-                <span className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
               ) : (
                 <span className="material-symbols-outlined text-lg">send</span>
               )}

@@ -16,7 +16,7 @@ export function Pagination({ page, pageSize, total, onPageChange }: PaginationPr
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between text-xs font-mono text-[#bccac0]">
+    <div className="flex items-center justify-between text-xs font-mono text-on-surface-variant">
       <span>
         Page {page} of {totalPages} ({total} total)
       </span>
@@ -25,7 +25,7 @@ export function Pagination({ page, pageSize, total, onPageChange }: PaginationPr
           type="button"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+          className="px-3 py-1.5 rounded-lg bg-surface-container border border-border text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
         >
           Previous
         </button>
@@ -33,7 +33,7 @@ export function Pagination({ page, pageSize, total, onPageChange }: PaginationPr
           type="button"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+          className="px-3 py-1.5 rounded-lg bg-surface-container border border-border text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
         >
           Next
         </button>

@@ -73,13 +73,13 @@ export default function CorporateDashboardPage() {
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/50 text-red-300 text-xs">
+          <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="p-12 text-center text-[#bccac0] text-sm font-mono animate-pulse">
+          <div className="p-12 text-center text-on-surface-variant text-sm font-mono animate-pulse">
             Loading corporate travel metrics...
           </div>
         ) : (
@@ -87,60 +87,60 @@ export default function CorporateDashboardPage() {
             <>
               {/* METRIC CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
-                  <div className="flex items-center justify-between text-[#bccac0]">
+                <div className="bg-surface-container border border-border rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between text-on-surface-variant">
                     <span className="text-xs font-mono uppercase tracking-wider font-semibold">
                       Total Travel Spend
                     </span>
-                    <span className="material-symbols-outlined text-[#68dba9]">payments</span>
+                    <span className="material-symbols-outlined text-primary">payments</span>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-primary font-['Space_Grotesk']">
                     ₹{report.totalSpend.toLocaleString()}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">
+                  <p className="text-[11px] text-on-surface-variant font-mono">
                     Billed to corporate account
                   </p>
                 </div>
 
-                <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
-                  <div className="flex items-center justify-between text-[#bccac0]">
+                <div className="bg-surface-container border border-border rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between text-on-surface-variant">
                     <span className="text-xs font-mono uppercase tracking-wider font-semibold">
                       Bookings Completed
                     </span>
-                    <span className="material-symbols-outlined text-[#68dba9]">local_taxi</span>
+                    <span className="material-symbols-outlined text-primary">local_taxi</span>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-on-surface font-['Space_Grotesk']">
                     {report.completedRidesCount}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">Employee business bookings</p>
+                  <p className="text-[11px] text-on-surface-variant font-mono">Employee business bookings</p>
                 </div>
 
-                <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
-                  <div className="flex items-center justify-between text-[#bccac0]">
+                <div className="bg-surface-container border border-border rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between text-on-surface-variant">
                     <span className="text-xs font-mono uppercase tracking-wider font-semibold">
                       Enrolled Employees
                     </span>
-                    <span className="material-symbols-outlined text-[#68dba9]">groups</span>
+                    <span className="material-symbols-outlined text-primary">groups</span>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-on-surface font-['Space_Grotesk']">
                     {report.totalMembersCount}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">
+                  <p className="text-[11px] text-on-surface-variant font-mono">
                     Active organization members
                   </p>
                 </div>
 
-                <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-5 shadow-xl space-y-2">
-                  <div className="flex items-center justify-between text-[#bccac0]">
+                <div className="bg-surface-container border border-border rounded-2xl p-5 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between text-on-surface-variant">
                     <span className="text-xs font-mono uppercase tracking-wider font-semibold">
                       Active Policies
                     </span>
-                    <span className="material-symbols-outlined text-[#68dba9]">policy</span>
+                    <span className="material-symbols-outlined text-primary">policy</span>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-on-surface font-['Space_Grotesk']">
                     {report.activePoliciesCount}
                   </div>
-                  <p className="text-[11px] text-[#87948b] font-mono">
+                  <p className="text-[11px] text-on-surface-variant font-mono">
                     Fare & distance governance rules
                   </p>
                 </div>
@@ -150,60 +150,60 @@ export default function CorporateDashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link
                   href="/corporate/members"
-                  className="p-5 bg-[#141822] hover:bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9]/40 rounded-2xl transition-all group"
+                  className="p-5 bg-surface-container hover:bg-surface-container-high border border-border hover:border-primary/40 rounded-2xl transition-all group shadow-sm"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">
+                    <span className="material-symbols-outlined text-2xl text-primary">
                       group_add
                     </span>
-                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">
+                    <span className="material-symbols-outlined text-lg text-on-surface-variant group-hover:translate-x-1 transition-transform">
                       arrow_forward
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">
+                  <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] mt-3">
                     Employee Onboarding
                   </h3>
-                  <p className="text-xs text-[#bccac0] mt-1">
+                  <p className="text-xs text-on-surface-variant mt-1">
                     Invite team members, assign departments & cost centers.
                   </p>
                 </Link>
 
                 <Link
                   href="/corporate/approvals"
-                  className="p-5 bg-[#141822] hover:bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9]/40 rounded-2xl transition-all group"
+                  className="p-5 bg-surface-container hover:bg-surface-container-high border border-border hover:border-primary/40 rounded-2xl transition-all group shadow-sm"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">
+                    <span className="material-symbols-outlined text-2xl text-primary">
                       verified
                     </span>
-                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">
+                    <span className="material-symbols-outlined text-lg text-on-surface-variant group-hover:translate-x-1 transition-transform">
                       arrow_forward
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">
+                  <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] mt-3">
                     Approval Workflow
                   </h3>
-                  <p className="text-xs text-[#bccac0] mt-1">
+                  <p className="text-xs text-on-surface-variant mt-1">
                     Review out-of-policy travel requests and fare exception overrides.
                   </p>
                 </Link>
 
                 <Link
                   href="/corporate/reports"
-                  className="p-5 bg-[#141822] hover:bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9]/40 rounded-2xl transition-all group"
+                  className="p-5 bg-surface-container hover:bg-surface-container-high border border-border hover:border-primary/40 rounded-2xl transition-all group shadow-sm"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="material-symbols-outlined text-2xl text-[#68dba9]">
+                    <span className="material-symbols-outlined text-2xl text-primary">
                       analytics
                     </span>
-                    <span className="material-symbols-outlined text-lg text-[#87948b] group-hover:translate-x-1 transition-transform">
+                    <span className="material-symbols-outlined text-lg text-on-surface-variant group-hover:translate-x-1 transition-transform">
                       arrow_forward
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-3">
+                  <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] mt-3">
                     Spend Analytics
                   </h3>
-                  <p className="text-xs text-[#bccac0] mt-1">
+                  <p className="text-xs text-on-surface-variant mt-1">
                     Export department travel breakdowns and monthly GST statements.
                   </p>
                 </Link>
@@ -212,18 +212,18 @@ export default function CorporateDashboardPage() {
               {/* RECENT RECENT RIDES TABLE */}
               <div className="space-y-4 pt-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <h2 className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
                     Recent Corporate Bookings
                   </h2>
                   <Link
                     href="/corporate/bookings"
-                    className="text-xs text-[#68dba9] font-mono hover:underline"
+                    className="text-xs text-primary font-mono hover:underline"
                   >
                     View All Bookings →
                   </Link>
                 </div>
 
-                <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
+                <div className="bg-surface-container border border-border rounded-2xl overflow-hidden shadow-sm">
                   {report.recentRides.length === 0 ? (
                     <EmptyState
                       icon="local_taxi"
@@ -235,7 +235,7 @@ export default function CorporateDashboardPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-[#262a33] bg-[#0a0e16]/60 text-[11px] font-mono text-[#bccac0] uppercase tracking-wider">
+                          <tr className="border-b border-border bg-surface-container-high/60 text-[11px] font-mono text-on-surface-variant uppercase tracking-wider">
                             <th className="p-3.5">Employee</th>
                             <th className="p-3.5">Pickup Location</th>
                             <th className="p-3.5">Fare</th>
@@ -243,22 +243,22 @@ export default function CorporateDashboardPage() {
                             <th className="p-3.5">Date</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#262a33] text-xs font-mono">
+                        <tbody className="divide-y divide-border text-xs font-mono">
                           {report.recentRides.map((ride) => (
-                            <tr key={ride.id} className="hover:bg-[#1c2028] transition-colors">
-                              <td className="p-3.5 font-bold text-[#dfe2ee]">{ride.bookerName}</td>
-                              <td className="p-3.5 text-[#bccac0] max-w-xs truncate">
+                            <tr key={ride.id} className="hover:bg-surface-container-high/50 transition-colors">
+                              <td className="p-3.5 font-bold text-on-surface">{ride.bookerName}</td>
+                              <td className="p-3.5 text-on-surface-variant max-w-xs truncate">
                                 {ride.pickupAddress}
                               </td>
-                              <td className="p-3.5 font-bold text-[#68dba9]">
+                              <td className="p-3.5 font-bold text-primary">
                                 ₹{ride.fareAmount.toLocaleString()}
                               </td>
                               <td className="p-3.5">
-                                <span className="px-2 py-0.5 rounded bg-[#1e2330] border border-[#262a33] text-[10px] uppercase font-bold text-[#dfe2ee]">
+                                <span className="px-2 py-0.5 rounded bg-surface-container-high border border-border text-[10px] uppercase font-bold text-on-surface">
                                   {ride.status}
                                 </span>
                               </td>
-                              <td className="p-3.5 text-[#87948b]">
+                              <td className="p-3.5 text-on-surface-variant">
                                 {new Date(ride.createdAt).toLocaleDateString()}
                               </td>
                             </tr>

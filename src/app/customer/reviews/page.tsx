@@ -71,7 +71,7 @@ export default function CustomerReviewHistoryPage() {
         />
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-error/30 bg-error-container text-on-error-container text-sm">
             {error}
           </div>
         )}
@@ -86,7 +86,7 @@ export default function CustomerReviewHistoryPage() {
               {data.reviews.map((review) => (
                 <div
                   key={review.id}
-                  className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2"
+                  className="p-5 rounded-xl bg-surface-container border border-border space-y-2 shadow-sm"
                 >
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <RatingStars value={review.rating} size="sm" />
@@ -95,17 +95,17 @@ export default function CustomerReviewHistoryPage() {
                         label={review.status}
                         tone={STATUS_TONE[review.status] ?? 'neutral'}
                       />
-                      <span className="font-mono text-[10px] text-[#87948b]">
+                      <span className="font-mono text-[10px] text-on-surface-variant">
                         {formatDate(review.createdAt)}
                       </span>
                     </div>
                   </div>
                   {review.comment && (
-                    <p className="text-xs text-[#bccac0] italic">&quot;{review.comment}&quot;</p>
+                    <p className="text-xs text-on-surface italic">&quot;{review.comment}&quot;</p>
                   )}
                   <Link
                     href={`/bookings/${review.bookingId}`}
-                    className="text-[10px] text-[#68dba9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="text-[10px] text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {t('customer.invoices.viewBooking')} →
                   </Link>

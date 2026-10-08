@@ -175,31 +175,31 @@ export default function DriverDocumentsPage() {
     switch (status) {
       case 'VERIFIED':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
             Verified
           </span>
         );
       case 'UNDER_REVIEW':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
             Under Review
           </span>
         );
       case 'REJECTED':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 border border-rose-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30">
             Rejected
           </span>
         );
       case 'EXPIRED':
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant border border-border">
             Expired
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30">
             {status}
           </span>
         );
@@ -212,7 +212,7 @@ export default function DriverDocumentsPage() {
         <div className="flex items-center justify-center py-24">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
-            <p className="text-slate-400">Loading document portal...</p>
+            <p className="text-on-surface-variant">Loading document portal...</p>
           </div>
         </div>
       </DriverLayout>
@@ -223,18 +223,18 @@ export default function DriverDocumentsPage() {
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl font-bold tracking-tight text-on-surface font-['Space_Grotesk']">
               Driver Verification Documents
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-on-surface-variant mt-1">
               Upload required identity, license, and vehicle documentation for verification.
             </p>
           </div>
           <Link
             href="/driver/onboarding"
-            className="inline-flex items-center justify-center min-h-[48px] px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-sm font-medium rounded-lg border border-slate-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+            className="inline-flex items-center justify-center min-h-[48px] px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium rounded-lg border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             Back to Onboarding
           </Link>
@@ -242,25 +242,25 @@ export default function DriverDocumentsPage() {
 
         {message && (
           <div
-            className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-emerald-950/50 border-emerald-800 text-emerald-300' : 'bg-rose-950/50 border-rose-800 text-rose-300'}`}
+            className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-300'}`}
           >
             <p className="text-sm font-medium">{message.text}</p>
           </div>
         )}
 
         {/* Upload New Document Form */}
-        <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
-          <h2 className="text-xl font-semibold text-white mb-4">Upload New Document</h2>
+        <div className="bg-surface-container border border-border rounded-2xl p-6 shadow-xl">
+          <h2 className="text-xl font-semibold text-on-surface mb-4">Upload New Document</h2>
           <form onSubmit={handleUpload} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-on-surface-variant mb-1.5">
                   Document Type *
                 </label>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-surface-container-high border border-border rounded-lg px-3 py-2 text-on-surface text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   {DOCUMENT_TYPES.map((dt) => (
                     <option key={dt.value} value={dt.value}>
@@ -271,7 +271,7 @@ export default function DriverDocumentsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-on-surface-variant mb-1.5">
                   Document / License Number (Optional)
                 </label>
                 <input
@@ -279,31 +279,31 @@ export default function DriverDocumentsPage() {
                   placeholder="e.g. DL-1420110012345"
                   value={documentNumber}
                   onChange={(e) => setDocumentNumber(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder-slate-500"
+                  className="w-full bg-surface-container-high border border-border rounded-lg px-3 py-2 text-on-surface text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder-on-surface-variant"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-on-surface-variant mb-1.5">
                   Expiration Date (If Applicable)
                 </label>
                 <input
                   type="date"
                   value={expiresAt}
                   onChange={(e) => setExpiresAt(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-100 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full bg-surface-container-high border border-border rounded-lg px-3 py-2 text-on-surface text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-on-surface-variant mb-1.5">
                   Document File (PDF / JPEG / PNG, Max 10MB) *
                 </label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,application/pdf"
                   onChange={handleFileChange}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-300 text-sm focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500"
+                  className="w-full bg-surface-container-high border border-border rounded-lg px-3 py-1.5 text-on-surface-variant text-sm focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500"
                 />
               </div>
             </div>
@@ -324,8 +324,8 @@ export default function DriverDocumentsPage() {
         </div>
 
         {/* Uploaded Documents List */}
-        <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
-          <h2 className="text-xl font-semibold text-white mb-4">Your Uploaded Documents</h2>
+        <div className="bg-surface-container border border-border rounded-2xl p-6 shadow-xl">
+          <h2 className="text-xl font-semibold text-on-surface mb-4">Your Uploaded Documents</h2>
 
           {documents.length === 0 ? (
             <EmptyState
@@ -333,7 +333,7 @@ export default function DriverDocumentsPage() {
               message="No documents uploaded yet. Upload required documents above."
             />
           ) : (
-            <div className="divide-y divide-slate-700/60">
+            <div className="divide-y divide-border">
               {documents.map((doc) => (
                 <div
                   key={doc.id}
@@ -341,14 +341,14 @@ export default function DriverDocumentsPage() {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-on-surface">
                         {doc.documentType.replace('_', ' ')}
                       </span>
                       {getStatusBadge(doc.status)}
-                      <span className="text-xs text-slate-500">v{doc.version}</span>
+                      <span className="text-xs text-on-surface-variant">v{doc.version}</span>
                     </div>
 
-                    <div className="text-xs text-slate-400 flex flex-wrap gap-x-4 gap-y-1">
+                    <div className="text-xs text-on-surface-variant flex flex-wrap gap-x-4 gap-y-1">
                       <span>File: {doc.originalFileName}</span>
                       {doc.documentNumber && <span>Doc #: {doc.documentNumber}</span>}
                       {doc.expiresAt && (
@@ -358,7 +358,7 @@ export default function DriverDocumentsPage() {
                     </div>
 
                     {doc.rejectionReason && (
-                      <div className="mt-2 p-2.5 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs">
+                      <div className="mt-2 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs">
                         <strong className="font-semibold">Rejection Reason:</strong>{' '}
                         {doc.rejectionReason}
                       </div>
@@ -368,7 +368,7 @@ export default function DriverDocumentsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleDownload(doc.id)}
-                      className="min-h-[48px] px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 rounded-lg border border-slate-600 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                      className="min-h-[48px] px-3 py-1.5 text-xs font-medium bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-lg border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
                     >
                       View / Download
                     </button>

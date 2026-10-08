@@ -62,6 +62,11 @@ export interface PaymentProvider {
   createOrder(input: CreateOrderInput): Promise<CreateOrderResult>;
   fetchPayment(providerPaymentId: string): Promise<FetchPaymentResult>;
   fetchOrder(providerOrderId: string): Promise<FetchOrderResult>;
+  capturePaymentOnProvider?(
+    providerPaymentId: string,
+    amountMinorUnits: number,
+    currency?: string,
+  ): Promise<FetchPaymentResult>;
   /** Verifies the client-side checkout completion signature (order_id|payment_id HMAC). */
   verifyPaymentSignature(input: VerifyPaymentSignatureInput): boolean;
   initiateRefund(input: InitiateRefundInput): Promise<InitiateRefundResult>;
@@ -168,6 +173,51 @@ export class RazorpayPaymentProvider implements PaymentProvider {
       status: body.status ?? 'unknown',
       amountMinorUnits: body.amount ?? 0,
       currency: body.currency ?? 'INR',
+    };
+  }
+
+  async capturePaymentOnProvider(
+    providerPaymentId: string,
+    amountMinorUnits: number,
+    currency: string = 'INR',
+  ): Promise<FetchPaymentResult> {
+    const { keyId, keySecret } = getRazorpayCredentials();
+
+    const response = await fetch(
+      `${RAZORPAY_API_BASE_URL}/payments/${providerPaymentId}/capture`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: basicAuthHeader(keyId, keySecret),
+        },
+        body: JSON.stringify({
+          amount: amountMinorUnits,
+          currency,
+        }),
+      },
+    );
+
+    const body = (await response.json()) as RazorpayErrorBody & {
+      id?: string;
+      order_id?: string;
+      status?: string;
+      amount?: number;
+      currency?: string;
+    };
+
+    if (!response.ok || !body.id) {
+      throw new Error(
+        `Razorpay payment capture failed: ${body.error?.description ?? response.statusText}`,
+      );
+    }
+
+    return {
+      providerPaymentId: body.id,
+      providerOrderId: body.order_id ?? null,
+      status: body.status ?? 'captured',
+      amountMinorUnits: body.amount ?? amountMinorUnits,
+      currency: body.currency ?? currency,
     };
   }
 
@@ -284,6 +334,20 @@ export class MockPaymentProvider implements PaymentProvider {
       status: 'captured',
       amountMinorUnits: 0,
       currency: 'INR',
+    };
+  }
+
+  async capturePaymentOnProvider(
+    providerPaymentId: string,
+    amountMinorUnits: number,
+    currency: string = 'INR',
+  ): Promise<FetchPaymentResult> {
+    return {
+      providerPaymentId,
+      providerOrderId: null,
+      status: 'captured',
+      amountMinorUnits,
+      currency,
     };
   }
 

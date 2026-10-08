@@ -74,7 +74,7 @@ export function CustomerExperienceSection() {
     return (
       <div className="w-full space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
+          <span className="text-[10px] font-bold text-primary uppercase tracking-wider font-['Space_Grotesk']">
             Intelligent Experience Orchestrator
           </span>
         </div>
@@ -82,7 +82,7 @@ export function CustomerExperienceSection() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-32 rounded-xl bg-[#181c24]/50 border border-[#262a33] animate-pulse p-4"
+              className="h-32 rounded-xl bg-surface-container/50 border border-border animate-pulse p-4"
             />
           ))}
         </div>
@@ -92,12 +92,12 @@ export function CustomerExperienceSection() {
 
   if (error) {
     return (
-      <div className="p-3 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between text-xs text-[#bccac0]">
+      <div className="p-3 rounded-xl bg-surface-container border border-border flex items-center justify-between text-xs text-on-surface-variant">
         <span>{error}</span>
         <button
           type="button"
           onClick={() => void loadExperiences()}
-          className="px-2.5 py-1 rounded bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] font-mono text-[11px]"
+          className="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-container-lowest text-on-surface font-mono text-[11px] border border-border"
         >
           Retry
         </button>
@@ -108,6 +108,7 @@ export function CustomerExperienceSection() {
   if (recommendations.length === 0) {
     return null;
   }
+
 
   return (
     <div className="w-full space-y-2.5">

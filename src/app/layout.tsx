@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 import { cookies } from 'next/headers';
 import { I18nProvider } from '@/i18n/context';
 import { ToastProvider } from '@/components/ui/toast';
+import { ThemeProvider, THEME_COOKIE_NAME, ThemeMode } from '@/components/theme-provider';
 import { LOCALE_COOKIE_NAME, isValidLocale, DEFAULT_LOCALE, SupportedLocale } from '@/i18n/config';
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -19,8 +20,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const rawLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
   const initialLocale: SupportedLocale = isValidLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
 
+  const rawTheme = cookieStore.get(THEME_COOKIE_NAME)?.value as ThemeMode | undefined;
+  const initialTheme: ThemeMode = rawTheme && ['LIGHT', 'DARK', 'SYSTEM'].includes(rawTheme) ? rawTheme : 'LIGHT';
+  const htmlThemeClass = initialTheme === 'DARK' ? 'dark' : 'light';
+
   return (
-    <html lang={initialLocale} className="dark">
+    <html lang={initialLocale} className={htmlThemeClass} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -32,11 +37,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('gad_theme_preference');if(t==='DARK'){document.documentElement.classList.add('dark');document.documentElement.classList.remove('light');}else if(t==='LIGHT'){document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}else if(t==='SYSTEM'){if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');document.documentElement.classList.remove('light');}else{document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}}else{document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}}catch(e){}})()`,
+          }}
+        />
       </head>
-      <body className="bg-surface text-on-surface font-body-md antialiased min-h-screen">
-        <I18nProvider initialLocale={initialLocale}>
-          <ToastProvider>{children}</ToastProvider>
-        </I18nProvider>
+      <body className="bg-background text-on-surface font-body-md antialiased min-h-screen">
+        <ThemeProvider initialTheme={initialTheme}>
+          <I18nProvider initialLocale={initialLocale}>
+            <ToastProvider>{children}</ToastProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

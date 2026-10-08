@@ -282,13 +282,13 @@ export default function DriverOnboardingPage() {
       <DriverLayout>
         <div className="flex flex-col w-full px-6 py-6 gap-6">
           <PageHeader eyebrow="Driver Onboarding" title="Application Submitted" />
-          <div className="p-8 rounded-xl bg-[#181c24] border border-[#262a33] text-center space-y-3">
-            <span className="material-symbols-outlined text-4xl text-[#68dba9]">task_alt</span>
-            <p className="text-sm text-[#dfe2ee]">
+          <div className="p-8 rounded-xl bg-surface-container border border-border text-center space-y-3 shadow-sm">
+            <span className="material-symbols-outlined text-4xl text-emerald-500">task_alt</span>
+            <p className="text-sm text-on-surface">
               Your application is <StatusBadge label={profile.onboardingStatus} tone="info" /> and
               your documents are <StatusBadge label={profile.verificationStatus} tone="warning" />.
             </p>
-            <p className="text-xs text-[#87948b]">
+            <p className="text-xs text-on-surface-variant">
               {documents.filter((d) => d.status === 'VERIFIED').length} of{' '}
               {REQUIRED_DOCUMENT_TYPES.length} required documents verified so far. You&apos;ll be
               notified once our verification team reviews your submission. Dispatch access is
@@ -323,8 +323,8 @@ export default function DriverOnboardingPage() {
         />
 
         {step === 1 && (
-          <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-xl">
-            <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="p-6 rounded-xl bg-surface-container border border-border space-y-4 max-w-xl shadow-sm">
+            <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
               1. Personal & Profile Information
             </h2>
             <ContextualTip id="driver-onboarding-step1">
@@ -332,37 +332,37 @@ export default function DriverOnboardingPage() {
               need for every field to be perfect, you can edit this later from your profile.
             </ContextualTip>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="text-xs text-[#87948b] flex flex-col gap-1">
+              <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
                 First Name
                 <input
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
                 />
               </label>
-              <label className="text-xs text-[#87948b] flex flex-col gap-1">
+              <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
                 Last Name
                 <input
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
                 />
               </label>
-              <label className="text-xs text-[#87948b] flex flex-col gap-1">
+              <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
                 Date of Birth
                 <input
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
                 />
               </label>
-              <label className="text-xs text-[#87948b] flex flex-col gap-1">
+              <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
                 Gender
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
                 >
                   <option value="">Prefer not to say</option>
                   <option value="MALE">Male</option>
@@ -370,43 +370,43 @@ export default function DriverOnboardingPage() {
                   <option value="OTHER">Other</option>
                 </select>
               </label>
-              <label className="text-xs text-[#87948b] flex flex-col gap-1">
+              <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
                 Driving Experience (years)
                 <input
                   type="number"
                   min={0}
                   value={drivingExperienceYears}
                   onChange={(e) => setDrivingExperienceYears(Number(e.target.value))}
-                  className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
                 />
               </label>
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
                   Primary Service Area
                   <input
                     value={primaryServiceArea}
                     onChange={(e) => setPrimaryServiceArea(e.target.value)}
                     placeholder="e.g. South Delhi"
-                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
                   />
                 </label>
                 <CurrentLocationButton onLocated={handleUseCurrentLocation} />
               </div>
             </div>
-            <label className="text-xs text-[#87948b] flex flex-col gap-1">
+            <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
               Bio (optional)
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] h-20 focus:outline-none focus:border-[#68dba9]"
+                className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface h-20 focus:outline-none focus:border-primary font-sans"
               />
             </label>
-            {profileError && <p className="text-xs text-[#ffb4ab]">{profileError}</p>}
+            {profileError && <p className="text-xs text-rose-500 font-medium">{profileError}</p>}
             <button
               type="button"
               disabled={savingProfile}
               onClick={() => void handleSaveProfile()}
-              className="min-h-[48px] px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-5 py-2 rounded-lg bg-primary hover:opacity-90 active:opacity-80 text-on-primary text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-sm"
             >
               {savingProfile ? 'Saving…' : 'Save & Continue'}
             </button>
@@ -414,15 +414,15 @@ export default function DriverOnboardingPage() {
         )}
 
         {step === 2 && (
-          <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-xl">
-            <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="p-6 rounded-xl bg-surface-container border border-border space-y-4 max-w-xl shadow-sm">
+            <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
               2. Required Documents
             </h2>
             <ContextualTip id="driver-onboarding-step2">
               Only Driving License and Aadhaar Card are required to submit — the rest speed up
               approval but can be added later from your profile.
             </ContextualTip>
-            {uploadError && <p className="text-xs text-[#ffb4ab]">{uploadError}</p>}
+            {uploadError && <p className="text-xs text-rose-500 font-medium">{uploadError}</p>}
             <div className="space-y-3">
               {ALL_DOCUMENT_TYPES.map((type) => {
                 const existing = documents.find((d) => d.documentType === type);
@@ -430,12 +430,12 @@ export default function DriverOnboardingPage() {
                 return (
                   <div
                     key={type}
-                    className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-center justify-between gap-3 flex-wrap"
+                    className="p-3 rounded-lg bg-surface-container-high border border-border flex items-center justify-between gap-3 flex-wrap"
                   >
                     <div>
-                      <span className="text-sm text-[#dfe2ee] font-medium">
+                      <span className="text-sm text-on-surface font-medium">
                         {DOCUMENT_LABELS[type]}
-                        {required && <span className="text-[#ffb4ab]"> *</span>}
+                        {required && <span className="text-rose-500 font-bold"> *</span>}
                       </span>
                       {existing && (
                         <div className="mt-1">
@@ -444,14 +444,14 @@ export default function DriverOnboardingPage() {
                             tone={DOC_STATUS_TONE[existing.status] ?? 'neutral'}
                           />
                           {existing.rejectionReason && (
-                            <p className="text-[10px] text-[#ffb4ab] mt-1">
+                            <p className="text-[10px] text-rose-500 mt-1 font-medium">
                               {existing.rejectionReason}
                             </p>
                           )}
                         </div>
                       )}
                     </div>
-                    <label className="min-h-[48px] flex items-center px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] cursor-pointer transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#68dba9]">
+                    <label className="min-h-[48px] flex items-center px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-highest active:opacity-90 text-xs font-bold text-on-surface border border-border cursor-pointer transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
                       {uploadingType === type ? 'Uploading…' : existing ? 'Replace' : 'Upload'}
                       <input
                         type="file"
@@ -473,7 +473,7 @@ export default function DriverOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-h-[48px] px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-xs font-bold text-on-surface border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 Back
               </button>
@@ -481,12 +481,12 @@ export default function DriverOnboardingPage() {
                 type="button"
                 disabled={missingRequiredDocs.length > 0}
                 onClick={() => setStep(3)}
-                className="min-h-[48px] px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-h-[48px] px-5 py-2 rounded-lg bg-primary hover:opacity-90 active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed text-on-primary text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-sm"
               >
                 Continue
               </button>
               {missingRequiredDocs.length > 0 && (
-                <span className="text-[10px] text-[#87948b]">
+                <span className="text-[10px] text-on-surface-variant font-mono">
                   Upload all required (*) documents to continue.
                 </span>
               )}
@@ -495,23 +495,23 @@ export default function DriverOnboardingPage() {
         )}
 
         {step === 3 && (
-          <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-xl">
-            <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="p-6 rounded-xl bg-surface-container border border-border space-y-4 max-w-xl shadow-sm">
+            <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
               3. Review & Submit
             </h2>
-            <div className="text-xs text-[#bccac0] space-y-1">
+            <div className="text-xs text-on-surface-variant space-y-1">
               <p>
                 {profile?.firstName} {profile?.lastName} • {profile?.drivingExperienceYears} yrs
                 experience • {profile?.primaryServiceArea}
               </p>
               <p>{documents.length} document(s) on file</p>
             </div>
-            {submitError && <p className="text-xs text-[#ffb4ab]">{submitError}</p>}
+            {submitError && <p className="text-xs text-rose-500 font-medium">{submitError}</p>}
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-h-[48px] px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-xs font-bold text-on-surface border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 Back
               </button>
@@ -519,7 +519,7 @@ export default function DriverOnboardingPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => void handleSubmitOnboarding()}
-                className="min-h-[48px] px-5 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-50 disabled:cursor-not-allowed text-[#003825] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-h-[48px] px-5 py-2 rounded-lg bg-primary hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-sm"
               >
                 {submitting ? 'Submitting…' : 'Submit Application'}
               </button>

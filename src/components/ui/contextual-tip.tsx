@@ -69,20 +69,20 @@ export function ContextualTip({
 
   return (
     <div
-      className={`rounded-xl border border-[#68dba9]/30 bg-[#003825]/30 p-3 flex items-start gap-2.5 text-xs ${className}`}
+      className={`rounded-xl border border-primary/30 bg-primary/10 p-3 flex items-start gap-2.5 text-xs ${className}`}
     >
       <span
-        className="material-symbols-outlined text-base text-[#68dba9] shrink-0"
+        className="material-symbols-outlined text-base text-primary shrink-0"
         aria-hidden="true"
       >
         {icon}
       </span>
-      <div className="min-w-0 flex-1 text-[#dfe2ee] leading-relaxed">{children}</div>
+      <div className="min-w-0 flex-1 text-on-surface leading-relaxed">{children}</div>
       <button
         type="button"
         onClick={() => markDismissed(id)}
         aria-label="Dismiss tip"
-        className="shrink-0 -m-1.5 p-1.5 min-w-[28px] min-h-[28px] flex items-center justify-center text-[#87948b] hover:text-[#dfe2ee] rounded-lg hover:bg-white/10 transition-colors"
+        className="shrink-0 -m-1.5 p-1.5 min-w-[28px] min-h-[28px] flex items-center justify-center text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-highest transition-colors"
       >
         <span className="material-symbols-outlined text-sm">close</span>
       </button>

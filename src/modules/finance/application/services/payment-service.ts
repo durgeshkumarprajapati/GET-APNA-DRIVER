@@ -375,7 +375,14 @@ export async function verifyAndCapturePayment(
     throw new PaymentVerificationFailedError('Invalid payment signature');
   }
 
-  const providerPayment = await paymentProvider.fetchPayment(input.providerPaymentId);
+  let providerPayment = await paymentProvider.fetchPayment(input.providerPaymentId);
+  if (providerPayment.status === 'authorized' && paymentProvider.capturePaymentOnProvider) {
+    providerPayment = await paymentProvider.capturePaymentOnProvider(
+      input.providerPaymentId,
+      providerPayment.amountMinorUnits,
+      providerPayment.currency,
+    );
+  }
   if (providerPayment.status !== 'captured') {
     throw new PaymentVerificationFailedError(
       `Provider reports payment status: ${providerPayment.status}`,

@@ -29,20 +29,20 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 const TYPE_BADGE_COLORS: Record<string, string> = {
-  SAFETY: 'bg-rose-950/90 text-rose-300 border-rose-800',
-  RELIABILITY: 'bg-amber-950/90 text-amber-300 border-amber-800',
-  ACTIVE_TRIP: 'bg-emerald-950/90 text-emerald-300 border-emerald-800',
-  BOOK_AGAIN: 'bg-indigo-950/90 text-indigo-300 border-indigo-800',
-  FAVORITE_DRIVER: 'bg-amber-950/90 text-amber-300 border-amber-800',
-  PROMOTION: 'bg-emerald-950/90 text-emerald-300 border-emerald-800',
-  LOYALTY_REWARD: 'bg-purple-950/90 text-purple-300 border-purple-800',
-  DRIVER_INCENTIVE: 'bg-emerald-950/90 text-emerald-300 border-emerald-800',
+  SAFETY: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/30',
+  RELIABILITY: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30',
+  ACTIVE_TRIP: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
+  BOOK_AGAIN: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/30',
+  FAVORITE_DRIVER: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30',
+  PROMOTION: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
+  LOYALTY_REWARD: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30',
+  DRIVER_INCENTIVE: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
 };
 
 export function ExperienceCard({ recommendation, onDismiss, onAction }: ExperienceCardProps) {
   const icon = TYPE_ICONS[recommendation.type] || 'auto_awesome';
   const badgeClass =
-    TYPE_BADGE_COLORS[recommendation.type] || 'bg-[#181c24] text-[#68dba9] border-[#262a33]';
+    TYPE_BADGE_COLORS[recommendation.type] || 'bg-surface-container-high text-primary border-border';
 
   const handleActionClick = (_e: React.MouseEvent) => {
     if (onAction) {
@@ -51,11 +51,11 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
   };
 
   return (
-    <div className="group relative rounded-xl bg-[#181c24] border border-[#262a33] p-3.5 sm:p-4 shadow-lg hover:border-[#3d4a42] transition-all flex flex-col justify-between space-y-3">
+    <div className="group relative rounded-xl bg-surface-container border border-border p-3.5 sm:p-4 shadow-lg hover:border-primary/40 transition-all flex flex-col justify-between space-y-3">
       {/* Card Header & Badge */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-center justify-center text-[#68dba9] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-surface-container-lowest border border-border flex items-center justify-center text-primary shrink-0">
             <span className="material-symbols-outlined text-lg">{icon}</span>
           </div>
           <div className="min-w-0">
@@ -64,7 +64,7 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
             >
               {recommendation.type.replace('_', ' ')}
             </span>
-            <h4 className="font-bold text-xs sm:text-sm text-[#dfe2ee] font-['Space_Grotesk'] leading-tight truncate mt-0.5">
+            <h4 className="font-bold text-xs sm:text-sm text-on-surface font-['Space_Grotesk'] leading-tight truncate mt-0.5">
               {recommendation.title}
             </h4>
           </div>
@@ -76,7 +76,7 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
             type="button"
             onClick={() => onDismiss(recommendation)}
             aria-label="Dismiss experience recommendation"
-            className="w-7 h-7 rounded-lg hover:bg-[#262a33] text-[#87948b] hover:text-[#dfe2ee] flex items-center justify-center transition-colors shrink-0"
+            className="w-7 h-7 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-base">close</span>
           </button>
@@ -85,11 +85,11 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
 
       {/* Description & Reason (Explainability) */}
       <div className="space-y-1.5 text-xs">
-        <p className="text-[#bccac0] text-[11px] leading-relaxed line-clamp-2">
+        <p className="text-on-surface-variant text-[11px] leading-relaxed line-clamp-2">
           {recommendation.description}
         </p>
-        <div className="p-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-[10px] font-mono text-[#87948b] flex items-start gap-1.5">
-          <span className="material-symbols-outlined text-xs text-[#68dba9] shrink-0 mt-0.5">
+        <div className="p-2 rounded-lg bg-surface-container-lowest border border-border text-[10px] font-mono text-on-surface-variant flex items-start gap-1.5">
+          <span className="material-symbols-outlined text-xs text-primary shrink-0 mt-0.5">
             help_outline
           </span>
           <span className="leading-snug">{recommendation.reason}</span>
@@ -97,11 +97,11 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
       </div>
 
       {/* Action CTA */}
-      <div className="pt-2 border-t border-[#262a33] flex items-center justify-between">
+      <div className="pt-2 border-t border-border flex items-center justify-between">
         <Link
           href={recommendation.action.targetUrl || '#'}
           onClick={handleActionClick}
-          className="w-full sm:w-auto min-h-[38px] px-3.5 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#208f66] text-[#00311f] font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md"
+          className="w-full sm:w-auto min-h-[38px] px-3.5 py-1.5 rounded-lg bg-primary text-on-primary font-bold text-xs hover:opacity-90 transition-colors flex items-center justify-center gap-1.5 shadow-md"
         >
           <span>
             {recommendation.type === 'BOOK_AGAIN'
@@ -126,3 +126,4 @@ export function ExperienceCard({ recommendation, onDismiss, onAction }: Experien
     </div>
   );
 }
+

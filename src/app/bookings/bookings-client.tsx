@@ -116,29 +116,29 @@ export default function BookingsListPage() {
     <CustomerLayout>
       <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-6 rounded-2xl border border-[#262a33]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container p-6 rounded-2xl border border-border">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+            <div className="flex items-center gap-2 text-xs font-mono text-primary">
               <span className="material-symbols-outlined text-base">calendar_month</span>
               <span>Customer Booking Management</span>
             </div>
-            <h1 className="text-2xl font-bold text-white font-['Space_Grotesk'] mt-1">
+            <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
               Service History & Bookings
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-on-surface-variant mt-1">
               Manage your active, upcoming, completed, and cancelled chauffeur driver services.
             </p>
           </div>
           <Link
             href="/bookings/new"
-            className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-[#68dba9] hover:bg-[#52c693] active:bg-[#003825] text-[#003825] font-bold text-xs rounded-xl shadow transition-colors text-center"
+            className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs rounded-xl shadow transition-colors text-center"
           >
             + Book Chauffeur Now
           </Link>
         </div>
 
         {/* STATUS TABS */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-[#262a33] pb-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
           {[
             { key: 'ALL', label: 'All Services', count: counts.all },
             { key: 'UPCOMING', label: 'Upcoming', count: counts.upcoming },
@@ -155,16 +155,16 @@ export default function BookingsListPage() {
               }}
               className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
                 statusTab === tab.key
-                  ? 'bg-[#68dba9] text-[#003825] font-bold shadow-lg'
-                  : 'bg-[#0a0e16] hover:bg-[#181c24] text-slate-300 border border-[#262a33]'
+                  ? 'bg-primary text-on-primary font-bold shadow-lg'
+                  : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant border border-border'
               }`}
             >
               <span>{tab.label}</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
                   statusTab === tab.key
-                    ? 'bg-[#003825] text-[#68dba9]'
-                    : 'bg-[#181c24] text-slate-400 border border-slate-700'
+                    ? 'bg-on-primary/20 text-on-primary'
+                    : 'bg-surface-container-high text-on-surface-variant border border-border'
                 }`}
               >
                 {tab.count}
@@ -174,9 +174,9 @@ export default function BookingsListPage() {
         </div>
 
         {/* FILTERS & SEARCH */}
-        <div className="bg-[#0a0e16] p-4 rounded-2xl border border-[#262a33] flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div className="bg-surface-container p-4 rounded-2xl border border-border flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-500 text-lg">
+            <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-lg">
               search
             </span>
             <input
@@ -187,7 +187,7 @@ export default function BookingsListPage() {
                 setPage(1);
               }}
               placeholder="Search Booking ID, Driver, Recipient..."
-              className="w-full pl-9 pr-3 py-2 bg-[#181c24] border border-[#262a33] rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#68dba9]"
+              className="w-full pl-9 pr-3 py-2 bg-surface-container-high border border-border rounded-xl text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -198,7 +198,7 @@ export default function BookingsListPage() {
                 setPaymentStatus(e.target.value);
                 setPage(1);
               }}
-              className="bg-[#181c24] border border-[#262a33] text-xs text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#68dba9]"
+              className="bg-surface-container-high border border-border text-xs text-on-surface rounded-xl px-3 py-2 focus:outline-none focus:border-primary"
             >
               <option value="">All Payment Statuses</option>
               <option value="CAPTURED">Paid</option>
@@ -214,7 +214,7 @@ export default function BookingsListPage() {
                 setStartDate(e.target.value);
                 setPage(1);
               }}
-              className="bg-[#181c24] border border-[#262a33] text-xs text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#68dba9]"
+              className="bg-surface-container-high border border-border text-xs text-on-surface rounded-xl px-3 py-2 focus:outline-none focus:border-primary"
             />
 
             <input
@@ -224,23 +224,23 @@ export default function BookingsListPage() {
                 setEndDate(e.target.value);
                 setPage(1);
               }}
-              className="bg-[#181c24] border border-[#262a33] text-xs text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#68dba9]"
+              className="bg-surface-container-high border border-border text-xs text-on-surface rounded-xl px-3 py-2 focus:outline-none focus:border-primary"
             />
           </div>
         </div>
 
         {/* LOADING & ERROR */}
         {loading && (
-          <div className="flex items-center justify-center p-12 bg-[#0a0e16] rounded-2xl border border-[#262a33]">
+          <div className="flex items-center justify-center p-12 bg-surface-container rounded-2xl border border-border">
             <div className="flex flex-col items-center gap-3">
-              <span className="w-8 h-8 rounded-full border-2 border-[#68dba9] border-t-transparent animate-spin" />
-              <span className="text-xs font-mono text-slate-400">Loading service history...</span>
+              <span className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <span className="text-xs font-mono text-on-surface-variant">Loading service history...</span>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-red-950/40 border border-red-500/30 rounded-2xl text-xs text-red-300 font-mono">
+          <div className="p-4 bg-error-container border border-error/30 rounded-2xl text-xs text-on-error-container font-mono">
             {error}
           </div>
         )}
@@ -266,7 +266,7 @@ export default function BookingsListPage() {
               >
                 <Link
                   href="/bookings/new"
-                  className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-[#68dba9] text-[#003825] font-bold text-xs rounded-xl transition-colors"
+                  className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-primary text-on-primary font-bold text-xs rounded-xl transition-colors"
                 >
                   Book Chauffeur Now
                 </Link>
@@ -275,26 +275,26 @@ export default function BookingsListPage() {
               bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="bg-[#0a0e16] border border-[#262a33] hover:border-slate-700 rounded-2xl p-6 shadow-xl transition-all space-y-4 text-slate-200"
+                  className="bg-surface-container border border-border hover:border-primary/40 rounded-2xl p-6 shadow-sm transition-all space-y-4 text-on-surface"
                 >
                   {/* TOP CARD BAR */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-border pb-3">
                     <div className="flex items-center gap-3">
                       {getStatusBadge(booking.status)}
-                      <span className="text-xs font-bold text-white uppercase font-mono tracking-wider">
+                      <span className="text-xs font-bold text-on-surface uppercase font-mono tracking-wider">
                         {booking.bookingType.replace(/_/g, ' ')}
                       </span>
                       {booking.vehicleCategory && (
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">
+                        <span className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono text-[10px] border border-border">
                           {booking.vehicleCategory.name}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs font-mono text-slate-400">
+                    <div className="flex items-center gap-3 text-xs font-mono text-on-surface-variant">
                       <span>
                         Booking ID:{' '}
-                        <strong className="text-white">{booking.id.substring(0, 8)}...</strong>
+                        <strong className="text-on-surface">{booking.id.substring(0, 8)}...</strong>
                       </span>
                       <span>•</span>
                       <span>{formatDate(booking.createdAt)}</span>
@@ -306,19 +306,19 @@ export default function BookingsListPage() {
                     {/* LOCATIONS */}
                     <div className="space-y-2 md:col-span-1">
                       <div>
-                        <span className="text-[10px] uppercase font-mono text-slate-500 block">
+                        <span className="text-[10px] uppercase font-mono text-on-surface-variant block">
                           Pickup Location
                         </span>
-                        <p className="text-sm font-semibold text-white mt-0.5">
+                        <p className="text-sm font-semibold text-on-surface mt-0.5">
                           {booking.pickupLocation.address}
                         </p>
                       </div>
                       {booking.dropoffLocation && (
                         <div>
-                          <span className="text-[10px] uppercase font-mono text-slate-500 block">
+                          <span className="text-[10px] uppercase font-mono text-on-surface-variant block">
                             Dropoff Location
                           </span>
-                          <p className="text-xs text-slate-300 mt-0.5">
+                          <p className="text-xs text-on-surface-variant mt-0.5">
                             {booking.dropoffLocation.address}
                           </p>
                         </div>
@@ -326,28 +326,28 @@ export default function BookingsListPage() {
                     </div>
 
                     {/* DRIVER & RECIPIENT (PHASE 74) */}
-                    <div className="space-y-2 md:col-span-1 border-t md:border-t-0 md:border-l border-[#262a33] pt-3 md:pt-0 md:pl-6">
+                    <div className="space-y-2 md:col-span-1 border-t md:border-t-0 md:border-l border-border pt-3 md:pt-0 md:pl-6">
                       <div>
-                        <span className="text-[10px] uppercase font-mono text-slate-500 block">
+                        <span className="text-[10px] uppercase font-mono text-on-surface-variant block">
                           Assigned Chauffeur
                         </span>
                         {booking.driver ? (
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="h-7 w-7 rounded-full bg-emerald-900/60 border border-emerald-500 flex items-center justify-center text-xs font-bold text-white uppercase">
+                            <div className="h-7 w-7 rounded-full bg-primary/20 border border-primary flex items-center justify-center text-xs font-bold text-primary uppercase">
                               {booking.driver.displayName?.[0] || 'D'}
                             </div>
                             <div>
-                              <span className="text-xs font-bold text-white block">
+                              <span className="text-xs font-bold text-on-surface block">
                                 {booking.driver.displayName || 'Professional Chauffeur'}
                               </span>
-                              <span className="text-[10px] text-slate-400 block">
+                              <span className="text-[10px] text-on-surface-variant block">
                                 {booking.driver.drivingExperienceYears} yrs exp •{' '}
                                 {booking.driver.primaryServiceArea || 'Verified'}
                               </span>
                             </div>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-400 italic block mt-0.5">
+                          <span className="text-xs text-on-surface-variant italic block mt-0.5">
                             Matching nearby driver…
                           </span>
                         )}
@@ -355,20 +355,20 @@ export default function BookingsListPage() {
 
                       {/* PHASE 74 RECIPIENT BADGE */}
                       <div className="pt-2">
-                        <span className="text-[10px] uppercase font-mono text-slate-500 block">
+                        <span className="text-[10px] uppercase font-mono text-on-surface-variant block">
                           Service Recipient
                         </span>
                         {booking.serviceRecipient?.isForSomeoneElse ? (
-                          <div className="p-2 rounded-lg bg-purple-950/40 border border-purple-500/30 text-xs mt-1">
-                            <span className="text-purple-300 font-bold block">
+                          <div className="p-2 rounded-lg bg-secondary-container/40 border border-secondary/30 text-xs mt-1">
+                            <span className="text-secondary font-bold block">
                               For: {booking.serviceRecipient.fullName}
                             </span>
-                            <span className="text-slate-400 text-[10px] font-mono">
+                            <span className="text-on-surface-variant text-[10px] font-mono">
                               Mobile: {booking.serviceRecipient.phone}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-300 block font-semibold mt-0.5">
+                          <span className="text-xs text-on-surface block font-semibold mt-0.5">
                             Service For: You
                           </span>
                         )}
@@ -376,29 +376,29 @@ export default function BookingsListPage() {
                     </div>
 
                     {/* FINANCIALS & RATING */}
-                    <div className="space-y-2 md:col-span-1 border-t md:border-t-0 md:border-l border-[#262a33] pt-3 md:pt-0 md:pl-6 font-mono text-xs">
+                    <div className="space-y-2 md:col-span-1 border-t md:border-t-0 md:border-l border-border pt-3 md:pt-0 md:pl-6 font-mono text-xs">
                       <div>
-                        <span className="text-[10px] uppercase text-slate-500 block">
+                        <span className="text-[10px] uppercase text-on-surface-variant block">
                           Total Amount
                         </span>
-                        <span className="text-lg font-bold text-white block">
+                        <span className="text-lg font-bold text-on-surface block">
                           {formatCurrency(booking.fareAmount)}
                         </span>
-                        <span className="text-[10px] text-slate-400 block">
+                        <span className="text-[10px] text-on-surface-variant block">
                           Payment Status:{' '}
-                          <strong className="text-[#68dba9]">{booking.paymentStatus}</strong>
+                          <strong className="text-primary">{booking.paymentStatus}</strong>
                         </span>
                       </div>
 
                       {booking.refundedAmount && booking.refundedAmount > 0 && (
-                        <div className="p-2 rounded-lg bg-amber-950/40 border border-amber-500/30 text-[11px] text-amber-300">
+                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-600 dark:text-amber-400">
                           Refunded: {formatCurrency(booking.refundedAmount)}
                         </div>
                       )}
 
                       {booking.rating && (
                         <div className="pt-1">
-                          <span className="text-[10px] uppercase text-slate-500 block mb-0.5">
+                          <span className="text-[10px] uppercase text-on-surface-variant block mb-0.5">
                             Your Rating
                           </span>
                           <RatingStars value={booking.rating} size="sm" />
@@ -409,8 +409,8 @@ export default function BookingsListPage() {
 
                   {/* CANCELLATION REASON IF CANCELLED */}
                   {booking.status === 'CANCELLED' && booking.cancellationReason && (
-                    <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-300 font-medium flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm text-red-400 shrink-0">cancel</span>
+                    <div className="p-3 rounded-xl bg-error-container/60 border border-error/30 text-xs text-on-error-container font-medium flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm text-error shrink-0">cancel</span>
                       <span>
                         {booking.cancellationReason.toLowerCase().includes('rejected') ||
                         booking.cancellationReason === 'Booking rejected by driver'
@@ -425,11 +425,11 @@ export default function BookingsListPage() {
                   )}
 
                   {/* BOTTOM ACTION BAR */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#262a33]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/bookings/${booking.id}`}
-                        className="px-4 py-2 bg-[#181c24] hover:bg-[#222733] text-white text-xs font-semibold rounded-xl border border-[#262a33] flex items-center gap-1.5 transition-colors"
+                        className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-lowest text-on-surface text-xs font-semibold rounded-xl border border-border flex items-center gap-1.5 transition-colors"
                       >
                         <span>View Details</span>
                         <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -439,7 +439,7 @@ export default function BookingsListPage() {
                         <a
                           href={`/api/customer/bookings/${booking.id}/invoice/pdf`}
                           download={`invoice-${booking.invoiceNumber}.pdf`}
-                          className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-lowest text-on-surface text-xs font-semibold rounded-xl border border-border flex items-center gap-1.5 transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">description</span>
                           <span>Invoice</span>
@@ -451,7 +451,7 @@ export default function BookingsListPage() {
                           href={`/api/customer/payments/${booking.paymentId}/receipt/pdf`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-purple-300 text-xs font-semibold rounded-xl border border-purple-500/30 flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-2 bg-surface-container-high hover:bg-surface-container-lowest text-secondary text-xs font-semibold rounded-xl border border-secondary/30 flex items-center gap-1.5 transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">receipt</span>
                           <span>Receipt</span>
@@ -462,7 +462,7 @@ export default function BookingsListPage() {
                         <a
                           href={`/api/customer/refunds/${booking.refundId}/pdf`}
                           download={`refund-${booking.refundNumber || 'doc'}.pdf`}
-                          className="px-3 py-2 bg-amber-950/60 hover:bg-amber-900 text-amber-300 text-xs font-semibold rounded-xl border border-amber-500/30 flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-300 text-xs font-semibold rounded-xl border border-amber-500/30 flex items-center gap-1.5 transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">
                             assignment_return
@@ -476,7 +476,7 @@ export default function BookingsListPage() {
                       {booking.isEligibleForBookAgain && (
                         <Link
                           href={`/bookings/new?bookAgain=${booking.id}`}
-                          className="px-4 py-2 bg-[#68dba9] hover:bg-[#52c693] text-[#003825] text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+                          className="px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
                         >
                           <span className="material-symbols-outlined text-sm">replay</span>
                           <span>Book Again</span>
@@ -492,8 +492,8 @@ export default function BookingsListPage() {
 
         {/* PAGINATION */}
         {!loading && !error && totalPages > 1 && (
-          <div className="p-4 bg-[#0a0e16] border border-[#262a33] rounded-2xl flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400">
+          <div className="p-4 bg-surface-container border border-border rounded-2xl flex items-center justify-between text-xs font-mono">
+            <span className="text-on-surface-variant">
               Page {page} of {totalPages}
             </span>
             <div className="flex gap-2">
@@ -501,7 +501,7 @@ export default function BookingsListPage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 bg-[#181c24] hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded-xl border border-[#262a33]"
+                className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-lowest disabled:opacity-40 text-on-surface rounded-xl border border-border"
               >
                 Previous
               </button>
@@ -509,7 +509,7 @@ export default function BookingsListPage() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 bg-[#181c24] hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded-xl border border-[#262a33]"
+                className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-lowest disabled:opacity-40 text-on-surface rounded-xl border border-border"
               >
                 Next
               </button>

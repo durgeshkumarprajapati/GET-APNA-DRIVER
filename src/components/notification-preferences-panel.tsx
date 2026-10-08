@@ -127,22 +127,22 @@ export function NotificationPreferencesPanel() {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-3 rounded-lg border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-xs">
+        <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs">
           {error}
         </div>
       )}
 
-      {/* 1. Quiet Hours & Frequency Capping Controls */}
-      <div className="p-4 rounded-lg bg-[#11141c] border border-[#262a33] space-y-4">
-        <h3 className="text-xs font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
+      {/* 1. Quiet Hours & Fatigue Controls */}
+      <div className="p-4 rounded-lg bg-surface-container-high border border-border space-y-4">
+        <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-['Space_Grotesk']">
           🌙 Quiet Hours & Fatigue Controls
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-[#dfe2ee]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-on-surface">
           {/* Quiet Hours */}
-          <div className="p-3 rounded bg-[#181c24] border border-[#262a33] space-y-2">
+          <div className="p-3 rounded-lg bg-surface-container-highest border border-border space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="quiet-hours-toggle" className="font-semibold text-[#dfe2ee]">
+              <label htmlFor="quiet-hours-toggle" className="font-semibold text-on-surface">
                 Quiet Hours (Night Mode)
               </label>
               <input
@@ -152,16 +152,16 @@ export function NotificationPreferencesPanel() {
                 onChange={(e) =>
                   void handleUpdateIntelligence({ quietHoursEnabled: e.target.checked })
                 }
-                className="w-4 h-4 rounded accent-[#68dba9]"
+                className="w-4 h-4 rounded accent-emerald-600 dark:accent-emerald-400"
               />
             </div>
-            <p className="text-[11px] text-[#87948b]">
+            <p className="text-[11px] text-on-surface-variant">
               Non-urgent offer & promotional alerts are paused during quiet hours. Emergency & active ride alerts always bypass.
             </p>
             {intelligence.quietHours.quietHoursEnabled && (
               <div className="flex items-center gap-3 pt-2">
                 <div>
-                  <label htmlFor="quiet-start-input" className="block text-[10px] text-[#87948b]">Start Time</label>
+                  <label htmlFor="quiet-start-input" className="block text-[10px] text-on-surface-variant">Start Time</label>
                   <input
                     id="quiet-start-input"
                     type="time"
@@ -169,11 +169,11 @@ export function NotificationPreferencesPanel() {
                     onChange={(e) =>
                       void handleUpdateIntelligence({ quietHoursStart: e.target.value })
                     }
-                    className="mt-1 px-2 py-1 bg-[#0a0e16] border border-[#262a33] rounded text-xs text-[#dfe2ee]"
+                    className="mt-1 px-2 py-1 bg-surface border border-border rounded text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div>
-                  <label htmlFor="quiet-end-input" className="block text-[10px] text-[#87948b]">End Time</label>
+                  <label htmlFor="quiet-end-input" className="block text-[10px] text-on-surface-variant">End Time</label>
                   <input
                     id="quiet-end-input"
                     type="time"
@@ -181,7 +181,7 @@ export function NotificationPreferencesPanel() {
                     onChange={(e) =>
                       void handleUpdateIntelligence({ quietHoursEnd: e.target.value })
                     }
-                    className="mt-1 px-2 py-1 bg-[#0a0e16] border border-[#262a33] rounded text-xs text-[#dfe2ee]"
+                    className="mt-1 px-2 py-1 bg-surface border border-border rounded text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -189,9 +189,9 @@ export function NotificationPreferencesPanel() {
           </div>
 
           {/* Daily Frequency Cap */}
-          <div className="p-3 rounded bg-[#181c24] border border-[#262a33] space-y-2">
+          <div className="p-3 rounded-lg bg-surface-container-highest border border-border space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="frequency-cap-toggle" className="font-semibold text-[#dfe2ee]">
+              <label htmlFor="frequency-cap-toggle" className="font-semibold text-on-surface">
                 Daily Frequency Cap
               </label>
               <input
@@ -201,27 +201,27 @@ export function NotificationPreferencesPanel() {
                 onChange={(e) =>
                   void handleUpdateIntelligence({ frequencyCapEnabled: e.target.checked })
                 }
-                className="w-4 h-4 rounded accent-[#68dba9]"
+                className="w-4 h-4 rounded accent-emerald-600 dark:accent-emerald-400"
               />
             </div>
-            <p className="text-[11px] text-[#87948b]">
+            <p className="text-[11px] text-on-surface-variant">
               Caps non-essential promotional and loyalty notifications to prevent notification overload.
             </p>
             {intelligence.frequencyCap.frequencyCapEnabled && (
               <div className="pt-2">
-                <label htmlFor="max-non-urgent-select" className="block text-[10px] text-[#87948b]">Max Non-Urgent Messages Per Day</label>
+                <label htmlFor="max-non-urgent-select" className="block text-[10px] text-on-surface-variant">Max Non-Urgent Messages Per Day</label>
                 <select
                   id="max-non-urgent-select"
                   value={intelligence.frequencyCap.maxNonUrgentPerDay}
                   onChange={(e) =>
                     void handleUpdateIntelligence({ maxNonUrgentPerDay: Number(e.target.value) })
                   }
-                  className="mt-1 px-3 py-1 bg-[#0a0e16] border border-[#262a33] rounded text-xs text-[#dfe2ee]"
+                  className="mt-1 px-3 py-1 bg-surface border border-border rounded text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                 >
-                  <option value={1}>1 notification per day</option>
-                  <option value={2}>2 notifications per day</option>
-                  <option value={3}>3 notifications per day (Recommended)</option>
-                  <option value={5}>5 notifications per day</option>
+                  <option value={1} className="bg-surface text-on-surface">1 notification per day</option>
+                  <option value={2} className="bg-surface text-on-surface">2 notifications per day</option>
+                  <option value={3} className="bg-surface text-on-surface">3 notifications per day (Recommended)</option>
+                  <option value={5} className="bg-surface text-on-surface">5 notifications per day</option>
                 </select>
               </div>
             )}
@@ -233,7 +233,7 @@ export function NotificationPreferencesPanel() {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="text-[#87948b] uppercase text-[10px] font-['Space_Grotesk']">
+            <tr className="text-on-surface-variant uppercase text-[10px] font-['Space_Grotesk'] border-b border-border">
               <th className="py-2 pr-4">Category</th>
               {CHANNELS.map((c) => (
                 <th key={c} className="py-2 px-3 text-center capitalize">
@@ -242,15 +242,15 @@ export function NotificationPreferencesPanel() {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#262a33]">
+          <tbody className="divide-y divide-border">
             {preferences.map((pref) => {
               const isSafety = pref.category === 'SAFETY';
               return (
                 <tr key={pref.category}>
-                  <td className="py-3 pr-4 text-[#dfe2ee] font-medium">
+                  <td className="py-3 pr-4 text-on-surface font-medium">
                     {CATEGORY_LABELS[pref.category] ?? pref.category}
                     {isSafety && (
-                      <span className="block text-[10px] text-[#87948b] font-normal">
+                      <span className="block text-[10px] text-on-surface-variant font-normal">
                         Always on — cannot be disabled
                       </span>
                     )}
@@ -266,7 +266,7 @@ export function NotificationPreferencesPanel() {
                           onChange={(e) =>
                             void handleToggle(pref.category, channel, e.target.checked)
                           }
-                          className="w-4 h-4 rounded bg-[#0a0e16] accent-[#68dba9] disabled:opacity-50"
+                          className="w-4 h-4 rounded accent-emerald-600 dark:accent-emerald-400 disabled:opacity-50"
                         />
                       </td>
                     );

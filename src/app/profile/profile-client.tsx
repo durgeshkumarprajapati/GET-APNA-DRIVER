@@ -7,6 +7,7 @@ import { useToast, ToastViewport } from '@/components/ui/toast';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
+import { useTheme } from '@/components/theme-provider';
 
 interface ProfileData {
   firstName: string | null;
@@ -61,9 +62,11 @@ interface PreferenceData {
 }
 
 export default function ProfilePage() {
+  const { setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<
     'profile' | 'people' | 'locations' | 'preferences' | 'security'
   >('profile');
+
 
   // Saved People State
   const [savedPeople, setSavedPeople] = useState<SavedPersonData[]>([]);
@@ -446,6 +449,7 @@ export default function ProfilePage() {
         throw new Error(errData.error?.message || 'Failed to update preferences');
       }
 
+      setTheme(preferences.theme as any);
       setPrefMessage({ type: 'success', text: 'Preferences saved successfully!' });
     } catch (err: unknown) {
       setPrefMessage({
@@ -456,6 +460,7 @@ export default function ProfilePage() {
       setPrefSaving(false);
     }
   };
+
 
   const handleSavePin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -899,13 +904,13 @@ export default function ProfilePage() {
 
         {/* Saved People Tab Content */}
         {activeTab === 'people' && (
-          <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-6 flex flex-col gap-6 animate-fade-in-up">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#262a33] pb-4">
+          <div className="bg-surface-container border border-border rounded-xl p-6 flex flex-col gap-6 animate-fade-in-up shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
               <div>
-                <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                   Saved People (Service Recipients)
                 </h2>
-                <p className="text-xs text-[#87948b] mt-1">
+                <p className="text-xs text-on-surface-variant mt-1">
                   Save family members, friends, or guests to quickly book driver services for them.
                 </p>
               </div>
@@ -923,7 +928,7 @@ export default function ProfilePage() {
                   setDuplicateWarning(null);
                   setShowPersonModal(true);
                 }}
-                className="px-4 py-2 rounded-lg bg-[#68dba9] text-[#003825] hover:bg-[#86e2ba] text-xs font-bold transition-all flex items-center justify-center gap-2 self-start sm:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="px-4 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90 text-xs font-bold transition-all flex items-center justify-center gap-2 self-start sm:self-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-sm"
               >
                 <span className="material-symbols-outlined text-sm">person_add</span>
                 <span>+ Add Person</span>
@@ -931,14 +936,14 @@ export default function ProfilePage() {
             </div>
 
             {savedPeopleLoading ? (
-              <div className="text-xs text-[#87948b] py-8 text-center">Loading saved people...</div>
+              <div className="text-xs text-on-surface-variant py-8 text-center">Loading saved people...</div>
             ) : savedPeople.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 bg-[#141820] border border-dashed border-[#262a33] rounded-xl text-center">
-                <span className="material-symbols-outlined text-3xl text-[#5a685e] mb-2">
+              <div className="flex flex-col items-center justify-center p-8 bg-surface-container-high border border-dashed border-border rounded-xl text-center">
+                <span className="material-symbols-outlined text-3xl text-on-surface-variant mb-2">
                   group
                 </span>
-                <h3 className="text-sm font-bold text-[#dfe2ee]">No Saved People Yet</h3>
-                <p className="text-xs text-[#87948b] mt-1 max-w-sm">
+                <h3 className="text-sm font-bold text-on-surface">No Saved People Yet</h3>
+                <p className="text-xs text-on-surface-variant mt-1 max-w-sm">
                   Save family members or colleagues for quick 1-click selection when booking driver
                   services for someone else.
                 </p>
@@ -956,7 +961,7 @@ export default function ProfilePage() {
                     setDuplicateWarning(null);
                     setShowPersonModal(true);
                   }}
-                  className="mt-4 px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-xs font-semibold text-[#68dba9] border border-[#68dba9]/30 transition-all flex items-center gap-1.5"
+                  className="mt-4 px-4 py-2 rounded-lg bg-surface-container-highest hover:opacity-90 text-xs font-semibold text-primary border border-primary/30 transition-all flex items-center gap-1.5"
                 >
                   <span className="material-symbols-outlined text-sm">add</span>
                   <span>Add First Person</span>
@@ -967,18 +972,18 @@ export default function ProfilePage() {
                 {savedPeople.map((person) => (
                   <div
                     key={person.id}
-                    className="p-4 bg-[#141820] border border-[#262a33] hover:border-[#343a46] rounded-xl flex flex-col justify-between gap-4 transition-all group"
+                    className="p-4 bg-surface-container-high border border-border hover:border-primary/40 rounded-xl flex flex-col justify-between gap-4 transition-all group shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#262a33] text-[#68dba9] flex items-center justify-center font-bold text-sm font-['Space_Grotesk']">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm font-['Space_Grotesk'] border border-primary/30">
                           {person.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-[#dfe2ee] group-hover:text-[#68dba9] transition-colors">
+                          <h4 className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
                             {person.fullName}
                           </h4>
-                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-[#262a33] text-[#a2b0a6] uppercase font-mono tracking-wider">
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container-highest text-on-surface-variant uppercase font-mono tracking-wider">
                             {person.relationship || 'Recipient'}
                           </span>
                         </div>
@@ -998,7 +1003,7 @@ export default function ProfilePage() {
                             setDuplicateWarning(null);
                             setShowPersonModal(true);
                           }}
-                          className="p-1.5 text-[#87948b] hover:text-[#dfe2ee] rounded-md hover:bg-[#262a33] transition-colors"
+                          className="p-1.5 text-on-surface-variant hover:text-on-surface rounded-md hover:bg-surface-container-highest transition-colors"
                           title="Edit Person"
                         >
                           <span className="material-symbols-outlined text-base">edit</span>
@@ -1006,7 +1011,7 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={() => handleDeletePerson(person.id)}
-                          className="p-1.5 text-red-400 hover:text-red-300 rounded-md hover:bg-red-950/30 transition-colors"
+                          className="p-1.5 text-destructive hover:opacity-80 rounded-md hover:bg-destructive/10 transition-colors"
                           title="Delete Person"
                         >
                           <span className="material-symbols-outlined text-base">delete</span>
@@ -1014,32 +1019,32 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="text-xs text-[#87948b] space-y-1 font-mono">
-                      <div className="flex items-center gap-2 text-[#dfe2ee]">
-                        <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                    <div className="text-xs text-on-surface-variant space-y-1 font-mono">
+                      <div className="flex items-center gap-2 text-on-surface font-semibold">
+                        <span className="material-symbols-outlined text-xs text-primary">
                           call
                         </span>
                         <span>{person.phone}</span>
                       </div>
                       {person.email && (
                         <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-xs text-[#87948b]">
+                          <span className="material-symbols-outlined text-xs text-on-surface-variant">
                             mail
                           </span>
                           <span>{person.email}</span>
                         </div>
                       )}
                       {person.notes && (
-                        <div className="text-[11px] text-[#87948b] font-sans mt-1 bg-[#1c2028] p-2 rounded border border-[#262a33]">
+                        <div className="text-[11px] text-on-surface-variant font-sans mt-1 bg-surface-container p-2 rounded border border-border">
                           Note: {person.notes}
                         </div>
                       )}
                     </div>
 
-                    <div className="pt-2 border-t border-[#262a33]">
+                    <div className="pt-2 border-t border-border">
                       <Link
                         href={`/bookings/new?savedPersonId=${person.id}`}
-                        className="w-full py-2 px-3 rounded-lg bg-[#262a33] hover:bg-[#343a46] active:bg-[#3d4a42] text-xs font-bold text-[#68dba9] flex items-center justify-center gap-2 transition-colors border border-[#68dba9]/20"
+                        className="w-full py-2 px-3 rounded-lg bg-surface-container-highest hover:bg-surface-container active:opacity-90 text-xs font-bold text-primary flex items-center justify-center gap-2 transition-colors border border-primary/20"
                       >
                         <span className="material-symbols-outlined text-sm">directions_car</span>
                         <span>Book for {person.fullName.split(' ')[0]}</span>
@@ -1054,16 +1059,16 @@ export default function ProfilePage() {
 
         {/* Add / Edit Saved Person Modal */}
         {showPersonModal && (
-          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-scale-up">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-surface-container border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-scale-up">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                   {editingPersonId ? 'Edit Saved Person' : 'Add Saved Person'}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setShowPersonModal(false)}
-                  className="text-[#87948b] hover:text-[#dfe2ee]"
+                  className="text-on-surface-variant hover:text-on-surface"
                   aria-label="Close saved person form"
                 >
                   <span className="material-symbols-outlined text-lg">close</span>
@@ -1071,7 +1076,7 @@ export default function ProfilePage() {
               </div>
 
               {duplicateWarning && (
-                <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs flex flex-col gap-2">
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-200 text-xs flex flex-col gap-2">
                   <div className="flex items-center gap-2 font-bold">
                     <span className="material-symbols-outlined text-base">warning</span>
                     <span>Duplicate Person Warning</span>
@@ -1080,7 +1085,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={(e) => handleSavePerson(e, true)}
-                    className="self-end px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded transition-colors"
+                    className="self-end px-3 py-1 bg-amber-500 hover:bg-amber-400 text-white font-bold text-[11px] rounded transition-colors"
                   >
                     Add Person Anyway
                   </button>
@@ -1089,8 +1094,8 @@ export default function ProfilePage() {
 
               <form onSubmit={(e) => handleSavePerson(e, false)} className="space-y-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
-                    Full Name <span className="text-red-400">*</span>
+                  <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
+                    Full Name <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="text"
@@ -1098,13 +1103,13 @@ export default function ProfilePage() {
                     placeholder="e.g. Rahul Sharma"
                     value={personForm.fullName}
                     onChange={(e) => setPersonForm({ ...personForm, fullName: e.target.value })}
-                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                    className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface rounded-lg px-3 py-2 text-xs outline-none"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
-                    Mobile Phone <span className="text-red-400">*</span>
+                  <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
+                    Mobile Phone <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="tel"
@@ -1112,18 +1117,18 @@ export default function ProfilePage() {
                     placeholder="e.g. +91 98765 43210"
                     value={personForm.phone}
                     onChange={(e) => setPersonForm({ ...personForm, phone: e.target.value })}
-                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                    className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface rounded-lg px-3 py-2 text-xs font-mono outline-none"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                  <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                     Relationship
                   </label>
                   <select
                     value={personForm.relationship}
                     onChange={(e) => setPersonForm({ ...personForm, relationship: e.target.value })}
-                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                    className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface rounded-lg px-3 py-2 text-xs outline-none"
                   >
                     <option value="Father">Father</option>
                     <option value="Mother">Mother</option>
@@ -1139,7 +1144,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                  <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                     Email Address (Optional)
                   </label>
                   <input
@@ -1147,12 +1152,12 @@ export default function ProfilePage() {
                     placeholder="e.g. rahul@example.com"
                     value={personForm.email}
                     onChange={(e) => setPersonForm({ ...personForm, email: e.target.value })}
-                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                    className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface rounded-lg px-3 py-2 text-xs outline-none"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                  <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                     Notes / Preferences (Optional)
                   </label>
                   <textarea
@@ -1160,22 +1165,22 @@ export default function ProfilePage() {
                     placeholder="e.g. Prefer non-smoking driver"
                     value={personForm.notes}
                     onChange={(e) => setPersonForm({ ...personForm, notes: e.target.value })}
-                    className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs outline-none"
+                    className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface rounded-lg px-3 py-2 text-xs outline-none"
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#262a33]">
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
                   <button
                     type="button"
                     onClick={() => setShowPersonModal(false)}
-                    className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-xs font-semibold text-[#dfe2ee]"
+                    className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-xs font-semibold text-on-surface"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={personSaving}
-                    className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#86e2ba] text-xs font-bold text-[#003825] disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-primary hover:opacity-90 text-xs font-bold text-on-primary disabled:opacity-50"
                   >
                     {personSaving ? 'Saving...' : editingPersonId ? 'Update Person' : 'Save Person'}
                   </button>

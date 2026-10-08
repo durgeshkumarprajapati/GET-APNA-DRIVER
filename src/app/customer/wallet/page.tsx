@@ -104,16 +104,16 @@ export default function CustomerWalletPage() {
     {
       key: 'date',
       header: 'Date',
-      render: (tx) => <span className="text-[#87948b]">{formatDate(tx.occurredAt)}</span>,
+      render: (tx) => <span className="text-on-surface-variant">{formatDate(tx.occurredAt)}</span>,
     },
     {
       key: 'description',
       header: 'Description',
       render: (tx) => (
         <div className="flex flex-col">
-          <span className="text-[#dfe2ee] font-bold">{TYPE_LABEL[tx.type]}</span>
+          <span className="text-on-surface font-bold">{TYPE_LABEL[tx.type]}</span>
           {tx.bookingId && (
-            <span className="text-[10px] text-[#87948b]">
+            <span className="text-[10px] text-on-surface-variant">
               Booking #{tx.bookingId.slice(0, 8).toUpperCase()}
             </span>
           )}
@@ -148,12 +148,12 @@ export default function CustomerWalletPage() {
         />
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm flex items-center justify-between gap-4">
+          <div className="p-4 rounded-xl border border-error/30 bg-error-container text-on-error-container text-sm flex items-center justify-between gap-4">
             <span>{error}</span>
             <button
               type="button"
               onClick={() => setRetryToken((t) => t + 1)}
-              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#181c24] hover:bg-[#262a33] active:bg-[#31353e] border border-[#262a33] text-[#dfe2ee] text-xs font-bold shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[40px] px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-lowest border border-border text-on-surface text-xs font-bold shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               Retry
             </button>
@@ -197,10 +197,10 @@ export default function CustomerWalletPage() {
                       key={f.value}
                       type="button"
                       onClick={() => handleFilterChange(f.value)}
-                      className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                      className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                         filter === f.value
-                          ? 'bg-[#68dba9] active:bg-[#4fc890] text-[#00311f]'
-                          : 'bg-[#181c24] border border-[#262a33] text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e]'
+                          ? 'bg-primary text-on-primary'
+                          : 'bg-surface-container border border-border text-on-surface-variant hover:bg-surface-container-high'
                       }`}
                     >
                       {f.label}

@@ -3,13 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Defensive reset — Tailwind's Preflight (bundled into the plain
- * `@import 'tailwindcss'` above) already zeroes html/body margin, so this
- * is redundant in every browser tested against. Kept explicit anyway: it's
- * a zero-risk safeguard against a stray top-of-viewport gap in front of the
- * app's `position: fixed` header/sidebar (which anchor to the viewport, so
- * any residual margin here would show as a sliver of body background above
- * them on every page).
+ * Defensive reset — Tailwind's Preflight (bundled into `@import 'tailwindcss'` above)
+ * zeroes html/body margin. Explicit safeguard against viewport gaps.
  */
 html,
 body {
@@ -18,73 +13,76 @@ body {
 }
 
 /*
- * Centralized design tokens for Get Apna Driver landing page & application UI.
- * Full Material-3-style dark palette (single theme — this app is dark-only
- * today, hence :root and .dark carry identical values rather than a real
- * light/dark split).
+ * Phase 116 — Complete Application Light/Dark Theme Tokens
+ *
+ * Light Mode (:root / html.light / html:not(.dark))
+ * - Page background: #f8fafc (Slate 50 light gray)
+ * - Component surface: #ffffff (White)
+ * - Primary text: #0f172a (Slate 900)
+ * - Secondary text: #475569 (Slate 600)
+ * - Primary brand: #059669 (Emerald 600) with white text on primary
+ * - Borders: #e2e8f0 (Slate 200)
+ *
+ * Dark Mode (.dark / html.dark)
+ * - Preserves existing Executive Dispatch Terminal dark aesthetic exactly.
  */
 :root {
-  --color-background: #0f131c;
-  --color-on-background: #dfe2ee;
-  --color-surface: #0f131c;
-  --color-surface-dim: #0f131c;
-  --color-surface-bright: #353942;
-  --color-surface-tint: #68dba9;
-  --color-surface-variant: #31353e;
-  --color-surface-container-lowest: #0a0e16;
-  --color-surface-container-low: #181c24;
-  --color-surface-container: #1c2028;
-  --color-surface-container-high: #262a33;
-  --color-surface-container-highest: #31353e;
+  --color-background: #f8fafc;
+  --color-on-background: #0f172a;
+  --color-surface: #ffffff;
+  --color-surface-dim: #f1f5f9;
+  --color-surface-bright: #ffffff;
+  --color-surface-tint: #059669;
+  --color-surface-variant: #f1f5f9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #ffffff;
+  --color-surface-container: #f8fafc;
+  --color-surface-container-high: #f1f5f9;
+  --color-surface-container-highest: #e2e8f0;
 
-  --color-on-surface: #dfe2ee;
-  --color-on-surface-variant: #bccac0;
-  --color-inverse-surface: #dfe2ee;
-  --color-inverse-on-surface: #2c3039;
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-inverse-surface: #0f131c;
+  --color-inverse-on-surface: #dfe2ee;
 
-  --color-primary: #68dba9;
-  --color-primary-hover: #85f8c4;
-  --color-on-primary: #003825;
-  --color-primary-container: #25a475;
-  --color-on-primary-container: #00311f;
-  --color-primary-fixed: #85f8c4;
-  --color-primary-fixed-dim: #68dba9;
-  --color-on-primary-fixed: #002114;
-  --color-on-primary-fixed-variant: #005137;
-  --color-inverse-primary: #006c4a;
+  --color-primary: #059669;
+  --color-primary-hover: #047857;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d1fae5;
+  --color-on-primary-container: #065f46;
+  --color-primary-fixed: #a7f3d0;
+  --color-primary-fixed-dim: #6ee7b7;
+  --color-on-primary-fixed: #064e3b;
+  --color-on-primary-fixed-variant: #047857;
+  --color-inverse-primary: #68dba9;
 
-  --color-secondary: #b4c5ff;
-  --color-on-secondary: #002a78;
-  --color-secondary-container: #0053db;
-  --color-on-secondary-container: #cdd7ff;
-  --color-secondary-fixed: #dbe1ff;
-  --color-secondary-fixed-dim: #b4c5ff;
-  --color-on-secondary-fixed: #00174b;
-  --color-on-secondary-fixed-variant: #003ea8;
+  --color-secondary: #2563eb;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #dbeafe;
+  --color-on-secondary-container: #1e40af;
+  --color-secondary-fixed: #bfdbfe;
+  --color-secondary-fixed-dim: #93c5fd;
+  --color-on-secondary-fixed: #1e3a8a;
+  --color-on-secondary-fixed-variant: #1d4ed8;
 
-  --color-tertiary: #4edea3;
-  --color-on-tertiary: #003824;
-  --color-tertiary-container: #00a572;
-  --color-on-tertiary-container: #00311f;
-  --color-tertiary-fixed: #6ffbbe;
-  --color-tertiary-fixed-dim: #4edea3;
-  --color-on-tertiary-fixed: #002113;
-  --color-on-tertiary-fixed-variant: #005236;
+  --color-tertiary: #0d9488;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ccfbf1;
+  --color-on-tertiary-container: #115e59;
+  --color-tertiary-fixed: #99f6e4;
+  --color-tertiary-fixed-dim: #5eead4;
+  --color-on-tertiary-fixed: #134e4a;
+  --color-on-tertiary-fixed-variant: #0f766e;
 
-  --color-error: #ffb4ab;
-  --color-on-error: #690005;
-  --color-error-container: #93000a;
-  --color-on-error-container: #ffdad6;
+  --color-error: #dc2626;
+  --color-on-error: #ffffff;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #991b1b;
 
-  --color-border: #3d4a42;
-  --color-outline: #87948b;
-  --color-outline-variant: #3d4a42;
+  --color-border: #e2e8f0;
+  --color-outline: #94a3b8;
+  --color-outline-variant: #cbd5e1;
 
-  /* Aliases for a few pages (profile, phone-auth, verify-email,
-     forgot/reset-password) that reference these names directly via
-     var(--color-*) in inline styles — kept as aliases of the tokens
-     above rather than renaming those call sites, so both naming
-     conventions resolve to the same palette. */
   --color-text-primary: var(--color-on-surface);
   --color-text-secondary: var(--color-on-surface-variant);
   --color-danger: var(--color-error);
@@ -92,8 +90,11 @@ body {
 
   --font-space-grotesk: 'Space Grotesk', sans-serif;
   --font-geist: 'Geist', sans-serif;
+
+  color-scheme: light;
 }
 
+html.dark,
 .dark {
   --color-background: #0f131c;
   --color-on-background: #dfe2ee;
@@ -150,6 +151,8 @@ body {
   --color-border: #3d4a42;
   --color-outline: #87948b;
   --color-outline-variant: #3d4a42;
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -215,6 +218,7 @@ body {
   color: var(--color-on-surface);
   font-family: var(--font-geist);
   overscroll-behavior: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1,
@@ -250,14 +254,6 @@ h3,
   transform-origin: bottom right;
 }
 
-/*
- * Phase 72 — shared motion system. A small, named vocabulary of
- * transform/opacity-only keyframes (never layout-triggering properties)
- * used consistently for entrances, toasts and interactive feedback across
- * the customer/driver portals, instead of ad-hoc one-off animations per
- * page. Reference these via Tailwind's arbitrary-value animation syntax,
- * e.g. `animate-[fade-in-up_0.3s_ease-out]` or the .animate-* classes below.
- */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -347,9 +343,6 @@ h3,
   animation: sheet-slide-up 0.25s ease-out both;
 }
 
-/* Duration is set inline per-toast (its real auto-dismiss time varies), so
- * this class only pins the keyframe/timing-function/fill-mode — Tailwind's
- * arbitrary-value syntax can't pick up a runtime-interpolated duration. */
 .animate-toast-progress {
   animation-name: toast-progress;
   animation-timing-function: linear;
@@ -357,10 +350,7 @@ h3,
 }
 
 /*
- * Cards/list rows that are genuinely interactive (clickable, navigable) —
- * a subtle lift + border brighten on hover, and a visible focus ring for
- * keyboard users. Never apply this to a purely informational/static card,
- * so hover affordance always implies "this does something."
+ * Interactive card styling that adapts to both Light and Dark mode seamlessly.
  */
 .card-interactive {
   transition:
@@ -371,21 +361,16 @@ h3,
 .card-interactive:hover {
   transform: translateY(-2px);
   border-color: var(--color-primary);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.dark .card-interactive:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 .card-interactive:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/*
- * Respect the user's OS-level motion preference globally, rather than
- * requiring every animated element to opt out individually — the safest
- * way to guarantee Phase 72's animations never fight this preference.
- * Durations are shortened to near-zero (not display:none) so elements
- * still reach their end state instantly instead of getting stuck
- * mid-transition or never appearing at all.
- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
@@ -250,7 +251,43 @@ function BookDriverPageInner() {
 
   const [loading, setLoading] = useState(false);
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
-  const { toast, showError, dismissToast } = useToast();
+  const { toast, showToast, showSuccess, showError, dismissToast } = useToast();
+
+  const toggleFavoriteDriver = async (driverProfileId: string, driverName?: string) => {
+    const isFav = favoriteDrivers.some((f) => f.driverProfileId === driverProfileId);
+    try {
+      if (isFav) {
+        const res = await fetch(`/api/customer/favorites/${driverProfileId}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          setFavoriteDrivers((prev) => prev.filter((f) => f.driverProfileId !== driverProfileId));
+          showToast(`Removed ${driverName || 'driver'} from favorite drivers`, 'info');
+        } else {
+          const data = await res.json();
+          showError(data.message || 'Failed to remove favorite driver');
+        }
+      } else {
+        const res = await fetch('/api/customer/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driverProfileId }),
+        });
+        const data = await res.json();
+        if (res.ok && data.favorite) {
+          setFavoriteDrivers((prev) => [
+            data.favorite,
+            ...prev.filter((f) => f.driverProfileId !== driverProfileId),
+          ]);
+          showSuccess(`Added ${driverName || 'driver'} to favorite drivers!`);
+        } else {
+          showError(data.message || 'Failed to add favorite driver');
+        }
+      }
+    } catch {
+      showError('Failed to update favorite driver preference');
+    }
+  };
 
   const [couponCodeInput, setCouponCodeInput] = useState('');
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
@@ -1024,10 +1061,10 @@ function BookDriverPageInner() {
     <CustomerLayout>
       <div className="w-full flex flex-col gap-6">
         {showResumeBanner && restoredDraft && (
-          <div className="rounded-xl border border-[#68dba9]/40 bg-[#003825]/30 p-3.5 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2.5 text-xs text-[#dfe2ee]">
+          <div className="rounded-xl border border-primary/40 bg-primary/10 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 text-xs text-on-surface">
               <span
-                className="material-symbols-outlined text-base text-[#68dba9]"
+                className="material-symbols-outlined text-base text-primary"
                 aria-hidden="true"
               >
                 history
@@ -1041,7 +1078,7 @@ function BookDriverPageInner() {
                   applyDraft(restoredDraft);
                   setDraftBannerDismissed(true);
                 }}
-                className="min-h-[36px] px-3.5 rounded-lg bg-[#25a475] text-[#042116] font-bold text-xs hover:bg-[#68dba9] transition-colors"
+                className="min-h-[36px] px-3.5 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-primary/90 transition-colors"
               >
                 Resume
               </button>
@@ -1051,7 +1088,7 @@ function BookDriverPageInner() {
                   clearDraft();
                   setDraftBannerDismissed(true);
                 }}
-                className="min-h-[36px] px-3.5 rounded-lg bg-transparent border border-[#262a33] text-[#bccac0] text-xs hover:border-[#363b47] transition-colors"
+                className="min-h-[36px] px-3.5 rounded-lg bg-transparent border border-border text-on-surface-variant text-xs hover:border-border/80 transition-colors"
               >
                 Discard
               </button>
@@ -1089,15 +1126,15 @@ function BookDriverPageInner() {
             />
 
             {/* Booking Mode Selector (Book Now vs Schedule Booking) */}
-            <div className="bg-[#181c24] rounded-xl p-3 shadow-sm border border-[#262a33] flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-2 bg-[#0a0e16] p-1 rounded-lg border border-[#262a33]">
+            <div className="bg-surface-container rounded-xl p-3 shadow-sm border border-border flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-2 bg-surface-container-high p-1 rounded-lg border border-border">
                 <button
                   type="button"
                   onClick={() => setBookingMode('NOW')}
-                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     bookingMode === 'NOW'
-                      ? 'bg-[#25a475] text-[#00311f] shadow'
-                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                      ? 'bg-primary text-on-primary shadow'
+                      : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">directions_car</span>
@@ -1106,10 +1143,10 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setBookingMode('SCHEDULE')}
-                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     bookingMode === 'SCHEDULE'
-                      ? 'bg-[#25a475] text-[#00311f] shadow'
-                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                      ? 'bg-primary text-on-primary shadow'
+                      : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">calendar_month</span>
@@ -1118,26 +1155,26 @@ function BookDriverPageInner() {
               </div>
 
               {bookingMode === 'SCHEDULE' && (
-                <div className="flex flex-col gap-3 pt-2 border-t border-[#262a33] text-xs">
+                <div className="flex flex-col gap-3 pt-2 border-t border-border text-xs">
                   {/* Schedule Type */}
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33] flex-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface border border-border flex-1">
                       <input
                         type="radio"
                         name="scheduleType"
                         checked={scheduleType === 'ONE_TIME'}
                         onChange={() => setScheduleType('ONE_TIME')}
-                        className="accent-[#68dba9]"
+                        className="accent-primary"
                       />
                       <span>{t('scheduledRides.oneTime')}</span>
                     </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33] flex-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface border border-border flex-1">
                       <input
                         type="radio"
                         name="scheduleType"
                         checked={scheduleType === 'RECURRING'}
                         onChange={() => setScheduleType('RECURRING')}
-                        className="accent-[#68dba9]"
+                        className="accent-primary"
                       />
                       <span>{t('scheduledRides.recurring')}</span>
                     </label>
@@ -1146,7 +1183,7 @@ function BookDriverPageInner() {
                   {/* Frequency if Recurring */}
                   {scheduleType === 'RECURRING' && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[#87948b] text-[10px] uppercase font-bold">
+                      <span className="text-on-surface-variant text-[10px] uppercase font-bold">
                         Frequency:
                       </span>
                       <select
@@ -1156,7 +1193,7 @@ function BookDriverPageInner() {
                             e.target.value as 'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS',
                           )
                         }
-                        className="bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] flex-1"
+                        className="bg-surface-container-high border border-border rounded-lg px-2.5 py-1 text-xs text-on-surface focus:outline-none focus:border-primary flex-1"
                       >
                         <option value="DAILY">{t('scheduledRides.frequency.daily')}</option>
                         <option value="WEEKLY">{t('scheduledRides.frequency.weekly')}</option>
@@ -1182,10 +1219,10 @@ function BookDriverPageInner() {
                                   active ? prev.filter((d) => d !== idx) : [...prev, idx],
                                 );
                               }}
-                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                                 active
-                                  ? 'bg-[#25a475] text-[#00311f]'
-                                  : 'bg-[#0a0e16] text-[#87948b] border border-[#262a33]'
+                                  ? 'bg-primary text-on-primary'
+                                  : 'bg-surface-container-high text-on-surface-variant border border-border'
                               }`}
                             >
                               {day}
@@ -1199,26 +1236,26 @@ function BookDriverPageInner() {
                   <div className="grid grid-cols-2 gap-2">
                     {scheduleType === 'ONE_TIME' && (
                       <div>
-                        <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">
+                        <span className="text-on-surface-variant text-[10px] uppercase font-bold block mb-1">
                           Date:
                         </span>
                         <input
                           type="date"
                           value={scheduledDate}
                           onChange={(e) => setScheduledDate(e.target.value)}
-                          className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                          className="w-full bg-surface-container-high border border-border rounded-lg px-2.5 py-1.5 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                         />
                       </div>
                     )}
                     <div className={scheduleType === 'RECURRING' ? 'col-span-2' : ''}>
-                      <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">
+                      <span className="text-on-surface-variant text-[10px] uppercase font-bold block mb-1">
                         Dispatch Time (IST):
                       </span>
                       <input
                         type="time"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                        className="w-full bg-surface-container-high border border-border rounded-lg px-2.5 py-1.5 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                       />
                     </div>
                   </div>
@@ -1227,29 +1264,29 @@ function BookDriverPageInner() {
             </div>
 
             {/* Location & Pickup Anchor Card */}
-            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+            <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" />
-                  <span className="text-[10px] font-bold uppercase text-[#68dba9] tracking-wider font-['Space_Grotesk']">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                  <span className="text-[10px] font-bold uppercase text-primary tracking-wider font-['Space_Grotesk']">
                     {t('customer.booking.pickupLockedEyebrow')}
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-[#bccac0]">
+                <span className="font-mono text-[10px] text-on-surface-variant">
                   {t('customer.booking.pickupSetTag')}
                 </span>
               </div>
 
-              <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
+              <div className="bg-surface-container-high rounded-lg p-3 flex items-center justify-between gap-3 border border-border">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#25a475]/20 flex items-center justify-center shrink-0 text-[#68dba9]">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 text-primary">
                     <span className="material-symbols-outlined text-base">my_location</span>
                   </div>
                   <div className="min-w-0">
-                    <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
+                    <span className="font-mono text-[9px] text-on-surface-variant uppercase block">
                       {t('customer.booking.currentPickupZoneLabel')}
                     </span>
-                    <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
+                    <p className="font-bold text-sm text-on-surface truncate font-['Space_Grotesk']">
                       {pickup.address
                         ? (pickup.label ?? pickup.address)
                         : autoLocationStatus === 'ACQUIRING'
@@ -1261,7 +1298,7 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={handleEditPickup}
-                  className="bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="bg-surface-container-highest hover:bg-surface-container-lowest text-on-surface font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <span className="material-symbols-outlined text-xs">edit_location</span>
                   <span>{t('customer.booking.changeBtn')}</span>
@@ -1272,7 +1309,7 @@ function BookDriverPageInner() {
 
               {savedLocations.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-mono text-[9px] text-[#87948b]">
+                  <span className="font-mono text-[9px] text-on-surface-variant">
                     {t('customer.booking.quickSelectLabel')}
                   </span>
                   {savedLocations.map((loc) => (
@@ -1287,7 +1324,7 @@ function BookDriverPageInner() {
                           longitude: loc.longitude,
                         })
                       }
-                      className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                      className="px-2 py-1 rounded-lg bg-surface-container-high border border-border hover:border-primary text-[10px] font-semibold text-on-surface transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       {loc.label}
                     </button>
@@ -1297,8 +1334,8 @@ function BookDriverPageInner() {
 
               {/* Flexible Dropoff Location Section */}
               {isDriverHireBooking(selectedBookingType) ? (
-                <div className="bg-[#1c2028] rounded-lg p-3.5 border border-[#262a33] text-xs text-[#87948b] flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[#25a475] text-lg shrink-0">
+                <div className="bg-surface-container-high rounded-lg p-3.5 border border-border text-xs text-on-surface-variant flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-primary text-lg shrink-0">
                     info
                   </span>
                   <span>
@@ -1309,13 +1346,13 @@ function BookDriverPageInner() {
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2.5 pt-2 border-t border-[#262a33]/60">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#dfe2ee]">
+                <div className="flex flex-col gap-2.5 pt-2 border-t border-border">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-on-surface">
                     <input
                       type="checkbox"
                       checked={includeDropoff}
                       onChange={(e) => setIncludeDropoff(e.target.checked)}
-                      className="w-4 h-4 rounded border-[#262a33] bg-[#0a0e16] accent-[#25a475]"
+                      className="w-4 h-4 rounded border-border bg-surface-container-high accent-primary"
                     />
                     <span>
                       {t('booking.addDropoffOptional', {
@@ -1326,16 +1363,16 @@ function BookDriverPageInner() {
 
                   {includeDropoff && (
                     <>
-                      <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
+                      <div className="bg-surface-container-high rounded-lg p-3 flex items-center justify-between gap-3 border border-border">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center shrink-0 text-[#60a5fa]">
+                          <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center shrink-0 text-secondary">
                             <span className="material-symbols-outlined text-base">location_on</span>
                           </div>
                           <div className="min-w-0">
-                            <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
+                            <span className="font-mono text-[9px] text-on-surface-variant uppercase block">
                               {t('customer.booking.destinationZoneLabel')}
                             </span>
-                            <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
+                            <p className="font-bold text-sm text-on-surface truncate font-['Space_Grotesk']">
                               {dropoff.label ?? dropoff.address}
                             </p>
                           </div>
@@ -1343,7 +1380,7 @@ function BookDriverPageInner() {
                         <button
                           type="button"
                           onClick={handleEditDropoff}
-                          className="bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                          className="bg-surface-container-highest hover:bg-surface-container-lowest text-on-surface font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         >
                           <span className="material-symbols-outlined text-xs">edit_location</span>
                           <span>{t('customer.booking.changeBtn')}</span>
@@ -1352,7 +1389,7 @@ function BookDriverPageInner() {
 
                       {savedLocations.length > 0 && (
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-mono text-[9px] text-[#87948b]">
+                          <span className="font-mono text-[9px] text-on-surface-variant">
                             {t('customer.booking.quickSelectLabel')}
                           </span>
                           {savedLocations.map((loc) => (
@@ -1367,7 +1404,7 @@ function BookDriverPageInner() {
                                   longitude: loc.longitude,
                                 })
                               }
-                              className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                              className="px-2 py-1 rounded-lg bg-surface-container-high border border-border hover:border-primary text-[10px] font-semibold text-on-surface transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                             >
                               {loc.label}
                             </button>
@@ -1380,13 +1417,13 @@ function BookDriverPageInner() {
               )}
 
               {/* Embedded Google Map Preview */}
-              <div className="mt-2 pt-3 border-t border-[#262a33]">
+              <div className="mt-2 pt-3 border-t border-border">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold uppercase text-[#87948b] font-mono flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs text-[#68dba9]">map</span>
+                  <span className="text-[10px] font-bold uppercase text-on-surface-variant font-mono flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs text-primary">map</span>
                     <span>Route Location Preview</span>
                   </span>
-                  <span className="text-[9px] text-[#68dba9] font-mono">LIVE MAP</span>
+                  <span className="text-[9px] text-primary font-mono">LIVE MAP</span>
                 </div>
                 {(() => {
                   const markers: MapMarkerDefinition[] = [];
@@ -1427,30 +1464,30 @@ function BookDriverPageInner() {
             </div>
 
             {/* Trip Configuration Tabs */}
-            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+            <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.serviceTierModeLabel')}
                 </span>
-                <span className="font-mono text-[10px] text-[#68dba9]">
+                <span className="font-mono text-[10px] text-primary">
                   {t('customer.booking.surchargeShieldActive')}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-1.5 bg-[#0a0e16] p-1 rounded-lg border border-[#262a33]">
+              <div className="grid grid-cols-2 gap-1.5 bg-surface-container-high p-1 rounded-lg border border-border">
                 {tabs.map((tab) => (
                   <button
                     key={tab.key}
                     type="button"
                     onClick={() => setSelectedTab(tab.key)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded font-mono text-[11px] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded font-mono text-[11px] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                       selectedTab === tab.key
-                        ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow border border-[#3d4a42]'
-                        : 'text-[#bccac0] hover:text-[#dfe2ee]'
+                        ? 'bg-primary text-on-primary font-bold shadow'
+                        : 'text-on-surface-variant hover:text-on-surface'
                     }`}
                   >
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${selectedTab === tab.key ? 'bg-[#68dba9]' : 'bg-transparent'}`}
+                      className={`w-1.5 h-1.5 rounded-full ${selectedTab === tab.key ? 'bg-on-primary' : 'bg-transparent'}`}
                     />
                     <span>{tab.label}</span>
                   </button>
@@ -1459,7 +1496,7 @@ function BookDriverPageInner() {
 
               {/* Vehicle Specifications */}
               <div className="pt-1 flex flex-col gap-2">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.vehicleProfileLabel')}
                 </span>
 
@@ -1469,49 +1506,49 @@ function BookDriverPageInner() {
                       key={tier.key}
                       type="button"
                       onClick={() => setVehicleClass(tier.key)}
-                      className={`p-2.5 rounded-lg text-left flex flex-col gap-1 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                      className={`p-2.5 rounded-lg text-left flex flex-col gap-1 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                         vehicleClass === tier.key
-                          ? 'bg-[#262a33] text-[#dfe2ee] border border-[#68dba9]/50 shadow'
-                          : 'bg-[#1c2028] text-[#bccac0] opacity-80 hover:opacity-100'
+                          ? 'bg-primary/10 text-on-surface border border-primary/50 shadow'
+                          : 'bg-surface-container-high text-on-surface-variant opacity-80 hover:opacity-100 border border-border'
                       }`}
                     >
-                      <div className="flex items-center justify-between text-[#68dba9]">
+                      <div className="flex items-center justify-between text-primary">
                         <span className="material-symbols-outlined text-base">{tier.icon}</span>
                         {vehicleClass === tier.key && (
                           <span className="material-symbols-outlined text-xs">check_circle</span>
                         )}
                       </div>
-                      <span className="text-[10px] font-bold uppercase text-[#dfe2ee] font-['Space_Grotesk']">
+                      <span className="text-[10px] font-bold uppercase text-on-surface font-['Space_Grotesk']">
                         {tier.label}
                       </span>
-                      <span className="font-mono text-[9px] text-[#bccac0]">{tier.models}</span>
+                      <span className="font-mono text-[9px] text-on-surface-variant">{tier.models}</span>
                     </button>
                   ))}
                 </div>
 
                 {/* Transmission Radio Options */}
-                <div className="flex items-center justify-between bg-[#1c2028] p-2 rounded-lg mt-1 border border-[#262a33]">
-                  <span className="font-mono text-[10px] text-[#bccac0]">
+                <div className="flex items-center justify-between bg-surface-container-high p-2 rounded-lg mt-1 border border-border">
+                  <span className="font-mono text-[10px] text-on-surface-variant">
                     {t('customer.booking.transmissionMatrixLabel')}
                   </span>
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded bg-[#262a33] text-[#dfe2ee] font-mono text-[10px]">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded bg-surface-container-highest text-on-surface font-mono text-[10px]">
                       <input
                         type="radio"
                         name="transmission"
                         checked={transmission === 'auto'}
                         onChange={() => setTransmission('auto')}
-                        className="accent-[#68dba9] w-3 h-3"
+                        className="accent-primary w-3 h-3"
                       />
                       <span>{t('customer.booking.transmissionAuto')}</span>
                     </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded text-[#bccac0] font-mono text-[10px]">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded text-on-surface-variant font-mono text-[10px]">
                       <input
                         type="radio"
                         name="transmission"
                         checked={transmission === 'manual'}
                         onChange={() => setTransmission('manual')}
-                        className="accent-[#68dba9] w-3 h-3"
+                        className="accent-primary w-3 h-3"
                       />
                       <span>{t('customer.booking.transmissionManual')}</span>
                     </label>
@@ -1523,45 +1560,81 @@ function BookDriverPageInner() {
             {/* Preferred Driver — real favorites, honest non-guarantee framing.
                 Not shown for DAILY/WEEKLY/MONTHLY, which use the required
                 "Choose Your Driver" section below instead. */}
-            {!isRateSelectableHireBooking(selectedBookingType) && favoriteDrivers.length > 0 && (
-              <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
-                  {t('customer.booking.preferredDriverSectionTitle')}
-                </span>
-                <p className="text-[10px] text-[#87948b]">
+            {/* Preferred Driver — real favorites, honest non-guarantee framing.
+                Not shown for DAILY/WEEKLY/MONTHLY, which use the required
+                "Choose Your Driver" section below instead. */}
+            {!isRateSelectableHireBooking(selectedBookingType) && (
+              <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
+                    {t('customer.booking.preferredDriverSectionTitle')}
+                  </span>
+                  <Link
+                    href="/customer/favorites"
+                    className="text-[10px] text-primary hover:underline font-medium flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-xs">star</span>
+                    Manage Favorites ({favoriteDrivers.length})
+                  </Link>
+                </div>
+                <p className="text-[10px] text-on-surface-variant">
                   {t('customer.booking.preferredDriverSubtitle')}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 items-center pt-1">
                   <button
                     type="button"
                     onClick={() => setPreferredDriverProfileId(null)}
-                    className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                    className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                       preferredDriverProfileId === null
-                        ? 'bg-[#68dba9] text-[#003825] font-bold'
-                        : 'bg-[#262a33] text-[#dfe2ee]'
+                        ? 'bg-primary text-on-primary font-bold'
+                        : 'bg-surface-container-high text-on-surface border border-border'
                     }`}
                   >
                     {t('customer.booking.preferredDriverNone')}
                   </button>
-                  {favoriteDrivers.map((fav) => (
-                    <button
-                      key={fav.driverProfileId}
-                      type="button"
-                      onClick={() => setPreferredDriverProfileId(fav.driverProfileId)}
-                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] flex items-center gap-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
-                        preferredDriverProfileId === fav.driverProfileId
-                          ? 'bg-[#68dba9] text-[#003825] font-bold'
-                          : 'bg-[#262a33] text-[#dfe2ee]'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-xs">star</span>
-                      {favoriteDisplayName(fav)}
-                      <span className="opacity-70">
-                        {t('customer.favorites.rating', { rating: fav.ratingAverage.toFixed(1) })}
-                      </span>
-                    </button>
-                  ))}
+                  {favoriteDrivers.map((fav) => {
+                    const isSelected = preferredDriverProfileId === fav.driverProfileId;
+                    const name = favoriteDisplayName(fav);
+                    return (
+                      <div
+                        key={fav.driverProfileId}
+                        className={`inline-flex items-center rounded-full border transition-colors ${
+                          isSelected
+                            ? 'bg-primary text-on-primary border-primary font-bold'
+                            : 'bg-surface-container-high text-on-surface border-border'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setPreferredDriverProfileId(fav.driverProfileId)}
+                          className="px-2.5 py-1.5 font-mono text-[10px] flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        >
+                          <span className="material-symbols-outlined text-xs text-amber-400">star</span>
+                          {name}
+                          <span className="opacity-70">
+                            {t('customer.favorites.rating', { rating: fav.ratingAverage.toFixed(1) })}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void toggleFavoriteDriver(fav.driverProfileId, name);
+                          }}
+                          title="Remove from favorites"
+                          className="pr-2 pl-0.5 text-xs opacity-70 hover:opacity-100 hover:text-red-400 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
+                {favoriteDrivers.length === 0 && (
+                  <p className="text-[10px] text-on-surface-variant italic pt-0.5">
+                    No favorite drivers saved yet. Click the star (★) icon on any driver below to mark them as your favorite driver!
+                  </p>
+                )}
               </div>
             )}
 
@@ -1572,25 +1645,25 @@ function BookDriverPageInner() {
                 not require a dropoff location — only the pickup point. */}
             {(selectedBookingType === BookingType.POINT_TO_POINT ||
               selectedBookingType === BookingType.HOURLY) && (
-              <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+              <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.nearbyAvailableDriversTitle', {
                     defaultValue: 'Browse Available Drivers Nearby',
                   })}
                 </span>
-                <p className="text-[10px] text-[#87948b]">
+                <p className="text-[10px] text-on-surface-variant">
                   {t('customer.booking.nearbyAvailableDriversSubtitle', {
                     defaultValue:
-                      "Optional — every online driver near your pickup with no booking conflict. Pick one to request them directly, or skip this and we'll match you automatically.",
+                      "Optional — every online driver near your pickup with no booking conflict. Pick one to request them directly, or click the star to save them as a favorite driver.",
                   })}
                 </p>
 
                 {nearbyAvailableDriversLoading ? (
-                  <p className="text-[11px] text-[#87948b] py-2">
+                  <p className="text-[11px] text-on-surface-variant py-2">
                     {t('customer.booking.loadingAvailableDrivers')}
                   </p>
                 ) : nearbyAvailableDrivers.length === 0 ? (
-                  <p className="text-[11px] text-[#87948b] py-2">
+                  <p className="text-[11px] text-on-surface-variant py-2">
                     {t('customer.booking.noDriversAvailableNearby', {
                       defaultValue:
                         'No drivers are currently available for this booking type. You can still book — we will keep searching.',
@@ -1601,55 +1674,89 @@ function BookDriverPageInner() {
                     <button
                       type="button"
                       onClick={() => setPreferredDriverProfileId(null)}
-                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] self-start transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] self-start transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                         preferredDriverProfileId === null ||
                         !nearbyAvailableDrivers.some(
                           (d) => d.driverProfileId === preferredDriverProfileId,
                         )
-                          ? 'bg-[#68dba9] text-[#003825] font-bold'
-                          : 'bg-[#262a33] text-[#dfe2ee]'
+                          ? 'bg-primary text-on-primary font-bold'
+                          : 'bg-surface-container-high text-on-surface border border-border'
                       }`}
                     >
                       {t('customer.booking.preferredDriverNone')}
                     </button>
-                    {nearbyAvailableDrivers.map((driver) => (
-                      <button
-                        key={driver.driverProfileId}
-                        type="button"
-                        onClick={() =>
-                          setPreferredDriverProfileId((prev) =>
-                            prev === driver.driverProfileId ? null : driver.driverProfileId,
-                          )
-                        }
-                        className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
-                          preferredDriverProfileId === driver.driverProfileId
-                            ? 'bg-[#00311f] border-[#25a475]'
-                            : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          {preferredDriverProfileId === driver.driverProfileId && (
-                            <span className="material-symbols-outlined text-[#25a475] text-base shrink-0">
-                              check_circle
-                            </span>
-                          )}
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-xs font-semibold text-[#dfe2ee] truncate">
-                              {driver.displayName}
-                            </span>
-                            <span className="text-[10px] text-[#87948b] font-mono">
-                              {t('customer.booking.experienceYears', {
-                                years: driver.drivingExperienceYears,
-                              })}
-                              {driver.primaryServiceArea ? ` · ${driver.primaryServiceArea}` : ''}
+                    {nearbyAvailableDrivers.map((driver) => {
+                      const isFav = favoriteDrivers.some(
+                        (f) => f.driverProfileId === driver.driverProfileId,
+                      );
+                      const isSelected = preferredDriverProfileId === driver.driverProfileId;
+                      return (
+                        <div
+                          key={driver.driverProfileId}
+                          className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                            isSelected
+                              ? 'bg-primary/10 border-primary'
+                              : 'bg-surface-container-high border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div
+                            className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                            onClick={() =>
+                              setPreferredDriverProfileId((prev) =>
+                                prev === driver.driverProfileId ? null : driver.driverProfileId,
+                              )
+                            }
+                          >
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-primary text-base shrink-0">
+                                check_circle
+                              </span>
+                            )}
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-on-surface truncate">
+                                  {driver.displayName}
+                                </span>
+                                {isFav && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                    ★ Favorite
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-on-surface-variant font-mono">
+                                {t('customer.booking.experienceYears', {
+                                  years: driver.drivingExperienceYears,
+                                })}
+                                {driver.primaryServiceArea ? ` · ${driver.primaryServiceArea}` : ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void toggleFavoriteDriver(driver.driverProfileId, driver.displayName);
+                              }}
+                              title={isFav ? 'Remove from Favorite Drivers' : 'Add to Favorite Drivers'}
+                              className={`p-1.5 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                isFav
+                                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20'
+                                  : 'text-on-surface-variant hover:text-amber-500 hover:bg-surface-container-highest'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                {isFav ? 'star' : 'star_outline'}
+                              </span>
+                            </button>
+                            <span className="text-[10px] text-primary font-mono shrink-0">
+                              {driver.distanceFormatted}
                             </span>
                           </div>
                         </div>
-                        <span className="text-[10px] text-[#68dba9] font-mono shrink-0">
-                          {driver.distanceFormatted}
-                        </span>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1660,81 +1767,118 @@ function BookDriverPageInner() {
                 customer must pick one of the active, non-conflicting
                 drivers below, at that driver's own listed rate. */}
             {isRateSelectableHireBooking(selectedBookingType) && (
-              <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-2">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+              <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.chooseYourDriverTitle')}
                 </span>
-                <p className="text-[10px] text-[#87948b]">
+                <p className="text-[10px] text-on-surface-variant">
                   {t('customer.booking.chooseYourDriverSubtitle')}
                 </p>
 
                 {hireDriversLoading ? (
-                  <p className="text-[11px] text-[#87948b] py-2">
+                  <p className="text-[11px] text-on-surface-variant py-2">
                     {t('customer.booking.loadingAvailableDrivers')}
                   </p>
                 ) : hireDrivers.length === 0 ? (
-                  <p className="text-[11px] text-[#87948b] py-2">
+                  <p className="text-[11px] text-on-surface-variant py-2">
                     {t('customer.booking.noDriversAvailableForHire')}
                   </p>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {hireDrivers.map((driver) => (
-                      <button
-                        key={driver.driverProfileId}
-                        type="button"
-                        onClick={() => setViewingDriverId(driver.driverProfileId)}
-                        className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
-                          preferredDriverProfileId === driver.driverProfileId
-                            ? 'bg-[#00311f] border-[#25a475]'
-                            : 'bg-[#0a0e16] border-[#262a33] hover:border-[#25a475]/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          {preferredDriverProfileId === driver.driverProfileId && (
-                            <span className="material-symbols-outlined text-[#25a475] text-base shrink-0">
-                              check_circle
+                    {hireDrivers.map((driver) => {
+                      const isFav = favoriteDrivers.some(
+                        (f) => f.driverProfileId === driver.driverProfileId,
+                      );
+                      const isSelected = preferredDriverProfileId === driver.driverProfileId;
+                      const driverName = hireDriverDisplayName(driver);
+                      return (
+                        <div
+                          key={driver.driverProfileId}
+                          className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                            isSelected
+                              ? 'bg-primary/10 border-primary'
+                              : 'bg-surface-container-high border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div
+                            className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                            onClick={() => setViewingDriverId(driver.driverProfileId)}
+                          >
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-primary text-base shrink-0">
+                                check_circle
+                              </span>
+                            )}
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-on-surface truncate">
+                                  {driverName}
+                                </span>
+                                {isFav && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                    ★ Favorite
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-on-surface-variant font-mono">
+                                {t('customer.favorites.rating', {
+                                  rating: driver.ratingAverage.toFixed(1),
+                                })}{' '}
+                                ·{' '}
+                                {t('customer.booking.experienceYears', {
+                                  years: driver.drivingExperienceYears,
+                                  defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                                })}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void toggleFavoriteDriver(driver.driverProfileId, driverName);
+                              }}
+                              title={isFav ? 'Remove from Favorite Drivers' : 'Add to Favorite Drivers'}
+                              className={`p-1.5 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                isFav
+                                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20'
+                                  : 'text-on-surface-variant hover:text-amber-500 hover:bg-surface-container-highest'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                {isFav ? 'star' : 'star_outline'}
+                              </span>
+                            </button>
+                            <span className="text-xs font-bold text-primary font-mono">
+                              {formatCurrency(Number(driver.rate))}
                             </span>
-                          )}
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-xs font-semibold text-[#dfe2ee] truncate">
-                              {hireDriverDisplayName(driver)}
-                            </span>
-                            <span className="text-[10px] text-[#87948b] font-mono">
-                              {t('customer.favorites.rating', {
-                                rating: driver.ratingAverage.toFixed(1),
-                              })}{' '}
-                              ·{' '}
-                              {t('customer.booking.experienceYears', {
-                                years: driver.drivingExperienceYears,
-                                defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                            <button
+                              type="button"
+                              onClick={() => setViewingDriverId(driver.driverProfileId)}
+                              className="text-[9px] text-on-surface-variant uppercase font-semibold underline"
+                            >
+                              {t('customer.booking.viewDetailsLink', {
+                                defaultValue: 'View Details',
                               })}
-                            </span>
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs font-bold text-[#25a475] font-mono">
-                            {formatCurrency(Number(driver.rate))}
-                          </span>
-                          <span className="text-[9px] text-[#87948b] uppercase font-semibold underline">
-                            {t('customer.booking.viewDetailsLink', {
-                              defaultValue: 'View Details',
-                            })}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
             )}
 
             {/* Who is this driver service for? (Myself vs Someone else) */}
-            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+            <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   Who is this driver service for?
                 </span>
-                <span className="text-[10px] text-[#87948b] font-mono">
+                <span className="text-[10px] text-on-surface-variant font-mono">
                   {isForSomeoneElse ? 'Booking for someone else' : 'Booking for myself'}
                 </span>
               </div>
@@ -1743,10 +1887,10 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setIsForSomeoneElse(false)}
-                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     !isForSomeoneElse
-                      ? 'bg-[#68dba9] text-[#003825] shadow font-bold'
-                      : 'bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee]'
+                      ? 'bg-primary text-on-primary shadow font-bold'
+                      : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">person</span>
@@ -1756,10 +1900,10 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setIsForSomeoneElse(true)}
-                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     isForSomeoneElse
-                      ? 'bg-[#68dba9] text-[#003825] shadow font-bold'
-                      : 'bg-[#1c2028] text-[#bccac0] hover:text-[#dfe2ee]'
+                      ? 'bg-primary text-on-primary shadow font-bold'
+                      : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">group</span>
@@ -1768,11 +1912,11 @@ function BookDriverPageInner() {
               </div>
 
               {isForSomeoneElse && (
-                <div className="pt-2 border-t border-[#262a33] flex flex-col gap-3">
+                <div className="pt-2 border-t border-border flex flex-col gap-3">
                   {savedPeople.length > 0 && (
                     <div className="flex flex-col gap-1.5 mb-1">
-                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk'] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                      <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk'] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-primary">
                           bookmark
                         </span>
                         <span>Choose Saved Person</span>
@@ -1788,14 +1932,14 @@ function BookDriverPageInner() {
                               setRecipientRelationship(person.relationship || 'Family');
                               if (person.notes) setRecipientNotes(person.notes);
                             }}
-                            className="px-3 py-1.5 rounded-lg bg-[#1c2028] hover:bg-[#262a33] active:bg-[#343a46] text-xs font-semibold text-[#dfe2ee] border border-[#262a33] hover:border-[#68dba9]/50 flex items-center gap-1.5 transition-all"
+                            className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-xs font-semibold text-on-surface border border-border hover:border-primary/50 flex items-center gap-1.5 transition-all"
                           >
-                            <span className="material-symbols-outlined text-xs text-[#68dba9]">
+                            <span className="material-symbols-outlined text-xs text-primary">
                               person
                             </span>
                             <span>{person.fullName}</span>
                             {person.relationship && (
-                              <span className="text-[10px] text-[#87948b]">
+                              <span className="text-[10px] text-on-surface-variant">
                                 ({person.relationship})
                               </span>
                             )}
@@ -1807,8 +1951,8 @@ function BookDriverPageInner() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
-                        Recipient Full Name <span className="text-red-400">*</span>
+                      <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
+                        Recipient Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1816,13 +1960,13 @@ function BookDriverPageInner() {
                         placeholder="e.g. Rajesh Sharma"
                         value={recipientFullName}
                         onChange={(e) => setRecipientFullName(e.target.value)}
-                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                        className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface placeholder:text-on-surface-variant/60 rounded-lg px-3 py-2 text-xs font-sans outline-none"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
-                        Recipient Mobile Phone <span className="text-red-400">*</span>
+                      <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
+                        Recipient Mobile Phone <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -1830,20 +1974,20 @@ function BookDriverPageInner() {
                         placeholder="e.g. +91 98765 43210"
                         value={recipientPhone}
                         onChange={(e) => setRecipientPhone(e.target.value)}
-                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                        className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface placeholder:text-on-surface-variant/60 rounded-lg px-3 py-2 text-xs font-mono outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                      <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                         Relationship
                       </label>
                       <select
                         value={recipientRelationship}
                         onChange={(e) => setRecipientRelationship(e.target.value)}
-                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                        className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface rounded-lg px-3 py-2 text-xs font-sans outline-none"
                       >
                         <option value="Family">Family Member</option>
                         <option value="Father">Father</option>
@@ -1857,7 +2001,7 @@ function BookDriverPageInner() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                      <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                         Recipient Email (Optional)
                       </label>
                       <input
@@ -1865,7 +2009,7 @@ function BookDriverPageInner() {
                         placeholder="e.g. recipient@example.com"
                         value={recipientEmail}
                         onChange={(e) => setRecipientEmail(e.target.value)}
-                        className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none"
+                        className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface placeholder:text-on-surface-variant/60 rounded-lg px-3 py-2 text-xs font-sans outline-none"
                       />
                     </div>
                   </div>
@@ -1876,18 +2020,18 @@ function BookDriverPageInner() {
                       type="checkbox"
                       checked={savePersonForFuture}
                       onChange={(e) => setSavePersonForFuture(e.target.checked)}
-                      className="rounded bg-[#1c2028] border-[#262a33] text-[#68dba9] focus:ring-0 cursor-pointer"
+                      className="rounded bg-surface-container-high border-border text-primary focus:ring-0 cursor-pointer accent-primary"
                     />
                     <label
                       htmlFor="savePersonForFuture"
-                      className="text-xs text-[#bccac0] cursor-pointer"
+                      className="text-xs text-on-surface-variant cursor-pointer"
                     >
                       Save this person to My Saved People for future 1-click bookings
                     </label>
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase text-[#bccac0] font-['Space_Grotesk']">
+                    <label className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                       Notes / Pickup Instructions for Driver (Optional)
                     </label>
                     <textarea
@@ -1895,7 +2039,7 @@ function BookDriverPageInner() {
                       placeholder="e.g. Please call recipient upon arrival at Terminal 3 Gate 4."
                       value={recipientNotes}
                       onChange={(e) => setRecipientNotes(e.target.value)}
-                      className="w-full bg-[#1c2028] border border-[#262a33] focus:border-[#68dba9] text-[#dfe2ee] placeholder-[#5a685e] rounded-lg px-3 py-2 text-xs font-sans outline-none resize-none"
+                      className="w-full bg-surface-container-high border border-border focus:border-primary text-on-surface placeholder:text-on-surface-variant/60 rounded-lg px-3 py-2 text-xs font-sans outline-none resize-none"
                     />
                   </div>
 
@@ -1904,9 +2048,9 @@ function BookDriverPageInner() {
                       type="checkbox"
                       checked={recipientNotifyWhatsApp}
                       onChange={(e) => setRecipientNotifyWhatsApp(e.target.checked)}
-                      className="accent-[#68dba9] w-4 h-4 rounded"
+                      className="accent-primary w-4 h-4 rounded"
                     />
-                    <span className="text-xs text-[#dfe2ee]">
+                    <span className="text-xs text-on-surface">
                       Send instant WhatsApp trip status updates directly to recipient
                     </span>
                   </label>
@@ -1915,21 +2059,21 @@ function BookDriverPageInner() {
             </div>
 
             {/* Price Estimation Breakdown */}
-            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+            <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.fareBreakdownLabel')}
                 </span>
-                <span className="font-mono text-[10px] text-[#68dba9] flex items-center gap-1">
+                <span className="font-mono text-[10px] text-primary flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs">check_circle</span>{' '}
                   {t('customer.booking.guaranteedRateTag')}
                 </span>
               </div>
 
-              <div className="space-y-1.5 font-mono text-xs text-[#bccac0]">
+              <div className="space-y-1.5 font-mono text-xs text-on-surface-variant">
                 <div className="flex justify-between items-center">
                   <span>{t('customer.booking.baseFareLabel')}</span>
-                  <span className="text-[#dfe2ee]">
+                  <span className="text-on-surface">
                     {fareEstimate
                       ? formatCurrency(Number(fareEstimate.breakdown.baseFareAmount))
                       : formatCurrency(100)}
@@ -1941,7 +2085,7 @@ function BookDriverPageInner() {
                       the vehicle. distanceFareAmount is always zero and is
                       deliberately left out of this line. */}
                   <span>{t('customer.booking.serviceDurationLabel')}</span>
-                  <span className="text-[#dfe2ee]">
+                  <span className="text-on-surface">
                     {fareEstimate
                       ? formatCurrency(
                           Number(fareEstimate.breakdown.durationFareAmount) +
@@ -1952,7 +2096,7 @@ function BookDriverPageInner() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{t('customer.booking.platformFeeLabel')}</span>
-                  <span className="text-[#dfe2ee]">
+                  <span className="text-on-surface">
                     {fareEstimate
                       ? formatCurrency(Number(fareEstimate.breakdown.platformFeeAmount))
                       : formatCurrency(25)}
@@ -1960,12 +2104,12 @@ function BookDriverPageInner() {
                 </div>
               </div>
 
-              <div className="pt-2 flex items-center justify-between bg-[#1c2028] p-3 rounded-lg border border-[#262a33]">
+              <div className="pt-2 flex items-center justify-between bg-surface-container-high p-3 rounded-lg border border-border">
                 <div>
-                  <span className="text-[9px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                  <span className="text-[9px] font-bold uppercase text-on-surface-variant block font-['Space_Grotesk']">
                     {t('customer.booking.totalFareLabel')}
                   </span>
-                  <span className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="text-2xl font-bold text-on-surface font-['Space_Grotesk']">
                     {fareEstimate
                       ? formatCurrency(
                           Math.max(
@@ -1978,20 +2122,20 @@ function BookDriverPageInner() {
                   </span>
                 </div>
                 <div className="text-right font-mono text-[10px]">
-                  <span className="text-[#bccac0] block">
+                  <span className="text-on-surface-variant block">
                     {t('customer.booking.billingStartsNote')}
                   </span>
-                  <span className="text-[#68dba9]">
+                  <span className="text-primary">
                     {t('customer.booking.noCancellationFeeNote')}
                   </span>
                 </div>
               </div>
 
               {/* Coupon / Promo Code Card */}
-              <div className="p-3.5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2.5">
+              <div className="p-3.5 rounded-xl bg-surface-container border border-border space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#dfe2ee] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[#68dba9] text-base">
+                  <span className="font-bold text-on-surface flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-primary text-base">
                       local_offer
                     </span>
                     <span>Coupon / Promo Code</span>
@@ -2005,7 +2149,7 @@ function BookDriverPageInner() {
                         setCouponCodeInput('');
                         setCouponError(null);
                       }}
-                      className="text-[11px] text-rose-400 hover:underline active:text-rose-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
+                      className="text-[11px] text-error hover:underline active:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
                     >
                       Remove
                     </button>
@@ -2021,37 +2165,37 @@ function BookDriverPageInner() {
                       setCouponError(null);
                     }}
                     placeholder="Enter Code (e.g. FIRST50)"
-                    className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d1117] border border-[#262a33] text-xs font-mono text-[#dfe2ee] uppercase focus:outline-none focus:border-[#68dba9]"
+                    className="flex-1 px-3 py-1.5 rounded-lg bg-surface-container-high border border-border text-xs font-mono text-on-surface uppercase focus:outline-none focus:border-primary"
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={couponValidating || !couponCodeInput.trim() || !fareEstimate}
-                    className="min-h-[40px] min-w-[72px] px-3.5 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#68dba9] active:bg-[#1c7d5c] text-[#00311f] text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="min-h-[40px] min-w-[72px] px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {couponValidating ? 'Checking…' : 'Apply'}
                   </button>
                 </div>
 
                 {couponError && (
-                  <p className="text-xs text-[#ff897d] bg-[#93000a]/20 p-2 rounded-lg border border-[#93000a]">
+                  <p className="text-xs text-error bg-error/10 p-2 rounded-lg border border-error/30">
                     {couponError}
                   </p>
                 )}
 
                 {appliedCouponCode && couponDiscountAmount && fareEstimate && (
-                  <div className="pt-2 border-t border-[#262a33] text-xs space-y-1">
-                    <div className="flex justify-between text-[#87948b]">
+                  <div className="pt-2 border-t border-border text-xs space-y-1">
+                    <div className="flex justify-between text-on-surface-variant">
                       <span>Original Fare:</span>
                       <span>₹{Number(fareEstimate.breakdown.totalFareAmount).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-[#68dba9] font-bold">
+                    <div className="flex justify-between text-primary font-bold">
                       <span>Coupon Discount ({appliedCouponCode}):</span>
                       <span>- ₹{Number(couponDiscountAmount).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-[#dfe2ee] font-extrabold text-sm pt-1 border-t border-[#262a33]">
+                    <div className="flex justify-between text-on-surface font-extrabold text-sm pt-1 border-t border-border">
                       <span>Final Fare:</span>
-                      <span className="text-[#68dba9]">
+                      <span className="text-primary">
                         ₹
                         {Math.max(
                           0,
@@ -2073,10 +2217,10 @@ function BookDriverPageInner() {
                   !pickupReady ||
                   (isRateSelectableHireBooking(selectedBookingType) && !preferredDriverProfileId)
                 }
-                className="w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#68dba9]/20 font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 {loading ? (
-                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#003825] border-t-transparent" />
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-on-primary border-t-transparent" />
                 ) : (
                   <span className="material-symbols-outlined text-base">rocket_launch</span>
                 )}
@@ -2120,40 +2264,40 @@ function BookDriverPageInner() {
 
             {/* Telemetry & SLA Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#68dba9] text-2xl">timer</span>
+              <div className="bg-surface-container p-3 rounded-xl border border-border flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">timer</span>
                 <div>
-                  <span className="text-[9px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                  <span className="text-[9px] font-bold uppercase text-on-surface-variant block font-['Space_Grotesk']">
                     {t('customer.booking.avgArrivalLabel')}
                   </span>
-                  <span className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
                     6.8{' '}
                     <span className="text-xs font-normal">{t('customer.booking.minsUnit')}</span>
                   </span>
                 </div>
               </div>
 
-              <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#68dba9] text-2xl">
+              <div className="bg-surface-container p-3 rounded-xl border border-border flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">
                   verified_user
                 </span>
                 <div>
-                  <span className="text-[9px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                  <span className="text-[9px] font-bold uppercase text-on-surface-variant block font-['Space_Grotesk']">
                     {t('customer.booking.backgroundPassLabel')}
                   </span>
-                  <span className="text-xl font-bold text-[#68dba9] font-['Space_Grotesk']">
+                  <span className="text-xl font-bold text-primary font-['Space_Grotesk']">
                     100%
                   </span>
                 </div>
               </div>
 
-              <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#68dba9] text-2xl">shield</span>
+              <div className="bg-surface-container p-3 rounded-xl border border-border flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">shield</span>
                 <div>
-                  <span className="text-[9px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                  <span className="text-[9px] font-bold uppercase text-on-surface-variant block font-['Space_Grotesk']">
                     {t('customer.booking.transitCoverLabel')}
                   </span>
-                  <span className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
                     ₹50L{' '}
                     <span className="text-xs font-normal">
                       {t('customer.booking.transitCoverUnit')}
@@ -2162,15 +2306,15 @@ function BookDriverPageInner() {
                 </div>
               </div>
 
-              <div className="bg-[#181c24] p-3 rounded-xl border border-[#262a33] flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#68dba9] text-2xl">
+              <div className="bg-surface-container p-3 rounded-xl border border-border flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">
                   support_agent
                 </span>
                 <div>
-                  <span className="text-[9px] font-bold uppercase text-[#bccac0] block font-['Space_Grotesk']">
+                  <span className="text-[9px] font-bold uppercase text-on-surface-variant block font-['Space_Grotesk']">
                     {t('customer.booking.sosResponseLabel')}
                   </span>
-                  <span className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
                     &lt; 30s
                   </span>
                 </div>
@@ -2186,84 +2330,113 @@ function BookDriverPageInner() {
           reviewed before the customer commits to that driver. */}
       {viewingDriverId && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-[#0f1319] border border-[#262a33] rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in">
+          <div className="bg-surface-container border border-border rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in">
             <div className="p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase text-[#bccac0] tracking-wider font-['Space_Grotesk']">
+                <span className="text-xs font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {t('customer.booking.driverDetailsTitle', { defaultValue: 'Driver Details' })}
                 </span>
                 <button
                   type="button"
                   onClick={() => setViewingDriverId(null)}
                   aria-label={t('common.actions.close', { defaultValue: 'Close' })}
-                  className="p-2 -m-1 rounded-lg text-[#87948b] hover:text-white active:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="p-2 -m-1 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
 
               {viewingDriverLoading ? (
-                <p className="text-xs text-[#87948b] py-8 text-center">
+                <p className="text-xs text-on-surface-variant py-8 text-center">
                   {t('customer.booking.loadingDriverProfile', {
                     defaultValue: 'Loading driver profile…',
                   })}
                 </p>
               ) : viewingDriverError ? (
-                <p className="text-xs text-red-400 py-8 text-center">{viewingDriverError}</p>
+                <p className="text-xs text-error py-8 text-center">{viewingDriverError}</p>
               ) : viewingDriverProfile ? (
                 <>
-                  <div className="flex items-center gap-3">
-                    <div className="h-16 w-16 rounded-full bg-[#262a33] border border-[#25a475]/40 flex items-center justify-center text-xl font-bold text-white uppercase overflow-hidden shrink-0">
-                      {viewingDriverProfile.profileImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={viewingDriverProfile.profileImageUrl}
-                          alt={viewingDriverProfile.displayName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        viewingDriverProfile.displayName?.[0] || 'D'
-                      )}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-16 w-16 rounded-full bg-surface-container-high border border-primary/40 flex items-center justify-center text-xl font-bold text-on-surface uppercase overflow-hidden shrink-0">
+                        {viewingDriverProfile.profileImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={viewingDriverProfile.profileImageUrl}
+                            alt={viewingDriverProfile.displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          viewingDriverProfile.displayName?.[0] || 'D'
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-base font-bold text-on-surface truncate">
+                          {viewingDriverProfile.displayName}
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant">
+                          {t('customer.tracking.serviceAreaLabel', {
+                            area:
+                              viewingDriverProfile.primaryServiceArea ||
+                              t('customer.tracking.serviceAreaFallback'),
+                          })}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-base font-bold text-white truncate">
-                        {viewingDriverProfile.displayName}
-                      </span>
-                      <span className="text-[11px] text-[#87948b]">
-                        {t('customer.tracking.serviceAreaLabel', {
-                          area:
-                            viewingDriverProfile.primaryServiceArea ||
-                            t('customer.tracking.serviceAreaFallback'),
-                        })}
-                      </span>
-                    </div>
+
+                    {(() => {
+                      const isFav = favoriteDrivers.some(
+                        (f) => f.driverProfileId === viewingDriverProfile.driverProfileId,
+                      );
+                      return (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void toggleFavoriteDriver(
+                              viewingDriverProfile.driverProfileId,
+                              viewingDriverProfile.displayName,
+                            )
+                          }
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                            isFav
+                              ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400'
+                              : 'bg-surface-container-high border-border text-on-surface-variant hover:text-on-surface'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-base text-amber-500">
+                            {isFav ? 'star' : 'star_outline'}
+                          </span>
+                          <span>{isFav ? 'Favorite Driver ★' : 'Add Favorite'}</span>
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
-                      <div className="text-sm font-bold text-[#25a475]">
+                    <div className="bg-surface-container-high rounded-lg p-2.5 border border-border">
+                      <div className="text-sm font-bold text-primary">
                         {viewingDriverProfile.averageRating.toFixed(1)}★
                       </div>
-                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                      <div className="text-[9px] text-on-surface-variant uppercase mt-0.5">
                         {t('customer.booking.reviewsCountLabel', {
                           count: viewingDriverProfile.totalReviews,
                           defaultValue: `${viewingDriverProfile.totalReviews} reviews`,
                         })}
                       </div>
                     </div>
-                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
-                      <div className="text-sm font-bold text-white">
+                    <div className="bg-surface-container-high rounded-lg p-2.5 border border-border">
+                      <div className="text-sm font-bold text-on-surface">
                         {viewingDriverProfile.drivingExperienceYears}
                       </div>
-                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                      <div className="text-[9px] text-on-surface-variant uppercase mt-0.5">
                         {t('customer.booking.yearsExpLabel', { defaultValue: 'Years Exp' })}
                       </div>
                     </div>
-                    <div className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33]">
-                      <div className="text-sm font-bold text-white">
+                    <div className="bg-surface-container-high rounded-lg p-2.5 border border-border">
+                      <div className="text-sm font-bold text-on-surface">
                         {viewingDriverProfile.completedTrips}
                       </div>
-                      <div className="text-[9px] text-[#87948b] uppercase mt-0.5">
+                      <div className="text-[9px] text-on-surface-variant uppercase mt-0.5">
                         {t('customer.booking.tripsCompletedLabel', {
                           defaultValue: 'Bookings Done',
                         })}
@@ -2272,19 +2445,19 @@ function BookDriverPageInner() {
                   </div>
 
                   {viewingDriverProfile.bio && (
-                    <p className="text-xs text-[#dfe2ee] bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
+                    <p className="text-xs text-on-surface bg-surface-container-high p-3 rounded-lg border border-border">
                       {viewingDriverProfile.bio}
                     </p>
                   )}
 
                   {viewingDriverProfile.rate && (
-                    <div className="flex items-center justify-between bg-[#00311f] border border-[#25a475]/40 rounded-lg p-3">
-                      <span className="text-xs text-[#bccac0]">
+                    <div className="flex items-center justify-between bg-primary/10 border border-primary/40 rounded-lg p-3">
+                      <span className="text-xs text-on-surface-variant">
                         {t('customer.booking.rateForThisHireLabel', {
                           defaultValue: 'Rate for this hire',
                         })}
                       </span>
-                      <span className="text-sm font-bold text-[#25a475]">
+                      <span className="text-sm font-bold text-primary">
                         {formatCurrency(Number(viewingDriverProfile.rate))}
                       </span>
                     </div>
@@ -2292,7 +2465,7 @@ function BookDriverPageInner() {
 
                   {viewingDriverProfile.recentReviews.length > 0 && (
                     <div className="flex flex-col gap-2">
-                      <span className="text-[10px] font-bold uppercase text-[#bccac0] tracking-wider">
+                      <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider">
                         {t('customer.booking.recentReviewsLabel', {
                           defaultValue: 'Recent Reviews',
                         })}
@@ -2300,13 +2473,13 @@ function BookDriverPageInner() {
                       {viewingDriverProfile.recentReviews.slice(0, 3).map((review, idx) => (
                         <div
                           key={idx}
-                          className="bg-[#181c24] rounded-lg p-2.5 border border-[#262a33] text-[11px] text-[#dfe2ee]"
+                          className="bg-surface-container-high rounded-lg p-2.5 border border-border text-[11px] text-on-surface"
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-semibold">{review.reviewerLabel}</span>
-                            <span className="text-[#25a475]">{'★'.repeat(review.rating)}</span>
+                            <span className="text-primary">{'★'.repeat(review.rating)}</span>
                           </div>
-                          {review.comment && <p className="text-[#87948b]">{review.comment}</p>}
+                          {review.comment && <p className="text-on-surface-variant">{review.comment}</p>}
                         </div>
                       ))}
                     </div>
@@ -2318,7 +2491,7 @@ function BookDriverPageInner() {
                       setPreferredDriverProfileId(viewingDriverProfile.driverProfileId);
                       setViewingDriverId(null);
                     }}
-                    className="w-full min-h-[48px] py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-sm transition-all font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="w-full min-h-[48px] py-3 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-sm transition-all font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {t('customer.booking.selectThisDriverBtn', {
                       defaultValue: 'Select This Driver',

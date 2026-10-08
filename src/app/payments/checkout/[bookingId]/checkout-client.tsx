@@ -85,6 +85,8 @@ export default function PaymentCheckoutPage({
       currency: checkout.currency,
       order_id: checkout.providerOrderId,
       name: 'Get Apna Driver',
+      description: `Payment for Booking #${bookingId.substring(0, 8)}`,
+      theme: { color: '#059669' },
       handler: async (response: {
         razorpay_order_id: string;
         razorpay_payment_id: string;
@@ -113,9 +115,14 @@ export default function PaymentCheckoutPage({
           setStatus('error');
         }
       },
+      modal: {
+        ondismiss: () => {
+          setStatus('ready');
+        },
+      },
     });
     razorpay.open();
-  }, [checkout, router]);
+  }, [bookingId, checkout, router]);
 
   return (
     <CustomerLayout>

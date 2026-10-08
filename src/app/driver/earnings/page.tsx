@@ -118,20 +118,20 @@ export default function DriverEarningsPage() {
     <DriverLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-900 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-emerald-500/20">
+        <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-950 dark:from-emerald-950 dark:to-slate-950 text-white rounded-2xl p-6 shadow-xl border border-emerald-500/30">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <span className="text-xs uppercase tracking-widest text-emerald-400 font-semibold">
+              <span className="text-xs uppercase tracking-widest text-emerald-300 font-semibold font-mono">
                 FINANCIAL TELEMETRY & INCENTIVES
               </span>
-              <h1 className="text-2xl md:text-3xl font-bold mt-1">{t('driver.earnings.title')}</h1>
-              <p className="text-slate-300 text-sm mt-1">{t('driver.earnings.subtitle')}</p>
+              <h1 className="text-2xl md:text-3xl font-bold mt-1 font-['Space_Grotesk']">{t('driver.earnings.title')}</h1>
+              <p className="text-emerald-100/80 text-sm mt-1">{t('driver.earnings.subtitle')}</p>
             </div>
-            <div className="bg-slate-800/80 backdrop-blur rounded-xl px-4 py-3 border border-slate-700 text-right">
-              <span className="text-xs text-slate-400 block">
+            <div className="bg-black/20 backdrop-blur rounded-xl px-4 py-3 border border-white/20 text-right">
+              <span className="text-xs text-emerald-100/70 block font-mono">
                 {t('driver.earnings.availableBalance')}
               </span>
-              <span className="text-2xl font-black text-emerald-400">
+              <span className="text-2xl font-black text-emerald-300">
                 ₹{loading ? '...' : parseFloat(summary?.availableBalance ?? '0').toFixed(2)}
               </span>
             </div>
@@ -139,49 +139,49 @@ export default function DriverEarningsPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-[#121212] grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
-            <span className="text-xs font-medium text-slate-400 block">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-surface-container border border-border rounded-xl p-5 shadow-sm animate-fade-in-up">
+            <span className="text-xs font-medium text-on-surface-variant block">
               {t('driver.earnings.todayEarnings')}
             </span>
-            <div className="text-2xl font-bold text-white mt-1">
+            <div className="text-2xl font-bold text-on-surface mt-1">
               ₹{summary?.todayEarnings ?? '0.00'}
             </div>
-            <span className="text-xs text-slate-500 mt-1 block">
+            <span className="text-xs text-on-surface-variant mt-1 block">
               {summary?.completedTripsToday ?? 0} services completed today
             </span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
-            <span className="text-xs font-medium text-slate-400 block">
+          <div className="bg-surface-container border border-border rounded-xl p-5 shadow-sm animate-fade-in-up">
+            <span className="text-xs font-medium text-on-surface-variant block">
               {t('driver.earnings.completedTripsToday')}
             </span>
-            <div className="text-2xl font-bold text-emerald-400 mt-1">
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
               {summary?.completedTripsToday ?? 0}
             </div>
-            <span className="text-xs text-slate-500 mt-1 block">
+            <span className="text-xs text-on-surface-variant mt-1 block">
               Target: {goal?.dailyTripGoal ?? 8} services
             </span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
-            <span className="text-xs font-medium text-slate-400 block">
+          <div className="bg-surface-container border border-border rounded-xl p-5 shadow-sm animate-fade-in-up">
+            <span className="text-xs font-medium text-on-surface-variant block">
               {t('driver.earnings.averageFarePerTrip')}
             </span>
-            <div className="text-2xl font-bold text-amber-400 mt-1">
+            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
               ₹{summary?.averageFarePerTrip ?? '0.00'}
             </div>
-            <span className="text-xs text-slate-500 mt-1 block">Per completed service</span>
+            <span className="text-xs text-on-surface-variant mt-1 block">Per completed service</span>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg animate-fade-in-up">
-            <span className="text-xs font-medium text-slate-400 block">
+          <div className="bg-surface-container border border-border rounded-xl p-5 shadow-sm animate-fade-in-up">
+            <span className="text-xs font-medium text-on-surface-variant block">
               {t('driver.earnings.periodEarnings')}
             </span>
-            <div className="text-2xl font-bold text-cyan-400 mt-1">
+            <div className="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-1">
               ₹{summary?.periodEarnings ?? '0.00'}
             </div>
-            <span className="text-xs text-slate-500 mt-1 block">
+            <span className="text-xs text-on-surface-variant mt-1 block">
               {summary?.periodTrips ?? 0} services past 7 days
             </span>
           </div>
@@ -190,18 +190,18 @@ export default function DriverEarningsPage() {
         {/* Goals & Challenges Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Driver Goal Tracking Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
+          <div className="bg-surface-container border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-lg font-bold text-white">
+                  <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                     {t('driver.earnings.goalsTitle')}
                   </h2>
-                  <p className="text-xs text-slate-400">Personal performance targets</p>
+                  <p className="text-xs text-on-surface-variant">Personal performance targets</p>
                 </div>
                 <button
                   onClick={() => setEditingGoals(!editingGoals)}
-                  className="min-h-[48px] px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-emerald-400 border border-slate-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                  className="min-h-[48px] px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-container-high hover:bg-surface-container-highest active:opacity-90 text-primary border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   {editingGoals ? 'Cancel' : t('driver.earnings.updateGoals')}
                 </button>
@@ -210,10 +210,10 @@ export default function DriverEarningsPage() {
               {editingGoals ? (
                 <form
                   onSubmit={handleSaveGoals}
-                  className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800"
+                  className="space-y-4 bg-surface-container-high p-4 rounded-xl border border-border"
                 >
                   <div>
-                    <label className="text-xs text-slate-300 font-medium block mb-1">
+                    <label className="text-xs text-on-surface-variant font-medium block mb-1">
                       {t('driver.earnings.dailyGoal')}
                     </label>
                     <input
@@ -221,11 +221,11 @@ export default function DriverEarningsPage() {
                       min="1"
                       value={dailyGoalInput}
                       onChange={(e) => setDailyGoalInput(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-surface-container border border-border text-on-surface rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-300 font-medium block mb-1">
+                    <label className="text-xs text-on-surface-variant font-medium block mb-1">
                       {t('driver.earnings.weeklyGoal')}
                     </label>
                     <input
@@ -233,13 +233,13 @@ export default function DriverEarningsPage() {
                       min="100"
                       value={weeklyGoalInput}
                       onChange={(e) => setWeeklyGoalInput(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-surface-container border border-border text-on-surface rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={savingGoals}
-                    className="w-full min-h-[48px] bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold py-2 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                    className="w-full min-h-[48px] bg-primary hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary text-xs font-bold py-2 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {savingGoals ? 'Saving...' : t('driver.earnings.saveGoals')}
                   </button>
@@ -249,20 +249,20 @@ export default function DriverEarningsPage() {
                   {/* Daily Trip Progress */}
                   <div>
                     <div className="flex justify-between items-center text-sm mb-2">
-                      <span className="text-slate-300 font-medium">
+                      <span className="text-on-surface font-medium">
                         {t('driver.earnings.dailyGoal')}
                       </span>
-                      <span className="text-emerald-400 font-bold">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                         {goal?.completedTripsToday ?? 0} / {goal?.dailyTripGoal ?? 8} services
                       </span>
                     </div>
-                    <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                    <div className="w-full bg-surface-container-highest h-3 rounded-full overflow-hidden">
                       <div
                         className="bg-emerald-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${goal?.dailyTripProgressPercentage ?? 0}%` }}
                       />
                     </div>
-                    <span className="text-xs text-slate-500 mt-1 block text-right">
+                    <span className="text-xs text-on-surface-variant mt-1 block text-right">
                       {goal?.dailyTripProgressPercentage ?? 0}% Completed
                     </span>
                   </div>
@@ -270,20 +270,20 @@ export default function DriverEarningsPage() {
                   {/* Weekly Earnings Progress */}
                   <div>
                     <div className="flex justify-between items-center text-sm mb-2">
-                      <span className="text-slate-300 font-medium">
+                      <span className="text-on-surface font-medium">
                         {t('driver.earnings.weeklyGoal')}
                       </span>
-                      <span className="text-cyan-400 font-bold">
+                      <span className="text-sky-600 dark:text-sky-400 font-bold">
                         ₹{goal?.earningsThisWeek ?? 0} / ₹{goal?.weeklyEarningsGoal ?? 10000}
                       </span>
                     </div>
-                    <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                    <div className="w-full bg-surface-container-highest h-3 rounded-full overflow-hidden">
                       <div
-                        className="bg-cyan-500 h-full rounded-full transition-all duration-500"
+                        className="bg-sky-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${goal?.weeklyEarningsProgressPercentage ?? 0}%` }}
                       />
                     </div>
-                    <span className="text-xs text-slate-500 mt-1 block text-right">
+                    <span className="text-xs text-on-surface-variant mt-1 block text-right">
                       {goal?.weeklyEarningsProgressPercentage ?? 0}% Completed
                     </span>
                   </div>
@@ -293,17 +293,17 @@ export default function DriverEarningsPage() {
           </div>
 
           {/* Active Incentive Challenges List */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-lg font-bold text-white mb-1">
+          <div className="bg-surface-container border border-border rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-on-surface mb-1 font-['Space_Grotesk']">
               {t('driver.earnings.activeChallenges')}
             </h2>
-            <p className="text-xs text-slate-400 mb-6">
+            <p className="text-xs text-on-surface-variant mb-6">
               Complete requirements to unlock cash rewards directly into your wallet
             </p>
 
             {incentives.length === 0 ? (
-              <div className="text-center py-10 border border-dashed border-slate-800 rounded-xl">
-                <span className="text-slate-500 text-sm block">
+              <div className="text-center py-10 border border-dashed border-border rounded-xl">
+                <span className="text-on-surface-variant text-sm block">
                   {t('driver.earnings.noActiveChallenges')}
                 </span>
               </div>
@@ -316,28 +316,28 @@ export default function DriverEarningsPage() {
                   return (
                     <div
                       key={challenge.id}
-                      className="bg-slate-950 border border-slate-800 rounded-xl p-4 transition hover:border-slate-700"
+                      className="bg-surface-container-high border border-border rounded-xl p-4 transition hover:border-primary/50"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="text-sm font-bold text-white">{challenge.campaignName}</h3>
+                          <h3 className="text-sm font-bold text-on-surface">{challenge.campaignName}</h3>
                           {challenge.description && (
-                            <p className="text-xs text-slate-400 mt-0.5">{challenge.description}</p>
+                            <p className="text-xs text-on-surface-variant mt-0.5">{challenge.description}</p>
                           )}
                         </div>
-                        <span className="bg-emerald-950 text-emerald-400 border border-emerald-800/50 text-xs font-black px-2.5 py-1 rounded-lg">
+                        <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black px-2.5 py-1 rounded-lg">
                           +₹{challenge.rewardAmount}
                         </span>
                       </div>
 
                       <div className="mt-3">
                         <div className="flex justify-between items-center text-xs mb-1.5">
-                          <span className="text-slate-400">
+                          <span className="text-on-surface-variant">
                             Progress: {challenge.currentValue} / {challenge.targetValue}
                           </span>
-                          <span className="font-semibold text-emerald-400">
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                             {isRewarded ? (
-                              <span className="text-emerald-400 flex items-center gap-1">
+                              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                 ✓ {t('driver.earnings.unlockedTag')}
                               </span>
                             ) : (
@@ -345,11 +345,11 @@ export default function DriverEarningsPage() {
                             )}
                           </span>
                         </div>
-                        <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-surface-container-highest h-2.5 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${
                               isRewarded
-                                ? 'bg-emerald-400'
+                                ? 'bg-emerald-500'
                                 : 'bg-gradient-to-r from-emerald-500 to-teal-400'
                             }`}
                             style={{ width: `${challenge.progressPercentage}%` }}
@@ -358,7 +358,7 @@ export default function DriverEarningsPage() {
                       </div>
 
                       {!isRewarded && remaining > 0 && (
-                        <div className="mt-3 text-xs bg-slate-900/90 text-amber-300 px-3 py-1.5 rounded-lg border border-amber-500/20 font-medium">
+                        <div className="mt-3 text-xs bg-amber-500/10 text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-lg border border-amber-500/30 font-medium">
                           ⚡{' '}
                           {t('driver.earnings.rewardTeaser', {
                             remaining: String(remaining),

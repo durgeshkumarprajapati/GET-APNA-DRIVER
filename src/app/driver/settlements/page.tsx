@@ -71,17 +71,17 @@ export default function DriverSettlementsPage() {
   return (
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
-        <div className="border-b border-slate-800 pb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-white">Settlement History</h1>
+        <div className="border-b border-border pb-6">
+          <h1 className="text-3xl font-bold tracking-tight text-on-surface">Settlement History</h1>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center p-12 text-slate-400">
-            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent mr-3" />
+          <div className="flex items-center justify-center p-12 text-on-surface-variant">
+            <span className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent mr-3" />
             Loading settlements...
           </div>
         ) : error ? (
-          <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm text-center">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-sm text-center">
             {error}
           </div>
         ) : settlements.length === 0 ? (
@@ -94,18 +94,18 @@ export default function DriverSettlementsPage() {
             {settlements.map((settlement) => (
               <div
                 key={settlement.id}
-                className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up"
+                className="bg-surface-container border border-border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up"
               >
                 <div className="space-y-2">
                   {getStatusBadge(settlement.status)}
-                  <p className="text-lg font-semibold text-white">
+                  <p className="text-lg font-semibold text-on-surface">
                     ₹{settlement.amountPaid ?? settlement.amount}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-on-surface-variant">
                     Requested {new Date(settlement.createdAt).toLocaleString()}
                   </p>
                   {settlement.completedAt && (
-                    <p className="text-xs text-emerald-400">
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400">
                       Paid {new Date(settlement.completedAt).toLocaleString()}
                     </p>
                   )}

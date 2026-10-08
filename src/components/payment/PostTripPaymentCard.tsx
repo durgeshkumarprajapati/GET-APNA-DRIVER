@@ -23,6 +23,30 @@ export interface PostTripPaymentDetailsProps {
   onPaymentSuccess?: () => void;
 }
 
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve(false);
+      return;
+    }
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export function PostTripPaymentCard({
   bookingId,
   role,
@@ -90,17 +114,69 @@ export function PostTripPaymentCard({
         const res = await fetch(`/api/customer/bookings/${bookingId}/payment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paymentMethod: method }),
+          body: JSON.stringify({ paymentMethod: 'ONLINE' }),
         });
         const data = await res.json();
-        if (res.ok && data.success) {
+        if (res.ok && data.success && data.checkout) {
+          const checkout = data.checkout;
+          if (checkout.razorpayKeyId && checkout.providerOrderId) {
+            const scriptLoaded = await loadRazorpayScript();
+            if (scriptLoaded && window.Razorpay) {
+              const razorpay = new window.Razorpay({
+                key: checkout.razorpayKeyId,
+                amount: Math.round(Number(checkout.amount) * 100),
+                currency: checkout.currency || 'INR',
+                order_id: checkout.providerOrderId,
+                name: 'Get Apna Driver',
+                description: `Fare payment for booking #${bookingId.substring(0, 8)}`,
+                theme: { color: '#059669' },
+                handler: async (response: {
+                  razorpay_order_id: string;
+                  razorpay_payment_id: string;
+                  razorpay_signature: string;
+                }) => {
+                  try {
+                    setActionLoading(true);
+                    const verifyRes = await fetch(`/api/payments/${checkout.paymentId}/verify`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        providerOrderId: response.razorpay_order_id,
+                        providerPaymentId: response.razorpay_payment_id,
+                        signature: response.razorpay_signature,
+                      }),
+                    });
+                    if (verifyRes.ok) {
+                      await fetchPaymentDetails();
+                      if (onPaymentSuccess) onPaymentSuccess();
+                    } else {
+                      const errData = await verifyRes.json();
+                      setErrorMessage(errData.message || 'Razorpay payment verification failed.');
+                    }
+                  } catch {
+                    setErrorMessage('Failed to verify Razorpay payment.');
+                  } finally {
+                    setActionLoading(false);
+                  }
+                },
+                modal: {
+                  ondismiss: () => {
+                    setActionLoading(false);
+                  },
+                },
+              });
+              razorpay.open();
+              return;
+            }
+          }
+
           if (data.checkout?.razorpayPaymentPageUrl) {
             window.open(data.checkout.razorpayPaymentPageUrl, '_blank');
           }
           setShowQrModal(true);
           await fetchPaymentDetails();
         } else {
-          setErrorMessage(data.message || 'Failed to initiate UPI/QR payment.');
+          setErrorMessage(data.message || 'Failed to initiate online payment.');
         }
       }
     } catch {
@@ -139,8 +215,8 @@ export function PostTripPaymentCard({
 
   if (loading && !details) {
     return (
-      <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl animate-pulse flex items-center justify-center min-h-[140px]">
-        <div className="text-slate-400 text-sm font-medium">
+      <div className="p-6 bg-surface-container border border-border rounded-xl animate-pulse flex items-center justify-center min-h-[140px]">
+        <div className="text-on-surface-variant text-sm font-medium">
           Loading post-trip payment details...
         </div>
       </div>
@@ -159,49 +235,49 @@ export function PostTripPaymentCard({
   const renderStatusBadge = () => {
     if (isPaid) {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping inline-block" />
           PAID
         </span>
       );
     }
     if (isCashProcessing) {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
           Cash Confirmation Pending
         </span>
       );
     }
     if (status === 'PROCESSING') {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
           Processing
         </span>
       );
     }
     if (status === 'FAILED') {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30">
           Payment Failed
         </span>
       );
     }
     return (
-      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-300 border border-slate-600">
+      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface border border-border">
         Payment Due
       </span>
     );
   };
 
   return (
-    <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl space-y-5 text-slate-100">
+    <div className="p-6 bg-surface-container border border-border rounded-2xl shadow-2xl space-y-5 text-on-surface">
       {/* Top Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="flex items-center justify-between border-b border-border pb-4">
         <div>
-          <h3 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold tracking-tight text-on-surface flex items-center gap-2">
             💳 Post-Trip Driver Payment
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-on-surface-variant">
             {role === 'DRIVER' ? 'Receive fare payment from customer' : 'Settle fare for your trip'}
           </p>
         </div>
@@ -209,54 +285,54 @@ export function PostTripPaymentCard({
       </div>
 
       {/* Financial Summary */}
-      <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80 space-y-2">
+      <div className="bg-surface-container-high rounded-xl p-4 border border-border space-y-2">
         {discountAmount && parseFloat(discountAmount) > 0 && (
           <>
-            <div className="flex justify-between text-xs text-slate-400">
+            <div className="flex justify-between text-xs text-on-surface-variant">
               <span>Gross Fare</span>
               <span>
                 {currencySymbol} {parseFloat(grossAmount).toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between text-xs text-emerald-400 font-medium">
+            <div className="flex justify-between text-xs text-emerald-600 dark:text-emerald-400 font-medium">
               <span>Coupon Discount Applied</span>
               <span>
                 - {currencySymbol} {parseFloat(discountAmount).toFixed(2)}
               </span>
             </div>
-            <div className="h-px bg-slate-800 my-1" />
+            <div className="h-px bg-border my-1" />
           </>
         )}
         <div className="flex justify-between items-baseline">
-          <span className="text-sm font-semibold text-slate-300">Amount Due</span>
-          <span className="text-2xl font-extrabold text-white tracking-tight">
+          <span className="text-sm font-semibold text-on-surface-variant">Amount Due</span>
+          <span className="text-2xl font-extrabold text-on-surface tracking-tight">
             {currencySymbol} {parseFloat(amount).toFixed(2)}
           </span>
         </div>
       </div>
 
       {errorMessage && (
-        <div className="p-3 bg-rose-950/50 border border-rose-800/80 rounded-xl text-xs text-rose-300">
+        <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-600 dark:text-rose-300">
           ⚠️ {errorMessage}
         </div>
       )}
 
       {/* Cash Dual Confirmation Sub-state */}
       {isCashProcessing && (
-        <div className="p-4 bg-amber-950/30 border border-amber-800/50 rounded-xl space-y-2 text-xs text-amber-200">
-          <div className="font-semibold text-amber-300 flex items-center gap-1.5">
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-2 text-xs text-amber-700 dark:text-amber-200">
+          <div className="font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
             ⌛ Dual Cash Confirmation In Progress
           </div>
-          <div className="grid grid-cols-2 gap-2 pt-1 text-slate-300">
+          <div className="grid grid-cols-2 gap-2 pt-1 text-on-surface-variant">
             <div className="flex items-center gap-1">
               <span>Customer Confirmed:</span>
-              <span className="font-bold text-white">
+              <span className="font-bold text-on-surface">
                 {details?.cashCustomerConfirmedAt ? '✅ Yes' : '❌ Pending'}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <span>Driver Received:</span>
-              <span className="font-bold text-white">
+              <span className="font-bold text-on-surface">
                 {details?.cashDriverConfirmedAt ? '✅ Yes' : '❌ Pending'}
               </span>
             </div>
@@ -318,18 +394,18 @@ export function PostTripPaymentCard({
 
       {/* QR Code Modal / Display Card */}
       {showQrModal && details?.upiQrPayload && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 text-center shadow-2xl relative animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-surface border border-border rounded-2xl max-w-sm w-full p-6 space-y-4 text-center shadow-2xl relative animate-scale-in">
             <button
               type="button"
               onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold"
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface text-lg font-bold"
             >
               ✕
             </button>
 
-            <h4 className="text-base font-bold text-white">Scan & Pay via Any UPI App</h4>
-            <p className="text-xs text-slate-400">GPay, PhonePe, Paytm, BHIM, or Banking UPI App</p>
+            <h4 className="text-base font-bold text-on-surface">Scan & Pay via Any UPI App</h4>
+            <p className="text-xs text-on-surface-variant">GPay, PhonePe, Paytm, BHIM, or Banking UPI App</p>
 
             {/* Generated QR Card Graphic */}
             <div className="bg-white p-5 rounded-xl inline-block shadow-inner">
@@ -372,21 +448,21 @@ export function PostTripPaymentCard({
               </svg>
             </div>
 
-            <div className="bg-slate-950 p-3 rounded-xl text-xs space-y-1">
-              <span className="text-slate-400 block">UPI VPA:</span>
-              <div className="flex items-center justify-center gap-2 font-mono text-indigo-300 font-semibold">
+            <div className="bg-surface-container-high p-3 rounded-xl text-xs space-y-1">
+              <span className="text-on-surface-variant block">UPI VPA:</span>
+              <div className="flex items-center justify-center gap-2 font-mono text-indigo-600 dark:text-indigo-300 font-semibold">
                 <span>{details.upiQrPayload.upiId}</span>
                 <button
                   type="button"
                   onClick={() => handleCopyUpiId(details.upiQrPayload!.upiId)}
-                  className="text-xs text-indigo-400 underline hover:text-indigo-300"
+                  className="text-xs text-indigo-600 dark:text-indigo-400 underline hover:text-indigo-500"
                 >
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
             </div>
 
-            <div className="text-xs font-semibold text-emerald-400">
+            <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
               Amount to Pay: {currencySymbol} {parseFloat(amount).toFixed(2)}
             </div>
           </div>

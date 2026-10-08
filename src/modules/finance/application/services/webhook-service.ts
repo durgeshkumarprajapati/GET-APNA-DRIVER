@@ -155,6 +155,7 @@ async function dispatchWebhookEvent(
   db: Db,
 ): Promise<'processed' | 'ignored'> {
   switch (eventType) {
+    case 'payment.authorized':
     case 'payment.captured': {
       const entity = payload?.payment?.entity;
       if (!entity?.id || !entity.order_id || entity.amount === undefined) {
@@ -164,9 +165,16 @@ async function dispatchWebhookEvent(
       if (!payment) {
         logger.warn(
           { providerOrderId: entity.order_id },
-          'payment.captured webhook for unknown order',
+          `${eventType} webhook for unknown order`,
         );
         return 'ignored';
+      }
+      if (eventType === 'payment.authorized' && paymentProvider.capturePaymentOnProvider) {
+        try {
+          await paymentProvider.capturePaymentOnProvider(entity.id, entity.amount, 'INR');
+        } catch (err) {
+          logger.warn({ err, entityId: entity.id }, 'Auto-capture on payment.authorized failed, continuing capturePayment flow');
+        }
       }
       await capturePayment(
         {

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 type RolePanel = 'customer' | 'driver' | 'admin';
 type ServiceType = 'hourly' | 'airport' | 'outstation';
@@ -92,6 +93,7 @@ export default function HomeContent() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <ThemeToggle />
             <Link
               href="/login"
               className="px-3 py-2 rounded-lg text-xs text-on-surface hover:text-primary hover:bg-surface-container transition-all flex items-center gap-1.5 border border-outline-variant/40"
@@ -99,6 +101,7 @@ export default function HomeContent() {
               <span className="material-symbols-outlined text-base">login</span>
               <span>Sign In</span>
             </Link>
+
             <div className="relative group">
               <button
                 type="button"

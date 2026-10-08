@@ -182,15 +182,15 @@ export default function DriverDashboardPage() {
   return (
     <DriverLayout>
       <div className="flex flex-col w-full gap-3.5">
-        <section className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section className="p-4 rounded-xl bg-surface-container border border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider font-['Space_Grotesk']">
               Welcome back
             </span>
-            <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+            <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
               {profile ? driverDisplayName(profile) : 'Dashboard'}
             </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-[#87948b]">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-on-surface-variant">
               {profile?.email && <span>{profile.email}</span>}
               {profile?.phoneNumber && <span>{profile.phoneNumber}</span>}
               {profile && <span>{profile.drivingExperienceYears} yrs experience</span>}
@@ -199,12 +199,12 @@ export default function DriverDashboardPage() {
           </div>
           {profile && (
             <div className="flex items-center gap-2 shrink-0">
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#262a33] text-[#dfe2ee]">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-surface-container-high text-on-surface border border-border">
                 {profile.approvalStatus}
               </span>
               <Link
                 href="/driver/profile"
-                className="min-h-[48px] flex items-center px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#353942] active:bg-[#454f5c] text-[#dfe2ee] text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-h-[48px] flex items-center px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest active:opacity-80 text-on-surface text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary border border-border"
               >
                 Edit Profile
               </Link>
@@ -216,7 +216,7 @@ export default function DriverDashboardPage() {
         <DriverExperienceSection />
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
             {error}
           </div>
         )}
@@ -226,34 +226,34 @@ export default function DriverDashboardPage() {
         ) : (
           <>
             {/* Earnings & Incentives Summary Banner */}
-            <div className="bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/30 rounded-xl p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-600/10 to-teal-500/10 border border-emerald-500/30 rounded-xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
                     DRIVER EARNINGS & GOALS
                   </span>
                   {incentives.length > 0 && (
-                    <span className="text-[10px] font-bold text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800/60">
+                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
                       {incentives.length} Active Challenges
                     </span>
                   )}
                 </div>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-2xl font-black text-white">
+                  <span className="text-2xl font-black text-on-surface">
                     Today: ₹{earningsSummary?.todayEarnings ?? '0.00'}
                   </span>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-on-surface-variant">
                     ({earningsSummary?.completedTripsToday ?? 0} services completed)
                   </span>
                 </div>
                 {goals && (
-                  <div className="flex items-center gap-2 text-xs text-slate-300 pt-1">
+                  <div className="flex items-center gap-2 text-xs text-on-surface-variant pt-1">
                     <span>
                       Daily Goal: {goals.completedTripsToday} / {goals.dailyTripGoal} services
                     </span>
-                    <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="w-24 bg-surface-container-highest h-2 rounded-full overflow-hidden">
                       <div
-                        className="bg-emerald-400 h-full rounded-full"
+                        className="bg-emerald-500 h-full rounded-full"
                         style={{ width: `${goals.dailyTripProgressPercentage}%` }}
                       />
                     </div>
@@ -274,12 +274,12 @@ export default function DriverDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
               <Link
                 href="/driver/schedule"
-                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-surface-container border border-border hover:border-primary transition-colors flex flex-col gap-1 shadow-sm"
               >
-                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk']">
                   Today Shift
                 </span>
-                <span className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <span className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                   {todayShift?.isScheduled
                     ? `${todayShift.startTime} - ${todayShift.endTime}`
                     : todayShift?.status || 'No Shift'}
@@ -287,36 +287,36 @@ export default function DriverDashboardPage() {
               </Link>
               <Link
                 href="/driver/assignment-offers"
-                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-surface-container border border-border hover:border-primary transition-colors flex flex-col gap-1 shadow-sm"
               >
-                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk']">
                   Pending Offers
                 </span>
-                <span className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk']">
+                <span className="text-2xl font-bold text-primary font-['Space_Grotesk']">
                   {pendingOffers.length}
                 </span>
               </Link>
 
               <Link
                 href="/driver/bookings"
-                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-surface-container border border-border hover:border-primary transition-colors flex flex-col gap-1 shadow-sm"
               >
-                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk']">
                   Active Bookings
                 </span>
-                <span className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <span className="text-2xl font-bold text-on-surface font-['Space_Grotesk']">
                   {activeBookings.length}
                 </span>
               </Link>
 
               <Link
                 href="/driver/wallet-and-payouts"
-                className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] transition-colors flex flex-col gap-1"
+                className="card-interactive p-4 rounded-xl bg-surface-container border border-border hover:border-primary transition-colors flex flex-col gap-1 shadow-sm"
               >
-                <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk']">
                   Available Balance
                 </span>
-                <span className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk']">
+                <span className="text-2xl font-bold text-primary font-['Space_Grotesk']">
                   ₹
                   {wallet
                     ? Number(wallet.availableBalance).toLocaleString('en-IN', {
@@ -329,18 +329,18 @@ export default function DriverDashboardPage() {
 
             <section className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                   Pending Assignment Offers
                 </h2>
                 <Link
                   href="/driver/assignment-offers"
-                  className="text-xs font-mono text-[#68dba9] hover:underline"
+                  className="text-xs font-mono text-primary hover:underline"
                 >
                   View all →
                 </Link>
               </div>
               {pendingOffers.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-sm">
+                <div className="p-6 rounded-xl border border-border bg-surface-container text-center text-on-surface-variant text-sm shadow-sm">
                   No pending assignment offers right now.
                 </div>
               ) : (
@@ -348,15 +348,15 @@ export default function DriverDashboardPage() {
                   {pendingOffers.slice(0, 5).map((offer) => (
                     <div
                       key={offer.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
+                      className="p-4 rounded-xl bg-surface-container border border-border flex items-center justify-between gap-4 shadow-sm"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-[#dfe2ee]">
+                        <p className="text-sm font-semibold text-on-surface">
                           {offer.pickupLocation.label ?? offer.pickupLocation.address}
                         </p>
-                        <p className="text-xs text-[#87948b]">{offer.bookingType}</p>
+                        <p className="text-xs text-on-surface-variant">{offer.bookingType}</p>
                       </div>
-                      <span className="text-xs font-mono text-[#68dba9]">
+                      <span className="text-xs font-mono text-primary font-semibold">
                         Expires {new Date(offer.expiresAt).toLocaleTimeString()}
                       </span>
                     </div>
@@ -367,18 +367,18 @@ export default function DriverDashboardPage() {
 
             <section className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                   Active Bookings
                 </h2>
                 <Link
                   href="/driver/bookings"
-                  className="text-xs font-mono text-[#68dba9] hover:underline"
+                  className="text-xs font-mono text-primary hover:underline"
                 >
                   View all →
                 </Link>
               </div>
               {activeBookings.length === 0 ? (
-                <div className="p-6 rounded-xl border border-[#262a33] bg-[#181c24] text-center text-[#87948b] text-sm">
+                <div className="p-6 rounded-xl border border-border bg-surface-container text-center text-on-surface-variant text-sm shadow-sm">
                   No active bookings right now.
                 </div>
               ) : (
@@ -386,15 +386,15 @@ export default function DriverDashboardPage() {
                   {activeBookings.slice(0, 5).map((booking) => (
                     <div
                       key={booking.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
+                      className="p-4 rounded-xl bg-surface-container border border-border flex items-center justify-between gap-4 shadow-sm"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-[#dfe2ee]">
+                        <p className="text-sm font-semibold text-on-surface">
                           {booking.pickupLocation.label ?? booking.pickupLocation.address}
                         </p>
-                        <p className="text-xs text-[#87948b]">{booking.bookingType}</p>
+                        <p className="text-xs text-on-surface-variant">{booking.bookingType}</p>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-[#00311f] text-[#68dba9] border border-[#25a475] text-[10px] font-bold">
+                      <span className="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
                         {bookingStatusLabel(booking.status)}
                       </span>
                     </div>

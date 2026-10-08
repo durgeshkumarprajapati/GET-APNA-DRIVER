@@ -71,9 +71,9 @@ export function DriverEngagementWidget() {
 
   if (loading) {
     return (
-      <div className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] animate-pulse flex flex-col gap-3">
-        <div className="h-4 w-36 bg-slate-800 rounded" />
-        <div className="h-12 bg-slate-800/50 rounded-lg" />
+      <div className="p-5 rounded-xl bg-surface-container border border-border animate-pulse flex flex-col gap-3">
+        <div className="h-4 w-36 bg-surface-container-high rounded" />
+        <div className="h-12 bg-surface-container-high/50 rounded-lg" />
       </div>
     );
   }
@@ -85,10 +85,10 @@ export function DriverEngagementWidget() {
   const nextMilestone = summary.nextMilestones?.[0];
 
   return (
-    <div className="p-5 rounded-xl bg-gradient-to-r from-[#181c24] to-[#1e2430] border border-[#262a33] shadow-lg flex flex-col gap-4">
+    <div className="p-5 rounded-xl bg-surface-container border border-border shadow-lg flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+          <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
@@ -99,15 +99,15 @@ export function DriverEngagementWidget() {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
               {t('driverEngagement.widgetTitle')}
             </h3>
-            <p className="text-xs text-[#87948b]">{t('driverEngagement.widgetSubtitle')}</p>
+            <p className="text-xs text-on-surface-variant">{t('driverEngagement.widgetSubtitle')}</p>
           </div>
         </div>
         <Link
           href="/driver/achievements"
-          className="flex items-center gap-1 text-xs font-bold text-[#68dba9] hover:underline"
+          className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
         >
           {t('driverEngagement.viewAllAchievements')}
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,27 +118,27 @@ export function DriverEngagementWidget() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Streak Card */}
-        <div className="p-3.5 rounded-lg bg-[#12151c] border border-[#262a33] flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 shrink-0">
+        <div className="p-3.5 rounded-lg bg-surface-container-high border border-border flex items-center gap-3">
+          <div className="p-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 shrink-0">
             <span className="text-2xl animate-pulse">🔥</span>
           </div>
           <div>
-            <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block">
               {t('driverEngagement.streakActive')}
             </span>
-            <span className="text-lg font-black text-white">
+            <span className="text-lg font-black text-on-surface">
               {t('driverEngagement.currentStreak', { count: summary.currentStreak })}
             </span>
-            <span className="text-[11px] text-[#87948b] block">
+            <span className="text-[11px] text-on-surface-variant block">
               {t('driverEngagement.longestStreak', { count: summary.longestStreak })}
             </span>
           </div>
         </div>
 
         {/* Next Milestone Card */}
-        <div className="p-3.5 rounded-lg bg-[#12151c] border border-[#262a33] flex flex-col justify-center gap-1.5 sm:col-span-2">
+        <div className="p-3.5 rounded-lg bg-surface-container-high border border-border flex flex-col justify-center gap-1.5 sm:col-span-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider flex items-center gap-1">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -150,7 +150,7 @@ export function DriverEngagementWidget() {
               {t('driverEngagement.nextMilestone')}
             </span>
             {nextMilestone && (
-              <span className="text-xs font-semibold text-[#dfe2ee]">
+              <span className="text-xs font-semibold text-on-surface">
                 {nextMilestone.definition.name}
               </span>
             )}
@@ -158,22 +158,22 @@ export function DriverEngagementWidget() {
 
           {nextMilestone ? (
             <div className="space-y-1">
-              <div className="flex justify-between text-xs text-[#87948b]">
+              <div className="flex justify-between text-xs text-on-surface-variant">
                 <span>Progress</span>
-                <span className="font-mono text-white">
+                <span className="font-mono text-on-surface">
                   {nextMilestone.currentValue} / {nextMilestone.targetValue}
                 </span>
               </div>
-              <div className="w-full bg-[#1e2430] h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-emerald-400 h-full rounded-full transition-all duration-500"
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, nextMilestone.percentage)}%` }}
                 />
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-xs text-[#87948b]">
-              <span className="text-base text-amber-400">🏆</span>
+            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+              <span className="text-base text-amber-500">🏆</span>
               <span>
                 {t('driverEngagement.achievementsUnlocked', {
                   unlocked: summary.unlockedCount,

@@ -148,62 +148,62 @@ export default function DriverSosSupportPage() {
         </div>
 
         {/* 24x7 Customer Care Voice Helpline Card */}
-        <div className="p-6 rounded-xl bg-[#0053db]/10 border border-[#0053db]/40 flex flex-col md:flex-row items-center justify-between gap-4 max-w-xl mx-auto w-full">
+        <div className="p-6 rounded-xl bg-primary/10 border border-primary/30 flex flex-col md:flex-row items-center justify-between gap-4 max-w-xl mx-auto w-full">
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#70a1ff] text-3xl">phone_in_talk</span>
+            <span className="material-symbols-outlined text-primary text-3xl">phone_in_talk</span>
             <div>
-              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                 Direct Driver Support Helpline
               </h3>
-              <p className="text-xs text-[#bccac0]">
+              <p className="text-xs text-on-surface-variant">
                 Need immediate phone assistance from Customer Care? Click to connect.
               </p>
               {callData && (
-                <div className="mt-2 text-xs text-[#68dba9] font-mono">
+                <div className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-mono">
                   Call Session: {callData.callSessionId.substring(0, 8)} • Dial{' '}
                   {callData.dialNumber}
                 </div>
               )}
-              {callError && <p className="mt-1 text-xs text-[#ffb4ab] font-bold">{callError}</p>}
+              {callError && <p className="mt-1 text-xs text-rose-500 font-bold">{callError}</p>}
             </div>
           </div>
           <button
             type="button"
             disabled={calling}
             onClick={handleCallCustomerCare}
-            className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] active:brightness-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#70a1ff]"
+            className="min-h-[48px] px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <span className="material-symbols-outlined text-lg">call</span>
             <span>{calling ? 'Connecting…' : 'Call Support'}</span>
           </button>
         </div>
 
-        <section className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2">
-          <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+        <section className="p-5 rounded-xl bg-surface-container border border-border space-y-2 shadow-sm">
+          <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
             Active Booking Context
           </h2>
           {bookingLoading ? (
             <LoadingState message="Checking for an active booking…" />
           ) : activeBooking ? (
-            <div className="text-xs text-[#bccac0] space-y-1">
+            <div className="text-xs text-on-surface-variant space-y-1">
               <p>
-                Booking <span className="font-mono text-[#dfe2ee]">{activeBooking.id}</span> —{' '}
-                <span className="text-[#68dba9]">{bookingStatusLabel(activeBooking.status)}</span>
+                Booking <span className="font-mono text-on-surface">{activeBooking.id}</span> —{' '}
+                <span className="text-emerald-600 dark:text-emerald-400">{bookingStatusLabel(activeBooking.status)}</span>
               </p>
               <p>Pickup: {activeBooking.pickupLocation.address}</p>
-              <p className="text-[10px] text-[#87948b]">
+              <p className="text-[10px] text-on-surface-variant">
                 This booking will be automatically linked to your SOS alert.
               </p>
             </div>
           ) : (
-            <p className="text-xs text-[#87948b]">
+            <p className="text-xs text-on-surface-variant">
               No active booking right now — your SOS will still be sent with your current location.
             </p>
           )}
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
             Incident History
           </h2>
           {incidentsLoading ? (
@@ -215,17 +215,17 @@ export default function DriverSosSupportPage() {
               {incidents.map((incident) => (
                 <div
                   key={incident.id}
-                  className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4 flex-wrap"
+                  className="p-4 rounded-xl bg-surface-container border border-border flex items-center justify-between gap-4 flex-wrap shadow-sm"
                 >
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-[#dfe2ee]">
+                      <span className="text-sm font-bold text-on-surface">
                         {incident.incidentNumber}
                       </span>
                       <IncidentStatusBadge status={incident.status} />
                       <IncidentSeverityBadge severity={incident.severity} />
                     </div>
-                    <span className="text-[10px] font-mono text-[#87948b]">
+                    <span className="text-[10px] font-mono text-on-surface-variant">
                       {incident.type} • {formatDateTime(incident.createdAt)}
                     </span>
                   </div>
