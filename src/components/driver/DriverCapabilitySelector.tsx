@@ -126,11 +126,11 @@ export const DriverCapabilitySelector: React.FC<DriverCapabilitySelectorProps> =
 
   if (loading) {
     return (
-      <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-        <div className="h-5 w-48 bg-slate-800 animate-pulse rounded-md" />
+      <div className="p-5 rounded-2xl bg-surface-container border border-border space-y-3">
+        <div className="h-5 w-48 bg-surface-container-high animate-pulse rounded-md" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-12 bg-slate-800/60 animate-pulse rounded-xl" />
+            <div key={i} className="h-12 bg-surface-container-high/60 animate-pulse rounded-xl" />
           ))}
         </div>
       </div>
@@ -138,36 +138,36 @@ export const DriverCapabilitySelector: React.FC<DriverCapabilitySelectorProps> =
   }
 
   return (
-    <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800/80 space-y-4 shadow-xl">
+    <div className="p-5 rounded-2xl bg-surface-container border border-border space-y-4 shadow-xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-on-surface flex items-center gap-2">
             <span>{t('booking.vehicleCapabilities')}</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               {selectedIds.length} Selected
             </span>
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">{t('booking.vehicleCapabilitiesHint')}</p>
+          <p className="text-xs text-on-surface-variant mt-0.5">{t('booking.vehicleCapabilitiesHint')}</p>
         </div>
 
         <button
           type="button"
           onClick={handleSave}
           disabled={disabled || saving}
-          className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10 cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10 cursor-pointer self-start sm:self-auto"
         >
           {saving ? 'Saving...' : 'Save Capabilities'}
         </button>
       </div>
 
       {successMessage && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs">
           ✓ {successMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+        <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs">
           ✕ {errorMessage}
         </div>
       )}
@@ -181,27 +181,27 @@ export const DriverCapabilitySelector: React.FC<DriverCapabilitySelectorProps> =
               onClick={() => toggleCategory(cat.id)}
               className={`p-3 rounded-xl border text-left transition-all flex items-start gap-3 cursor-pointer select-none ${
                 isSelected
-                  ? 'bg-emerald-500/15 border-emerald-500/50 text-slate-100 shadow-sm shadow-emerald-500/10'
-                  : 'bg-slate-950/40 border-slate-800/80 text-slate-400 hover:border-slate-700 hover:bg-slate-900/40'
+                  ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/40 dark:border-emerald-500/50 text-on-surface shadow-sm shadow-emerald-500/10'
+                  : 'bg-surface-container-high/50 border-border text-on-surface-variant hover:border-border-hover hover:bg-surface-container-high'
               }`}
             >
               <div
                 className={`mt-0.5 h-4 w-4 rounded-md border flex items-center justify-center text-[10px] font-bold transition-all ${
                   isSelected
                     ? 'bg-emerald-500 border-emerald-400 text-slate-950'
-                    : 'border-slate-700 bg-slate-900'
+                    : 'border-border bg-surface-container'
                 }`}
               >
                 {isSelected && '✓'}
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-200">
+                <div className="flex items-center gap-1.5 font-semibold text-xs text-on-surface">
                   <span>{getIcon(cat.code)}</span>
                   <span className="truncate">{cat.name}</span>
                 </div>
                 {cat.description && (
-                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-on-surface-variant mt-1 line-clamp-2 leading-relaxed">
                     {cat.description}
                   </p>
                 )}

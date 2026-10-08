@@ -103,28 +103,28 @@ export function RidePinModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-2xl space-y-6 animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-surface border border-border rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-2xl space-y-6 animate-scale-in">
         <div className="text-center space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-xs font-mono text-[#68dba9] bg-[#00311f] px-2.5 py-1 rounded-full border border-[#25a475]">
+          <div className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/30">
             <span className="material-symbols-outlined text-[14px]">lock</span>
             <span>{t('driver.ridePin.badge')}</span>
           </div>
-          <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] pt-1">
+          <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk'] pt-1">
             {t('driver.ridePin.title')}
           </h3>
-          <p className="text-xs text-[#87948b]">
+          <p className="text-xs text-on-surface-variant">
             {customerName
               ? t('driver.ridePin.subtitleWithName', { name: customerName })
               : t('driver.ridePin.subtitleGeneric')}
           </p>
-          <div className="text-[11px] font-mono text-[#68dba9] pt-1">
+          <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 pt-1">
             {t('driver.ridePin.bookingIdLabel', { id: bookingId.slice(0, 8).toUpperCase() })}
           </div>
         </div>
 
         {errorMsg && (
-          <div className="bg-[#93000a]/20 border border-[#93000a] text-[#ffb4ab] px-3.5 py-2.5 rounded-xl text-xs text-center font-mono">
+          <div className="bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 px-3.5 py-2.5 rounded-xl text-xs text-center font-mono">
             {errorMsg}
           </div>
         )}
@@ -143,7 +143,7 @@ export function RidePinModal({
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 disabled={loading}
-                className="w-9 h-11 sm:w-11 sm:h-12 text-center text-xl font-bold font-mono bg-[#181c24] border border-[#262a33] text-[#dfe2ee] rounded-xl focus:outline-none focus:border-[#68dba9] focus:ring-1 focus:ring-[#68dba9] disabled:opacity-50 transition-all"
+                className="w-9 h-11 sm:w-11 sm:h-12 text-center text-xl font-bold font-mono bg-surface-container border border-border text-on-surface rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 transition-all"
               />
             ))}
           </div>
@@ -153,14 +153,14 @@ export function RidePinModal({
               type="button"
               disabled={loading}
               onClick={onClose}
-              className="w-1/2 py-2.5 rounded-xl bg-[#181c24] border border-[#262a33] text-xs font-semibold text-[#dfe2ee] hover:bg-[#262a33] transition-colors disabled:opacity-50"
+              className="w-1/2 py-2.5 rounded-xl bg-surface-container border border-border text-xs font-semibold text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-50"
             >
               {t('common.actions.cancel')}
             </button>
             <button
               type="submit"
               disabled={!isComplete || loading}
-              className="w-1/2 py-2.5 rounded-xl bg-[#25a475] text-[#042116] text-xs font-bold hover:bg-[#68dba9] transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
+              className="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 text-xs font-bold transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
             >
               {loading ? t('driver.ridePin.verifying') : t('driver.ridePin.verifyBtn')}
             </button>

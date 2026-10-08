@@ -195,18 +195,18 @@ export default function DriverProfileEditPage() {
   return (
     <DriverLayout>
       <div className="w-full max-w-[800px] mx-auto">
-        <header className="flex flex-wrap justify-between items-center gap-4 mb-8 pb-4 border-b border-[#262a33]">
+        <header className="flex flex-wrap justify-between items-center gap-4 mb-8 pb-4 border-b border-border">
           <div>
-            <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk']">
               Driver Professional Profile
             </h1>
-            <p className="mt-1 text-sm text-[#bccac0]">
+            <p className="mt-1 text-sm text-on-surface-variant">
               Provide your driving experience and primary operational service area.
             </p>
           </div>
           <Link
             href="/driver"
-            className="px-4 py-2 rounded-md border border-[#262a33] bg-[#0a0e16] text-[#dfe2ee] text-sm font-medium transition-colors hover:bg-[#181c24] active:bg-[#262a33] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+            className="px-4 py-2 rounded-md border border-border bg-surface-container text-on-surface text-sm font-medium transition-colors hover:bg-surface-container-high active:bg-surface-container-highest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           >
             ← Driver Portal
           </Link>
@@ -220,7 +220,7 @@ export default function DriverProfileEditPage() {
           )}
 
           {loading ? (
-            <p className="text-[#bccac0]">Loading profile data...</p>
+            <p className="text-on-surface-variant">Loading profile data...</p>
           ) : (
             <form onSubmit={handleSubmit} className="grid gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -291,13 +291,13 @@ export default function DriverProfileEditPage() {
                 </div>
 
                 {resolvingAddress && (
-                  <p className="mt-2 text-[13px] text-[#bccac0]">
+                  <p className="mt-2 text-[13px] text-on-surface-variant">
                     Resolving address from your location…
                   </p>
                 )}
 
                 {locationError && (
-                  <p className="mt-2 text-[13px] text-[#fda4af]">{locationError}</p>
+                  <p className="mt-2 text-[13px] text-rose-500 dark:text-rose-400">{locationError}</p>
                 )}
 
                 {capturedCoords && (
@@ -322,7 +322,7 @@ export default function DriverProfileEditPage() {
               </div>
 
               {/* Spoken & Understood Languages Selector */}
-              <div className="pt-4 border-t border-[#262a33]">
+              <div className="pt-4 border-t border-border">
                 <SpokenLanguageSelector
                   selectedLanguages={form.languagesSpoken}
                   onChange={(langs) => setForm({ ...form, languagesSpoken: langs })}
