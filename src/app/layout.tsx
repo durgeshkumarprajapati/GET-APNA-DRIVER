@@ -21,8 +21,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const initialLocale: SupportedLocale = isValidLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
 
   const rawTheme = cookieStore.get(THEME_COOKIE_NAME)?.value as ThemeMode | undefined;
-  const initialTheme: ThemeMode = rawTheme && ['LIGHT', 'DARK', 'SYSTEM'].includes(rawTheme) ? rawTheme : 'DARK';
-  const htmlThemeClass = initialTheme === 'LIGHT' ? 'light' : 'dark';
+  const initialTheme: ThemeMode = rawTheme && ['LIGHT', 'DARK', 'SYSTEM'].includes(rawTheme) ? rawTheme : 'LIGHT';
+  const htmlThemeClass = initialTheme === 'DARK' ? 'dark' : 'light';
 
   return (
     <html lang={initialLocale} className={htmlThemeClass} suppressHydrationWarning>
@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('gad_theme_preference');if(t==='LIGHT'){document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}else if(t==='DARK'){document.documentElement.classList.add('dark');document.documentElement.classList.remove('light');}else if(t==='SYSTEM'){if(window.matchMedia('(prefers-color-scheme: light)').matches){document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}}}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('gad_theme_preference');if(t==='DARK'){document.documentElement.classList.add('dark');document.documentElement.classList.remove('light');}else if(t==='LIGHT'){document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}else if(t==='SYSTEM'){if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');document.documentElement.classList.remove('light');}else{document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}}else{document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}}catch(e){}})()`,
           }}
         />
       </head>

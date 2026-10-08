@@ -98,17 +98,17 @@ export default function CustomerDashboardPage() {
         ) : (
           <>
             {/* Header & Profile Overview */}
-            <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
+            <section className="bg-surface-container border border-border rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
               <div>
-                <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk']">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider font-['Space_Grotesk']">
                   {t('customer.dashboard.welcomeEyebrow')}
                 </span>
-                <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+                <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
                   {profile?.displayName || profile?.firstName
                     ? [profile.firstName, profile.lastName].filter(Boolean).join(' ')
                     : 'Customer'}
                 </h1>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-[#87948b]">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-on-surface-variant">
                   {profile?.email && <span>{profile.email}</span>}
                   {profile?.phoneNumber && <span>{profile.phoneNumber}</span>}
                   {profile && (
@@ -124,14 +124,14 @@ export default function CustomerDashboardPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/bookings/new"
-                  className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#86e2ba] text-[#003825] text-xs font-bold font-['Space_Grotesk'] transition-all flex items-center gap-2 shadow-lg shadow-[#68dba9]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="min-h-[48px] px-5 py-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold font-['Space_Grotesk'] transition-all flex items-center gap-2 shadow-lg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <span className="material-symbols-outlined text-base">directions_car</span>
                   <span>{t('customer.dashboard.bookDriverBtn')}</span>
                 </Link>
                 <Link
                   href="/profile"
-                  className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-container-high border border-border text-on-surface text-xs font-bold transition-colors shrink-0 flex items-center justify-center hover:bg-surface-container-lowest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   {t('customer.dashboard.editProfile')}
                 </Link>
@@ -143,16 +143,16 @@ export default function CustomerDashboardPage() {
 
             {/* Getting Started — shown only to a brand-new customer with no booking history yet */}
             {!activeService && recentServices.length === 0 && (
-              <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4 animate-fade-in-up">
+              <section className="bg-surface-container border border-border rounded-2xl p-6 shadow-xl space-y-4 animate-fade-in-up">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#25a475]/20 border border-[#25a475] flex items-center justify-center text-[#68dba9] shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
                     <span className="material-symbols-outlined text-xl">waving_hand</span>
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                       Welcome! Let&apos;s get your first ride booked.
                     </h2>
-                    <p className="text-xs text-[#87948b] mt-0.5">
+                    <p className="text-xs text-on-surface-variant mt-0.5">
                       Three quick steps — most customers finish their first booking in under two
                       minutes.
                     </p>
@@ -160,29 +160,29 @@ export default function CustomerDashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-start gap-2.5">
-                    <span className="material-symbols-outlined text-base text-[#68dba9] shrink-0">
+                  <div className="p-3 rounded-lg bg-surface-container-lowest border border-border flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-base text-primary shrink-0">
                       pin_drop
                     </span>
-                    <span className="text-[#bccac0]">Choose a pickup and drop-off location</span>
+                    <span className="text-on-surface-variant">Choose a pickup and drop-off location</span>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-start gap-2.5">
-                    <span className="material-symbols-outlined text-base text-[#68dba9] shrink-0">
+                  <div className="p-3 rounded-lg bg-surface-container-lowest border border-border flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-base text-primary shrink-0">
                       directions_car
                     </span>
-                    <span className="text-[#bccac0]">Pick a vehicle and confirm your fare</span>
+                    <span className="text-on-surface-variant">Pick a vehicle and confirm your fare</span>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-start gap-2.5">
-                    <span className="material-symbols-outlined text-base text-[#68dba9] shrink-0">
+                  <div className="p-3 rounded-lg bg-surface-container-lowest border border-border flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-base text-primary shrink-0">
                       task_alt
                     </span>
-                    <span className="text-[#bccac0]">Confirm and track your driver live</span>
+                    <span className="text-on-surface-variant">Confirm and track your driver live</span>
                   </div>
                 </div>
 
                 <Link
                   href="/bookings/new"
-                  className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-[#25a475] text-[#042116] font-bold text-xs hover:bg-[#68dba9] transition-colors gap-2"
+                  className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-xl bg-primary text-on-primary font-bold text-xs hover:opacity-90 transition-colors gap-2"
                 >
                   <span>Book Your First Ride</span>
                   <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -195,14 +195,14 @@ export default function CustomerDashboardPage() {
 
             {/* Active Driver Service Banner */}
             {activeService && (
-              <section className="bg-gradient-to-r from-[#1b2520] to-[#141d1a] border-2 border-[#68dba9]/60 rounded-2xl p-6 shadow-2xl space-y-4 animate-pulse-subtle">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
+              <section className="bg-surface-container border-2 border-primary rounded-2xl p-6 shadow-2xl space-y-4 animate-pulse-subtle">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#68dba9] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-[#68dba9]"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                     </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary font-['Space_Grotesk']">
                       Active Driver Service
                     </span>
                   </div>
@@ -215,27 +215,27 @@ export default function CustomerDashboardPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <div className="text-xs text-[#87948b]">
-                      <span className="text-[10px] uppercase font-bold text-[#87948b]">
+                    <div className="text-xs text-on-surface-variant">
+                      <span className="text-[10px] uppercase font-bold text-on-surface-variant">
                         Pickup:
                       </span>{' '}
-                      <span className="text-[#dfe2ee] font-semibold">
+                      <span className="text-on-surface font-semibold">
                         {activeService.pickupLocation.label || activeService.pickupLocation.address}
                       </span>
                     </div>
                     {activeService.dropoffLocation && (
-                      <div className="text-xs text-[#87948b]">
-                        <span className="text-[10px] uppercase font-bold text-[#87948b]">
+                      <div className="text-xs text-on-surface-variant">
+                        <span className="text-[10px] uppercase font-bold text-on-surface-variant">
                           Destination:
                         </span>{' '}
-                        <span className="text-[#dfe2ee] font-semibold">
+                        <span className="text-on-surface font-semibold">
                           {activeService.dropoffLocation.label ||
                             activeService.dropoffLocation.address}
                         </span>
                       </div>
                     )}
                     {activeService.serviceRecipient?.isForSomeoneElse && (
-                      <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#262a33] text-xs font-semibold text-[#68dba9] border border-[#343a46]">
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-container-lowest text-xs font-semibold text-primary border border-border">
                         <span className="material-symbols-outlined text-xs">group</span>
                         <span>
                           Service For: {activeService.serviceRecipient.fullName}{' '}
@@ -248,16 +248,16 @@ export default function CustomerDashboardPage() {
                   </div>
 
                   {activeService.driver && (
-                    <div className="p-3 rounded-xl bg-[#141820] border border-[#262a33] flex items-center justify-between gap-3">
+                    <div className="p-3 rounded-xl bg-surface-container-lowest border border-border flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#262a33] text-[#68dba9] flex items-center justify-center font-bold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm">
                           {activeService.driver.displayName?.charAt(0) || 'D'}
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-[#dfe2ee]">
+                          <h4 className="text-xs font-bold text-on-surface">
                             {activeService.driver.displayName}
                           </h4>
-                          <div className="flex items-center gap-1 text-[11px] text-[#f5c04a]">
+                          <div className="flex items-center gap-1 text-[11px] text-amber-500">
                             <span className="material-symbols-outlined text-xs">star</span>
                             <span>{activeService.driver.ratingAverage.toFixed(1)}</span>
                           </div>
@@ -265,7 +265,7 @@ export default function CustomerDashboardPage() {
                       </div>
                       <Link
                         href={`/bookings/${activeService.id}`}
-                        className="px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-xs font-semibold text-[#68dba9] transition-colors"
+                        className="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-xs font-semibold text-primary transition-colors border border-border"
                       >
                         Track Ride →
                       </Link>
@@ -277,14 +277,14 @@ export default function CustomerDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setShowActiveChat(!showActiveChat)}
-                    className="px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#353942] text-[#68dba9] border border-[#68dba9]/40 text-xs font-bold transition-all flex items-center gap-2"
+                    className="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary border border-primary/40 text-xs font-bold transition-all flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">forum</span>
                     <span>{showActiveChat ? 'Hide Communication' : 'Message Chauffeur'}</span>
                   </button>
                   <Link
                     href={`/bookings/${activeService.id}`}
-                    className="px-4 py-2 rounded-xl bg-[#68dba9] hover:bg-[#86e2ba] text-[#003825] text-xs font-bold transition-all flex items-center gap-2"
+                    className="px-4 py-2 rounded-xl bg-primary hover:opacity-90 text-on-primary text-xs font-bold transition-all flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">map</span>
                     <span>Track Live Service</span>
@@ -292,7 +292,7 @@ export default function CustomerDashboardPage() {
                 </div>
 
                 {showActiveChat && (
-                  <div className="pt-3 border-t border-[#262a33]">
+                  <div className="pt-3 border-t border-border">
                     <BookingMessagePanel
                       viewerRole="CUSTOMER"
                       apiBasePath={`/api/customer/bookings/${activeService.id}/messages`}
@@ -305,27 +305,27 @@ export default function CustomerDashboardPage() {
 
             {/* Upcoming Service Banner */}
             {upcomingService && !activeService && (
-              <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <section className="bg-surface-container border border-border rounded-2xl p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#25a475]/10 border border-[#25a475]/30 flex items-center justify-center text-[#68dba9] shrink-0 mt-0.5">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0 mt-0.5">
                     <span className="material-symbols-outlined text-xl">event</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary font-['Space_Grotesk']">
                       Upcoming Service
                     </span>
-                    <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-0.5">
+                    <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] mt-0.5">
                       {upcomingService.requestedStartTime
                         ? formatDate(upcomingService.requestedStartTime)
                         : 'Scheduled Trip'}
                     </h3>
-                    <p className="text-xs text-[#87948b] mt-0.5">
+                    <p className="text-xs text-on-surface-variant mt-0.5">
                       Pickup:{' '}
                       {upcomingService.pickupLocation.label ||
                         upcomingService.pickupLocation.address}
                     </p>
                     {upcomingService.serviceRecipient?.isForSomeoneElse && (
-                      <p className="text-[11px] text-[#68dba9] mt-1 font-semibold">
+                      <p className="text-[11px] text-primary mt-1 font-semibold">
                         Service For: {upcomingService.serviceRecipient.fullName}
                       </p>
                     )}
@@ -333,7 +333,7 @@ export default function CustomerDashboardPage() {
                 </div>
                 <Link
                   href={`/bookings/${upcomingService.id}`}
-                  className="px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#343a46] text-[#dfe2ee] text-xs font-bold transition-colors shrink-0 flex items-center justify-center"
+                  className="px-4 py-2 rounded-xl bg-surface-container-high border border-border hover:bg-surface-container-lowest text-on-surface text-xs font-bold transition-colors shrink-0 flex items-center justify-center"
                 >
                   View Details →
                 </Link>
@@ -344,16 +344,16 @@ export default function CustomerDashboardPage() {
             {billingSummary &&
               billingSummary.pendingPaymentsCount > 0 &&
               billingSummary.latestPendingPayment && (
-                <section className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center justify-between gap-4">
+                <section className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                       <span className="material-symbols-outlined text-lg">payments</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-['Space_Grotesk']">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 font-['Space_Grotesk']">
                         Pending Payment
                       </span>
-                      <p className="text-xs font-bold text-amber-200">
+                      <p className="text-xs font-bold text-on-surface">
                         Payment of {formatCurrency(billingSummary.latestPendingPayment.amount)} is
                         due for booking #
                         {billingSummary.latestPendingPayment.bookingId.substring(0, 8)}
@@ -372,29 +372,29 @@ export default function CustomerDashboardPage() {
             {/* Deterministic Recommendations Carousel / Section */}
             {recommendations.length > 0 && (
               <section className="flex flex-col gap-3 animate-fade-in-up">
-                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider text-[#68dba9]">
+                <h2 className="text-sm font-bold text-primary font-['Space_Grotesk'] uppercase tracking-wider">
                   Smart Suggestions
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {recommendations.map((rec) => (
                     <div
                       key={rec.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-all flex items-start justify-between gap-3 group"
+                      className="p-4 rounded-xl bg-surface-container border border-border hover:border-primary/40 transition-all flex items-start justify-between gap-3 group"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#262a33] text-[#68dba9] flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-[#68dba9] group-hover:text-[#003825] transition-colors">
+                        <div className="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-primary group-hover:text-on-primary transition-colors">
                           <span className="material-symbols-outlined text-base">{rec.icon}</span>
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-[#dfe2ee] group-hover:text-[#68dba9] transition-colors">
+                          <h4 className="text-xs font-bold text-on-surface group-hover:text-primary transition-colors">
                             {rec.title}
                           </h4>
-                          <p className="text-[11px] text-[#87948b] mt-0.5">{rec.description}</p>
+                          <p className="text-[11px] text-on-surface-variant mt-0.5">{rec.description}</p>
                         </div>
                       </div>
                       <Link
                         href={rec.actionUrl}
-                        className="px-2.5 py-1 rounded-md bg-[#262a33] hover:bg-[#343a46] text-[11px] font-bold text-[#68dba9] whitespace-nowrap transition-colors shrink-0"
+                        className="px-2.5 py-1 rounded-md bg-surface-container-high hover:bg-surface-container-lowest text-[11px] font-bold text-primary border border-border whitespace-nowrap transition-colors shrink-0"
                       >
                         {rec.actionLabel}
                       </Link>
@@ -405,28 +405,28 @@ export default function CustomerDashboardPage() {
             )}
 
             {/* Saved People Quick Access */}
-            <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-5 shadow-xl flex flex-col gap-4 animate-fade-in-up">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
+            <section className="bg-surface-container border border-border rounded-2xl p-5 shadow-xl flex flex-col gap-4 animate-fade-in-up">
+              <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-base text-[#68dba9]">group</span>
-                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="material-symbols-outlined text-base text-primary">group</span>
+                  <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                     Saved People (Book for Family & Friends)
                   </h2>
                 </div>
                 <Link
                   href="/profile?tab=people"
-                  className="text-xs font-mono text-[#68dba9] hover:underline"
+                  className="text-xs font-mono text-primary hover:underline"
                 >
                   Manage People →
                 </Link>
               </div>
 
               {savedPeople.length === 0 ? (
-                <div className="p-4 rounded-xl bg-[#141820] border border-dashed border-[#262a33] text-center text-xs text-[#87948b] flex flex-col items-center gap-2">
+                <div className="p-4 rounded-xl bg-surface-container-lowest border border-dashed border-border text-center text-xs text-on-surface-variant flex flex-col items-center gap-2">
                   <p>Save family members or guests for 1-click chauffeur bookings.</p>
                   <Link
                     href="/profile?tab=people"
-                    className="px-3 py-1.5 rounded-lg bg-[#262a33] text-[#68dba9] font-bold text-xs"
+                    className="px-3 py-1.5 rounded-lg bg-surface-container-high text-primary font-bold text-xs border border-border"
                   >
                     + Add Saved Person
                   </Link>
@@ -436,17 +436,17 @@ export default function CustomerDashboardPage() {
                   {savedPeople.map((person) => (
                     <div
                       key={person.id}
-                      className="p-3 bg-[#141820] border border-[#262a33] hover:border-[#68dba9]/40 rounded-xl flex flex-col justify-between gap-3 transition-colors"
+                      className="p-3 bg-surface-container-lowest border border-border hover:border-primary/40 rounded-xl flex flex-col justify-between gap-3 transition-colors"
                     >
                       <div>
-                        <h4 className="text-xs font-bold text-[#dfe2ee]">{person.fullName}</h4>
-                        <span className="text-[10px] text-[#87948b] uppercase font-mono">
+                        <h4 className="text-xs font-bold text-on-surface">{person.fullName}</h4>
+                        <span className="text-[10px] text-on-surface-variant uppercase font-mono">
                           {person.relationship || 'Recipient'}
                         </span>
                       </div>
                       <Link
                         href={`/bookings/new?savedPersonId=${person.id}`}
-                        className="w-full py-1.5 px-2 rounded-lg bg-[#262a33] hover:bg-[#343a46] text-[11px] font-bold text-[#68dba9] text-center transition-colors border border-[#68dba9]/20"
+                        className="w-full py-1.5 px-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-[11px] font-bold text-primary text-center transition-colors border border-border"
                       >
                         Book for {person.fullName.split(' ')[0]}
                       </Link>
@@ -460,12 +460,12 @@ export default function CustomerDashboardPage() {
             {savedPlaces.length > 0 && (
               <section className="flex flex-col gap-3 animate-fade-in-up">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                     Saved Places
                   </h2>
                   <Link
                     href="/profile?tab=locations"
-                    className="text-xs font-mono text-[#68dba9] hover:underline"
+                    className="text-xs font-mono text-primary hover:underline"
                   >
                     Manage Places
                   </Link>
@@ -475,13 +475,13 @@ export default function CustomerDashboardPage() {
                     <Link
                       key={loc.id}
                       href={`/bookings/new?savedLocationId=${loc.id}`}
-                      className="card-interactive px-3.5 py-2 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center gap-2 text-xs font-semibold text-[#dfe2ee]"
+                      className="card-interactive px-3.5 py-2 rounded-xl bg-surface-container border border-border flex items-center gap-2 text-xs font-semibold text-on-surface"
                     >
-                      <span className="material-symbols-outlined text-base text-[#68dba9]">
+                      <span className="material-symbols-outlined text-base text-primary">
                         {savedPlaceIcon(loc.label)}
                       </span>
                       <span>{loc.label}</span>
-                      <span className="text-[10px] text-[#87948b]">({loc.city})</span>
+                      <span className="text-[10px] text-on-surface-variant">({loc.city})</span>
                     </Link>
                   ))}
                 </div>
@@ -491,31 +491,31 @@ export default function CustomerDashboardPage() {
             {/* Book Again Shortcuts */}
             {bookAgainShortcuts.length > 0 && (
               <section className="flex flex-col gap-3 animate-fade-in-up">
-                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                   Book Again
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {bookAgainShortcuts.map((trip) => (
                     <div
                       key={trip.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between gap-3"
+                      className="p-4 rounded-xl bg-surface-container border border-border flex flex-col justify-between gap-3"
                     >
                       <div>
-                        <span className="text-[10px] font-bold uppercase text-[#68dba9] font-mono">
+                        <span className="text-[10px] font-bold uppercase text-primary font-mono">
                           {trip.bookingType}
                         </span>
-                        <p className="text-xs font-semibold text-[#dfe2ee] truncate mt-1">
+                        <p className="text-xs font-semibold text-on-surface truncate mt-1">
                           {trip.pickupLocation.label || trip.pickupLocation.address}
                         </p>
                         {trip.serviceRecipientName && (
-                          <p className="text-[10px] text-[#87948b] mt-0.5">
+                          <p className="text-[10px] text-on-surface-variant mt-0.5">
                             For: {trip.serviceRecipientName}
                           </p>
                         )}
                       </div>
                       <Link
                         href={`/bookings/new?bookAgain=${trip.id}`}
-                        className="py-1.5 px-3 rounded-lg bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold text-center transition-colors font-['Space_Grotesk']"
+                        className="py-1.5 px-3 rounded-lg bg-primary text-on-primary hover:opacity-90 text-xs font-bold text-center transition-colors font-['Space_Grotesk']"
                       >
                         Book Again
                       </Link>
@@ -528,10 +528,10 @@ export default function CustomerDashboardPage() {
             {/* Recent Services History */}
             <section className="flex flex-col gap-3 animate-fade-in-up">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                   Recent Driver Services
                 </h2>
-                <Link href="/bookings" className="text-xs font-mono text-[#68dba9] hover:underline">
+                <Link href="/bookings" className="text-xs font-mono text-primary hover:underline">
                   View Full History →
                 </Link>
               </div>
@@ -543,13 +543,13 @@ export default function CustomerDashboardPage() {
                     <Link
                       key={service.id}
                       href={`/bookings/${service.id}`}
-                      className="card-interactive p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4"
+                      className="card-interactive p-4 rounded-xl bg-surface-container border border-border flex items-center justify-between gap-4"
                     >
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#dfe2ee] truncate">
+                        <p className="text-xs font-bold text-on-surface truncate">
                           {service.pickupLocation.label || service.pickupLocation.address}
                         </p>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#87948b]">
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-on-surface-variant">
                           <span>{formatDate(service.createdAt)}</span>
                           {service.serviceRecipientName && (
                             <span>• For: {service.serviceRecipientName}</span>
@@ -558,7 +558,7 @@ export default function CustomerDashboardPage() {
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         {service.fareAmount > 0 && (
-                          <span className="text-xs font-bold font-mono text-[#68dba9]">
+                          <span className="text-xs font-bold font-mono text-primary">
                             {formatCurrency(service.fareAmount)}
                           </span>
                         )}
@@ -578,12 +578,12 @@ export default function CustomerDashboardPage() {
             {favoriteDrivers.length > 0 && (
               <section className="flex flex-col gap-3 animate-fade-in-up">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                     Favorite Drivers
                   </h2>
                   <Link
                     href="/customer/favorites"
-                    className="text-xs font-mono text-[#68dba9] hover:underline"
+                    className="text-xs font-mono text-primary hover:underline"
                   >
                     View All Favorites
                   </Link>
@@ -592,22 +592,22 @@ export default function CustomerDashboardPage() {
                   {favoriteDrivers.map((fav) => (
                     <div
                       key={fav.driverProfileId}
-                      className="p-3.5 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-3"
+                      className="p-3.5 rounded-xl bg-surface-container border border-border flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-base text-[#f5c04a]">
+                        <span className="material-symbols-outlined text-base text-amber-500">
                           star
                         </span>
                         <div>
-                          <h4 className="text-xs font-bold text-[#dfe2ee]">{fav.displayName}</h4>
-                          <span className="text-[10px] text-[#87948b] font-mono">
+                          <h4 className="text-xs font-bold text-on-surface">{fav.displayName}</h4>
+                          <span className="text-[10px] text-on-surface-variant font-mono">
                             ⭐ {fav.ratingAverage.toFixed(1)}
                           </span>
                         </div>
                       </div>
                       <Link
                         href={`/bookings/new?preferredDriverId=${fav.driverProfileId}`}
-                        className="px-2.5 py-1 rounded bg-[#262a33] hover:bg-[#343a46] text-[11px] font-semibold text-[#68dba9] transition-colors"
+                        className="px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-container-lowest text-[11px] font-semibold text-primary transition-colors border border-border"
                       >
                         Hire
                       </Link>
@@ -621,39 +621,39 @@ export default function CustomerDashboardPage() {
             <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in-up">
               <Link
                 href="/customer/billing"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+                className="p-4 rounded-xl bg-surface-container border border-border hover:border-primary/40 transition-colors flex flex-col gap-1"
               >
-                <span className="material-symbols-outlined text-lg text-[#68dba9]">
+                <span className="material-symbols-outlined text-lg text-primary">
                   account_balance_wallet
                 </span>
-                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Billing Center</span>
-                <span className="text-[10px] text-[#87948b]">Financial summary & receipts</span>
+                <span className="text-xs font-bold text-on-surface mt-1">Billing Center</span>
+                <span className="text-[10px] text-on-surface-variant">Financial summary & receipts</span>
               </Link>
               <Link
                 href="/customer/invoices"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+                className="p-4 rounded-xl bg-surface-container border border-border hover:border-primary/40 transition-colors flex flex-col gap-1"
               >
-                <span className="material-symbols-outlined text-lg text-[#68dba9]">
+                <span className="material-symbols-outlined text-lg text-primary">
                   receipt_long
                 </span>
-                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Tax Invoices</span>
-                <span className="text-[10px] text-[#87948b]">Download tax invoice PDFs</span>
+                <span className="text-xs font-bold text-on-surface mt-1">Tax Invoices</span>
+                <span className="text-[10px] text-on-surface-variant">Download tax invoice PDFs</span>
               </Link>
               <Link
                 href="/profile?tab=people"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+                className="p-4 rounded-xl bg-surface-container border border-border hover:border-primary/40 transition-colors flex flex-col gap-1"
               >
-                <span className="material-symbols-outlined text-lg text-[#68dba9]">group</span>
-                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Saved People</span>
-                <span className="text-[10px] text-[#87948b]">Manage service recipients</span>
+                <span className="material-symbols-outlined text-lg text-primary">group</span>
+                <span className="text-xs font-bold text-on-surface mt-1">Saved People</span>
+                <span className="text-[10px] text-on-surface-variant">Manage service recipients</span>
               </Link>
               <Link
                 href="/profile?tab=preferences"
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] hover:border-[#68dba9]/40 transition-colors flex flex-col gap-1"
+                className="p-4 rounded-xl bg-surface-container border border-border hover:border-primary/40 transition-colors flex flex-col gap-1"
               >
-                <span className="material-symbols-outlined text-lg text-[#68dba9]">tune</span>
-                <span className="text-xs font-bold text-[#dfe2ee] mt-1">Booking Preferences</span>
-                <span className="text-[10px] text-[#87948b]">Default vehicle & service</span>
+                <span className="material-symbols-outlined text-lg text-primary">tune</span>
+                <span className="text-xs font-bold text-on-surface mt-1">Booking Preferences</span>
+                <span className="text-[10px] text-on-surface-variant">Default vehicle & service</span>
               </Link>
             </section>
           </>

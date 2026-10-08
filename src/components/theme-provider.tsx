@@ -20,9 +20,10 @@ interface ThemeProviderProps {
   initialTheme?: ThemeMode;
 }
 
-export function ThemeProvider({ children, initialTheme = 'DARK' }: ThemeProviderProps) {
+export function ThemeProvider({ children, initialTheme = 'LIGHT' }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<ThemeMode>(initialTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+
 
   // Load stored theme preference on mount
   useEffect(() => {
