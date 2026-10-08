@@ -102,25 +102,25 @@ export default function CustomerReferralPage() {
     switch (status) {
       case 'REWARDED':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#00311f] text-[#68dba9] border border-[#25a475]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/30">
             {t('customer.referral.statusRewarded')}
           </span>
         );
       case 'QUALIFIED':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#002b4d] text-[#70baff] border border-[#005bb5]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary border border-secondary/30">
             {t('customer.referral.statusQualified')}
           </span>
         );
       case 'PENDING':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#3d2e00] text-[#ffc847] border border-[#8a6800]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
             {t('customer.referral.statusPending')}
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#341115] text-[#ffb4ab] border border-[#93000a]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container border border-error/30">
             {t('customer.referral.statusRejected')}
           </span>
         );
@@ -131,15 +131,15 @@ export default function CustomerReferralPage() {
     <CustomerLayout>
       <div className="flex flex-col w-full gap-6 max-w-5xl mx-auto py-4">
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl bg-[#181c24] border border-[#262a33] gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl bg-surface-container border border-border gap-4 shadow-sm">
           <div>
-            <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk'] block">
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider font-['Space_Grotesk'] block">
               {t('customer.referral.eyebrow')}
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
               {t('customer.referral.title')}
             </h1>
-            <p className="text-xs text-[#bccac0] mt-1 max-w-xl">
+            <p className="text-xs text-on-surface-variant mt-1 max-w-xl">
               {t('customer.referral.subtitle')}
             </p>
           </div>
@@ -149,7 +149,7 @@ export default function CustomerReferralPage() {
               type="button"
               onClick={shareReferral}
               disabled={loading || !dashboard?.referralCode}
-              className="min-h-[48px] px-5 py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-5 py-3 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <span className="material-symbols-outlined text-lg">share</span>
               {shared ? t('customer.referral.shared') : t('customer.referral.shareBtn')}
@@ -159,19 +159,19 @@ export default function CustomerReferralPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('customer.referral.yourCode')}
             </span>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-lg font-bold font-mono text-[#68dba9]">
+              <span className="text-lg font-bold font-mono text-primary">
                 {loading ? 'LOADING...' : dashboard?.referralCode || 'REF-AVAILABLE'}
               </span>
               <button
                 type="button"
                 onClick={copyReferralCode}
                 title={t('customer.referral.copyCode')}
-                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <span className="material-symbols-outlined text-sm">
                   {copied ? 'check' : 'content_copy'}
@@ -180,29 +180,29 @@ export default function CustomerReferralPage() {
             </div>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('customer.referral.statTotalReferred')}
             </span>
-            <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1 block">
+            <span className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface mt-1 block">
               {loading ? '—' : (dashboard?.totalReferrals ?? 0)}
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('customer.referral.statPending')}
             </span>
-            <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffc847] mt-1 block">
+            <span className="text-2xl font-bold font-['Space_Grotesk'] text-amber-600 dark:text-amber-400 mt-1 block">
               {loading ? '—' : (dashboard?.pendingReferrals ?? 0)}
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33]">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('customer.referral.statEarnedCredits')}
             </span>
-            <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1 block">
+            <span className="text-2xl font-bold font-['Space_Grotesk'] text-primary mt-1 block">
               {loading ? formatCurrency(0) : formatCurrency(dashboard?.totalEarnedRewards ?? 0)}
             </span>
           </div>
@@ -211,35 +211,35 @@ export default function CustomerReferralPage() {
         {/* Active Campaigns Showcase */}
         {dashboard?.activeCampaigns && dashboard.activeCampaigns.length > 0 && (
           <div className="flex flex-col gap-3">
-            <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
               {t('customer.referral.activeCampaigns')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {dashboard.activeCampaigns.map((camp) => (
                 <div
                   key={camp.id}
-                  className="p-5 rounded-2xl bg-gradient-to-br from-[#181c24] to-[#121620] border border-[#262a33] flex flex-col justify-between gap-4"
+                  className="p-5 rounded-2xl bg-surface-container border border-border flex flex-col justify-between gap-4 shadow-sm"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold font-mono text-[#68dba9] bg-[#00311f] px-2.5 py-0.5 rounded-full border border-[#25a475]">
+                      <span className="text-xs font-bold font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/30">
                         {camp.code}
                       </span>
                       {camp.endsAt && (
-                        <span className="text-[10px] text-[#87948b]">
+                        <span className="text-[10px] text-on-surface-variant">
                           {t('customer.referral.endsAt')}: {formatDate(camp.endsAt)}
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-bold text-[#dfe2ee] mt-2 font-['Space_Grotesk']">
+                    <h3 className="text-base font-bold text-on-surface mt-2 font-['Space_Grotesk']">
                       {camp.name}
                     </h3>
-                    <p className="text-xs text-[#bccac0] mt-1">{camp.description}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">{camp.description}</p>
                   </div>
 
-                  <div className="pt-3 border-t border-[#262a33] flex items-center justify-between text-xs">
-                    <span className="text-[#87948b]">{t('customer.referral.referrerReward')}:</span>
-                    <span className="font-bold text-[#68dba9]">
+                  <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                    <span className="text-on-surface-variant">{t('customer.referral.referrerReward')}:</span>
+                    <span className="font-bold text-primary">
                       {formatCurrency(camp.referrerRewardValue)}
                     </span>
                   </div>
@@ -250,27 +250,27 @@ export default function CustomerReferralPage() {
         )}
 
         {/* Action Share Panel */}
-        <div className="p-8 rounded-2xl bg-[#181c24] border border-[#262a33] flex flex-col items-center justify-center text-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9]">
+        <div className="p-8 rounded-2xl bg-surface-container border border-border flex flex-col items-center justify-center text-center gap-6 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary flex items-center justify-center text-primary">
             <span className="material-symbols-outlined text-3xl">featured_seasonal_and_gifts</span>
           </div>
 
           <div className="max-w-md">
-            <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h2 className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
               {t('customer.referral.shareTitle')}
             </h2>
-            <p className="text-xs text-[#bccac0] mt-1">{t('customer.referral.shareSubtitle')}</p>
+            <p className="text-xs text-on-surface-variant mt-1">{t('customer.referral.shareSubtitle')}</p>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#0a0e16] border border-[#262a33] flex items-center gap-3">
-            <span className="font-mono text-lg font-bold text-[#68dba9] tracking-widest px-3">
+          <div className="p-3 rounded-xl bg-surface-container-high border border-border flex items-center gap-3">
+            <span className="font-mono text-lg font-bold text-primary tracking-widest px-3">
               {loading ? 'REF-...' : dashboard?.referralCode || 'REF-CODE'}
             </span>
             <button
               type="button"
               onClick={copyReferralCode}
               disabled={loading || !dashboard?.referralCode}
-              className="min-h-[48px] px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs font-['Space_Grotesk'] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {copied ? '✓' : t('customer.referral.copyCode')}
             </button>
@@ -279,22 +279,22 @@ export default function CustomerReferralPage() {
 
         {/* Recent Referrals History Table */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
             {t('customer.referral.historyTitle')}
           </h2>
 
           {loading ? (
-            <div className="p-6 text-center text-xs text-[#87948b] bg-[#181c24] rounded-2xl border border-[#262a33]">
+            <div className="p-6 text-center text-xs text-on-surface-variant bg-surface-container rounded-2xl border border-border">
               {t('common.loading')}
             </div>
           ) : !dashboard?.recentReferrals || dashboard.recentReferrals.length === 0 ? (
-            <div className="p-8 text-center text-xs text-[#87948b] bg-[#181c24] rounded-2xl border border-[#262a33]">
+            <div className="p-8 text-center text-xs text-on-surface-variant bg-surface-container rounded-2xl border border-border">
               {t('customer.referral.noReferralsYet')}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-[#262a33] bg-[#181c24]">
-              <table className="w-full text-left text-xs text-[#dfe2ee]">
-                <thead className="bg-[#0a0e16] text-[#87948b] uppercase tracking-wider text-[10px] font-bold border-b border-[#262a33]">
+            <div className="overflow-x-auto rounded-2xl border border-border bg-surface-container">
+              <table className="w-full text-left text-xs text-on-surface">
+                <thead className="bg-surface-container-high text-on-surface-variant uppercase tracking-wider text-[10px] font-bold border-b border-border">
                   <tr>
                     <th className="p-4">{t('customer.referral.colUser')}</th>
                     <th className="p-4">{t('customer.referral.colDate')}</th>
@@ -302,13 +302,13 @@ export default function CustomerReferralPage() {
                     <th className="p-4 text-right">{t('customer.referral.colReward')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#262a33]">
+                <tbody className="divide-y divide-border">
                   {dashboard.recentReferrals.map((ref) => (
-                    <tr key={ref.id} className="hover:bg-[#1f2430] transition-colors">
+                    <tr key={ref.id} className="hover:bg-surface-container-high/50 transition-colors">
                       <td className="p-4 font-bold">{ref.displayName}</td>
-                      <td className="p-4 text-[#87948b]">{formatDate(ref.createdAt)}</td>
+                      <td className="p-4 text-on-surface-variant">{formatDate(ref.createdAt)}</td>
                       <td className="p-4">{getStatusBadge(ref.status)}</td>
-                      <td className="p-4 text-right font-mono font-bold text-[#68dba9]">
+                      <td className="p-4 text-right font-mono font-bold text-primary">
                         {ref.rewardAmount ? formatCurrency(ref.rewardAmount) : '—'}
                       </td>
                     </tr>

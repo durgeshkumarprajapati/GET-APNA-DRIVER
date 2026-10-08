@@ -168,48 +168,48 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-fade-in-up font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto">
+      <div className="bg-surface-container border border-border rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-fade-in-up font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#262a33] pb-4">
+        <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#25a475]/20 border border-[#25a475] flex items-center justify-center text-[#68dba9]">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
               <span className="material-symbols-outlined text-xl">bolt</span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] leading-tight">
+              <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk'] leading-tight">
                 Review &amp; Confirm 1-Tap Booking
               </h3>
-              <p className="text-xs text-[#87948b]">
+              <p className="text-xs text-on-surface-variant">
                 {params.title || 'Instant Chauffeur Dispatch'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#87948b] hover:text-[#dfe2ee] p-1 rounded-lg hover:bg-[#262a33] transition-colors"
+            className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container-high transition-colors"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-[#93000a]/20 border border-[#93000a] text-[#ffb4ab] text-xs font-mono">
+          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-mono">
             {error}
           </div>
         )}
 
         {/* Service Locations Overview */}
-        <div className="bg-[#0f131c] p-4 rounded-xl border border-[#262a33] space-y-3 font-mono text-xs">
+        <div className="bg-surface-container-high p-4 rounded-xl border border-border space-y-3 font-mono text-xs">
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined text-[#68dba9] text-base shrink-0 mt-0.5">
+            <span className="material-symbols-outlined text-primary text-base shrink-0 mt-0.5">
               location_on
             </span>
             <div>
-              <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+              <span className="text-[10px] text-on-surface-variant uppercase tracking-wider block">
                 Pickup Address
               </span>
-              <span className="text-[#dfe2ee] font-bold">
+              <span className="text-on-surface font-bold">
                 {params.pickupLocation.label ? `${params.pickupLocation.label} — ` : ''}
                 {params.pickupLocation.address}
               </span>
@@ -217,15 +217,15 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
           </div>
 
           {params.dropoffLocation && (
-            <div className="flex items-start gap-3 pt-2 border-t border-[#262a33]">
-              <span className="material-symbols-outlined text-[#f5c04a] text-base shrink-0 mt-0.5">
+            <div className="flex items-start gap-3 pt-2 border-t border-border">
+              <span className="material-symbols-outlined text-amber-500 text-base shrink-0 mt-0.5">
                 flag
               </span>
               <div>
-                <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                <span className="text-[10px] text-on-surface-variant uppercase tracking-wider block">
                   Destination Address
                 </span>
-                <span className="text-[#dfe2ee] font-bold">
+                <span className="text-on-surface font-bold">
                   {params.dropoffLocation.label ? `${params.dropoffLocation.label} — ` : ''}
                   {params.dropoffLocation.address}
                 </span>
@@ -234,21 +234,21 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
           )}
 
           {/* Badges Bar */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#262a33]">
-            <span className="px-2.5 py-1 rounded-md bg-[#181c24] border border-[#262a33] text-[#68dba9] font-bold text-[11px]">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+            <span className="px-2.5 py-1 rounded-md bg-surface-container border border-border text-primary font-bold text-[11px]">
               {params.bookingType}
             </span>
-            <span className="px-2.5 py-1 rounded-md bg-[#181c24] border border-[#262a33] text-[#dfe2ee] font-bold text-[11px]">
+            <span className="px-2.5 py-1 rounded-md bg-surface-container border border-border text-on-surface font-bold text-[11px]">
               {params.vehicleCategory || 'CAR'}
             </span>
             {params.savedPersonName && (
-              <span className="px-2.5 py-1 rounded-md bg-[#25a475]/20 border border-[#25a475] text-[#68dba9] font-bold text-[11px] flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-md bg-primary/10 border border-primary/30 text-primary font-bold text-[11px] flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs">person</span>
                 For: {params.savedPersonName}
               </span>
             )}
             {params.preferredDriverName && (
-              <span className="px-2.5 py-1 rounded-md bg-[#3a2f00] border border-[#5c4a00] text-[#f5c04a] font-bold text-[11px] flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-[11px] flex items-center gap-1">
                 <span className="material-symbols-outlined text-xs">star</span>
                 Chauffeur: {params.preferredDriverName}
               </span>
@@ -258,51 +258,51 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
 
         {/* Upfront Payment Breakdown */}
         {loading ? (
-          <div className="p-6 text-center text-xs font-mono text-[#87948b] bg-[#0f131c] rounded-xl border border-[#262a33]">
+          <div className="p-6 text-center text-xs font-mono text-on-surface-variant bg-surface-container-high rounded-xl border border-border">
             Calculating upfront fare breakdown...
           </div>
         ) : summary ? (
-          <div className="bg-[#0f131c] p-4 rounded-xl border border-[#262a33] space-y-2.5 font-mono text-xs">
-            <span className="text-[10px] text-[#87948b] uppercase tracking-wider block font-bold">
+          <div className="bg-surface-container-high p-4 rounded-xl border border-border space-y-2.5 font-mono text-xs">
+            <span className="text-[10px] text-on-surface-variant uppercase tracking-wider block font-bold">
               Upfront Fare &amp; Payment Breakdown
             </span>
 
-            <div className="flex justify-between text-[#bccac0]">
+            <div className="flex justify-between text-on-surface-variant">
               <span>Base Service Fare</span>
               <span>{formatCurrency(summary.baseFare)}</span>
             </div>
 
             {summary.distanceFare > 0 && (
-              <div className="flex justify-between text-[#bccac0]">
+              <div className="flex justify-between text-on-surface-variant">
                 <span>Distance Fare (~{summary.estimatedDistanceKm} km)</span>
                 <span>{formatCurrency(summary.distanceFare)}</span>
               </div>
             )}
 
             {summary.durationFare > 0 && (
-              <div className="flex justify-between text-[#bccac0]">
+              <div className="flex justify-between text-on-surface-variant">
                 <span>Duration Fare (~{summary.estimatedDurationMinutes} mins)</span>
                 <span>{formatCurrency(summary.durationFare)}</span>
               </div>
             )}
 
-            <div className="flex justify-between text-[#87948b]">
+            <div className="flex justify-between text-on-surface-variant">
               <span>Platform Fee</span>
               <span>{formatCurrency(summary.platformFee)}</span>
             </div>
 
-            <div className="flex justify-between text-[#68dba9] font-bold text-sm pt-2 border-t border-[#262a33]">
+            <div className="flex justify-between text-primary font-bold text-sm pt-2 border-t border-border">
               <span>Total Upfront Amount</span>
               <span>{formatCurrency(summary.totalFare)}</span>
             </div>
 
             {/* Payment Method Selector */}
-            <div className="pt-3 border-t border-[#262a33] flex items-center justify-between">
-              <span className="text-[#87948b]">Payment Mode:</span>
+            <div className="pt-3 border-t border-border flex items-center justify-between">
+              <span className="text-on-surface-variant">Payment Mode:</span>
               <select
                 value={paymentMode}
                 onChange={(e) => setPaymentMode(e.target.value)}
-                className="bg-[#181c24] border border-[#262a33] text-[#dfe2ee] rounded-lg px-3 py-1 font-bold focus:outline-none focus:border-[#68dba9]"
+                className="bg-surface-container border border-border text-on-surface rounded-lg px-3 py-1 font-bold focus:outline-none focus:border-primary"
               >
                 <option value="CASH">Cash to Driver</option>
                 <option value="UPI">UPI / Instant Pay</option>
@@ -319,7 +319,7 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
             type="button"
             onClick={handleCustomize}
             disabled={submitting}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0f131c] hover:bg-[#262a33] border border-[#262a33] text-[#dfe2ee] text-xs font-bold font-mono transition-colors"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest border border-border text-on-surface text-xs font-bold font-mono transition-colors"
           >
             Customize Details →
           </button>
@@ -328,11 +328,11 @@ export function OneTapReviewModal({ params, isOpen, onClose }: OneTapReviewModal
             type="button"
             onClick={handleConfirmOneTap}
             disabled={submitting || loading}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#86e2ba] text-[#003825] font-bold font-['Space_Grotesk'] text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#68dba9]/20 transition-all disabled:opacity-50"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary hover:opacity-90 text-on-primary font-bold font-['Space_Grotesk'] text-xs flex items-center justify-center gap-2 shadow-lg transition-all disabled:opacity-50"
           >
             {submitting ? (
               <>
-                <span className="w-4 h-4 border-2 border-[#003825] border-t-transparent rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
                 Dispatching Driver...
               </>
             ) : (

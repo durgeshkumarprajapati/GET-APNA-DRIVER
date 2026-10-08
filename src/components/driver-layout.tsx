@@ -1,18 +1,16 @@
 'use client';
 
+import { UserAvatar } from './ui/user-avatar';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/context';
 import { NotificationCenter } from './notification-center';
-import { useAutoLocation } from './use-auto-location';
-import { useAutoWebPush } from './use-auto-web-push';
-import { useGeolocationCapture } from './use-geolocation-capture';
+import { captureDeviceLocation } from './use-geolocation-capture';
 import { MobileNavDrawer, MobileNavTrigger } from './ui/mobile-nav-drawer';
-import { LanguageSelector } from './ui/language-selector';
-import { UserAvatar } from './ui/user-avatar';
 
-type AvailabilityStatus = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'UNAVAILABLE';
+import { LanguageSelector } from './ui/language-selector';
+import { ThemeToggle } from './ui/theme-toggle';
 
 interface DriverLayoutProps {
   children: ReactNode;
@@ -30,25 +28,21 @@ interface NavGroup {
   items: NavItem[];
 }
 
+type AvailabilityStatus = 'AVAILABLE' | 'BUSY' | 'OFFLINE';
+
 export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
+
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus | null>(null);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [fetchedUserName, setFetchedUserName] = useState<string | null>(null);
-  // Derived directly from the prop during render rather than mirrored into
-  // state via an effect — avoids a synchronous setState-in-effect (which
-  // triggers a redundant cascading render) for the common case where
-  // userEmail is already known; the effect below only needs to run the
-  // async profile fetch for the fallback case.
+
   const userName = userEmail ?? fetchedUserName;
   const sidebarRef = useRef<HTMLElement | null>(null);
-  useAutoLocation('DRIVER');
-  useAutoWebPush();
-  const { capture: captureDeviceLocation } = useGeolocationCapture();
 
   useEffect(() => {
     if (userEmail) return;
@@ -71,7 +65,6 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
     };
   }, [userEmail]);
 
-  // Restore sidebar scroll position and scroll active item into view if out of bounds
   useEffect(() => {
     if (!sidebarRef.current) return;
 
@@ -106,35 +99,29 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
   const navGroups: NavGroup[] = [
     {
-      label: t('driver.nav.operationalDispatch'),
+      label: t('driver.nav.cockpitSection'),
       items: [
-        { href: '/driver', label: t('driver.nav.dashboard'), icon: 'radar' },
+        { href: '/driver', label: t('driver.nav.cockpit'), icon: 'dashboard' },
+        { href: '/driver/bookings', label: t('driver.nav.activeRides'), icon: 'directions_car' },
         {
           href: '/driver/assignment-offers',
           label: t('driver.nav.assignmentOffers'),
-          icon: 'notifications_active',
+          icon: 'contactless',
         },
-        { href: '/driver/bookings', label: t('driver.nav.bookings'), icon: 'explore' },
+
+        { href: '/driver/availability', label: t('driver.nav.availability'), icon: 'toggle_on' },
+        { href: '/driver/schedule', label: t('driver.nav.schedule'), icon: 'calendar_month' },
+        { href: '/driver/incoming-bookings', label: t('driver.nav.incomingRides'), icon: 'radar' },
       ],
     },
     {
-      label: t('driver.nav.financeLedger'),
+      label: t('driver.nav.financeGrowth'),
       items: [
-        {
-          href: '/driver/wallet-and-payouts',
-          label: t('driver.nav.walletAndPayouts'),
-          icon: 'account_balance_wallet',
-        },
-        {
-          href: '/driver/earnings',
-          label: t('driver.earnings.title'),
-          icon: 'trending_up',
-        },
-      ],
-    },
-    {
-      label: t('driver.nav.growthReputation'),
-      items: [
+        { href: '/driver/earnings', label: t('driver.nav.earnings'), icon: 'payments' },
+        { href: '/driver/wallet', label: t('driver.nav.wallet'), icon: 'account_balance_wallet' },
+        { href: '/driver/settlements', label: t('driver.nav.settlements'), icon: 'receipt' },
+        { href: '/driver/incentives', label: t('driver.nav.incentives'), icon: 'military_tech' },
+        { href: '/driver/achievements', label: t('driver.nav.achievements'), icon: 'stars' },
         {
           href: '/driver/offers',
           label: t('driver.nav.offers', { defaultValue: 'Offers & Perks' }),
@@ -245,7 +232,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
     pathname === href || (href !== '/driver' && pathname?.startsWith(`${href}/`));
 
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased selection:bg-[#68dba9] selection:text-[#003825]">
+    <div className="min-h-screen bg-background text-on-surface font-sans antialiased selection:bg-primary selection:text-on-primary">
       <MobileNavDrawer
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
@@ -257,19 +244,19 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
       />
 
       {/* FIXED SIDEBAR — desktop only, md and up */}
-      <aside className="hidden md:flex fixed left-0 top-0 h-full w-52 bg-[#0a0e16] z-50 flex-col justify-between py-3 border-r border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.45)]">
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-52 bg-surface-container-lowest z-50 flex-col justify-between py-3 border-r border-border shadow-sm">
         <div className="flex flex-col h-full">
           {/* Logo & Brand Header */}
-          <div className="px-3 flex items-center justify-between pb-3 border-b border-[#262a33]">
+          <div className="px-3 flex items-center justify-between pb-3 border-b border-border">
             <Link href="/driver" className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded bg-[#25a475] flex items-center justify-center text-[#00311f] font-bold">
+              <div className="w-7 h-7 rounded bg-primary-container flex items-center justify-center text-on-primary-container font-bold">
                 <span className="material-symbols-outlined text-lg">directions_car</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm tracking-tight text-[#dfe2ee] leading-none font-['Space_Grotesk']">
+                <span className="font-bold text-sm tracking-tight text-on-surface leading-none font-['Space_Grotesk']">
                   APNA DRIVER
                 </span>
-                <span className="text-[8.5px] font-bold tracking-widest text-[#68dba9] uppercase font-['Space_Grotesk']">
+                <span className="text-[8.5px] font-bold tracking-widest text-primary uppercase font-['Space_Grotesk']">
                   Cockpit Terminal
                 </span>
               </div>
@@ -284,7 +271,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
           >
             {navGroups.map((group) => (
               <div key={group.label} className="space-y-0.5">
-                <span className="px-2.5 text-[10px] font-bold uppercase text-[#87948b] tracking-wider font-['Space_Grotesk']">
+                <span className="px-2.5 text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
                   {group.label}
                 </span>
                 <div className="space-y-0.5 pt-0.5">
@@ -296,15 +283,15 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
                         isActive(item.href)
                           ? item.href === '/driver/sos-support'
-                            ? 'bg-[#93000a] text-[#ffdad6] font-bold'
-                            : 'bg-[#25a475] text-[#00311f] font-bold'
-                          : 'text-[#bccac0] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+                            ? 'bg-error-container text-on-error-container font-bold'
+                            : 'bg-primary text-on-primary font-bold shadow-sm'
+                          : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                       }`}
                     >
                       <span
                         className={`material-symbols-outlined text-base ${
                           item.href === '/driver/sos-support' && !isActive(item.href)
-                            ? 'text-[#ffb4ab]'
+                            ? 'text-error'
                             : ''
                         }`}
                       >
@@ -322,20 +309,20 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
       {/* HEADER BAR */}
       <div className="md:pl-52">
-        <header className="fixed top-0 left-0 md:left-52 right-0 h-16 bg-[#0a0e16]/90 backdrop-blur-xl z-40 shadow-[0_1px_8px_rgba(0,0,0,0.45)] border-b border-[#262a33]">
+        <header className="fixed top-0 left-0 md:left-52 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl z-40 border-b border-border shadow-sm">
           <div className="w-full px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <MobileNavTrigger onClick={() => setMobileNavOpen(true)} />
               {/* Duty Shift Pill Switcher */}
-              <div className="flex items-center bg-[#1c2028] px-2 sm:px-3 py-1.5 rounded-full gap-1.5 sm:gap-2 border border-[#262a33] min-w-0">
+              <div className="flex items-center bg-surface-container px-2 sm:px-3 py-1.5 rounded-full gap-1.5 sm:gap-2 border border-border min-w-0">
                 <div className="relative flex items-center justify-center shrink-0">
                   <span
                     className={`w-2.5 h-2.5 rounded-full ${
-                      isOnDuty ? 'bg-[#68dba9]' : 'bg-[#87948b]'
+                      isOnDuty ? 'bg-primary' : 'bg-on-surface-variant'
                     }`}
                   />
                 </div>
-                <span className="text-xs font-mono text-[#dfe2ee] font-bold truncate">
+                <span className="text-xs font-mono text-on-surface font-bold truncate">
                   {isOnDuty ? 'DUTY ONLINE' : 'OFF DUTY'}
                 </span>
                 <button
@@ -344,8 +331,8 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
                   disabled={updatingAvailability || availabilityStatus === null}
                   className={`ml-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full transition-colors disabled:opacity-50 ${
                     isOnDuty
-                      ? 'bg-rose-950/80 text-rose-300 hover:bg-rose-900 border border-rose-800/80'
-                      : 'bg-[#25a475] text-[#00311f] hover:bg-[#208f66]'
+                      ? 'bg-error-container text-on-error-container hover:bg-error/20 border border-error/30'
+                      : 'bg-primary text-on-primary hover:bg-primary-hover'
                   }`}
                 >
                   {isOnDuty ? 'Go Offline' : 'Go Online'}
@@ -355,29 +342,30 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <LanguageSelector variant="dark" />
+              <ThemeToggle variant="compact" />
 
               <NotificationCenter />
 
-              <div className="h-5 w-px bg-[#262a33]" />
+              <div className="h-5 w-px bg-border" />
 
               <div className="flex items-center gap-2">
                 <Link href="/profile" className="flex items-center gap-2">
                   <div className="text-right flex flex-col items-end">
-                    <div className="text-xs text-[#dfe2ee] font-semibold leading-tight max-w-[140px] truncate">
+                    <div className="text-xs text-on-surface font-semibold leading-tight max-w-[140px] truncate">
                       {userName || userEmail || 'Driver Partner'}
                     </div>
                   </div>
                   <UserAvatar
                     src={null}
                     name={userName || userEmail || 'Driver Partner'}
-                    className="w-8 h-8 ring-1 ring-[#68dba9]"
+                    className="w-8 h-8 ring-1 ring-primary"
                   />
                 </Link>
                 <button
                   type="button"
                   onClick={() => void handleLogout()}
                   disabled={isLoggingOut}
-                  className="ml-2 flex items-center justify-center p-1.5 rounded-lg text-[#87948b] hover:text-[#ffb4ab] hover:bg-[#262a33] transition-colors disabled:opacity-50"
+                  className="ml-2 flex items-center justify-center p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors disabled:opacity-50"
                   title="Logout Session"
                 >
                   <span className="material-symbols-outlined text-lg">logout</span>
@@ -388,7 +376,7 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
         </header>
 
         {/* MAIN BODY AREA */}
-        <main className="w-full pt-16 pb-8 px-3 sm:px-4 bg-[#0f131c] min-h-screen">{children}</main>
+        <main className="w-full pt-16 pb-8 px-3 sm:px-4 bg-background min-h-screen">{children}</main>
       </div>
     </div>
   );

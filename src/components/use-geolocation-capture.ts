@@ -96,3 +96,40 @@ export function useGeolocationCapture(): UseGeolocationCaptureResult {
 
   return { status, errorMessage, location, capture };
 }
+
+export function captureDeviceLocation(): Promise<CapturedLocation | null> {
+  if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    const handleSuccess = (position: GeolocationPosition) => {
+      resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy ?? null,
+        capturedAt: new Date().toISOString(),
+      });
+    };
+
+    const handlePrimaryError = (error: GeolocationPositionError) => {
+      if (error.code === error.PERMISSION_DENIED) {
+        resolve(null);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        () => resolve(null),
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(handleSuccess, handlePrimaryError, {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    });
+  });
+}
+
+

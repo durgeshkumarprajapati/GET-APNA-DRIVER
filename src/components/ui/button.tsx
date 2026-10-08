@@ -15,11 +15,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-[#25a475] text-[#042116] hover:bg-[#68dba9]',
-  secondary: 'bg-[#181c24] border border-[#262a33] text-[#bccac0] hover:bg-[#262a33]',
-  outline: 'bg-transparent border border-[#262a33] text-[#dfe2ee] hover:border-[#68dba9]/60',
-  danger: 'bg-[#f43f5e] text-white hover:bg-[#e11d48]',
-  ghost: 'bg-transparent text-[#bccac0] hover:bg-[#181c24]',
+  primary: 'bg-primary text-on-primary hover:opacity-90',
+  secondary: 'bg-surface-container border border-border text-on-surface hover:bg-surface-container-high',
+  outline: 'bg-transparent border border-border text-on-surface hover:border-primary/60',
+  danger: 'bg-red-600 text-white hover:bg-red-700',
+  ghost: 'bg-transparent text-on-surface-variant hover:bg-surface-container hover:text-on-surface',
 };
 
 // min-height matches each size's visible padding/line-height so every
@@ -31,12 +31,7 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 };
 
 /**
- * Shared button primitive. Replaces hand-rolled `<button className="...">`
- * markup that previously diverged across customer/driver/admin pages — see
- * Phase 86 UX audit. Visual variants match the pre-existing dominant
- * conventions (e.g. the `bg-[#25a475]`/`text-[#042116]` primary pattern
- * already used across admin approve/submit actions) rather than inventing a
- * new look.
+ * Shared button primitive using theme tokens.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
@@ -82,3 +77,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
+

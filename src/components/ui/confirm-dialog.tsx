@@ -38,8 +38,6 @@ export function ConfirmDialog({
   const { t } = useTranslation();
   const visible = open ?? isOpen ?? false;
 
-  // Escape-to-cancel is a standard modal expectation for keyboard users —
-  // only wired up while the dialog is actually visible.
   useEffect(() => {
     if (!visible) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,7 +55,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in"
       onClick={onCancel}
     >
       <div
@@ -65,20 +63,20 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in"
+        className="w-full max-w-md bg-surface-container-lowest border border-border rounded-2xl p-6 shadow-2xl space-y-4 animate-scale-in"
       >
         <h3
           id="confirm-dialog-title"
-          className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']"
+          className="text-lg font-bold text-on-surface font-['Space_Grotesk']"
         >
           {title}
         </h3>
-        <p className="text-sm text-[#bccac0] leading-relaxed">{displayMessage}</p>
+        <p className="text-sm text-on-surface-variant leading-relaxed">{displayMessage}</p>
         <div className="flex items-center justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+            className="min-h-[48px] px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high border border-border text-xs font-bold text-on-surface transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {btnCancel}
           </button>
@@ -87,8 +85,8 @@ export function ConfirmDialog({
             onClick={onConfirm}
             className={`min-h-[48px] px-4 py-2 rounded-lg text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ${
               danger
-                ? 'bg-[#93000a] hover:bg-[#b3000d] active:bg-[#7a0008] text-[#ffdad6] focus-visible:outline-[#ffb4ab]'
-                : 'bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] focus-visible:outline-[#68dba9]'
+                ? 'bg-red-600 hover:bg-red-700 text-white focus-visible:outline-red-500'
+                : 'bg-primary hover:opacity-90 text-on-primary focus-visible:outline-primary'
             }`}
           >
             {btnConfirm}
@@ -98,3 +96,4 @@ export function ConfirmDialog({
     </div>
   );
 }
+

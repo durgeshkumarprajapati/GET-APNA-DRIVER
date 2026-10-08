@@ -23,10 +23,7 @@ const ALIGN_CLASS: Record<'left' | 'right' | 'center', string> = {
 };
 
 /**
- * Shared admin table shell — column definitions + row data in, a
- * consistently-styled table out. Replaces the pattern of every admin page
- * (drivers, reviews, settlements, treasury) hand-rolling its own
- * <table>/<thead>/<tbody> markup with the same classNames repeated each time.
+ * Shared table shell using theme tokens.
  */
 export function DataTable<T>({
   columns,
@@ -43,7 +40,7 @@ export function DataTable<T>({
     <div className="overflow-x-auto">
       <table className="w-full text-left font-sans text-xs border-collapse">
         <thead>
-          <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+          <tr className="bg-surface-container text-on-surface-variant font-['Space_Grotesk'] uppercase border-b border-border">
             {columns.map((col) => (
               <th key={col.key} className={`py-3 px-4 ${col.align ? ALIGN_CLASS[col.align] : ''}`}>
                 {col.header}
@@ -51,9 +48,9 @@ export function DataTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#262a33] font-mono">
+        <tbody className="divide-y divide-border font-mono text-on-surface">
           {data.map((row) => (
-            <tr key={keyExtractor(row)} className="hover:bg-[#181c24]/60 transition-colors">
+            <tr key={keyExtractor(row)} className="hover:bg-surface-container/60 transition-colors">
               {columns.map((col) => (
                 <td
                   key={col.key}
@@ -69,3 +66,4 @@ export function DataTable<T>({
     </div>
   );
 }
+

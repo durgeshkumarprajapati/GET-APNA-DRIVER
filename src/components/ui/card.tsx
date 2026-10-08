@@ -5,14 +5,12 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Shared panel primitive matching the dominant `bg-[#181c24] border
- * border-[#262a33] rounded-xl` convention already used for cards/sections
- * across customer/driver/admin pages — see Phase 86 UX audit.
+ * Shared panel primitive using theme tokens.
  */
 export function Card({ className = '', children, ...rest }: CardProps) {
   return (
     <div
-      className={`bg-[#181c24] border border-[#262a33] rounded-xl p-4 sm:p-5 ${className}`}
+      className={`bg-surface-container border border-border rounded-xl p-4 sm:p-5 ${className}`}
       {...rest}
     >
       {children}
@@ -28,8 +26,9 @@ export function CardTitle({
   children: ReactNode;
 }) {
   return (
-    <h2 className={`text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] ${className}`}>
+    <h2 className={`text-sm font-bold text-on-surface font-['Space_Grotesk'] ${className}`}>
       {children}
     </h2>
   );
 }
+

@@ -47,13 +47,13 @@ const STATUS_TONE: Record<string, StatusBadgeTone> = {
 export function WalletTransactionItem({ tx }: { tx: WalletTransactionItemData }) {
   const href = tx.paymentId ? `/payments/${tx.paymentId}` : null;
   const content = (
-    <div className="flex items-start gap-3 p-4 rounded-xl bg-[#181c24] border border-[#262a33]">
-      <span className="material-symbols-outlined text-xl text-[#68dba9] shrink-0 mt-0.5">
+    <div className="flex items-start gap-3 p-4 rounded-xl bg-surface-container border border-border">
+      <span className="material-symbols-outlined text-xl text-primary shrink-0 mt-0.5">
         {TYPE_ICON[tx.type]}
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] truncate">
+          <span className="text-sm font-bold text-on-surface font-['Space_Grotesk'] truncate">
             {TYPE_LABEL[tx.type]}
           </span>
           <FinanceAmount
@@ -63,14 +63,14 @@ export function WalletTransactionItem({ tx }: { tx: WalletTransactionItemData })
           />
         </div>
         <div className="flex items-center justify-between gap-2 mt-1">
-          <span className="text-[10px] text-[#87948b] font-mono truncate">
+          <span className="text-[10px] text-on-surface-variant font-mono truncate">
             {formatDateTime(tx.occurredAt)}
             {tx.bookingId ? ` · Booking #${tx.bookingId.slice(0, 8).toUpperCase()}` : ''}
           </span>
           <StatusBadge label={tx.status} tone={STATUS_TONE[tx.status] ?? 'neutral'} />
         </div>
         {tx.discountAmount && (
-          <span className="text-[10px] text-[#68dba9] mt-1 block">
+          <span className="text-[10px] text-primary mt-1 block">
             Promo discount applied: {tx.discountAmount}
           </span>
         )}

@@ -8,26 +8,25 @@ interface MetricCardProps {
 }
 
 const ACCENT_CLASSES: Record<NonNullable<MetricCardProps['accent']>, string> = {
-  default: 'text-[#dfe2ee]',
-  positive: 'text-[#68dba9]',
-  negative: 'text-[#ffb4ab]',
+  default: 'text-on-surface',
+  positive: 'text-primary',
+  negative: 'text-red-500',
 };
 
 /**
- * Shared metric display card, replacing the ad hoc value-card divs
- * previously duplicated per dashboard (driver dashboard, admin dashboard,
- * performance-and-badges, etc.).
+ * Shared metric display card using theme tokens.
  */
 export function MetricCard({ label, value, accent = 'default', hint }: MetricCardProps) {
   return (
-    <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col gap-1 animate-fade-in-up">
-      <span className="text-[10px] font-bold text-[#87948b] uppercase font-['Space_Grotesk']">
+    <div className="p-4 rounded-xl bg-surface-container border border-border flex flex-col gap-1 animate-fade-in-up">
+      <span className="text-[10px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk']">
         {label}
       </span>
       <span className={`text-2xl font-bold font-['Space_Grotesk'] ${ACCENT_CLASSES[accent]}`}>
         {value}
       </span>
-      {hint && <span className="text-[10px] text-[#87948b]">{hint}</span>}
+      {hint && <span className="text-[10px] text-on-surface-variant">{hint}</span>}
     </div>
   );
 }
+

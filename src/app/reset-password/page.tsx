@@ -59,12 +59,12 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="w-full max-w-[420px] p-8 rounded-2xl bg-[#181c24] border border-[#262a33] shadow-xl">
+    <div className="w-full max-w-[420px] p-8 rounded-2xl bg-surface-container border border-border shadow-xl">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+        <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk']">
           Set New Password
         </h1>
-        <p className="mt-1.5 text-sm text-[#bccac0]">
+        <p className="mt-1.5 text-sm text-on-surface-variant">
           Choose a secure new password for your account
         </p>
       </div>
@@ -97,9 +97,9 @@ function ResetPasswordForm() {
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-[#bccac0]">
+      <p className="mt-8 text-center text-sm text-on-surface-variant">
         Back to{' '}
-        <Link href="/login" className="text-[#68dba9] font-bold hover:text-[#85f8c4]">
+        <Link href="/login" className="text-primary font-bold hover:underline">
           Sign In
         </Link>
       </p>
@@ -109,8 +109,8 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-[#0a0e16]">
-      <Suspense fallback={<div className="text-[#87948b] text-sm">Loading...</div>}>
+    <main className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <Suspense fallback={<div className="text-on-surface-variant text-sm">Loading...</div>}>
         <ResetPasswordForm />
       </Suspense>
     </main>

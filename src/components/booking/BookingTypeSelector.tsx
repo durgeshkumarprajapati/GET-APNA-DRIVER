@@ -65,10 +65,10 @@ export function BookingTypeSelector({ selectedType, onSelectType }: BookingTypeS
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-semibold text-[#87948b] tracking-wider uppercase">
+      <label className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">
         {t('booking.selectHireType', { defaultValue: 'Select Hire Mode' })}
       </label>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-[#0a0e16] p-1.5 rounded-xl border border-[#262a33]">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-surface-container p-1.5 rounded-xl border border-border">
         {BOOKING_TYPE_OPTIONS.map((opt) => {
           const isSelected = selectedType === opt.type;
           return (
@@ -78,8 +78,8 @@ export function BookingTypeSelector({ selectedType, onSelectType }: BookingTypeS
               onClick={() => onSelectType(opt.type)}
               className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1 text-center ${
                 isSelected
-                  ? 'bg-[#25a475] text-[#00311f] shadow-md ring-1 ring-[#25a475]/50'
-                  : 'text-[#a2abb3] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+                  ? 'bg-primary text-on-primary shadow-md ring-1 ring-primary/50'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
               }`}
             >
               <span className="material-symbols-outlined text-lg">{opt.icon}</span>
