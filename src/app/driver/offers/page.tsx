@@ -21,7 +21,7 @@ export default function DriverOffersPage() {
 
   return (
     <DriverLayout>
-      <div className="flex flex-col w-full gap-3.5 text-[#dfe2ee]">
+      <div className="flex flex-col w-full gap-3.5 text-on-surface">
         <PageHeader
           eyebrow={t('driver.offers.eyebrow', { defaultValue: 'PARTNER INCENTIVES & PERKS' })}
           title={t('driver.offers.title', {
@@ -34,14 +34,14 @@ export default function DriverOffersPage() {
         />
 
         {/* Category Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[#181c24] border border-[#262a33]">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-surface-container border border-border">
           <button
             type="button"
             onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               activeTab === 'ALL'
-                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
             }`}
           >
             All Driver Offers ({DRIVER_OFFERS_CATALOG.length})
@@ -49,10 +49,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('DISCOUNT')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               activeTab === 'DISCOUNT'
-                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
             }`}
           >
             Shift & Fuel Subsidies
@@ -60,10 +60,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('SCRATCH_CARD')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               activeTab === 'SCRATCH_CARD'
-                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
             }`}
           >
             Reliability Scratch Cards
@@ -71,10 +71,10 @@ export default function DriverOffersPage() {
           <button
             type="button"
             onClick={() => setActiveTab('GIFT_BOX')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               activeTab === 'GIFT_BOX'
-                ? 'bg-[#25a475] active:bg-[#1c8562] text-[#00311f] shadow-md'
-                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee]'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
             }`}
           >
             Milestone Gift Boxes
@@ -84,8 +84,8 @@ export default function DriverOffersPage() {
             onClick={() => setActiveTab('LOCKED')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 ${
               activeTab === 'LOCKED'
-                ? 'bg-rose-950 active:bg-rose-900 text-rose-300 border border-rose-800 focus-visible:outline-rose-400'
-                : 'text-[#bccac0] hover:bg-[#262a33] active:bg-[#31353e] hover:text-[#dfe2ee] focus-visible:outline-[#68dba9]'
+                ? 'bg-rose-500/10 active:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 focus-visible:outline-rose-500'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface focus-visible:outline-primary'
             }`}
           >
             🔒 Locked Perks ({DRIVER_OFFERS_CATALOG.filter((o) => o.isLocked).length})

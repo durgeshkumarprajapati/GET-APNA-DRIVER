@@ -271,13 +271,13 @@ export default function DriverSchedulePage() {
         />
 
         {/* Today's Shift Status Card */}
-        <div className="p-6 rounded-2xl bg-[#181c24] border border-[#262a33] shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="p-6 rounded-2xl bg-surface-container border border-border shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div
               className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-inner ${
                 todayShift?.isScheduled
-                  ? 'bg-[#0053db]/20 text-[#70a1ff] border border-[#0053db]/50'
-                  : 'bg-[#262a33] text-[#87948b] border border-[#31353e]'
+                  ? 'bg-primary/10 text-primary border border-primary/30'
+                  : 'bg-surface-container-high text-on-surface-variant border border-border'
               }`}
             >
               <span className="material-symbols-outlined text-3xl">
@@ -285,24 +285,24 @@ export default function DriverSchedulePage() {
               </span>
             </div>
             <div>
-              <div className="flex items-center gap-2 text-xs font-mono text-[#87948b] uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-xs font-mono text-on-surface-variant uppercase tracking-wider">
                 <span>TODAY ({todayShift?.dayOfWeek})</span>
                 <span>•</span>
                 <span
                   className={`font-bold ${
-                    todayShift?.isScheduled ? 'text-[#68dba9]' : 'text-[#ff7675]'
+                    todayShift?.isScheduled ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'
                   }`}
                 >
                   {todayShift?.status}
                 </span>
               </div>
-              <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-0.5">
+              <h2 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-0.5">
                 {todayShift?.isScheduled
                   ? `Shift: ${todayShift.startTime} — ${todayShift.endTime}`
                   : 'No Active Shift Scheduled Today'}
               </h2>
               {todayShift?.isOvernight && (
-                <span className="inline-block mt-1 text-[10px] text-[#f1c40f] bg-[#f39c12]/20 px-2 py-0.5 rounded border border-[#f39c12]/40 font-mono">
+                <span className="inline-block mt-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 font-mono">
                   🌙 Overnight Shift (Crosses Midnight)
                 </span>
               )}
@@ -313,7 +313,7 @@ export default function DriverSchedulePage() {
             <button
               type="button"
               onClick={() => setShowExceptionModal(true)}
-              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-[#31353e] font-['Space_Grotesk'] w-full md:w-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest active:opacity-90 text-on-surface font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-border font-['Space_Grotesk'] w-full md:w-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <span className="material-symbols-outlined text-base">event_note</span>
               <span>Request Leave / Exception</span>
@@ -322,14 +322,14 @@ export default function DriverSchedulePage() {
         </div>
 
         {/* Weekly Schedule Section */}
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-6">
-          <div className="flex items-center justify-between border-b border-[#262a33] pb-4">
+        <div className="bg-surface-container border border-border rounded-2xl p-6 shadow-xl space-y-6">
+          <div className="flex items-center justify-between border-b border-border pb-4">
             <div>
-              <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9]">calendar_view_week</span>
+              <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">calendar_view_week</span>
                 Recurring Weekly Roster
               </h3>
-              <p className="text-xs text-[#87948b] mt-0.5">
+              <p className="text-xs text-on-surface-variant mt-0.5">
                 Set your standard working hours for each day of the week (
                 {scheduleData?.timezone || 'Asia/Kolkata'}).
               </p>
@@ -338,7 +338,7 @@ export default function DriverSchedulePage() {
               type="button"
               disabled={saving}
               onClick={handleSaveSchedule}
-              className="min-h-[48px] px-5 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-50 disabled:cursor-not-allowed text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <span className="material-symbols-outlined text-base">save</span>
               <span>{saving ? 'Saving…' : 'Save Weekly Schedule'}</span>
@@ -352,8 +352,8 @@ export default function DriverSchedulePage() {
                 key={entry.dayOfWeek}
                 className={`p-4 rounded-xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                   entry.isActive
-                    ? 'bg-[#1c222d] border-[#0053db]/40 shadow-sm'
-                    : 'bg-[#14171f] border-[#262a33] opacity-75'
+                    ? 'bg-primary/5 border-primary/30 shadow-sm'
+                    : 'bg-surface-container-low border-border/60 opacity-80'
                 }`}
               >
                 <div className="flex items-center gap-4 min-w-[160px]">
@@ -364,16 +364,16 @@ export default function DriverSchedulePage() {
                       onChange={() => handleEntryToggle(entry.dayOfWeek)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-[#262a33] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#68dba9]" />
+                    <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
                   </label>
 
                   <div>
-                    <span className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase block">
+                    <span className="text-sm font-bold text-on-surface font-['Space_Grotesk'] uppercase block">
                       {entry.dayOfWeek}
                     </span>
                     <span
                       className={`text-[10px] font-mono font-bold ${
-                        entry.isActive ? 'text-[#68dba9]' : 'text-[#87948b]'
+                        entry.isActive ? 'text-emerald-500 dark:text-emerald-400' : 'text-on-surface-variant'
                       }`}
                     >
                       {entry.isActive ? 'ON SHIFT' : 'OFF'}
@@ -384,36 +384,36 @@ export default function DriverSchedulePage() {
                 {entry.isActive ? (
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#87948b] font-mono">Start:</span>
+                      <span className="text-xs text-on-surface-variant font-mono">Start:</span>
                       <input
                         type="time"
                         value={entry.startTime}
                         onChange={(e) =>
                           handleTimeChange(entry.dayOfWeek, 'startTime', e.target.value)
                         }
-                        className="bg-[#14171f] border border-[#31353e] rounded-lg px-3 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                        className="bg-surface-container-high border border-border rounded-lg px-3 py-1.5 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                       />
                     </div>
-                    <span className="text-xs text-[#87948b]">→</span>
+                    <span className="text-xs text-on-surface-variant">→</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#87948b] font-mono">End:</span>
+                      <span className="text-xs text-on-surface-variant font-mono">End:</span>
                       <input
                         type="time"
                         value={entry.endTime}
                         onChange={(e) =>
                           handleTimeChange(entry.dayOfWeek, 'endTime', e.target.value)
                         }
-                        className="bg-[#14171f] border border-[#31353e] rounded-lg px-3 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                        className="bg-surface-container-high border border-border rounded-lg px-3 py-1.5 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                       />
                     </div>
                     {entry.isOvernight && (
-                      <span className="text-[10px] text-[#f1c40f] bg-[#f39c12]/20 px-2 py-1 rounded font-mono border border-[#f39c12]/40 shrink-0">
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded font-mono border border-amber-500/30 shrink-0">
                         🌙 Overnight
                       </span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-xs text-[#87948b] italic">No shift active</span>
+                  <span className="text-xs text-on-surface-variant italic">No shift active</span>
                 )}
               </div>
             ))}
@@ -421,10 +421,10 @@ export default function DriverSchedulePage() {
         </div>
 
         {/* Schedule Exceptions & Leaves */}
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-            <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#70a1ff]">event_note</span>
+        <div className="bg-surface-container border border-border rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">event_note</span>
               Planned Leaves & Custom Schedule Overrides
             </h3>
           </div>
@@ -434,28 +434,28 @@ export default function DriverSchedulePage() {
               {scheduleData.exceptions.map((exc) => (
                 <div
                   key={exc.id}
-                  className="p-4 rounded-xl bg-[#1c222d] border border-[#262a33] flex items-center justify-between gap-3"
+                  className="p-4 rounded-xl bg-surface-container-high border border-border flex items-center justify-between gap-3"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#dfe2ee] font-mono">{exc.date}</span>
-                      <span className="text-[10px] uppercase font-bold text-[#f1c40f] bg-[#f39c12]/20 px-2 py-0.5 rounded border border-[#f39c12]/40 font-mono">
+                      <span className="text-xs font-bold text-on-surface font-mono">{exc.date}</span>
+                      <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 font-mono">
                         {exc.exceptionType}
                       </span>
                     </div>
                     {exc.exceptionType === ScheduleExceptionType.CUSTOM_HOURS && (
-                      <div className="text-xs text-[#68dba9] font-mono">
+                      <div className="text-xs text-primary font-mono">
                         Custom Hours: {exc.startTime} — {exc.endTime}
                       </div>
                     )}
                     {exc.reason && (
-                      <p className="text-xs text-[#bccac0] italic">&quot;{exc.reason}&quot;</p>
+                      <p className="text-xs text-on-surface-variant italic">&quot;{exc.reason}&quot;</p>
                     )}
                   </div>
                   <button
                     type="button"
                     onClick={() => handleDeleteException(exc.id)}
-                    className="p-2 text-[#ff7675] hover:bg-[#93000a]/20 active:bg-[#93000a]/35 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
+                    className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
                     title="Remove exception"
                   >
                     <span className="material-symbols-outlined text-lg">delete</span>
@@ -464,7 +464,7 @@ export default function DriverSchedulePage() {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[#87948b] italic py-2">
+            <p className="text-xs text-on-surface-variant italic py-2">
               No planned leaves or custom date exceptions configured.
             </p>
           )}
@@ -472,16 +472,16 @@ export default function DriverSchedulePage() {
 
         {/* Modal: Request Exception */}
         {showExceptionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-scale-in">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-surface-container border border-border rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-scale-in">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                   Add Leave or Custom Date Override
                 </h3>
                 <button
                   type="button"
                   onClick={() => setShowExceptionModal(false)}
-                  className="p-1.5 -m-1.5 rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="p-1.5 -m-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   aria-label="Close leave exception form"
                 >
                   <span className="material-symbols-outlined">close</span>
@@ -490,7 +490,7 @@ export default function DriverSchedulePage() {
 
               <form onSubmit={handleAddException} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-[#87948b] uppercase block mb-1 font-mono">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase block mb-1 font-mono">
                     Exception Date
                   </label>
                   <input
@@ -498,18 +498,18 @@ export default function DriverSchedulePage() {
                     required
                     value={excDate}
                     onChange={(e) => setExcDate(e.target.value)}
-                    className="w-full bg-[#14171f] border border-[#31353e] rounded-xl px-3 py-2 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                    className="w-full bg-surface-container-high border border-border rounded-xl px-3 py-2 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[#87948b] uppercase block mb-1 font-mono">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase block mb-1 font-mono">
                     Type of Exception
                   </label>
                   <select
                     value={excType}
                     onChange={(e) => setExcType(e.target.value as ScheduleExceptionType)}
-                    className="w-full bg-[#14171f] border border-[#31353e] rounded-xl px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full bg-surface-container-high border border-border rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
                   >
                     <option value={ScheduleExceptionType.OFF}>Day Off</option>
                     <option value={ScheduleExceptionType.LEAVE}>Personal Leave</option>
@@ -523,7 +523,7 @@ export default function DriverSchedulePage() {
                 {excType === ScheduleExceptionType.CUSTOM_HOURS && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-bold text-[#87948b] uppercase block mb-1 font-mono">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase block mb-1 font-mono">
                         Start Time
                       </label>
                       <input
@@ -531,11 +531,11 @@ export default function DriverSchedulePage() {
                         required
                         value={excStart}
                         onChange={(e) => setExcStart(e.target.value)}
-                        className="w-full bg-[#14171f] border border-[#31353e] rounded-xl px-3 py-2 text-xs text-[#dfe2ee] font-mono"
+                        className="w-full bg-surface-container-high border border-border rounded-xl px-3 py-2 text-xs text-on-surface font-mono"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#87948b] uppercase block mb-1 font-mono">
+                      <label className="text-xs font-bold text-on-surface-variant uppercase block mb-1 font-mono">
                         End Time
                       </label>
                       <input
@@ -543,14 +543,14 @@ export default function DriverSchedulePage() {
                         required
                         value={excEnd}
                         onChange={(e) => setExcEnd(e.target.value)}
-                        className="w-full bg-[#14171f] border border-[#31353e] rounded-xl px-3 py-2 text-xs text-[#dfe2ee] font-mono"
+                        className="w-full bg-surface-container-high border border-border rounded-xl px-3 py-2 text-xs text-on-surface font-mono"
                       />
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="text-xs font-bold text-[#87948b] uppercase block mb-1 font-mono">
+                  <label className="text-xs font-bold text-on-surface-variant uppercase block mb-1 font-mono">
                     Reason (Optional)
                   </label>
                   <input
@@ -558,7 +558,7 @@ export default function DriverSchedulePage() {
                     placeholder="e.g. Vehicle servicing, Family emergency"
                     value={excReason}
                     onChange={(e) => setExcReason(e.target.value)}
-                    className="w-full bg-[#14171f] border border-[#31353e] rounded-xl px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full bg-surface-container-high border border-border rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -566,14 +566,14 @@ export default function DriverSchedulePage() {
                   <button
                     type="button"
                     onClick={() => setShowExceptionModal(false)}
-                    className="min-h-[48px] px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="min-h-[48px] px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingException}
-                    className="min-h-[48px] px-5 py-2 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] text-xs font-bold uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="min-h-[48px] px-5 py-2 rounded-xl bg-primary hover:opacity-90 active:opacity-80 text-on-primary text-xs font-bold uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {submittingException ? 'Saving…' : 'Add Exception'}
                   </button>

@@ -96,33 +96,33 @@ export default function DriverWalletPage() {
   return (
     <DriverLayout>
       <div className="flex flex-col w-full px-6 py-6 gap-6">
-        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-[#181c24] border border-[#262a33]">
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-surface-container border border-border shadow-sm">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-['Space_Grotesk']">
               Wallet &amp; Payouts
             </h1>
-            <p className="text-xs text-[#bccac0] max-w-2xl">
+            <p className="text-xs text-on-surface-variant max-w-2xl">
               Your earnings ledger, pending settlement reservations, and payout history.
             </p>
           </div>
         </section>
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">Loading wallet…</div>
+          <div className="py-16 text-center text-on-surface-variant text-sm">Loading wallet…</div>
         ) : wallet ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
-                <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
+              <div className="p-4 rounded-xl bg-surface-container border border-border flex flex-col justify-between shadow-sm animate-fade-in-up">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk'] block">
                   AVAILABLE BALANCE
                 </span>
-                <div className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk'] mt-1">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-['Space_Grotesk'] mt-1">
                   ₹
                   {Number(wallet.availableBalance).toLocaleString('en-IN', {
                     minimumFractionDigits: 2,
@@ -130,11 +130,11 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
-                <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
+              <div className="p-4 rounded-xl bg-surface-container border border-border flex flex-col justify-between shadow-sm animate-fade-in-up">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk'] block">
                   PENDING BALANCE
                 </span>
-                <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+                <div className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
                   ₹
                   {Number(wallet.pendingBalance).toLocaleString('en-IN', {
                     minimumFractionDigits: 2,
@@ -142,11 +142,11 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
-                <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
+              <div className="p-4 rounded-xl bg-surface-container border border-border flex flex-col justify-between shadow-sm animate-fade-in-up">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk'] block">
                   RESERVED FOR SETTLEMENT
                 </span>
-                <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+                <div className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
                   ₹
                   {Number(wallet.reservedBalance).toLocaleString('en-IN', {
                     minimumFractionDigits: 2,
@@ -154,21 +154,21 @@ export default function DriverWalletPage() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
-                <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
+              <div className="p-4 rounded-xl bg-surface-container border border-border flex flex-col justify-between shadow-sm animate-fade-in-up">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk'] block">
                   TOTAL EARNED
                 </span>
-                <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+                <div className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
                   ₹
                   {Number(wallet.totalEarned).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col justify-between shadow-sm animate-fade-in-up">
-                <span className="text-[9px] font-bold text-[#87948b] uppercase font-['Space_Grotesk'] block">
+              <div className="p-4 rounded-xl bg-surface-container border border-border flex flex-col justify-between shadow-sm animate-fade-in-up">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase font-['Space_Grotesk'] block">
                   TOTAL SETTLED
                 </span>
-                <div className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk'] mt-1">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-['Space_Grotesk'] mt-1">
                   ₹
                   {Number(wallet.totalSettled).toLocaleString('en-IN', {
                     minimumFractionDigits: 2,
@@ -179,12 +179,12 @@ export default function DriverWalletPage() {
 
             {/* Ledger Transactions */}
             <section className="flex flex-col gap-4">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Wallet Ledger
               </h3>
-              <div className="overflow-x-auto rounded-xl border border-[#262a33] bg-[#181c24]">
+              <div className="overflow-x-auto rounded-xl border border-border bg-surface-container shadow-sm">
                 <table className="w-full font-mono text-xs text-left">
-                  <thead className="bg-[#0a0e16] text-[#87948b] uppercase text-[10px] border-b border-[#262a33]">
+                  <thead className="bg-surface-container-high text-on-surface-variant uppercase text-[10px] border-b border-border">
                     <tr>
                       <th className="p-3">Date</th>
                       <th className="p-3">Type</th>
@@ -194,34 +194,34 @@ export default function DriverWalletPage() {
                       <th className="p-3">Balance After (Avail.)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#262a33]">
+                  <tbody className="divide-y divide-border">
                     {transactions.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="p-6 text-center text-[#87948b]">
+                        <td colSpan={6} className="p-6 text-center text-on-surface-variant">
                           No wallet activity yet.
                         </td>
                       </tr>
                     ) : (
                       transactions.map((tx) => (
-                        <tr key={tx.id} className="hover:bg-[#1c2028]">
-                          <td className="p-3 text-[#bccac0]">
+                        <tr key={tx.id} className="hover:bg-surface-container-high transition-colors">
+                          <td className="p-3 text-on-surface-variant">
                             {new Date(tx.createdAt).toLocaleString()}
                           </td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#b4c5ff] text-[9px] font-bold">
+                            <span className="px-2 py-0.5 rounded bg-surface-container-high text-primary border border-border text-[9px] font-bold">
                               {tx.changeType.replace(/_/g, ' ')}
                             </span>
                           </td>
-                          <td className="p-3 text-[#dfe2ee]">
+                          <td className="p-3 text-on-surface">
                             {formatMoney(tx.availableDelta, wallet.currency)}
                           </td>
-                          <td className="p-3 text-[#dfe2ee]">
+                          <td className="p-3 text-on-surface">
                             {formatMoney(tx.pendingDelta, wallet.currency)}
                           </td>
-                          <td className="p-3 text-[#dfe2ee]">
+                          <td className="p-3 text-on-surface">
                             {formatMoney(tx.reservedDelta, wallet.currency)}
                           </td>
-                          <td className="p-3 text-[#68dba9] font-bold">
+                          <td className="p-3 text-emerald-600 dark:text-emerald-400 font-bold">
                             ₹
                             {Number(tx.balanceAfterAvailable).toLocaleString('en-IN', {
                               minimumFractionDigits: 2,
@@ -237,7 +237,7 @@ export default function DriverWalletPage() {
 
             {/* Settlements */}
             <section className="flex flex-col gap-4">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Settlement History
               </h3>
               {settlements.length === 0 ? (
@@ -247,7 +247,7 @@ export default function DriverWalletPage() {
                   {settlements.map((settlement) => (
                     <div
                       key={settlement.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fade-in-up"
+                      className="p-4 rounded-xl bg-surface-container border border-border flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fade-in-up shadow-sm"
                     >
                       <div className="space-y-1">
                         <span
@@ -255,17 +255,17 @@ export default function DriverWalletPage() {
                         >
                           {settlement.status}
                         </span>
-                        <p className="text-sm font-semibold text-[#dfe2ee]">
+                        <p className="text-sm font-semibold text-on-surface">
                           ₹
                           {Number(settlement.amount).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                           })}
                         </p>
                         {settlement.failureReason && (
-                          <p className="text-xs text-[#ffb4ab]">{settlement.failureReason}</p>
+                          <p className="text-xs text-rose-500 font-medium">{settlement.failureReason}</p>
                         )}
                       </div>
-                      <div className="text-xs text-[#87948b] font-mono">
+                      <div className="text-xs text-on-surface-variant font-mono">
                         Created {new Date(settlement.createdAt).toLocaleString()}
                         {settlement.completedAt &&
                           ` • Completed ${new Date(settlement.completedAt).toLocaleString()}`}

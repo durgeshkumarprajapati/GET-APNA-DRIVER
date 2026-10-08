@@ -83,7 +83,7 @@ export default function DriverRatingsPage() {
         />
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm">
             {error}
           </div>
         )}
@@ -107,12 +107,12 @@ export default function DriverRatingsPage() {
                 {reviews.map((review) => (
                   <div
                     key={review.id}
-                    className="p-5 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2 animate-fade-in-up"
+                    className="p-5 rounded-xl bg-surface-container border border-border space-y-2 animate-fade-in-up shadow-sm"
                   >
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-3">
                         <RatingStars value={review.rating} size="sm" />
-                        <span className="text-xs text-[#87948b]">
+                        <span className="text-xs text-on-surface-variant">
                           {review.customer.email ?? review.customer.phoneNumber ?? 'Customer'}
                         </span>
                       </div>
@@ -121,13 +121,13 @@ export default function DriverRatingsPage() {
                           label={review.status}
                           tone={STATUS_TONE[review.status] ?? 'neutral'}
                         />
-                        <span className="font-mono text-[10px] text-[#87948b]">
+                        <span className="font-mono text-[10px] text-on-surface-variant">
                           {formatDate(review.createdAt)}
                         </span>
                       </div>
                     </div>
                     {review.comment && (
-                      <p className="text-xs text-[#bccac0] italic">&quot;{review.comment}&quot;</p>
+                      <p className="text-xs text-on-surface-variant italic">&quot;{review.comment}&quot;</p>
                     )}
                   </div>
                 ))}

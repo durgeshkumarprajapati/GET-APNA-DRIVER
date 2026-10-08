@@ -16,15 +16,15 @@ export default function DriverSettingsPage() {
           actions={
             <Link
               href="/driver/profile"
-              className="min-h-[48px] flex items-center px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] flex items-center px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-xs font-bold text-on-surface border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               Go to Profile →
             </Link>
           }
         />
 
-        <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
-          <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+        <section className="p-6 rounded-xl bg-surface-container border border-border space-y-4 shadow-sm">
+          <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
             Notification Preferences
           </h2>
           <NotificationPreferencesPanel />

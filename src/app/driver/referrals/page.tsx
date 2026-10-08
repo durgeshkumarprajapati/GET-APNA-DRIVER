@@ -120,15 +120,15 @@ export default function DriverReferralPage() {
     <DriverLayout>
       <div className="flex flex-col w-full gap-6 max-w-5xl mx-auto py-4">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl bg-[#181c24] border border-[#262a33] gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl bg-surface-container border border-border shadow-sm gap-4">
           <div>
-            <span className="text-[10px] font-bold text-[#68dba9] uppercase tracking-wider font-['Space_Grotesk'] block">
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider font-['Space_Grotesk'] block">
               {t('driver.referrals.eyebrow')}
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
               {t('driver.referrals.title')}
             </h1>
-            <p className="text-xs text-[#bccac0] mt-1 max-w-xl">{t('driver.referrals.subtitle')}</p>
+            <p className="text-xs text-on-surface-variant mt-1 max-w-xl">{t('driver.referrals.subtitle')}</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function DriverReferralPage() {
               type="button"
               onClick={shareReferral}
               disabled={loading || !dashboard?.referralCode}
-              className="min-h-[48px] px-5 py-3 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-50 disabled:cursor-not-allowed text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-5 py-3 rounded-xl bg-primary hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-sm"
             >
               <span className="material-symbols-outlined text-lg">share</span>
               {shared ? t('driver.referrals.shared') : t('driver.referrals.shareBtn')}
@@ -146,19 +146,19 @@ export default function DriverReferralPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm animate-fade-in-up">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.yourCode')}
             </span>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-lg font-bold font-mono text-[#68dba9]">
+              <span className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400">
                 {loading ? 'LOADING...' : dashboard?.referralCode || 'REF-AVAILABLE'}
               </span>
               <button
                 type="button"
                 onClick={copyReferralCode}
                 title={t('driver.referrals.copyCode')}
-                className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="text-on-surface-variant hover:text-on-surface transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <span className="material-symbols-outlined text-sm">
                   {copied ? 'check' : 'content_copy'}
@@ -167,29 +167,29 @@ export default function DriverReferralPage() {
             </div>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm animate-fade-in-up">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.statTotalDrivers')}
             </span>
-            <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1 block">
+            <span className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface mt-1 block">
               {loading ? '—' : (dashboard?.totalReferrals ?? 0)}
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm animate-fade-in-up">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.statPending')}
             </span>
-            <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffc847] mt-1 block">
+            <span className="text-2xl font-bold font-['Space_Grotesk'] text-amber-600 dark:text-amber-400 mt-1 block">
               {loading ? '—' : (dashboard?.pendingReferrals ?? 0)}
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-5 rounded-2xl border border-[#262a33] animate-fade-in-up">
-            <span className="text-[#87948b] text-[10px] uppercase font-bold tracking-wider block">
+          <div className="bg-surface-container p-5 rounded-2xl border border-border shadow-sm animate-fade-in-up">
+            <span className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider block">
               {t('driver.referrals.statEarnedIncentives')}
             </span>
-            <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1 block">
+            <span className="text-2xl font-bold font-['Space_Grotesk'] text-emerald-600 dark:text-emerald-400 mt-1 block">
               {loading ? formatCurrency(0) : formatCurrency(dashboard?.totalEarnedRewards ?? 0)}
             </span>
           </div>
@@ -198,35 +198,35 @@ export default function DriverReferralPage() {
         {/* Active Driver Campaigns */}
         {dashboard?.activeCampaigns && dashboard.activeCampaigns.length > 0 && (
           <div className="flex flex-col gap-3">
-            <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
               {t('driver.referrals.activeCampaigns')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {dashboard.activeCampaigns.map((camp) => (
                 <div
                   key={camp.id}
-                  className="p-5 rounded-2xl bg-gradient-to-br from-[#181c24] to-[#121620] border border-[#262a33] flex flex-col justify-between gap-4 animate-fade-in-up"
+                  className="p-5 rounded-2xl bg-surface-container border border-border flex flex-col justify-between gap-4 animate-fade-in-up shadow-sm"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold font-mono text-[#68dba9] bg-[#00311f] px-2.5 py-0.5 rounded-full border border-[#25a475]">
+                      <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                         {camp.code}
                       </span>
                       {camp.endsAt && (
-                        <span className="text-[10px] text-[#87948b]">
+                        <span className="text-[10px] text-on-surface-variant">
                           {t('driver.referrals.endsAt')}: {formatDate(camp.endsAt)}
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-bold text-[#dfe2ee] mt-2 font-['Space_Grotesk']">
+                    <h3 className="text-base font-bold text-on-surface mt-2 font-['Space_Grotesk']">
                       {camp.name}
                     </h3>
-                    <p className="text-xs text-[#bccac0] mt-1">{camp.description}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">{camp.description}</p>
                   </div>
 
-                  <div className="pt-3 border-t border-[#262a33] flex items-center justify-between text-xs">
-                    <span className="text-[#87948b]">{t('driver.referrals.driverReward')}:</span>
-                    <span className="font-bold text-[#68dba9]">
+                  <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                    <span className="text-on-surface-variant">{t('driver.referrals.driverReward')}:</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                       {formatCurrency(camp.referrerRewardValue)}
                     </span>
                   </div>
@@ -238,22 +238,22 @@ export default function DriverReferralPage() {
 
         {/* Recent Referrals Table */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
             {t('driver.referrals.historyTitle')}
           </h2>
 
           {loading ? (
-            <div className="p-6 text-center text-xs text-[#87948b] bg-[#181c24] rounded-2xl border border-[#262a33]">
+            <div className="p-6 text-center text-xs text-on-surface-variant bg-surface-container rounded-2xl border border-border">
               {t('common.loading')}
             </div>
           ) : !dashboard?.recentReferrals || dashboard.recentReferrals.length === 0 ? (
-            <div className="p-8 text-center text-xs text-[#87948b] bg-[#181c24] rounded-2xl border border-[#262a33]">
+            <div className="p-8 text-center text-xs text-on-surface-variant bg-surface-container rounded-2xl border border-border">
               {t('driver.referrals.noReferralsYet')}
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-[#262a33] bg-[#181c24]">
-              <table className="w-full text-left text-xs text-[#dfe2ee]">
-                <thead className="bg-[#0a0e16] text-[#87948b] uppercase tracking-wider text-[10px] font-bold border-b border-[#262a33]">
+            <div className="overflow-x-auto rounded-2xl border border-border bg-surface-container shadow-sm">
+              <table className="w-full text-left text-xs text-on-surface">
+                <thead className="bg-surface-container-high text-on-surface-variant uppercase tracking-wider text-[10px] font-bold border-b border-border">
                   <tr>
                     <th className="p-4">{t('driver.referrals.colDriver')}</th>
                     <th className="p-4">{t('driver.referrals.colDate')}</th>
@@ -261,13 +261,13 @@ export default function DriverReferralPage() {
                     <th className="p-4 text-right">{t('driver.referrals.colReward')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#262a33]">
+                <tbody className="divide-y divide-border">
                   {dashboard.recentReferrals.map((ref) => (
-                    <tr key={ref.id} className="hover:bg-[#1f2430] transition-colors">
+                    <tr key={ref.id} className="hover:bg-surface-container-high transition-colors">
                       <td className="p-4 font-bold">{ref.displayName}</td>
-                      <td className="p-4 text-[#87948b]">{formatDate(ref.createdAt)}</td>
+                      <td className="p-4 text-on-surface-variant">{formatDate(ref.createdAt)}</td>
                       <td className="p-4">{getStatusBadge(ref.status)}</td>
-                      <td className="p-4 text-right font-mono font-bold text-[#68dba9]">
+                      <td className="p-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
                         {ref.rewardAmount ? formatCurrency(ref.rewardAmount) : '—'}
                       </td>
                     </tr>

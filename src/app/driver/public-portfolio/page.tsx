@@ -77,7 +77,7 @@ export default function DriverPublicPortfolioPage() {
         />
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm">
             {error}
           </div>
         )}
@@ -87,18 +87,18 @@ export default function DriverPublicPortfolioPage() {
         ) : (
           portfolio && (
             <>
-              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 max-w-2xl animate-fade-in-up">
+              <div className="p-6 rounded-xl bg-surface-container border border-border space-y-4 max-w-2xl animate-fade-in-up shadow-sm">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center text-[#68dba9] font-bold text-xl">
+                  <div className="w-16 h-16 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-xl">
                     {initials(portfolio.displayName)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-[#dfe2ee] font-['Space_Grotesk']">
+                    <h3 className="font-bold text-lg text-on-surface font-['Space_Grotesk']">
                       {portfolio.displayName}
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <RatingStars value={portfolio.performance.averageRating} size="sm" />
-                      <span className="font-mono text-xs text-[#68dba9]">
+                      <span className="font-mono text-xs text-emerald-600 dark:text-emerald-400">
                         {portfolio.performance.averageRating.toFixed(2)} •{' '}
                         {portfolio.performance.completedTrips} Services •{' '}
                         {portfolio.drivingExperienceYears} Years Driving Experience
@@ -106,15 +106,15 @@ export default function DriverPublicPortfolioPage() {
                     </div>
                   </div>
                 </div>
-                {portfolio.bio && <p className="text-xs text-[#bccac0]">{portfolio.bio}</p>}
-                <div className="flex items-center gap-4 text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+                {portfolio.bio && <p className="text-xs text-on-surface-variant">{portfolio.bio}</p>}
+                <div className="flex items-center gap-4 text-[10px] font-mono text-on-surface-variant uppercase tracking-wider">
                   {portfolio.primaryServiceArea && <span>{portfolio.primaryServiceArea}</span>}
                   <span>Driving since {formatDate(portfolio.memberSince)}</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-3">
-                <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                   What Customers Say
                 </h2>
                 {portfolio.recentReviews.length === 0 ? (
@@ -124,18 +124,18 @@ export default function DriverPublicPortfolioPage() {
                     {portfolio.recentReviews.map((review, index) => (
                       <div
                         key={index}
-                        className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2 animate-fade-in-up"
+                        className="p-4 rounded-xl bg-surface-container border border-border space-y-2 animate-fade-in-up shadow-sm"
                       >
                         <div className="flex items-center justify-between">
                           <RatingStars value={review.rating} size="sm" />
-                          <span className="text-[10px] font-mono text-[#87948b]">
+                          <span className="text-[10px] font-mono text-on-surface-variant">
                             {formatDate(review.createdAt)}
                           </span>
                         </div>
-                        <p className="text-xs text-[#bccac0] italic">
+                        <p className="text-xs text-on-surface-variant italic">
                           &quot;{review.comment}&quot;
                         </p>
-                        <span className="text-[10px] text-[#87948b]">— {review.reviewerLabel}</span>
+                        <span className="text-[10px] text-on-surface-variant">— {review.reviewerLabel}</span>
                       </div>
                     ))}
                   </div>

@@ -155,43 +155,43 @@ export default function DriverAssignmentOffersPage() {
     <DriverLayout>
       <div className="flex flex-col w-full gap-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl font-bold tracking-tight text-on-surface">
               Booking Assignment Offers
             </h1>
           </div>
 
           <Link
             href="/driver/availability"
-            className="min-h-[48px] flex items-center justify-center px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+            className="min-h-[48px] flex items-center justify-center px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest active:opacity-90 text-on-surface font-semibold text-xs rounded-xl border border-border transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             Manage Availability & GPS
           </Link>
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-900/40 border border-red-500/50 text-red-200 text-sm">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-sm">
             {error}
           </div>
         )}
 
         {/* Pending Assignment Offers Section */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold text-on-surface flex items-center gap-2">
             Incoming Assignment Offers ({pendingOffers.length})
             {pendingOffers.length > 0 && (
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
             )}
           </h2>
 
           {loading ? (
             <LoadingState message="Loading assignment offers…" />
           ) : pendingOffers.length === 0 ? (
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-8 text-center space-y-2">
-              <p className="text-slate-300 font-medium">No pending assignment offers.</p>
-              <p className="text-xs text-slate-400">
-                Keep your status set to <strong className="text-emerald-400">AVAILABLE</strong> and
+            <div className="bg-surface-container border border-border rounded-2xl p-8 text-center space-y-2">
+              <p className="text-on-surface font-medium">No pending assignment offers.</p>
+              <p className="text-xs text-on-surface-variant">
+                Keep your status set to <strong className="text-emerald-500 dark:text-emerald-400">AVAILABLE</strong> and
                 send live GPS updates to receive nearby booking requests.
               </p>
             </div>
@@ -205,24 +205,24 @@ export default function DriverAssignmentOffersPage() {
                 return (
                   <div
                     key={offer.id}
-                    className="bg-slate-800 border-2 border-emerald-500/60 rounded-2xl p-6 shadow-2xl space-y-4 relative overflow-hidden"
+                    className="bg-surface-container border-2 border-emerald-500/60 rounded-2xl p-6 shadow-xl space-y-4 relative overflow-hidden"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-700 pb-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-border pb-4">
                       <div>
-                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                           NEW BOOKING OFFER #{offer.attemptNumber}
                         </span>
-                        <span className="ml-3 text-xs text-slate-400 uppercase font-mono">
+                        <span className="ml-3 text-xs text-on-surface-variant uppercase font-mono">
                           {offer.bookingType.replace('_', ' ')}
                         </span>
                       </div>
                       {isExpired ? (
-                        <div className="text-xs text-red-400 font-semibold">
+                        <div className="text-xs text-rose-500 font-semibold">
                           Offer expired — refreshing…
                         </div>
                       ) : (
                         <div
-                          className={`text-xs font-semibold ${secondsLeft <= 10 ? 'text-red-400' : 'text-amber-400'}`}
+                          className={`text-xs font-semibold ${secondsLeft <= 10 ? 'text-rose-500 font-bold' : 'text-amber-600 dark:text-amber-400'}`}
                         >
                           Expires in {secondsLeft}s ({expiresDate.toLocaleTimeString()})
                         </div>
@@ -230,16 +230,16 @@ export default function DriverAssignmentOffersPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <h3 className="text-lg font-bold text-white">
+                      <h3 className="text-lg font-bold text-on-surface">
                         {offer.pickupLocation.address}
                       </h3>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-on-surface-variant">
                         Pickup Coords: {offer.pickupLocation.latitude.toFixed(4)}°,{' '}
                         {offer.pickupLocation.longitude.toFixed(4)}°
                       </p>
 
                       {offer.customerNotes && (
-                        <p className="text-xs text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60 mt-2">
+                        <p className="text-xs text-on-surface-variant bg-surface-container-high p-2.5 rounded-lg border border-border mt-2">
                           Notes: {offer.customerNotes}
                         </p>
                       )}
@@ -262,7 +262,7 @@ export default function DriverAssignmentOffersPage() {
                           type="button"
                           onClick={() => setRejectModalId(offer.id)}
                           disabled={actioningId === offer.id || isExpired}
-                          className="flex-1 sm:flex-initial min-h-[48px] px-5 py-3 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 font-semibold text-sm rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                          className="flex-1 sm:flex-initial min-h-[48px] px-5 py-3 bg-surface-container-high hover:bg-surface-container-highest active:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-on-surface font-semibold text-sm rounded-xl border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         >
                           Reject
                         </button>
@@ -273,7 +273,7 @@ export default function DriverAssignmentOffersPage() {
                               prev === offer.bookingId ? null : offer.bookingId,
                             )
                           }
-                          className="flex-1 sm:flex-initial min-h-[48px] px-4 py-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-slate-200 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                          className="flex-1 sm:flex-initial min-h-[48px] px-4 py-3 bg-surface-container-high hover:bg-surface-container-highest border border-border text-on-surface font-semibold text-sm rounded-xl transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         >
                           <span className="material-symbols-outlined text-base">chat</span>
                           Message Customer
@@ -297,29 +297,29 @@ export default function DriverAssignmentOffersPage() {
 
         {/* Past Assignment Offers History */}
         {pastOffers.length > 0 && (
-          <div className="space-y-4 pt-6 border-t border-slate-800">
-            <h2 className="text-lg font-semibold text-slate-300">
+          <div className="space-y-4 pt-6 border-t border-border">
+            <h2 className="text-lg font-semibold text-on-surface-variant">
               Past Offer History ({pastOffers.length})
             </h2>
             <div className="space-y-3 animate-fade-in-up">
               {pastOffers.map((offer) => (
                 <div
                   key={offer.id}
-                  className="bg-slate-800/50 border border-slate-700/60 rounded-xl p-4 flex items-center justify-between text-xs"
+                  className="bg-surface-container border border-border rounded-xl p-4 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <p className="font-semibold text-slate-200">{offer.pickupLocation.address}</p>
-                    <p className="text-slate-400 mt-0.5">
+                    <p className="font-semibold text-on-surface">{offer.pickupLocation.address}</p>
+                    <p className="text-on-surface-variant mt-0.5">
                       Offered: {new Date(offer.offeredAt).toLocaleString()}
                     </p>
                   </div>
                   <span
                     className={`px-2.5 py-1 rounded-full font-medium ${
                       offer.status === 'ACCEPTED'
-                        ? 'bg-emerald-500/20 text-emerald-300'
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                         : offer.status === 'REJECTED'
-                          ? 'bg-red-500/20 text-red-300'
-                          : 'bg-slate-700 text-slate-400'
+                          ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                          : 'bg-surface-container-high text-on-surface-variant border border-border'
                     }`}
                   >
                     {offer.status}
@@ -332,15 +332,15 @@ export default function DriverAssignmentOffersPage() {
 
         {/* Reject Confirmation Modal */}
         {rejectModalId && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
-              <h3 className="text-lg font-bold text-white">Reject Assignment Offer</h3>
-              <p className="text-xs text-slate-300">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-surface-container border border-border rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-scale-in">
+              <h3 className="text-lg font-bold text-on-surface">Reject Assignment Offer</h3>
+              <p className="text-xs text-on-surface-variant">
                 Are you sure you want to decline this booking offer? The system will pass the
                 request to the next available driver candidate.
               </p>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">
+                <label className="block text-xs text-on-surface-variant mb-1 font-mono">
                   Reason for Rejection (Optional)
                 </label>
                 <input
@@ -348,7 +348,7 @@ export default function DriverAssignmentOffersPage() {
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder="e.g. Too far, vehicle issue"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full rounded-xl bg-surface-container-high border border-border px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -356,7 +356,7 @@ export default function DriverAssignmentOffersPage() {
                 <button
                   type="button"
                   onClick={() => setRejectModalId(null)}
-                  className="min-h-[48px] px-4 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-slate-200 text-xs font-semibold rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                  className="min-h-[48px] px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold rounded-lg border border-border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   Cancel
                 </button>
@@ -364,7 +364,7 @@ export default function DriverAssignmentOffersPage() {
                   type="button"
                   onClick={handleReject}
                   disabled={!!actioningId}
-                  className="min-h-[48px] px-4 py-2 bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+                  className="min-h-[48px] px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"
                 >
                   {actioningId && (
                     <span className="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />

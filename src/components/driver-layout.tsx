@@ -99,29 +99,68 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
 
   const navGroups: NavGroup[] = [
     {
-      label: t('driver.nav.cockpitSection'),
+      label: t('driver.nav.cockpitSection', { defaultValue: 'Cockpit Section' }),
       items: [
-        { href: '/driver', label: t('driver.nav.cockpit'), icon: 'dashboard' },
-        { href: '/driver/bookings', label: t('driver.nav.activeRides'), icon: 'directions_car' },
+        {
+          href: '/driver',
+          label: t('driver.nav.cockpit', { defaultValue: 'Driver Cockpit' }),
+          icon: 'dashboard',
+        },
+        {
+          href: '/driver/bookings',
+          label: t('driver.nav.activeRides', { defaultValue: 'Active Rides & Tracking' }),
+          icon: 'directions_car',
+        },
         {
           href: '/driver/assignment-offers',
-          label: t('driver.nav.assignmentOffers'),
+          label: t('driver.nav.assignmentOffers', { defaultValue: 'Assignment Offers' }),
           icon: 'contactless',
         },
-
-        { href: '/driver/availability', label: t('driver.nav.availability'), icon: 'toggle_on' },
-        { href: '/driver/schedule', label: t('driver.nav.schedule'), icon: 'calendar_month' },
-        { href: '/driver/incoming-bookings', label: t('driver.nav.incomingRides'), icon: 'radar' },
+        {
+          href: '/driver/availability',
+          label: t('driver.nav.availability', { defaultValue: 'Go Online / Offline' }),
+          icon: 'toggle_on',
+        },
+        {
+          href: '/driver/schedule',
+          label: t('driver.nav.schedule', { defaultValue: 'Shift Roster & Leave' }),
+          icon: 'calendar_month',
+        },
+        {
+          href: '/driver/incoming-bookings',
+          label: t('driver.nav.incomingRides', { defaultValue: 'Incoming Booking Offers' }),
+          icon: 'radar',
+        },
       ],
     },
     {
-      label: t('driver.nav.financeGrowth'),
+      label: t('driver.nav.financeGrowth', { defaultValue: 'Finance & Growth' }),
       items: [
-        { href: '/driver/earnings', label: t('driver.nav.earnings'), icon: 'payments' },
-        { href: '/driver/wallet', label: t('driver.nav.wallet'), icon: 'account_balance_wallet' },
-        { href: '/driver/settlements', label: t('driver.nav.settlements'), icon: 'receipt' },
-        { href: '/driver/incentives', label: t('driver.nav.incentives'), icon: 'military_tech' },
-        { href: '/driver/achievements', label: t('driver.nav.achievements'), icon: 'stars' },
+        {
+          href: '/driver/earnings',
+          label: t('driver.nav.earnings', { defaultValue: 'Driver Earnings' }),
+          icon: 'payments',
+        },
+        {
+          href: '/driver/wallet',
+          label: t('driver.nav.wallet', { defaultValue: 'Earnings & Payouts' }),
+          icon: 'account_balance_wallet',
+        },
+        {
+          href: '/driver/settlements',
+          label: t('driver.nav.settlements', { defaultValue: 'Settlements & Statements' }),
+          icon: 'receipt',
+        },
+        {
+          href: '/driver/incentives',
+          label: t('driver.nav.incentives', { defaultValue: 'Incentives & Bonuses' }),
+          icon: 'military_tech',
+        },
+        {
+          href: '/driver/achievements',
+          label: t('driver.nav.achievements', { defaultValue: 'Achievements & Milestones' }),
+          icon: 'stars',
+        },
         {
           href: '/driver/offers',
           label: t('driver.nav.offers', { defaultValue: 'Offers & Perks' }),
@@ -129,25 +168,49 @@ export function DriverLayout({ children, userEmail = null }: DriverLayoutProps) 
         },
         {
           href: '/driver/performance-and-badges',
-          label: t('driver.nav.performanceAndBadges'),
+          label: t('driver.nav.performanceAndBadges', { defaultValue: 'Performance & Badges' }),
           icon: 'military_tech',
         },
         {
           href: '/driver/ratings-and-reviews',
-          label: t('driver.nav.ratingsAndReviews'),
+          label: t('driver.nav.ratingsAndReviews', { defaultValue: 'Ratings & Reviews' }),
           icon: 'star',
         },
-        { href: '/driver/public-portfolio', label: t('driver.nav.publicPortfolio'), icon: 'badge' },
-        { href: '/driver/referrals', label: t('driver.nav.referrals'), icon: 'group_add' },
+        {
+          href: '/driver/public-portfolio',
+          label: t('driver.nav.publicPortfolio', { defaultValue: 'Public Portfolio' }),
+          icon: 'badge',
+        },
+        {
+          href: '/driver/referrals',
+          label: t('driver.nav.referrals', { defaultValue: 'Driver Referrals' }),
+          icon: 'group_add',
+        },
       ],
     },
     {
-      label: t('driver.nav.governanceAccount'),
+      label: t('driver.nav.governanceAccount', { defaultValue: 'Governance & Account' }),
       items: [
-        { href: '/driver/profile', label: t('driver.nav.profile'), icon: 'person' },
-        { href: '/driver/documents', label: t('driver.nav.documents'), icon: 'verified_user' },
-        { href: '/driver/sos-support', label: t('driver.nav.sosSupport'), icon: 'emergency_home' },
-        { href: '/driver/settings', label: t('driver.nav.settings'), icon: 'tune' },
+        {
+          href: '/driver/profile',
+          label: t('driver.nav.profile', { defaultValue: 'Profile' }),
+          icon: 'person',
+        },
+        {
+          href: '/driver/documents',
+          label: t('driver.nav.documents', { defaultValue: 'Documents' }),
+          icon: 'verified_user',
+        },
+        {
+          href: '/driver/sos-support',
+          label: t('driver.nav.sosSupport', { defaultValue: 'SOS Emergency' }),
+          icon: 'emergency_home',
+        },
+        {
+          href: '/driver/settings',
+          label: t('driver.nav.settings', { defaultValue: 'Console Settings' }),
+          icon: 'tune',
+        },
       ],
     },
   ];
