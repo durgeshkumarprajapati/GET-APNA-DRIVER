@@ -7,11 +7,11 @@ interface StatusBadgeProps {
 }
 
 const TONE_CLASSES: Record<StatusBadgeTone, string> = {
-  success: 'bg-[#00311f] text-[#68dba9] border-[#25a475]',
-  warning: 'bg-[#3a2e00] text-[#f5c542] border-[#8a6d00]',
-  danger: 'bg-[#93000a]/20 text-[#ffb4ab] border-[#93000a]/50',
-  neutral: 'bg-[#262a33] text-[#bccac0] border-[#3d4a42]',
-  info: 'bg-[#0a1f3a] text-[#b4c5ff] border-[#2a4a8a]',
+  success: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+  warning: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+  danger: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30',
+  neutral: 'bg-surface-container-high text-on-surface-variant border-border',
+  info: 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30',
 };
 
 /**

@@ -19,15 +19,15 @@ export default function CustomerSettingsPage() {
           actions={
             <Link
               href="/profile"
-              className="min-h-[44px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] active:bg-[#454f5c] text-xs font-bold text-[#dfe2ee] transition-colors flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[44px] px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest border border-border text-xs font-bold text-on-surface transition-colors flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary shadow-sm"
             >
               Profile →
             </Link>
           }
         />
 
-        <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4 animate-fade-in-up">
-          <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+        <section className="p-6 rounded-xl bg-surface-container border border-border space-y-4 animate-fade-in-up shadow-sm">
+          <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
             Notification Preferences
           </h2>
           <NotificationPreferencesPanel />

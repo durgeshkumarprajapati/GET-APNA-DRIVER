@@ -196,13 +196,13 @@ export default function CustomerRewardsPage() {
   const getTierBadgeStyle = (code?: string) => {
     switch (code) {
       case 'PLATINUM':
-        return 'bg-purple-950/60 border-purple-500/50 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]';
+        return 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-300 shadow-sm';
       case 'GOLD':
-        return 'bg-amber-950/60 border-amber-500/50 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]';
+        return 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-300 shadow-sm';
       case 'SILVER':
-        return 'bg-slate-800/80 border-slate-400/50 text-slate-200';
+        return 'bg-surface-container-high border-border text-on-surface';
       default:
-        return 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300';
+        return 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400';
     }
   };
 
@@ -211,17 +211,17 @@ export default function CustomerRewardsPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* HEADER TITLE */}
         <div>
-          <span className="text-[10px] font-mono font-bold tracking-widest text-[#68dba9] uppercase">
+          <span className="text-[10px] font-mono font-bold tracking-widest text-primary uppercase">
             {t('customer.rewards.eyebrow')}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
             {t('customer.rewards.title')}
           </h1>
-          <p className="text-xs sm:text-sm text-[#bccac0] mt-1">{t('customer.rewards.subtitle')}</p>
+          <p className="text-xs sm:text-sm text-on-surface-variant mt-1">{t('customer.rewards.subtitle')}</p>
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/50 text-red-300 text-xs flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-base">error</span>
               <span>{error}</span>
@@ -229,7 +229,7 @@ export default function CustomerRewardsPage() {
             <button
               type="button"
               onClick={() => setRefreshKey((k) => k + 1)}
-              className="min-h-[40px] px-2 py-1 bg-red-900/60 hover:bg-red-800/80 active:bg-red-950 rounded text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+              className="min-h-[40px] px-2 py-1 bg-destructive/20 hover:bg-destructive/30 rounded text-[11px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-destructive"
             >
               {t('common.actions.retry')}
             </button>
@@ -237,16 +237,16 @@ export default function CustomerRewardsPage() {
         )}
 
         {loading ? (
-          <div className="p-12 text-center text-[#bccac0] text-sm font-mono animate-pulse">
+          <div className="p-12 text-center text-on-surface-variant text-sm font-mono animate-pulse">
             {t('common.labels.loading')}
           </div>
         ) : (
           account && (
             <>
               {/* TIER STATUS CARD */}
-              <div className="relative overflow-hidden rounded-2xl bg-[#141822] border border-[#262a33] p-6 shadow-2xl animate-fade-in-up">
+              <div className="relative overflow-hidden rounded-2xl bg-surface-container border border-border p-6 shadow-sm animate-fade-in-up">
                 <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                  <span className="material-symbols-outlined text-9xl text-[#68dba9]">
+                  <span className="material-symbols-outlined text-9xl text-primary">
                     workspace_premium
                   </span>
                 </div>
@@ -262,25 +262,25 @@ export default function CustomerRewardsPage() {
                       >
                         {account.currentTier?.name || account.tierCode}
                       </span>
-                      <span className="text-xs text-[#bccac0] font-mono">
+                      <span className="text-xs text-on-surface-variant font-mono">
                         {account.currentTier?.multiplier}x Points Multiplier
                       </span>
                     </div>
 
                     <div className="flex items-baseline gap-4">
                       <div>
-                        <span className="text-3xl sm:text-4xl font-extrabold text-[#68dba9] font-['Space_Grotesk']">
+                        <span className="text-3xl sm:text-4xl font-extrabold text-primary font-['Space_Grotesk']">
                           {account.pointsBalance.toLocaleString()}
                         </span>
-                        <span className="text-xs text-[#bccac0] ml-2 font-mono uppercase">
+                        <span className="text-xs text-on-surface-variant ml-2 font-mono uppercase">
                           {t('customer.rewards.tierCard.pointsBalance')}
                         </span>
                       </div>
-                      <div className="border-l border-[#262a33] pl-4">
-                        <span className="text-lg font-bold text-[#dfe2ee]">
+                      <div className="border-l border-border pl-4">
+                        <span className="text-lg font-bold text-on-surface">
                           {account.lifetimePoints.toLocaleString()}
                         </span>
-                        <span className="text-[11px] text-[#87948b] ml-1.5 font-mono">
+                        <span className="text-[11px] text-on-surface-variant ml-1.5 font-mono">
                           {t('customer.rewards.tierCard.lifetimePoints')}
                         </span>
                       </div>
@@ -289,7 +289,7 @@ export default function CustomerRewardsPage() {
                     {/* PROGRESS BAR */}
                     <div className="space-y-2 pt-2">
                       <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="text-[#dfe2ee]">
+                        <span className="text-on-surface">
                           {account.nextTier
                             ? t('customer.rewards.tierCard.progressTo', {
                                 tier: account.nextTier.name,
@@ -297,7 +297,7 @@ export default function CustomerRewardsPage() {
                             : t('customer.rewards.tierCard.maxTier')}
                         </span>
                         {account.nextTier && (
-                          <span className="text-[#68dba9]">
+                          <span className="text-primary font-bold">
                             {t('customer.rewards.tierCard.pointsNeeded', {
                               points: account.pointsToNextTier.toLocaleString(),
                               tier: account.nextTier.name,
@@ -305,9 +305,9 @@ export default function CustomerRewardsPage() {
                           </span>
                         )}
                       </div>
-                      <div className="h-2.5 w-full bg-[#1e2330] rounded-full overflow-hidden border border-[#262a33]">
+                      <div className="h-2.5 w-full bg-surface-container-highest rounded-full overflow-hidden border border-border">
                         <div
-                          className="h-full bg-gradient-to-r from-[#25a475] to-[#68dba9] transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
                           style={{
                             width: `${Math.min(100, account.tierProgressPercentage)}%`,
                           }}
@@ -317,17 +317,17 @@ export default function CustomerRewardsPage() {
                   </div>
 
                   {/* BENEFITS QUICK SUMMARY */}
-                  <div className="bg-[#1a1f2e] border border-[#262a33] rounded-xl p-4 flex flex-col justify-between">
+                  <div className="bg-surface-container-high border border-border rounded-xl p-4 flex flex-col justify-between">
                     <div>
-                      <span className="text-[10px] font-mono uppercase font-bold text-[#68dba9]">
+                      <span className="text-[10px] font-mono uppercase font-bold text-primary">
                         Tier Benefits
                       </span>
-                      <p className="text-xs text-[#dfe2ee] mt-1 leading-relaxed">
+                      <p className="text-xs text-on-surface mt-1 leading-relaxed">
                         {account.currentTier?.benefitsSummary ||
                           'Enjoy priority booking matching and points multiper on all completed bookings.'}
                       </p>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-[#262a33] text-[11px] text-[#bccac0] font-mono">
+                    <div className="mt-4 pt-3 border-t border-border text-[11px] text-on-surface-variant font-mono">
                       Completed bookings earn 10 points per ₹100 spent.
                     </div>
                   </div>
@@ -337,10 +337,10 @@ export default function CustomerRewardsPage() {
               {/* REWARDS CATALOG GRID */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <h2 className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
                     {t('customer.rewards.catalog.title')}
                   </h2>
-                  <span className="text-xs text-[#bccac0] font-mono">
+                  <span className="text-xs text-on-surface-variant font-mono">
                     {rewards.length} rewards available
                   </span>
                 </div>
@@ -361,20 +361,20 @@ export default function CustomerRewardsPage() {
                     return (
                       <div
                         key={reward.id}
-                        className="bg-[#141822] border border-[#262a33] rounded-xl p-5 flex flex-col justify-between hover:border-[#384052] transition-colors space-y-4"
+                        className="bg-surface-container border border-border rounded-xl p-5 flex flex-col justify-between hover:border-primary/40 transition-colors space-y-4 shadow-sm"
                       >
                         <div className="space-y-2">
                           <div className="flex items-start justify-between gap-2">
-                            <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] leading-snug">
+                            <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] leading-snug">
                               {reward.title}
                             </h3>
-                            <span className="px-2 py-0.5 rounded bg-[#68dba9]/10 text-[#68dba9] border border-[#68dba9]/30 text-[10px] font-mono font-bold shrink-0">
+                            <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/30 text-[10px] font-mono font-bold shrink-0">
                               {reward.pointsCost} PTS
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-[11px] font-mono text-[#bccac0]">
-                            <span className="px-1.5 py-0.5 rounded bg-[#1e2330] border border-[#262a33]">
+                          <div className="flex items-center gap-2 text-[11px] font-mono text-on-surface-variant">
+                            <span className="px-1.5 py-0.5 rounded bg-surface-container-high border border-border">
                               Min: {reward.minTierCode}
                             </span>
                             <span>
@@ -386,11 +386,11 @@ export default function CustomerRewardsPage() {
                         </div>
 
                         {showCode ? (
-                          <div className="p-3 bg-[#00311f] border border-[#25a475] rounded-lg text-center font-mono">
-                            <span className="text-[10px] text-[#bccac0] block uppercase">
+                          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-center font-mono">
+                            <span className="text-[10px] text-on-surface-variant block uppercase">
                               Promo Code
                             </span>
-                            <span className="text-sm font-extrabold text-[#68dba9] tracking-wider select-all">
+                            <span className="text-sm font-extrabold text-primary tracking-wider select-all">
                               {showCode}
                             </span>
                           </div>
@@ -399,12 +399,12 @@ export default function CustomerRewardsPage() {
                             type="button"
                             onClick={() => void handleRedeem(reward.id)}
                             disabled={isInsufficient || isTierLocked || isRedeemed || isRedeeming}
-                            className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] disabled:cursor-not-allowed ${
+                            className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed ${
                               isRedeemed
-                                ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                                ? 'bg-surface-container-highest text-on-surface-variant border border-border'
                                 : isInsufficient || isTierLocked
-                                  ? 'bg-[#181c24] text-[#87948b] border border-[#262a33]'
-                                  : 'bg-[#25a475] hover:bg-[#208e65] active:bg-[#1a7455] text-[#00311f] shadow-lg shadow-[#25a475]/20'
+                                  ? 'bg-surface-container-high text-on-surface-variant border border-border'
+                                  : 'bg-primary hover:opacity-90 active:opacity-100 text-on-primary shadow-md'
                             }`}
                           >
                             {isRedeeming ? (
@@ -435,45 +435,45 @@ export default function CustomerRewardsPage() {
 
               {/* POINTS TRANSACTION HISTORY */}
               <div className="space-y-4 pt-4">
-                <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
                   {t('customer.rewards.history.title')}
                 </h2>
 
-                <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
+                <div className="bg-surface-container border border-border rounded-2xl overflow-hidden shadow-sm">
                   {transactions.length === 0 ? (
-                    <div className="p-8 text-center text-[#bccac0] text-xs font-mono">
+                    <div className="p-8 text-center text-on-surface-variant text-xs font-mono">
                       {t('customer.rewards.history.noHistory')}
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-[#262a33] bg-[#0a0e16]/60 text-[11px] font-mono text-[#bccac0] uppercase tracking-wider">
+                          <tr className="border-b border-border bg-surface-container-high/60 text-[11px] font-mono text-on-surface-variant uppercase tracking-wider">
                             <th className="p-3.5">{t('customer.rewards.history.type')}</th>
                             <th className="p-3.5">{t('customer.rewards.history.points')}</th>
                             <th className="p-3.5">{t('customer.rewards.history.description')}</th>
                             <th className="p-3.5">{t('customer.rewards.history.date')}</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#262a33] text-xs font-mono">
+                        <tbody className="divide-y divide-border text-xs font-mono">
                           {transactions.map((tx) => {
                             const isPositive = tx.points > 0;
                             return (
-                              <tr key={tx.id} className="hover:bg-[#1c2028] transition-colors">
-                                <td className="p-3.5 font-bold text-[#dfe2ee]">
+                              <tr key={tx.id} className="hover:bg-surface-container-high/50 transition-colors">
+                                <td className="p-3.5 font-bold text-on-surface">
                                   {tx.transactionType}
                                 </td>
                                 <td
                                   className={`p-3.5 font-bold ${
-                                    isPositive ? 'text-[#68dba9]' : 'text-rose-400'
+                                    isPositive ? 'text-primary' : 'text-destructive'
                                   }`}
                                 >
                                   {isPositive ? `+${tx.points}` : tx.points}
                                 </td>
-                                <td className="p-3.5 text-[#bccac0] max-w-xs truncate">
+                                <td className="p-3.5 text-on-surface-variant max-w-xs truncate">
                                   {tx.reason}
                                 </td>
-                                <td className="p-3.5 text-[#87948b]">
+                                <td className="p-3.5 text-on-surface-variant">
                                   {new Date(tx.createdAt).toLocaleDateString()}
                                 </td>
                               </tr>

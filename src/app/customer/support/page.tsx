@@ -268,19 +268,19 @@ export default function CustomerSupportPage() {
   const getStatusBadgeClass = (status: SupportTicketStatus) => {
     switch (status) {
       case 'OPEN':
-        return 'bg-[#0053db]/20 text-[#70a1ff] border-[#0053db]/40';
+        return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
       case 'IN_PROGRESS':
-        return 'bg-[#f39c12]/20 text-[#f1c40f] border-[#f39c12]/40';
+        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30';
       case 'WAITING_FOR_CUSTOMER':
-        return 'bg-[#9b59b6]/20 text-[#e056fd] border-[#9b59b6]/40';
+        return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30';
       case 'RESOLVED':
-        return 'bg-[#25a475]/20 text-[#68dba9] border-[#25a475]/40';
+        return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
       case 'CLOSED':
-        return 'bg-[#262a33] text-[#87948b] border-[#31353e]';
+        return 'bg-surface-container-high text-on-surface-variant border-border';
       case 'REOPENED':
-        return 'bg-[#e74c3c]/20 text-[#ff7675] border-[#e74c3c]/40';
+        return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30';
       default:
-        return 'bg-[#262a33] text-[#dfe2ee] border-[#31353e]';
+        return 'bg-surface-container-high text-on-surface border-border';
     }
   };
 
@@ -301,24 +301,24 @@ export default function CustomerSupportPage() {
       <div className="flex flex-col w-full gap-6 max-w-[1440px] mx-auto p-4 md:p-6">
         {/* Toast Alert */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 bg-[#25a475] text-[#00311f] font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-[#68dba9]">
+          <div className="fixed bottom-6 right-6 z-50 bg-primary text-on-primary font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-primary/40">
             <span className="material-symbols-outlined text-xl">check_circle</span>
             <span className="text-sm font-['Space_Grotesk']">{toastMessage}</span>
           </div>
         )}
 
         {/* Page Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#262a33] pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
           <div>
-            <div className="flex items-center gap-2 text-xs text-[#87948b] mb-1 font-mono">
+            <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-1 font-mono">
               <span>CUSTOMER PORTAL</span>
               <span>/</span>
-              <span className="text-[#68dba9]">SUPPORT & ARBITRATION</span>
+              <span className="text-primary font-bold">SUPPORT & ARBITRATION</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h1 className="text-2xl md:text-3xl font-bold text-on-surface font-['Space_Grotesk']">
               Customer Support Center
             </h1>
-            <p className="text-xs md:text-sm text-[#bccac0] mt-1">
+            <p className="text-xs md:text-sm text-on-surface-variant mt-1">
               Track issues, contact operations concierge, and view resolution logs for your
               bookings.
             </p>
@@ -328,7 +328,7 @@ export default function CustomerSupportPage() {
               type="button"
               disabled={callingSupport}
               onClick={handleCallSupport}
-              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#0053db] hover:bg-[#2b75ff] active:bg-[#003ea8] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#70a1ff]"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
               <span className="material-symbols-outlined text-lg">call</span>
               <span>{callingSupport ? 'Connecting…' : 'Call Customer Care'}</span>
@@ -336,7 +336,7 @@ export default function CustomerSupportPage() {
             <button
               type="button"
               onClick={() => setIsCreateOpen(true)}
-              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[48px] px-4 py-2.5 rounded-xl bg-primary hover:opacity-90 active:opacity-100 text-on-primary font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md font-['Space_Grotesk'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <span className="material-symbols-outlined text-lg">add_comment</span>
               <span>Create New Request</span>
@@ -346,19 +346,19 @@ export default function CustomerSupportPage() {
 
         {/* Active Call Banner */}
         {callData && (
-          <div className="p-4 rounded-xl bg-[#0053db]/20 border border-[#70a1ff]/40 flex flex-wrap items-center justify-between gap-4">
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#70a1ff] text-2xl animate-pulse">
+              <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl animate-pulse">
                 phone_in_talk
               </span>
               <div>
-                <span className="text-sm font-bold text-[#dfe2ee] block font-['Space_Grotesk']">
+                <span className="text-sm font-bold text-on-surface block font-['Space_Grotesk']">
                   Customer Care Call Connected (Session ID: {callData.callSessionId.substring(0, 8)}
                   )
                 </span>
-                <span className="text-xs text-[#70a1ff]">
+                <span className="text-xs text-blue-600 dark:text-blue-400">
                   Dial Helpline:{' '}
-                  <strong className="text-white font-mono">{callData.dialNumber}</strong> •{' '}
+                  <strong className="text-on-surface font-mono">{callData.dialNumber}</strong> •{' '}
                   {callData.instructions}
                 </span>
               </div>
@@ -366,7 +366,7 @@ export default function CustomerSupportPage() {
             <button
               type="button"
               onClick={() => setCallData(null)}
-              className="min-h-[40px] px-2 text-xs text-[#87948b] hover:text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="min-h-[40px] px-2 text-xs text-on-surface-variant hover:text-on-surface transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               Dismiss
             </button>
@@ -374,24 +374,24 @@ export default function CustomerSupportPage() {
         )}
 
         {/* Safety SOS Escalation Banner */}
-        <div className="p-4 rounded-xl bg-[#93000a]/20 border border-[#ffb4ab]/30 flex flex-wrap items-center justify-between gap-4">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#ffb4ab] text-2xl animate-pulse">
+            <span className="material-symbols-outlined text-destructive text-2xl animate-pulse">
               e911_emergency
             </span>
             <div>
-              <span className="text-sm font-bold text-[#ffdad6] block font-['Space_Grotesk']">
+              <span className="text-sm font-bold text-on-surface block font-['Space_Grotesk']">
                 Immediate Physical Emergency or Safety Danger?
               </span>
-              <span className="text-xs text-[#ffb4ab]/80">
+              <span className="text-xs text-on-surface-variant">
                 Do not use general support ticketing. Trigger the live SOS emergency button for
                 immediate response.
               </span>
             </div>
           </div>
           <a
-            href="/customer/sos"
-            className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#93000a] hover:bg-[#ba1a1a] active:bg-[#7a0008] text-[#ffdad6] font-bold text-xs font-['Space_Grotesk'] flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
+            href="/customer/safety-sos"
+            className="min-h-[40px] px-3.5 py-2 rounded-lg bg-destructive hover:opacity-90 active:opacity-100 text-destructive-foreground font-bold text-xs font-['Space_Grotesk'] flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-destructive"
           >
             <span className="material-symbols-outlined text-base">warning</span>
             <span>Go to Emergency SOS</span>
@@ -403,42 +403,42 @@ export default function CustomerSupportPage() {
           {/* Left Column: Tickets List (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant font-['Space_Grotesk']">
                 My Support Requests ({tickets.length})
               </h2>
               <button
                 type="button"
                 onClick={fetchTickets}
-                className="min-h-[40px] px-2 text-xs text-[#68dba9] hover:underline font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="min-h-[40px] px-2 text-xs text-primary font-bold hover:underline font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 Refresh
               </button>
             </div>
 
             {loading ? (
-              <div className="p-8 rounded-xl bg-[#181c24] border border-[#262a33] text-center text-[#87948b] font-mono text-xs">
+              <div className="p-8 rounded-xl bg-surface-container border border-border text-center text-on-surface-variant font-mono text-xs shadow-sm">
                 Loading support tickets...
               </div>
             ) : error ? (
-              <div className="p-4 rounded-xl bg-[#93000a]/20 border border-[#ffb4ab]/30 text-xs text-[#ffdad6]">
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-xs text-destructive">
                 {error}
               </div>
             ) : tickets.length === 0 ? (
-              <div className="p-8 rounded-xl bg-[#181c24] border border-[#262a33] text-center flex flex-col items-center gap-3">
-                <span className="material-symbols-outlined text-4xl text-[#87948b]">
+              <div className="p-8 rounded-xl bg-surface-container border border-border text-center flex flex-col items-center gap-3 shadow-sm">
+                <span className="material-symbols-outlined text-4xl text-on-surface-variant">
                   support_agent
                 </span>
-                <p className="text-sm text-[#dfe2ee] font-medium font-['Space_Grotesk']">
+                <p className="text-sm text-on-surface font-medium font-['Space_Grotesk']">
                   No support requests yet
                 </p>
-                <p className="text-xs text-[#bccac0] max-w-xs">
+                <p className="text-xs text-on-surface-variant max-w-xs">
                   If you need help with a booking, payment, account, or service discrepancy, open a
                   request.
                 </p>
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(true)}
-                  className="min-h-[40px] mt-2 px-3 py-1.5 rounded-lg bg-[#262a33] text-[#68dba9] border border-[#3d4a42] text-xs font-bold font-['Space_Grotesk'] hover:bg-[#31353e] active:bg-[#3d4a42] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="min-h-[40px] mt-2 px-3 py-1.5 rounded-lg bg-surface-container-high text-primary border border-border text-xs font-bold font-['Space_Grotesk'] hover:bg-surface-container-highest transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   Create Support Request
                 </button>
@@ -457,14 +457,14 @@ export default function CustomerSupportPage() {
                         loadTicketDetail(t.id);
                       }
                     }}
-                    className={`card-interactive p-4 rounded-xl border cursor-pointer flex flex-col gap-2 ${
+                    className={`card-interactive p-4 rounded-xl border cursor-pointer flex flex-col gap-2 shadow-sm ${
                       selectedTicket?.id === t.id
-                        ? 'bg-[#1c2028] border-[#68dba9] shadow-lg'
-                        : 'bg-[#181c24] border-[#262a33]'
+                        ? 'bg-surface-container-high border-primary'
+                        : 'bg-surface-container border-border'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-bold text-[#68dba9]">
+                      <span className="font-mono text-xs font-bold text-primary">
                         #{t.ticketNumber}
                       </span>
                       <span
@@ -476,11 +476,11 @@ export default function CustomerSupportPage() {
                       </span>
                     </div>
 
-                    <h3 className="text-sm font-semibold text-[#dfe2ee] font-['Space_Grotesk'] line-clamp-1">
+                    <h3 className="text-sm font-semibold text-on-surface font-['Space_Grotesk'] line-clamp-1">
                       {t.subject}
                     </h3>
 
-                    <div className="flex items-center justify-between text-xs text-[#87948b] pt-2 border-t border-[#262a33]/60 font-mono">
+                    <div className="flex items-center justify-between text-xs text-on-surface-variant pt-2 border-t border-border/60 font-mono">
                       <span>{categoryLabels[t.category] || t.category}</span>
                       <span>{new Date(t.createdAt).toLocaleDateString()}</span>
                     </div>
@@ -493,26 +493,26 @@ export default function CustomerSupportPage() {
           {/* Right Column: Ticket Detail Workspace (7 cols) */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             {!selectedTicket ? (
-              <div className="p-12 rounded-xl bg-[#181c24] border border-[#262a33] text-center text-[#87948b] flex flex-col items-center justify-center min-h-[350px]">
-                <span className="material-symbols-outlined text-4xl mb-2 text-[#31353e]">
+              <div className="p-12 rounded-xl bg-surface-container border border-border text-center text-on-surface-variant flex flex-col items-center justify-center min-h-[350px] shadow-sm">
+                <span className="material-symbols-outlined text-4xl mb-2 text-on-surface-variant">
                   forum
                 </span>
-                <p className="text-sm font-['Space_Grotesk'] text-[#bccac0]">
+                <p className="text-sm font-['Space_Grotesk'] text-on-surface-variant">
                   Select a support ticket from the list to view its full conversation and status
                   history.
                 </p>
               </div>
             ) : detailLoading ? (
-              <div className="p-12 rounded-xl bg-[#181c24] border border-[#262a33] text-center font-mono text-xs text-[#87948b]">
+              <div className="p-12 rounded-xl bg-surface-container border border-border text-center font-mono text-xs text-on-surface-variant shadow-sm">
                 Loading conversation detail...
               </div>
             ) : (
-              <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] shadow-xl flex flex-col gap-5">
+              <div className="p-6 rounded-xl bg-surface-container border border-border shadow-sm flex flex-col gap-5">
                 {/* Header */}
-                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#262a33] pb-4">
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-bold text-[#68dba9]">
+                      <span className="font-mono text-sm font-bold text-primary">
                         #{selectedTicket.ticketNumber}
                       </span>
                       <span
@@ -522,14 +522,14 @@ export default function CustomerSupportPage() {
                       >
                         {selectedTicket.status.replace(/_/g, ' ')}
                       </span>
-                      <span className="text-xs text-[#87948b] font-mono">
+                      <span className="text-xs text-on-surface-variant font-mono">
                         {categoryLabels[selectedTicket.category]}
                       </span>
                     </div>
-                    <h2 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+                    <h2 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
                       {selectedTicket.subject}
                     </h2>
-                    <span className="text-xs text-[#87948b] font-mono">
+                    <span className="text-xs text-on-surface-variant font-mono">
                       Created on {new Date(selectedTicket.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -539,7 +539,7 @@ export default function CustomerSupportPage() {
                       type="button"
                       onClick={handleCloseTicket}
                       disabled={closing}
-                      className="min-h-[40px] px-3 py-1.5 rounded-lg bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] border border-[#3d4a42] text-[#ffb4ab] text-xs font-mono transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffb4ab]"
+                      className="min-h-[40px] px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest border border-border text-destructive text-xs font-mono transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-destructive"
                     >
                       {closing ? 'Closing...' : 'Close Ticket'}
                     </button>
@@ -548,15 +548,15 @@ export default function CustomerSupportPage() {
 
                 {/* Booking Reference Card if associated */}
                 {selectedTicket.booking && (
-                  <div className="p-3 rounded-lg bg-[#1c2028] border border-[#262a33] text-xs flex flex-col gap-1">
-                    <span className="font-bold text-[#68dba9] font-['Space_Grotesk'] uppercase text-[10px]">
+                  <div className="p-3 rounded-lg bg-surface-container-high border border-border text-xs flex flex-col gap-1">
+                    <span className="font-bold text-primary font-['Space_Grotesk'] uppercase text-[10px]">
                       Associated Booking
                     </span>
-                    <div className="flex justify-between text-[#dfe2ee]">
+                    <div className="flex justify-between text-on-surface">
                       <span>{selectedTicket.booking.bookingType} Booking</span>
                       <span className="font-mono">{selectedTicket.booking.status}</span>
                     </div>
-                    <p className="text-[#87948b] truncate">
+                    <p className="text-on-surface-variant truncate">
                       {selectedTicket.booking.pickupAddress} →{' '}
                       {selectedTicket.booking.dropoffAddress}
                     </p>
@@ -565,7 +565,7 @@ export default function CustomerSupportPage() {
 
                 {/* Conversation Thread */}
                 <div className="flex flex-col gap-3 max-h-[420px] overflow-y-auto pr-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant font-['Space_Grotesk']">
                     Conversation History
                   </span>
 
@@ -577,12 +577,12 @@ export default function CustomerSupportPage() {
                           key={m.id}
                           className={`p-4 rounded-xl border max-w-[85%] flex flex-col gap-1 text-xs ${
                             isCustomer
-                              ? 'bg-[#1c2028] border-[#262a33] self-end text-right'
-                              : 'bg-[#262a33] border-[#3d4a42] self-start text-left'
+                              ? 'bg-surface-container-high border-border self-end text-right'
+                              : 'bg-primary/10 border-primary/30 self-start text-left'
                           }`}
                         >
-                          <div className="flex items-center gap-2 text-[10px] font-mono text-[#87948b] justify-between">
-                            <span className="font-bold text-[#68dba9]">
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-on-surface-variant justify-between">
+                            <span className="font-bold text-primary">
                               {isCustomer ? 'You (Customer)' : 'Customer Support Agent'}
                             </span>
                             <span>
@@ -592,14 +592,14 @@ export default function CustomerSupportPage() {
                               })}
                             </span>
                           </div>
-                          <p className="text-[#dfe2ee] leading-relaxed whitespace-pre-wrap">
+                          <p className="text-on-surface leading-relaxed whitespace-pre-wrap">
                             {m.body}
                           </p>
                         </div>
                       );
                     })
                   ) : (
-                    <div className="p-4 rounded-lg bg-[#1c2028] text-xs text-[#87948b]">
+                    <div className="p-4 rounded-lg bg-surface-container-high border border-border text-xs text-on-surface-variant">
                       {selectedTicket.description}
                     </div>
                   )}
@@ -609,27 +609,27 @@ export default function CustomerSupportPage() {
                 {selectedTicket.status !== 'CLOSED' ? (
                   <form
                     onSubmit={handleSendReply}
-                    className="flex flex-col gap-2 pt-3 border-t border-[#262a33]"
+                    className="flex flex-col gap-2 pt-3 border-t border-border"
                   >
                     <textarea
                       rows={3}
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       placeholder="Type your reply here..."
-                      className="w-full bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] text-xs p-3 rounded-lg placeholder:text-[#87948b] focus:outline-none focus:ring-1 focus:ring-[#68dba9] resize-none"
+                      className="w-full bg-surface-container-high border border-border text-on-surface text-xs p-3 rounded-lg placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                     />
                     <div className="flex justify-end">
                       <button
                         type="submit"
                         disabled={replying || !replyText.trim()}
-                        className="min-h-[44px] px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                        className="min-h-[44px] px-4 py-2 rounded-lg bg-primary hover:opacity-90 text-on-primary font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         {replying ? 'Sending...' : 'Send Reply'}
                       </button>
                     </div>
                   </form>
                 ) : (
-                  <div className="p-3 rounded-lg bg-[#1c2028] border border-[#262a33] text-center text-xs text-[#87948b]">
+                  <div className="p-3 rounded-lg bg-surface-container-high border border-border text-center text-xs text-on-surface-variant">
                     This support request has been closed. Create a new request if you still need
                     assistance.
                   </div>
@@ -641,17 +641,17 @@ export default function CustomerSupportPage() {
 
         {/* Create Support Request Modal */}
         {isCreateOpen && (
-          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-            <div className="w-full max-w-lg rounded-2xl bg-[#181c24] border border-[#262a33] p-6 shadow-2xl flex flex-col gap-4 animate-scale-in">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="w-full max-w-lg rounded-2xl bg-surface-container border border-border p-6 shadow-2xl flex flex-col gap-4 animate-scale-in">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                   Create Support Request
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
                   aria-label="Close"
-                  className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#262a33] active:bg-[#31353e] transition-colors font-bold text-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors font-bold text-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   ×
                 </button>
@@ -659,13 +659,13 @@ export default function CustomerSupportPage() {
 
               <form onSubmit={handleCreateTicket} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-['Space_Grotesk']">
                     Category
                   </label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value as SupportTicketCategory)}
-                    className="w-full bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-high border border-border text-on-surface text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     {Object.entries(categoryLabels).map(([key, label]) => (
                       <option key={key} value={key}>
@@ -676,13 +676,13 @@ export default function CustomerSupportPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-['Space_Grotesk']">
                     Link Booking (Optional)
                   </label>
                   <select
                     value={newBookingId}
                     onChange={(e) => setNewBookingId(e.target.value)}
-                    className="w-full bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-high border border-border text-on-surface text-xs p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="">No specific booking</option>
                     {eligibleBookings.map((b) => (
@@ -695,7 +695,7 @@ export default function CustomerSupportPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-['Space_Grotesk']">
                     Subject
                   </label>
                   <input
@@ -704,12 +704,12 @@ export default function CustomerSupportPage() {
                     value={newSubject}
                     onChange={(e) => setNewSubject(e.target.value)}
                     placeholder="Brief summary of your issue"
-                    className="w-full bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] text-xs p-3 rounded-lg placeholder:text-[#87948b] focus:outline-none focus:ring-1 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-high border border-border text-on-surface text-xs p-3 rounded-lg placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-[#87948b] font-['Space_Grotesk']">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-['Space_Grotesk']">
                     Description
                   </label>
                   <textarea
@@ -718,7 +718,7 @@ export default function CustomerSupportPage() {
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
                     placeholder="Provide full details regarding your issue..."
-                    className="w-full bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] text-xs p-3 rounded-lg placeholder:text-[#87948b] focus:outline-none focus:ring-1 focus:ring-[#68dba9] resize-none"
+                    className="w-full bg-surface-container-high border border-border text-on-surface text-xs p-3 rounded-lg placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                   />
                 </div>
 
@@ -726,14 +726,14 @@ export default function CustomerSupportPage() {
                   <button
                     type="button"
                     onClick={() => setIsCreateOpen(false)}
-                    className="min-h-[48px] px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="min-h-[48px] px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-bold font-['Space_Grotesk'] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creating}
-                    className="min-h-[48px] px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] text-[#003825] font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="min-h-[48px] px-4 py-2 rounded-lg bg-primary hover:opacity-90 text-on-primary font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {creating ? 'Submitting...' : 'Submit Ticket'}
                   </button>
