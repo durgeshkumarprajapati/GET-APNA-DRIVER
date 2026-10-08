@@ -121,6 +121,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
   const [nowTime, setNowTime] = useState<number>(() => Date.now());
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [resolvedPickupAddress, setResolvedPickupAddress] = useState<string | null>(null);
+  const [isAssignedDriverFavorite, setIsAssignedDriverFavorite] = useState(false);
+  const [togglingFavorite, setTogglingFavorite] = useState(false);
   const [invoice, setInvoice] = useState<{
     id: string;
     invoiceNumber: string;
@@ -146,6 +148,55 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
       totalTaxAmount: number;
     };
   } | null>(null);
+
+  useEffect(() => {
+    if (!booking?.assignedDriver?.id) return;
+    let active = true;
+    fetch('/api/customer/favorites')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.favorites) {
+          const isFav = data.favorites.some(
+            (f: { driverProfileId: string }) => f.driverProfileId === booking.assignedDriver?.id,
+          );
+          setIsAssignedDriverFavorite(isFav);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [booking?.assignedDriver?.id]);
+
+  const handleToggleFavoriteAssignedDriver = async () => {
+    if (!booking?.assignedDriver?.id || togglingFavorite) return;
+    const driverId = booking.assignedDriver.id;
+    const driverName = booking.assignedDriver.displayName || 'Driver';
+    setTogglingFavorite(true);
+    try {
+      if (isAssignedDriverFavorite) {
+        const res = await fetch(`/api/customer/favorites/${driverId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setIsAssignedDriverFavorite(false);
+          showToast(`Removed ${driverName} from favorite drivers`, 'info');
+        }
+      } else {
+        const res = await fetch('/api/customer/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driverProfileId: driverId }),
+        });
+        if (res.ok) {
+          setIsAssignedDriverFavorite(true);
+          showToast(`Added ${driverName} to favorite drivers!`, 'success');
+        }
+      }
+    } catch {
+      showToast('Failed to update favorite driver preference', 'error');
+    } finally {
+      setTogglingFavorite(false);
+    }
+  };
 
   useEffect(() => {
     if (booking?.id && booking.status === 'TRIP_COMPLETED') {
@@ -633,19 +684,37 @@ export default function BookingDetailPage({ params }: { params: Promise<{ bookin
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  disabled={callingDriver}
-                  onClick={handleCallDriver}
-                  className="min-h-[44px] px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
-                >
-                  <span className="material-symbols-outlined text-base">call</span>
-                  <span>
-                    {callingDriver
-                      ? t('customer.tracking.connecting')
-                      : t('customer.tracking.callDriverBtn')}
-                  </span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={togglingFavorite}
+                    onClick={handleToggleFavoriteAssignedDriver}
+                    className={`min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
+                      isAssignedDriverFavorite
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                        : 'bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/40'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base text-amber-400">
+                      {isAssignedDriverFavorite ? 'star' : 'star_outline'}
+                    </span>
+                    <span>{isAssignedDriverFavorite ? 'Favorite Driver ★' : 'Add to Favorites'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={callingDriver}
+                    onClick={handleCallDriver}
+                    className="min-h-[44px] px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                  >
+                    <span className="material-symbols-outlined text-base">call</span>
+                    <span>
+                      {callingDriver
+                        ? t('customer.tracking.connecting')
+                        : t('customer.tracking.callDriverBtn')}
+                    </span>
+                  </button>
+                </div>
               </div>
 
               {driverCallData && (

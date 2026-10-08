@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { CustomerLayout } from '@/components/customer-layout';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
@@ -250,7 +251,43 @@ function BookDriverPageInner() {
 
   const [loading, setLoading] = useState(false);
   const [fareEstimate, setFareEstimate] = useState<FareEstimateData | null>(null);
-  const { toast, showError, dismissToast } = useToast();
+  const { toast, showToast, showSuccess, showError, dismissToast } = useToast();
+
+  const toggleFavoriteDriver = async (driverProfileId: string, driverName?: string) => {
+    const isFav = favoriteDrivers.some((f) => f.driverProfileId === driverProfileId);
+    try {
+      if (isFav) {
+        const res = await fetch(`/api/customer/favorites/${driverProfileId}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          setFavoriteDrivers((prev) => prev.filter((f) => f.driverProfileId !== driverProfileId));
+          showToast(`Removed ${driverName || 'driver'} from favorite drivers`, 'info');
+        } else {
+          const data = await res.json();
+          showError(data.message || 'Failed to remove favorite driver');
+        }
+      } else {
+        const res = await fetch('/api/customer/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driverProfileId }),
+        });
+        const data = await res.json();
+        if (res.ok && data.favorite) {
+          setFavoriteDrivers((prev) => [
+            data.favorite,
+            ...prev.filter((f) => f.driverProfileId !== driverProfileId),
+          ]);
+          showSuccess(`Added ${driverName || 'driver'} to favorite drivers!`);
+        } else {
+          showError(data.message || 'Failed to add favorite driver');
+        }
+      }
+    } catch {
+      showError('Failed to update favorite driver preference');
+    }
+  };
 
   const [couponCodeInput, setCouponCodeInput] = useState('');
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
@@ -1523,15 +1560,27 @@ function BookDriverPageInner() {
             {/* Preferred Driver — real favorites, honest non-guarantee framing.
                 Not shown for DAILY/WEEKLY/MONTHLY, which use the required
                 "Choose Your Driver" section below instead. */}
-            {!isRateSelectableHireBooking(selectedBookingType) && favoriteDrivers.length > 0 && (
+            {/* Preferred Driver — real favorites, honest non-guarantee framing.
+                Not shown for DAILY/WEEKLY/MONTHLY, which use the required
+                "Choose Your Driver" section below instead. */}
+            {!isRateSelectableHireBooking(selectedBookingType) && (
               <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-2">
-                <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
-                  {t('customer.booking.preferredDriverSectionTitle')}
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-on-surface-variant tracking-wider font-['Space_Grotesk']">
+                    {t('customer.booking.preferredDriverSectionTitle')}
+                  </span>
+                  <Link
+                    href="/customer/favorites"
+                    className="text-[10px] text-primary hover:underline font-medium flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-xs">star</span>
+                    Manage Favorites ({favoriteDrivers.length})
+                  </Link>
+                </div>
                 <p className="text-[10px] text-on-surface-variant">
                   {t('customer.booking.preferredDriverSubtitle')}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 items-center pt-1">
                   <button
                     type="button"
                     onClick={() => setPreferredDriverProfileId(null)}
@@ -1543,25 +1592,49 @@ function BookDriverPageInner() {
                   >
                     {t('customer.booking.preferredDriverNone')}
                   </button>
-                  {favoriteDrivers.map((fav) => (
-                    <button
-                      key={fav.driverProfileId}
-                      type="button"
-                      onClick={() => setPreferredDriverProfileId(fav.driverProfileId)}
-                      className={`px-2.5 py-1.5 rounded-full font-mono text-[10px] flex items-center gap-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-                        preferredDriverProfileId === fav.driverProfileId
-                          ? 'bg-primary text-on-primary font-bold'
-                          : 'bg-surface-container-high text-on-surface border border-border'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-xs">star</span>
-                      {favoriteDisplayName(fav)}
-                      <span className="opacity-70">
-                        {t('customer.favorites.rating', { rating: fav.ratingAverage.toFixed(1) })}
-                      </span>
-                    </button>
-                  ))}
+                  {favoriteDrivers.map((fav) => {
+                    const isSelected = preferredDriverProfileId === fav.driverProfileId;
+                    const name = favoriteDisplayName(fav);
+                    return (
+                      <div
+                        key={fav.driverProfileId}
+                        className={`inline-flex items-center rounded-full border transition-colors ${
+                          isSelected
+                            ? 'bg-primary text-on-primary border-primary font-bold'
+                            : 'bg-surface-container-high text-on-surface border-border'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setPreferredDriverProfileId(fav.driverProfileId)}
+                          className="px-2.5 py-1.5 font-mono text-[10px] flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        >
+                          <span className="material-symbols-outlined text-xs text-amber-400">star</span>
+                          {name}
+                          <span className="opacity-70">
+                            {t('customer.favorites.rating', { rating: fav.ratingAverage.toFixed(1) })}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void toggleFavoriteDriver(fav.driverProfileId, name);
+                          }}
+                          title="Remove from favorites"
+                          className="pr-2 pl-0.5 text-xs opacity-70 hover:opacity-100 hover:text-red-400 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
+                {favoriteDrivers.length === 0 && (
+                  <p className="text-[10px] text-on-surface-variant italic pt-0.5">
+                    No favorite drivers saved yet. Click the star (★) icon on any driver below to mark them as your favorite driver!
+                  </p>
+                )}
               </div>
             )}
 
@@ -1581,7 +1654,7 @@ function BookDriverPageInner() {
                 <p className="text-[10px] text-on-surface-variant">
                   {t('customer.booking.nearbyAvailableDriversSubtitle', {
                     defaultValue:
-                      "Optional — every online driver near your pickup with no booking conflict. Pick one to request them directly, or skip this and we'll match you automatically.",
+                      "Optional — every online driver near your pickup with no booking conflict. Pick one to request them directly, or click the star to save them as a favorite driver.",
                   })}
                 </p>
 
@@ -1612,44 +1685,78 @@ function BookDriverPageInner() {
                     >
                       {t('customer.booking.preferredDriverNone')}
                     </button>
-                    {nearbyAvailableDrivers.map((driver) => (
-                      <button
-                        key={driver.driverProfileId}
-                        type="button"
-                        onClick={() =>
-                          setPreferredDriverProfileId((prev) =>
-                            prev === driver.driverProfileId ? null : driver.driverProfileId,
-                          )
-                        }
-                        className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
-                          preferredDriverProfileId === driver.driverProfileId
-                            ? 'bg-primary/10 border-primary'
-                            : 'bg-surface-container-high border-border hover:border-primary/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          {preferredDriverProfileId === driver.driverProfileId && (
-                            <span className="material-symbols-outlined text-primary text-base shrink-0">
-                              check_circle
-                            </span>
-                          )}
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-xs font-semibold text-on-surface truncate">
-                              {driver.displayName}
-                            </span>
-                            <span className="text-[10px] text-on-surface-variant font-mono">
-                              {t('customer.booking.experienceYears', {
-                                years: driver.drivingExperienceYears,
-                              })}
-                              {driver.primaryServiceArea ? ` · ${driver.primaryServiceArea}` : ''}
+                    {nearbyAvailableDrivers.map((driver) => {
+                      const isFav = favoriteDrivers.some(
+                        (f) => f.driverProfileId === driver.driverProfileId,
+                      );
+                      const isSelected = preferredDriverProfileId === driver.driverProfileId;
+                      return (
+                        <div
+                          key={driver.driverProfileId}
+                          className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                            isSelected
+                              ? 'bg-primary/10 border-primary'
+                              : 'bg-surface-container-high border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div
+                            className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                            onClick={() =>
+                              setPreferredDriverProfileId((prev) =>
+                                prev === driver.driverProfileId ? null : driver.driverProfileId,
+                              )
+                            }
+                          >
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-primary text-base shrink-0">
+                                check_circle
+                              </span>
+                            )}
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-on-surface truncate">
+                                  {driver.displayName}
+                                </span>
+                                {isFav && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                    ★ Favorite
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-on-surface-variant font-mono">
+                                {t('customer.booking.experienceYears', {
+                                  years: driver.drivingExperienceYears,
+                                })}
+                                {driver.primaryServiceArea ? ` · ${driver.primaryServiceArea}` : ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void toggleFavoriteDriver(driver.driverProfileId, driver.displayName);
+                              }}
+                              title={isFav ? 'Remove from Favorite Drivers' : 'Add to Favorite Drivers'}
+                              className={`p-1.5 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                isFav
+                                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20'
+                                  : 'text-on-surface-variant hover:text-amber-500 hover:bg-surface-container-highest'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                {isFav ? 'star' : 'star_outline'}
+                              </span>
+                            </button>
+                            <span className="text-[10px] text-primary font-mono shrink-0">
+                              {driver.distanceFormatted}
                             </span>
                           </div>
                         </div>
-                        <span className="text-[10px] text-primary font-mono shrink-0">
-                          {driver.distanceFormatted}
-                        </span>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1678,51 +1785,88 @@ function BookDriverPageInner() {
                   </p>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {hireDrivers.map((driver) => (
-                      <button
-                        key={driver.driverProfileId}
-                        type="button"
-                        onClick={() => setViewingDriverId(driver.driverProfileId)}
-                        className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
-                          preferredDriverProfileId === driver.driverProfileId
-                            ? 'bg-primary/10 border-primary'
-                            : 'bg-surface-container-high border-border hover:border-primary/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          {preferredDriverProfileId === driver.driverProfileId && (
-                            <span className="material-symbols-outlined text-primary text-base shrink-0">
-                              check_circle
+                    {hireDrivers.map((driver) => {
+                      const isFav = favoriteDrivers.some(
+                        (f) => f.driverProfileId === driver.driverProfileId,
+                      );
+                      const isSelected = preferredDriverProfileId === driver.driverProfileId;
+                      const driverName = hireDriverDisplayName(driver);
+                      return (
+                        <div
+                          key={driver.driverProfileId}
+                          className={`card-interactive flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left transition-colors border ${
+                            isSelected
+                              ? 'bg-primary/10 border-primary'
+                              : 'bg-surface-container-high border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div
+                            className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+                            onClick={() => setViewingDriverId(driver.driverProfileId)}
+                          >
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-primary text-base shrink-0">
+                                check_circle
+                              </span>
+                            )}
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-on-surface truncate">
+                                  {driverName}
+                                </span>
+                                {isFav && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                    ★ Favorite
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-on-surface-variant font-mono">
+                                {t('customer.favorites.rating', {
+                                  rating: driver.ratingAverage.toFixed(1),
+                                })}{' '}
+                                ·{' '}
+                                {t('customer.booking.experienceYears', {
+                                  years: driver.drivingExperienceYears,
+                                  defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                                })}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void toggleFavoriteDriver(driver.driverProfileId, driverName);
+                              }}
+                              title={isFav ? 'Remove from Favorite Drivers' : 'Add to Favorite Drivers'}
+                              className={`p-1.5 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                                isFav
+                                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500/20'
+                                  : 'text-on-surface-variant hover:text-amber-500 hover:bg-surface-container-highest'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                {isFav ? 'star' : 'star_outline'}
+                              </span>
+                            </button>
+                            <span className="text-xs font-bold text-primary font-mono">
+                              {formatCurrency(Number(driver.rate))}
                             </span>
-                          )}
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-xs font-semibold text-on-surface truncate">
-                              {hireDriverDisplayName(driver)}
-                            </span>
-                            <span className="text-[10px] text-on-surface-variant font-mono">
-                              {t('customer.favorites.rating', {
-                                rating: driver.ratingAverage.toFixed(1),
-                              })}{' '}
-                              ·{' '}
-                              {t('customer.booking.experienceYears', {
-                                years: driver.drivingExperienceYears,
-                                defaultValue: `${driver.drivingExperienceYears} yrs exp`,
+                            <button
+                              type="button"
+                              onClick={() => setViewingDriverId(driver.driverProfileId)}
+                              className="text-[9px] text-on-surface-variant uppercase font-semibold underline"
+                            >
+                              {t('customer.booking.viewDetailsLink', {
+                                defaultValue: 'View Details',
                               })}
-                            </span>
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs font-bold text-primary font-mono">
-                            {formatCurrency(Number(driver.rate))}
-                          </span>
-                          <span className="text-[9px] text-on-surface-variant uppercase font-semibold underline">
-                            {t('customer.booking.viewDetailsLink', {
-                              defaultValue: 'View Details',
-                            })}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -2212,31 +2356,60 @@ function BookDriverPageInner() {
                 <p className="text-xs text-error py-8 text-center">{viewingDriverError}</p>
               ) : viewingDriverProfile ? (
                 <>
-                  <div className="flex items-center gap-3">
-                    <div className="h-16 w-16 rounded-full bg-surface-container-high border border-primary/40 flex items-center justify-center text-xl font-bold text-on-surface uppercase overflow-hidden shrink-0">
-                      {viewingDriverProfile.profileImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={viewingDriverProfile.profileImageUrl}
-                          alt={viewingDriverProfile.displayName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        viewingDriverProfile.displayName?.[0] || 'D'
-                      )}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-16 w-16 rounded-full bg-surface-container-high border border-primary/40 flex items-center justify-center text-xl font-bold text-on-surface uppercase overflow-hidden shrink-0">
+                        {viewingDriverProfile.profileImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={viewingDriverProfile.profileImageUrl}
+                            alt={viewingDriverProfile.displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          viewingDriverProfile.displayName?.[0] || 'D'
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-base font-bold text-on-surface truncate">
+                          {viewingDriverProfile.displayName}
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant">
+                          {t('customer.tracking.serviceAreaLabel', {
+                            area:
+                              viewingDriverProfile.primaryServiceArea ||
+                              t('customer.tracking.serviceAreaFallback'),
+                          })}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-base font-bold text-on-surface truncate">
-                        {viewingDriverProfile.displayName}
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant">
-                        {t('customer.tracking.serviceAreaLabel', {
-                          area:
-                            viewingDriverProfile.primaryServiceArea ||
-                            t('customer.tracking.serviceAreaFallback'),
-                        })}
-                      </span>
-                    </div>
+
+                    {(() => {
+                      const isFav = favoriteDrivers.some(
+                        (f) => f.driverProfileId === viewingDriverProfile.driverProfileId,
+                      );
+                      return (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void toggleFavoriteDriver(
+                              viewingDriverProfile.driverProfileId,
+                              viewingDriverProfile.displayName,
+                            )
+                          }
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                            isFav
+                              ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400'
+                              : 'bg-surface-container-high border-border text-on-surface-variant hover:text-on-surface'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-base text-amber-500">
+                            {isFav ? 'star' : 'star_outline'}
+                          </span>
+                          <span>{isFav ? 'Favorite Driver ★' : 'Add Favorite'}</span>
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center">
