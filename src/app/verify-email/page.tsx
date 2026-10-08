@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const LINK_BUTTON_CLASSES =
-  'inline-flex w-full min-h-[48px] items-center justify-center rounded-xl bg-[#25a475] text-[#042116] font-bold text-sm hover:bg-[#68dba9] transition-colors';
+  'inline-flex w-full min-h-[48px] items-center justify-center rounded-xl bg-primary text-on-primary font-bold text-sm hover:opacity-90 transition-opacity';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -62,25 +62,25 @@ function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <div className="w-full max-w-[420px] p-10 rounded-2xl bg-[#181c24] border border-[#262a33] text-center shadow-xl">
+    <div className="w-full max-w-[420px] p-10 rounded-2xl bg-surface-container border border-border text-center shadow-xl">
       {status === 'PENDING' && (
         <div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-4">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mb-4">
             Verifying Email...
           </h1>
-          <p className="text-sm text-[#bccac0]">Please wait while we confirm your email address.</p>
+          <p className="text-sm text-on-surface-variant">Please wait while we confirm your email address.</p>
         </div>
       )}
 
       {status === 'SUCCESS' && (
         <div>
-          <div className="text-5xl text-[#68dba9] mb-4" aria-hidden="true">
+          <div className="text-5xl text-primary mb-4" aria-hidden="true">
             ✓
           </div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-2">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mb-2">
             Email Verified!
           </h1>
-          <p className="text-sm text-[#bccac0] mb-8">
+          <p className="text-sm text-on-surface-variant mb-8">
             Your email address has been successfully verified.
           </p>
           <Link href="/login" className={LINK_BUTTON_CLASSES}>
@@ -91,13 +91,13 @@ function VerifyEmailContent() {
 
       {status === 'ERROR' && (
         <div>
-          <div className="text-5xl text-[#fda4af] mb-4" aria-hidden="true">
+          <div className="text-5xl text-destructive mb-4" aria-hidden="true">
             ✕
           </div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-2">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mb-2">
             Verification Failed
           </h1>
-          <p className="text-sm text-[#fda4af] mb-8">{errorMsg}</p>
+          <p className="text-sm text-destructive mb-8">{errorMsg}</p>
           <Link href="/login" className={LINK_BUTTON_CLASSES}>
             Return to Login
           </Link>
@@ -109,8 +109,8 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-[#0a0e16]">
-      <Suspense fallback={<div className="text-[#87948b] text-sm">Loading...</div>}>
+    <main className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <Suspense fallback={<div className="text-on-surface-variant text-sm">Loading...</div>}>
         <VerifyEmailContent />
       </Suspense>
     </main>

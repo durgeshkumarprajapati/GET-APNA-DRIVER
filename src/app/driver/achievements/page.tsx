@@ -98,40 +98,40 @@ export default function DriverAchievementsPage() {
     <DriverLayout>
       <div className="flex flex-col w-full px-6 py-6 gap-6">
         {/* Header Banner */}
-        <section className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section className="p-6 rounded-xl bg-surface-container border border-border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-2xl text-amber-400">🏆</span>
-              <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk']">
                 {t('driverEngagement.achievementsTitle')}
               </h1>
             </div>
-            <p className="text-sm text-[#87948b]">{t('driverEngagement.achievementsSubtitle')}</p>
+            <p className="text-sm text-on-surface-variant">{t('driverEngagement.achievementsSubtitle')}</p>
           </div>
 
           {summary && (
-            <div className="flex items-center gap-4 shrink-0 bg-[#12151c] p-3 rounded-lg border border-[#262a33]">
+            <div className="flex items-center gap-4 shrink-0 bg-surface-container-high p-3 rounded-lg border border-border">
               <div className="flex items-center gap-2">
                 <span className="text-xl animate-pulse">🔥</span>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-orange-400 block">
+                  <span className="text-[10px] uppercase font-bold text-orange-500 dark:text-orange-400 block">
                     Streak
                   </span>
-                  <span className="text-sm font-black text-white">
+                  <span className="text-sm font-black text-on-surface">
                     {t('driverEngagement.currentStreak', { count: summary.currentStreak })}
                   </span>
                 </div>
               </div>
 
-              <div className="h-8 w-px bg-[#262a33]" />
+              <div className="h-8 w-px bg-border" />
 
               <div className="flex items-center gap-2">
-                <span className="text-xl text-emerald-400">🏅</span>
+                <span className="text-xl text-emerald-500 dark:text-emerald-400">🏅</span>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-emerald-400 block">
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">
                     Unlocked
                   </span>
-                  <span className="text-sm font-black text-white">
+                  <span className="text-sm font-black text-on-surface">
                     {summary.unlockedCount} / {summary.totalDefinitions}
                   </span>
                 </div>
@@ -141,7 +141,7 @@ export default function DriverAchievementsPage() {
         </section>
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+          <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
             {error}
           </div>
         )}
@@ -152,10 +152,10 @@ export default function DriverAchievementsPage() {
             <button
               key={cat.key}
               onClick={() => setSelectedCategory(cat.key)}
-              className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+              className={`min-h-[44px] px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                 selectedCategory === cat.key
-                  ? 'bg-[#68dba9] active:bg-[#4fc890] text-[#003822]'
-                  : 'bg-[#181c24] text-[#87948b] hover:text-[#dfe2ee] hover:border-[#3d4a42] active:bg-[#262a33] border border-[#262a33]'
+                  ? 'bg-primary text-on-primary font-bold'
+                  : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high active:bg-surface-container-highest border border-border'
               }`}
             >
               {cat.label}
@@ -165,9 +165,9 @@ export default function DriverAchievementsPage() {
 
         {/* Achievements Grid */}
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">Loading achievements...</div>
+          <div className="py-16 text-center text-on-surface-variant text-sm">Loading achievements...</div>
         ) : filteredAchievements.length === 0 ? (
-          <div className="p-12 text-center border border-[#262a33] bg-[#181c24] rounded-xl text-[#87948b]">
+          <div className="p-12 text-center border border-border bg-surface-container rounded-xl text-on-surface-variant shadow-sm">
             No achievements found for this category.
           </div>
         ) : (
@@ -178,10 +178,10 @@ export default function DriverAchievementsPage() {
               return (
                 <div
                   key={ach.id}
-                  className={`animate-fade-in-up p-5 rounded-xl border transition-all flex flex-col justify-between gap-4 ${
+                  className={`animate-fade-in-up p-5 rounded-xl border transition-all flex flex-col justify-between gap-4 shadow-sm ${
                     ach.isUnlocked
-                      ? 'bg-gradient-to-b from-[#1c2420] to-[#181c24] border-emerald-500/40 shadow-lg shadow-emerald-950/20'
-                      : 'bg-[#181c24] border-[#262a33] opacity-80 hover:opacity-100'
+                      ? 'bg-gradient-to-b from-emerald-500/10 to-surface-container border-emerald-500/40 shadow-emerald-500/5'
+                      : 'bg-surface-container border-border opacity-80 hover:opacity-100'
                   }`}
                 >
                   <div className="space-y-3">
@@ -190,58 +190,58 @@ export default function DriverAchievementsPage() {
                         <div
                           className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold border ${
                             ach.isUnlocked
-                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                              : 'bg-slate-800/40 border-slate-700/50 text-slate-500'
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-surface-container-high border-border text-on-surface-variant'
                           }`}
                         >
                           {ach.icon || '🏆'}
                         </div>
                         <div>
-                          <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                          <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                             {ach.name}
                           </h3>
-                          <span className="text-[10px] uppercase font-bold tracking-wider text-[#87948b]">
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">
                             {ach.category}
                           </span>
                         </div>
                       </div>
 
                       {ach.isUnlocked ? (
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-1 rounded-full shrink-0">
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full shrink-0">
                           {t('driverEngagement.unlockedTag')}
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full shrink-0">
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-on-surface-variant bg-surface-container-high border border-border px-2.5 py-1 rounded-full shrink-0">
                           {t('driverEngagement.lockedTag')}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-xs text-[#87948b] leading-relaxed">{ach.description}</p>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">{ach.description}</p>
                   </div>
 
                   {/* Progress Section */}
-                  <div className="space-y-2 pt-2 border-t border-[#262a33]">
+                  <div className="space-y-2 pt-2 border-t border-border">
                     <div className="flex justify-between text-xs">
-                      <span className="text-[#87948b]">
+                      <span className="text-on-surface-variant">
                         {ach.isUnlocked ? 'Target Reached' : 'Progress'}
                       </span>
-                      <span className="font-mono text-white font-semibold">
+                      <span className="font-mono text-on-surface font-semibold">
                         {ach.currentValue} / {ach.targetValue}
                       </span>
                     </div>
 
-                    <div className="w-full bg-[#12151c] h-2 rounded-full overflow-hidden border border-[#262a33]">
+                    <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden border border-border">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          ach.isUnlocked ? 'bg-emerald-400' : 'bg-sky-500'
+                          ach.isUnlocked ? 'bg-emerald-500' : 'bg-primary'
                         }`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
 
                     {ach.isUnlocked && ach.unlockedAt && (
-                      <div className="flex items-center gap-1 text-[11px] text-[#87948b] pt-1">
+                      <div className="flex items-center gap-1 text-[11px] text-on-surface-variant pt-1">
                         <span>
                           {t('driverEngagement.completedDate', {
                             date: new Date(ach.unlockedAt).toLocaleDateString(),

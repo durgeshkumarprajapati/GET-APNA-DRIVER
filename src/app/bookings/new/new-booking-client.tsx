@@ -1089,15 +1089,15 @@ function BookDriverPageInner() {
             />
 
             {/* Booking Mode Selector (Book Now vs Schedule Booking) */}
-            <div className="bg-[#181c24] rounded-xl p-3 shadow-sm border border-[#262a33] flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-2 bg-[#0a0e16] p-1 rounded-lg border border-[#262a33]">
+            <div className="bg-surface-container rounded-xl p-3 shadow-sm border border-border flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-2 bg-surface-container-high p-1 rounded-lg border border-border">
                 <button
                   type="button"
                   onClick={() => setBookingMode('NOW')}
-                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     bookingMode === 'NOW'
-                      ? 'bg-[#25a475] text-[#00311f] shadow'
-                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                      ? 'bg-primary text-on-primary shadow'
+                      : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">directions_car</span>
@@ -1106,10 +1106,10 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={() => setBookingMode('SCHEDULE')}
-                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`py-2 px-3 rounded-md text-xs font-bold font-['Space_Grotesk'] flex items-center justify-center gap-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     bookingMode === 'SCHEDULE'
-                      ? 'bg-[#25a475] text-[#00311f] shadow'
-                      : 'text-[#87948b] hover:text-[#dfe2ee]'
+                      ? 'bg-primary text-on-primary shadow'
+                      : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">calendar_month</span>
@@ -1118,26 +1118,26 @@ function BookDriverPageInner() {
               </div>
 
               {bookingMode === 'SCHEDULE' && (
-                <div className="flex flex-col gap-3 pt-2 border-t border-[#262a33] text-xs">
+                <div className="flex flex-col gap-3 pt-2 border-t border-border text-xs">
                   {/* Schedule Type */}
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33] flex-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface border border-border flex-1">
                       <input
                         type="radio"
                         name="scheduleType"
                         checked={scheduleType === 'ONE_TIME'}
                         onChange={() => setScheduleType('ONE_TIME')}
-                        className="accent-[#68dba9]"
+                        className="accent-primary"
                       />
                       <span>{t('scheduledRides.oneTime')}</span>
                     </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-[#1c2028] text-[#dfe2ee] border border-[#262a33] flex-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface border border-border flex-1">
                       <input
                         type="radio"
                         name="scheduleType"
                         checked={scheduleType === 'RECURRING'}
                         onChange={() => setScheduleType('RECURRING')}
-                        className="accent-[#68dba9]"
+                        className="accent-primary"
                       />
                       <span>{t('scheduledRides.recurring')}</span>
                     </label>
@@ -1146,7 +1146,7 @@ function BookDriverPageInner() {
                   {/* Frequency if Recurring */}
                   {scheduleType === 'RECURRING' && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[#87948b] text-[10px] uppercase font-bold">
+                      <span className="text-on-surface-variant text-[10px] uppercase font-bold">
                         Frequency:
                       </span>
                       <select
@@ -1156,7 +1156,7 @@ function BookDriverPageInner() {
                             e.target.value as 'DAILY' | 'WEEKLY' | 'CUSTOM_DAYS',
                           )
                         }
-                        className="bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] flex-1"
+                        className="bg-surface-container-high border border-border rounded-lg px-2.5 py-1 text-xs text-on-surface focus:outline-none focus:border-primary flex-1"
                       >
                         <option value="DAILY">{t('scheduledRides.frequency.daily')}</option>
                         <option value="WEEKLY">{t('scheduledRides.frequency.weekly')}</option>
@@ -1182,10 +1182,10 @@ function BookDriverPageInner() {
                                   active ? prev.filter((d) => d !== idx) : [...prev, idx],
                                 );
                               }}
-                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                              className={`w-7 h-7 rounded-lg text-[10px] font-mono font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                                 active
-                                  ? 'bg-[#25a475] text-[#00311f]'
-                                  : 'bg-[#0a0e16] text-[#87948b] border border-[#262a33]'
+                                  ? 'bg-primary text-on-primary'
+                                  : 'bg-surface-container-high text-on-surface-variant border border-border'
                               }`}
                             >
                               {day}
@@ -1199,26 +1199,26 @@ function BookDriverPageInner() {
                   <div className="grid grid-cols-2 gap-2">
                     {scheduleType === 'ONE_TIME' && (
                       <div>
-                        <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">
+                        <span className="text-on-surface-variant text-[10px] uppercase font-bold block mb-1">
                           Date:
                         </span>
                         <input
                           type="date"
                           value={scheduledDate}
                           onChange={(e) => setScheduledDate(e.target.value)}
-                          className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                          className="w-full bg-surface-container-high border border-border rounded-lg px-2.5 py-1.5 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                         />
                       </div>
                     )}
                     <div className={scheduleType === 'RECURRING' ? 'col-span-2' : ''}>
-                      <span className="text-[#87948b] text-[10px] uppercase font-bold block mb-1">
+                      <span className="text-on-surface-variant text-[10px] uppercase font-bold block mb-1">
                         Dispatch Time (IST):
                       </span>
                       <input
                         type="time"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-2.5 py-1.5 text-xs text-[#dfe2ee] font-mono focus:outline-none focus:border-[#68dba9]"
+                        className="w-full bg-surface-container-high border border-border rounded-lg px-2.5 py-1.5 text-xs text-on-surface font-mono focus:outline-none focus:border-primary"
                       />
                     </div>
                   </div>
@@ -1227,29 +1227,29 @@ function BookDriverPageInner() {
             </div>
 
             {/* Location & Pickup Anchor Card */}
-            <div className="bg-[#181c24] rounded-xl p-4 shadow-sm border border-[#262a33] flex flex-col gap-3">
+            <div className="bg-surface-container rounded-xl p-4 shadow-sm border border-border flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-ping" />
-                  <span className="text-[10px] font-bold uppercase text-[#68dba9] tracking-wider font-['Space_Grotesk']">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                  <span className="text-[10px] font-bold uppercase text-primary tracking-wider font-['Space_Grotesk']">
                     {t('customer.booking.pickupLockedEyebrow')}
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-[#bccac0]">
+                <span className="font-mono text-[10px] text-on-surface-variant">
                   {t('customer.booking.pickupSetTag')}
                 </span>
               </div>
 
-              <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
+              <div className="bg-surface-container-high rounded-lg p-3 flex items-center justify-between gap-3 border border-border">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#25a475]/20 flex items-center justify-center shrink-0 text-[#68dba9]">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 text-primary">
                     <span className="material-symbols-outlined text-base">my_location</span>
                   </div>
                   <div className="min-w-0">
-                    <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
+                    <span className="font-mono text-[9px] text-on-surface-variant uppercase block">
                       {t('customer.booking.currentPickupZoneLabel')}
                     </span>
-                    <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
+                    <p className="font-bold text-sm text-on-surface truncate font-['Space_Grotesk']">
                       {pickup.address
                         ? (pickup.label ?? pickup.address)
                         : autoLocationStatus === 'ACQUIRING'
@@ -1261,7 +1261,7 @@ function BookDriverPageInner() {
                 <button
                   type="button"
                   onClick={handleEditPickup}
-                  className="bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                  className="bg-surface-container-highest hover:bg-surface-container-lowest text-on-surface font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <span className="material-symbols-outlined text-xs">edit_location</span>
                   <span>{t('customer.booking.changeBtn')}</span>
@@ -1272,7 +1272,7 @@ function BookDriverPageInner() {
 
               {savedLocations.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-mono text-[9px] text-[#87948b]">
+                  <span className="font-mono text-[9px] text-on-surface-variant">
                     {t('customer.booking.quickSelectLabel')}
                   </span>
                   {savedLocations.map((loc) => (
@@ -1287,7 +1287,7 @@ function BookDriverPageInner() {
                           longitude: loc.longitude,
                         })
                       }
-                      className="px-2 py-1 rounded-lg bg-[#1c2028] border border-[#262a33] hover:border-[#68dba9] text-[10px] font-semibold text-[#dfe2ee] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                      className="px-2 py-1 rounded-lg bg-surface-container-high border border-border hover:border-primary text-[10px] font-semibold text-on-surface transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       {loc.label}
                     </button>
@@ -1297,8 +1297,8 @@ function BookDriverPageInner() {
 
               {/* Flexible Dropoff Location Section */}
               {isDriverHireBooking(selectedBookingType) ? (
-                <div className="bg-[#1c2028] rounded-lg p-3.5 border border-[#262a33] text-xs text-[#87948b] flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[#25a475] text-lg shrink-0">
+                <div className="bg-surface-container-high rounded-lg p-3.5 border border-border text-xs text-on-surface-variant flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-primary text-lg shrink-0">
                     info
                   </span>
                   <span>
@@ -1309,13 +1309,13 @@ function BookDriverPageInner() {
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2.5 pt-2 border-t border-[#262a33]/60">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#dfe2ee]">
+                <div className="flex flex-col gap-2.5 pt-2 border-t border-border">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-on-surface">
                     <input
                       type="checkbox"
                       checked={includeDropoff}
                       onChange={(e) => setIncludeDropoff(e.target.checked)}
-                      className="w-4 h-4 rounded border-[#262a33] bg-[#0a0e16] accent-[#25a475]"
+                      className="w-4 h-4 rounded border-border bg-surface-container-high accent-primary"
                     />
                     <span>
                       {t('booking.addDropoffOptional', {
@@ -1326,16 +1326,16 @@ function BookDriverPageInner() {
 
                   {includeDropoff && (
                     <>
-                      <div className="bg-[#1c2028] rounded-lg p-3 flex items-center justify-between gap-3 border border-[#262a33]">
+                      <div className="bg-surface-container-high rounded-lg p-3 flex items-center justify-between gap-3 border border-border">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/20 flex items-center justify-center shrink-0 text-[#60a5fa]">
+                          <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center shrink-0 text-secondary">
                             <span className="material-symbols-outlined text-base">location_on</span>
                           </div>
                           <div className="min-w-0">
-                            <span className="font-mono text-[9px] text-[#bccac0] uppercase block">
+                            <span className="font-mono text-[9px] text-on-surface-variant uppercase block">
                               {t('customer.booking.destinationZoneLabel')}
                             </span>
-                            <p className="font-bold text-sm text-[#dfe2ee] truncate font-['Space_Grotesk']">
+                            <p className="font-bold text-sm text-on-surface truncate font-['Space_Grotesk']">
                               {dropoff.label ?? dropoff.address}
                             </p>
                           </div>
@@ -1343,7 +1343,7 @@ function BookDriverPageInner() {
                         <button
                           type="button"
                           onClick={handleEditDropoff}
-                          className="bg-[#262a33] hover:bg-[#31353e] active:bg-[#3d4a42] text-[#dfe2ee] font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-[#3d4a42] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                          className="bg-surface-container-highest hover:bg-surface-container-lowest text-on-surface font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors shrink-0 flex items-center gap-1 border border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         >
                           <span className="material-symbols-outlined text-xs">edit_location</span>
                           <span>{t('customer.booking.changeBtn')}</span>

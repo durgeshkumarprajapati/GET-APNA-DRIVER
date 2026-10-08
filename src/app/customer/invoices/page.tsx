@@ -70,12 +70,12 @@ export default function CustomerInvoicesPage() {
         {loading ? (
           <LoadingState message={t('customer.invoices.loadingMessage')} />
         ) : error ? (
-          <div className="p-4 bg-red-950/40 border border-red-500/30 rounded-xl text-xs text-red-300 font-mono flex items-center justify-between gap-4">
+          <div className="p-4 bg-error-container border border-error/30 rounded-xl text-xs text-on-error-container font-mono flex items-center justify-between gap-4">
             <span>{t('customer.invoices.errorMessage')}</span>
             <button
               type="button"
               onClick={() => setRetryToken((prev) => prev + 1)}
-              className="min-h-[40px] px-3 py-1 bg-red-900/60 rounded text-red-100 font-bold hover:bg-red-800 active:bg-red-950 transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+              className="min-h-[40px] px-3 py-1 bg-error text-on-error font-bold hover:opacity-90 transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
             >
               {t('customer.invoices.retry')}
             </button>
@@ -83,10 +83,10 @@ export default function CustomerInvoicesPage() {
         ) : invoices.length === 0 ? (
           <EmptyState icon="receipt_long" message={t('customer.invoices.emptyMessage')} />
         ) : (
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-[#262a33]">
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-left font-sans text-xs border-collapse">
               <thead>
-                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                <tr className="bg-surface-container-high text-on-surface-variant font-['Space_Grotesk'] uppercase border-b border-border">
                   <th className="py-3 px-4">{t('customer.invoices.invoiceNumber')}</th>
                   <th className="py-3 px-4">{t('customer.invoices.issuedOn')}</th>
                   <th className="py-3 px-4 text-right">{t('customer.invoices.total')}</th>
@@ -94,12 +94,12 @@ export default function CustomerInvoicesPage() {
                   <th className="py-3 px-4" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] font-mono">
+              <tbody className="divide-y divide-border font-mono">
                 {invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-[#181c24]/60 transition-colors">
-                    <td className="py-3 px-4 text-[#dfe2ee] font-bold">{inv.invoiceNumber}</td>
-                    <td className="py-3 px-4 text-[#bccac0]">{formatDate(inv.issuedAt)}</td>
-                    <td className="py-3 px-4 text-right text-[#dfe2ee]">
+                  <tr key={inv.id} className="hover:bg-surface-container-high/60 transition-colors">
+                    <td className="py-3 px-4 text-on-surface font-bold">{inv.invoiceNumber}</td>
+                    <td className="py-3 px-4 text-on-surface-variant">{formatDate(inv.issuedAt)}</td>
+                    <td className="py-3 px-4 text-right text-on-surface">
                       {formatCurrency(inv.totalAmount)}
                     </td>
                     <td className="py-3 px-4">
@@ -111,7 +111,7 @@ export default function CustomerInvoicesPage() {
                     <td className="py-3 px-4 text-right">
                       <Link
                         href={`/customer/invoices/${inv.id}`}
-                        className="text-[#68dba9] hover:underline font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                        className="text-primary hover:underline font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       >
                         {t('customer.invoices.view')}
                       </Link>
@@ -129,10 +129,10 @@ export default function CustomerInvoicesPage() {
               <Link
                 key={inv.id}
                 href={`/customer/invoices/${inv.id}`}
-                className="card-interactive block p-4 rounded-xl bg-[#181c24] border border-[#262a33]"
+                className="card-interactive block p-4 rounded-xl bg-surface-container border border-border"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                     {inv.invoiceNumber}
                   </span>
                   <StatusBadge
@@ -141,8 +141,8 @@ export default function CustomerInvoicesPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2 mt-2 text-xs font-mono">
-                  <span className="text-[#87948b]">{formatDate(inv.issuedAt)}</span>
-                  <span className="text-[#dfe2ee] font-bold">
+                  <span className="text-on-surface-variant">{formatDate(inv.issuedAt)}</span>
+                  <span className="text-on-surface font-bold">
                     {formatCurrency(inv.totalAmount)}
                   </span>
                 </div>

@@ -122,30 +122,30 @@ export default function CustomerFavoritesPage() {
               return (
                 <div
                   key={fav.favoriteId}
-                  className="bg-[#0a0e16] p-5 rounded-2xl border border-[#262a33] flex flex-col justify-between space-y-4 hover:border-[#3d4a42] transition-all shadow-lg"
+                  className="bg-surface-container p-5 rounded-2xl border border-border flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all shadow-sm"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#25a475]/20 border border-[#68dba9] flex items-center justify-center font-bold text-base text-[#68dba9] shrink-0 font-['Space_Grotesk']">
+                    <div className="w-12 h-12 rounded-xl bg-primary/20 border border-primary flex items-center justify-center font-bold text-base text-primary shrink-0 font-['Space_Grotesk']">
                       {driverName.charAt(0).toUpperCase()}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-sm text-[#dfe2ee] font-['Space_Grotesk'] truncate">
+                        <h3 className="font-bold text-sm text-on-surface font-['Space_Grotesk'] truncate">
                           {driverName}
                         </h3>
                         <button
                           type="button"
                           onClick={() => setDriverToRemove(fav)}
-                          className="min-w-[40px] min-h-[40px] flex items-center justify-center text-[#ffb4ab] hover:text-red-400 hover:bg-red-950/40 active:bg-red-950/60 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
+                          className="min-w-[40px] min-h-[40px] flex items-center justify-center text-amber-500 hover:text-amber-600 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
                           title={t('customer.favorites.removeFavorite')}
                         >
                           <span className="material-symbols-outlined text-lg">star</span>
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs font-mono text-[#bccac0] mt-1">
-                        <span className="text-[#68dba9] font-bold">
+                      <div className="flex items-center gap-2 text-xs font-mono text-on-surface-variant mt-1">
+                        <span className="text-amber-500 font-bold">
                           ★ {fav.ratingAverage.toFixed(1)}
                         </span>
                         <span>•</span>
@@ -156,16 +156,16 @@ export default function CustomerFavoritesPage() {
                         </span>
                       </div>
 
-                      <div className="text-[11px] font-mono text-[#87948b] mt-1 truncate">
+                      <div className="text-[11px] font-mono text-on-surface-variant mt-1 truncate">
                         Zone: {fav.primaryServiceArea || 'Delhi NCR'}
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-[#262a33] flex items-center justify-between gap-2">
+                  <div className="pt-2 border-t border-border flex items-center justify-between gap-2">
                     <Link
                       href={`/customer/find-driver?driverId=${fav.driverProfileId}`}
-                      className="min-h-[44px] w-full py-2 bg-[#25a475] hover:bg-[#208b63] active:bg-[#1a7455] text-[#00311f] font-bold text-xs font-['Space_Grotesk'] rounded-xl text-center transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                      className="min-h-[44px] w-full py-2 bg-primary hover:bg-primary-hover active:bg-primary text-on-primary font-bold text-xs font-['Space_Grotesk'] rounded-xl text-center transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >
                       {t('customer.favorites.bookDriver')}
                     </Link>

@@ -57,15 +57,15 @@ export function DriverHireDurationSelector({
   const unitLabel = t(unitLabelKey, { defaultValue: defaultUnitLabel });
 
   return (
-    <div className="bg-[#181c24] rounded-xl p-4 border border-[#262a33] flex flex-col gap-3">
+    <div className="bg-surface-container rounded-xl p-4 border border-border flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#25a475] text-lg">timer</span>
-          <span className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+          <span className="material-symbols-outlined text-primary text-lg">timer</span>
+          <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
             {t('booking.hireDurationTitle', { defaultValue: 'Hire Duration' })}
           </span>
         </div>
-        <span className="text-xs font-semibold text-[#25a475] bg-[#00311f] px-2.5 py-1 rounded-full border border-[#25a475]/30">
+        <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/30">
           {durationValue} {unitLabel}
         </span>
       </div>
@@ -74,7 +74,7 @@ export function DriverHireDurationSelector({
         <button
           type="button"
           onClick={() => onChangeDurationValue(Math.max(minVal, durationValue - 1))}
-          className="w-10 h-10 rounded-lg bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] font-bold text-lg hover:border-[#25a475] transition-all flex items-center justify-center shrink-0"
+          className="w-10 h-10 rounded-lg bg-surface-container-high border border-border text-on-surface font-bold text-lg hover:border-primary transition-all flex items-center justify-center shrink-0"
         >
           -
         </button>
@@ -89,12 +89,12 @@ export function DriverHireDurationSelector({
               onChangeDurationValue(Math.min(maxVal, Math.max(minVal, val)));
             }
           }}
-          className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg px-3 py-2 text-center font-bold text-[#dfe2ee] text-sm focus:outline-none focus:border-[#25a475]"
+          className="w-full bg-surface-container-high border border-border rounded-lg px-3 py-2 text-center font-bold text-on-surface text-sm focus:outline-none focus:border-primary"
         />
         <button
           type="button"
           onClick={() => onChangeDurationValue(Math.min(maxVal, durationValue + 1))}
-          className="w-10 h-10 rounded-lg bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] font-bold text-lg hover:border-[#25a475] transition-all flex items-center justify-center shrink-0"
+          className="w-10 h-10 rounded-lg bg-surface-container-high border border-border text-on-surface font-bold text-lg hover:border-primary transition-all flex items-center justify-center shrink-0"
         >
           +
         </button>
@@ -102,7 +102,7 @@ export function DriverHireDurationSelector({
 
       {/* Preset Chips */}
       <div className="flex items-center gap-2 flex-wrap pt-1">
-        <span className="text-[10px] text-[#87948b] font-medium uppercase tracking-wider">
+        <span className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">
           Presets:
         </span>
         {presets.map((preset) => (
@@ -112,8 +112,8 @@ export function DriverHireDurationSelector({
             onClick={() => onChangeDurationValue(preset)}
             className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
               durationValue === preset
-                ? 'bg-[#25a475] text-[#00311f]'
-                : 'bg-[#0a0e16] text-[#a2abb3] border border-[#262a33] hover:text-[#dfe2ee]'
+                ? 'bg-primary text-on-primary'
+                : 'bg-surface-container-high text-on-surface-variant border border-border hover:text-on-surface'
             }`}
           >
             {preset} {unitLabel}
@@ -122,15 +122,15 @@ export function DriverHireDurationSelector({
       </div>
 
       {onChangeStartTime && (
-        <div className="pt-2 border-t border-[#262a33]/60 flex flex-col gap-1.5">
-          <label className="text-[11px] font-semibold text-[#87948b]">
+        <div className="pt-2 border-t border-border flex flex-col gap-1.5">
+          <label className="text-[11px] font-semibold text-on-surface-variant">
             {t('booking.requestedStart', { defaultValue: 'Requested Start Time (Optional)' })}
           </label>
           <input
             type="datetime-local"
             value={startTime ?? ''}
             onChange={(e) => onChangeStartTime(e.target.value)}
-            className="bg-[#0a0e16] border border-[#262a33] rounded-lg px-3 py-2 text-xs font-medium text-[#dfe2ee] focus:outline-none focus:border-[#25a475]"
+            className="bg-surface-container-high border border-border rounded-lg px-3 py-2 text-xs font-medium text-on-surface focus:outline-none focus:border-primary"
           />
         </div>
       )}
