@@ -23,6 +23,30 @@ export interface PostTripPaymentDetailsProps {
   onPaymentSuccess?: () => void;
 }
 
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve(false);
+      return;
+    }
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export function PostTripPaymentCard({
   bookingId,
   role,
@@ -90,17 +114,69 @@ export function PostTripPaymentCard({
         const res = await fetch(`/api/customer/bookings/${bookingId}/payment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paymentMethod: method }),
+          body: JSON.stringify({ paymentMethod: 'ONLINE' }),
         });
         const data = await res.json();
-        if (res.ok && data.success) {
+        if (res.ok && data.success && data.checkout) {
+          const checkout = data.checkout;
+          if (checkout.razorpayKeyId && checkout.providerOrderId) {
+            const scriptLoaded = await loadRazorpayScript();
+            if (scriptLoaded && window.Razorpay) {
+              const razorpay = new window.Razorpay({
+                key: checkout.razorpayKeyId,
+                amount: Math.round(Number(checkout.amount) * 100),
+                currency: checkout.currency || 'INR',
+                order_id: checkout.providerOrderId,
+                name: 'Get Apna Driver',
+                description: `Fare payment for booking #${bookingId.substring(0, 8)}`,
+                theme: { color: '#059669' },
+                handler: async (response: {
+                  razorpay_order_id: string;
+                  razorpay_payment_id: string;
+                  razorpay_signature: string;
+                }) => {
+                  try {
+                    setActionLoading(true);
+                    const verifyRes = await fetch(`/api/payments/${checkout.paymentId}/verify`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        providerOrderId: response.razorpay_order_id,
+                        providerPaymentId: response.razorpay_payment_id,
+                        signature: response.razorpay_signature,
+                      }),
+                    });
+                    if (verifyRes.ok) {
+                      await fetchPaymentDetails();
+                      if (onPaymentSuccess) onPaymentSuccess();
+                    } else {
+                      const errData = await verifyRes.json();
+                      setErrorMessage(errData.message || 'Razorpay payment verification failed.');
+                    }
+                  } catch {
+                    setErrorMessage('Failed to verify Razorpay payment.');
+                  } finally {
+                    setActionLoading(false);
+                  }
+                },
+                modal: {
+                  ondismiss: () => {
+                    setActionLoading(false);
+                  },
+                },
+              });
+              razorpay.open();
+              return;
+            }
+          }
+
           if (data.checkout?.razorpayPaymentPageUrl) {
             window.open(data.checkout.razorpayPaymentPageUrl, '_blank');
           }
           setShowQrModal(true);
           await fetchPaymentDetails();
         } else {
-          setErrorMessage(data.message || 'Failed to initiate UPI/QR payment.');
+          setErrorMessage(data.message || 'Failed to initiate online payment.');
         }
       }
     } catch {
