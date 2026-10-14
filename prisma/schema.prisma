@@ -664,6 +664,8 @@ model DriverProfile {
   achievementUnlocks      DriverAchievementUnlock[]
   streak                  DriverStreak?
   vehicleCapabilities     DriverVehicleCapability[]
+  walletTopups            DriverWalletTopup[]
+  couponRedemptions       DriverCouponRedemption[]
 
   @@index([onboardingStatus])
   @@index([verificationStatus])
@@ -1158,6 +1160,11 @@ enum FinancialTransactionType {
   SETTLEMENT_REVERSED
   REFERRAL_REWARD
   INCENTIVE_REWARD
+  /// A driver-initiated Razorpay payment clearing some or all of a negative
+  /// DriverWallet.availableBalance (see DriverWalletTopup).
+  DRIVER_DEBT_REPAID
+  /// A driver redeeming a DriverCoupon for a direct wallet credit.
+  DRIVER_COUPON_REDEEMED
 
   @@map("financial_transaction_type")
 }
@@ -1188,6 +1195,23 @@ enum WalletChangeType {
   SETTLEMENT_RELEASED
   SETTLEMENT_COMPLETED
   INCENTIVE_REWARD
+  /// Net effect of a cash trip: the driver's earned share minus the cash
+  /// fare they already collected directly from the customer. Commonly
+  /// negative (the driver owes the platform its commission, since the
+  /// platform never touched that cash) unless a promotion discount made the
+  /// cash collected less than the driver's earned share. Replaces the
+  /// previous mislabeled EARNING_RECOGNIZED entry for cash trips — see
+  /// captureCashPayment in payment-service.ts.
+  CASH_TRIP_SETTLEMENT
+  /// A driver paying down a negative availableBalance via Razorpay — see
+  /// DriverWalletTopup / wallet-topup-service.ts.
+  DEBT_REPAYMENT
+  /// A referral milestone reward credited to a driver referrer. Replaces
+  /// the previous mislabeled EARNING_RECOGNIZED entry for referrals — see
+  /// referral-service.ts.
+  REFERRAL_REWARD
+  /// A driver redeeming a DriverCoupon for a direct wallet credit.
+  COUPON_REDEEMED
 
   @@map("wallet_change_type")
 }
@@ -1529,6 +1553,42 @@ model DriverSettlement {
   @@map("driver_settlements")
 }
 
+/// A driver-initiated Razorpay payment clearing some or all of a negative
+/// DriverWallet.availableBalance (commission the driver owes the platform
+/// from cash trips — see captureCashPayment in payment-service.ts).
+/// Deliberately a separate model rather than reusing Payment: Payment.
+/// bookingId is required (every Payment is assumed to belong to a booking),
+/// but a debt-clearance payment is not tied to any booking. Mirrors
+/// Payment's own create-order -> client-verify/webhook-capture lifecycle
+/// (see wallet-topup-service.ts) and reuses PaymentStatus for its status
+/// field rather than introducing a parallel enum.
+model DriverWalletTopup {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverProfileId String        @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Restrict)
+
+  amount   Decimal       @db.Decimal(19, 4)
+  currency String        @default("INR")
+  status   PaymentStatus @default(CREATED)
+
+  provider          String  @default("razorpay")
+  providerOrderId   String? @map("provider_order_id")
+  providerPaymentId String? @map("provider_payment_id")
+
+  /// Loose reference to the FinancialTransaction posted once captured —
+  /// consistent with Refund.financialTransactionId.
+  financialTransactionId String? @map("financial_transaction_id") @db.Uuid
+
+  failureReason String?   @map("failure_reason")
+  capturedAt    DateTime? @map("captured_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([driverProfileId, status])
+  @@map("driver_wallet_topups")
+}
+
 /// Full or partial refund of a captured Payment. Never mutates the original
 /// Payment/ledger rows — always creates a compensating FinancialTransaction.
 model Refund {
@@ -1695,6 +1755,88 @@ model PromotionUsage {
 
   @@index([promotionId, userId])
   @@map("promotion_usages")
+}
+
+// ---------------------------------------------------------------------------
+// Driver coupons: admin-managed codes that credit a flat amount directly to
+// DriverWallet.availableBalance on redemption. Deliberately a separate model
+// from Promotion rather than extending it: Promotion/PromotionUsage discount
+// a customer's booking fare and are structurally tied to a Booking
+// (PromotionUsage.bookingId is required and unique); a driver coupon has no
+// booking/fare concept at all; it is a direct, one-time wallet credit the
+// driver claims by entering a code. Mirrors Promotion's admin lifecycle
+// (DRAFT -> ACTIVE -> PAUSED -> ARCHIVED, no hard delete — see
+// driver-coupon-service.ts) and its concurrency-safe usage-limit pattern
+// (`SELECT ... FOR UPDATE` on this row during redemption, serializing
+// totalUsageCount increments the same way promotion-eligibility-service.ts
+// does for Promotion).
+// ---------------------------------------------------------------------------
+
+enum DriverCouponStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+
+  @@map("driver_coupon_status")
+}
+
+model DriverCoupon {
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code String @unique
+
+  name        String
+  description String?
+
+  /// Flat rupee amount credited to the driver's wallet on redemption. Always
+  /// a fixed amount — there is no "percentage of a fare" concept here since
+  /// no fare/booking is involved.
+  creditAmount Decimal @map("credit_amount") @db.Decimal(12, 4)
+
+  status   DriverCouponStatus @default(DRAFT)
+  startsAt DateTime           @map("starts_at") @db.Timestamptz(6)
+  endsAt   DateTime?          @map("ends_at") @db.Timestamptz(6)
+
+  /// Null = unlimited redemptions platform-wide. Authoritative running
+  /// counter, mutated only inside a transaction holding a `FOR UPDATE` lock
+  /// on this row (see driver-coupon-service.ts).
+  totalUsageLimit Int? @map("total_usage_limit")
+  totalUsageCount Int  @default(0) @map("total_usage_count")
+
+  createdBy String?  @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  redemptions DriverCouponRedemption[]
+
+  @@index([status])
+  @@index([startsAt, endsAt])
+  @@map("driver_coupons")
+}
+
+/// One redemption record per driver per coupon. `@@unique([driverCouponId,
+/// driverProfileId])` is both the single-use-per-driver enforcement (every
+/// coupon is exactly one redemption per driver — there is no per-driver
+/// usage-limit field to configure, unlike Promotion's perUserUsageLimit) and
+/// the second, independent guarantee against a double-tap race, the same
+/// role PromotionUsage.bookingId's uniqueness plays for customer coupons.
+model DriverCouponRedemption {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverCouponId  String       @map("driver_coupon_id") @db.Uuid
+  driverCoupon    DriverCoupon @relation(fields: [driverCouponId], references: [id], onDelete: Restrict)
+  driverProfileId String       @map("driver_profile_id") @db.Uuid
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Restrict)
+
+  /// Frozen at redemption time — a later admin edit to the coupon's
+  /// creditAmount never alters this historical record.
+  creditAmountSnapshot   Decimal @map("credit_amount_snapshot") @db.Decimal(12, 4)
+  financialTransactionId String  @map("financial_transaction_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([driverCouponId, driverProfileId], map: "driver_coupon_redemptions_coupon_driver_key")
+  @@index([driverCouponId])
+  @@map("driver_coupon_redemptions")
 }
 
 enum DynamicPricingPolicyStatus {

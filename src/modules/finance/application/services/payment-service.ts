@@ -20,6 +20,7 @@ import type { LedgerPosting } from '../../domain/types';
 import {
   ZERO,
   fromMinorUnits,
+  isNegative,
   isPositive,
   roundMoney,
   toDecimal,
@@ -936,23 +937,46 @@ export async function captureCashPayment(
       },
     });
 
+    // Unlike an online/UPI/QR payment, no money for a cash trip ever passes
+    // through Razorpay — the driver collects payment.amount directly from
+    // the customer in cash. Posting a Dr PAYMENT_PROVIDER_CLEARING entry
+    // here (as a previous version of this function did, copy-pasted from
+    // capturePayment) would permanently overstate that account with money
+    // the platform never actually held, corrupting any future reconciliation
+    // against real Razorpay settlement reports.
+    //
+    // Instead, the driver having already pocketed the cash fare is modeled
+    // as a debit against DRIVER_PAYABLE — the same account their earned
+    // share is credited to — netting to exactly
+    // (driverEarningsAmount - payment.amount): negative (the driver owes the
+    // platform its commission) in the common no-discount case, since the
+    // driver kept the full gross fare; less negative, zero, or positive when
+    // a promotion discount reduced what the driver actually collected in
+    // cash below their earned share.
+    const driverPayableNet = roundMoney(
+      toDecimal(driverEarningsAmount).sub(toDecimal(payment.amount)),
+    );
+
     const postings: LedgerPosting[] = [
-      {
-        accountCode: LEDGER_ACCOUNT_CODES.PAYMENT_PROVIDER_CLEARING,
-        debitAmount: payment.amount.toFixed(4),
-        creditAmount: '0',
-      },
       {
         accountCode: LEDGER_ACCOUNT_CODES.PLATFORM_REVENUE_COMMISSION,
         debitAmount: '0',
         creditAmount: commissionAmount,
       },
-      {
+    ];
+    if (isPositive(driverPayableNet)) {
+      postings.push({
         accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
         debitAmount: '0',
-        creditAmount: driverEarningsAmount,
-      },
-    ];
+        creditAmount: driverPayableNet.toFixed(4),
+      });
+    } else if (isNegative(driverPayableNet)) {
+      postings.push({
+        accountCode: LEDGER_ACCOUNT_CODES.DRIVER_PAYABLE,
+        debitAmount: driverPayableNet.neg().toFixed(4),
+        creditAmount: '0',
+      });
+    }
     if (isPositive(discountAmount)) {
       postings.push({
         accountCode: LEDGER_ACCOUNT_CODES.PROMOTION_DISCOUNT_EXPENSE,
@@ -974,16 +998,12 @@ export async function captureCashPayment(
     );
 
     if (payment.driverProfileId) {
-      const availableDelta = roundMoney(
-        toDecimal(driverEarningsAmount).sub(toDecimal(payment.amount)),
-      ).toFixed(4);
-
       await applyWalletChange(
         {
           driverProfileId: payment.driverProfileId,
           financialTransactionId: financialTransaction.id,
-          changeType: 'EARNING_RECOGNIZED',
-          availableDelta,
+          changeType: 'CASH_TRIP_SETTLEMENT',
+          availableDelta: driverPayableNet.toFixed(4),
           totalEarnedDelta: driverEarningsAmount,
         },
         tx,

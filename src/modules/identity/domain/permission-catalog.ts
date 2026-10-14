@@ -58,11 +58,14 @@ export const PERMISSIONS = {
   FINANCE_WALLET_READ: 'finance.wallet.read',
   FINANCE_SETTLEMENT_MANAGE: 'finance.settlement.manage',
   FINANCE_COMMISSION_MANAGE: 'finance.commission.manage',
+  FINANCE_WALLET_DEBT_REPAY_CREATE: 'finance.wallet.debt_repay_create',
   ADMIN_PRICING_MANAGE: 'admin.pricing.manage',
 
   // Promotions & Growth (Phase 20 domain)
   PROMOTIONS_READ: 'promotions.read',
   PROMOTIONS_MANAGE: 'promotions.manage',
+  DRIVER_COUPONS_MANAGE: 'admin.driver_coupons.manage',
+  DRIVER_COUPONS_REDEEM: 'driver.coupons.redeem',
 
   // Location (Phase 5 domain)
   LOCATION_DRIVER_UPDATE: 'location.driver.update',
@@ -320,6 +323,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
     code: PERMISSIONS.ADMIN_PRICING_MANAGE,
     description: 'View and update platform pricing rules and rates (admin).',
   },
+  {
+    code: PERMISSIONS.FINANCE_WALLET_DEBT_REPAY_CREATE,
+    description: 'Pay down own negative driver wallet balance via Razorpay.',
+  },
 
   {
     code: PERMISSIONS.PROMOTIONS_READ,
@@ -328,6 +335,14 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   {
     code: PERMISSIONS.PROMOTIONS_MANAGE,
     description: 'Create, update, and manage coupons, offers, and referral rewards (admin).',
+  },
+  {
+    code: PERMISSIONS.DRIVER_COUPONS_MANAGE,
+    description: 'Create, update, pause, and archive driver wallet-credit coupons (admin).',
+  },
+  {
+    code: PERMISSIONS.DRIVER_COUPONS_REDEEM,
+    description: 'Redeem a driver wallet-credit coupon code (self-service).',
   },
 
   { code: PERMISSIONS.LOCATION_DRIVER_UPDATE, description: 'Update driver live location.' },

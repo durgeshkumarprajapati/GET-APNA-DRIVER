@@ -424,7 +424,7 @@ export async function evaluateAndQualifyReferral(
         {
           driverProfileId: referrerDriverProfile.id,
           financialTransactionId: rewardTransaction.id,
-          changeType: WalletChangeType.EARNING_RECOGNIZED,
+          changeType: WalletChangeType.REFERRAL_REWARD,
           availableDelta: rewardAmountStr,
           totalEarnedDelta: rewardAmountStr,
         },

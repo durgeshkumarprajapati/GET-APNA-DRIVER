@@ -269,7 +269,23 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
         }),
       );
       expect(postFinancialTransaction).toHaveBeenCalled();
-      expect(applyWalletChange).toHaveBeenCalled();
+      // Regression: this previously only asserted applyWalletChange was
+      // called at all, never its sign/value — the one numeric case this
+      // fixture happens to produce is positive (+10, since the promotion
+      // discount here exceeds the commission), which silently never
+      // exercised the far more common real-world case of a cash trip with
+      // no discount, where the driver owes the platform's commission and
+      // the delta is negative. See payment-service.spec.ts's
+      // captureCashPayment suite for that case.
+      expect(applyWalletChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          driverProfileId,
+          changeType: 'CASH_TRIP_SETTLEMENT',
+          availableDelta: '10.0000',
+          totalEarnedDelta: '160.0000',
+        }),
+        expect.anything(),
+      );
       expect(result.status).toBe('CAPTURED');
       // Regression: the driver must be notified of the cash payment
       // immediately rather than only whenever the separate background

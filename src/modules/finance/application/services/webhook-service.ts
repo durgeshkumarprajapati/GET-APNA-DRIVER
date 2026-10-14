@@ -7,6 +7,7 @@ import { logger } from '@/shared/logging/logger';
 import { paymentProvider } from '../../infrastructure/payment-provider';
 import { capturePayment, markPaymentFailed } from './payment-service';
 import { completeRefund, markRefundFailed } from './refund-service';
+import { captureWalletTopup, markWalletTopupFailed } from './wallet-topup-service';
 
 export interface ProcessRazorpayWebhookInput {
   rawBody: string;
@@ -163,7 +164,14 @@ async function dispatchWebhookEvent(
         return 'ignored';
       }
       const payment = await db.payment.findFirst({ where: { providerOrderId: entity.order_id } });
-      if (!payment) {
+      // A driver wallet debt-repayment order (createWalletDebtTopupOrder)
+      // shares the same Razorpay order/payment lifecycle as a booking
+      // Payment but is a separate model (DriverWalletTopup has no
+      // bookingId) — check it when the order doesn't match any Payment.
+      const topup = payment
+        ? null
+        : await db.driverWalletTopup.findFirst({ where: { providerOrderId: entity.order_id } });
+      if (!payment && !topup) {
         logger.warn({ providerOrderId: entity.order_id }, `${eventType} webhook for unknown order`);
         return 'ignored';
       }
@@ -173,13 +181,25 @@ async function dispatchWebhookEvent(
         } catch (err) {
           logger.warn(
             { err, entityId: entity.id },
-            'Auto-capture on payment.authorized failed, continuing capturePayment flow',
+            'Auto-capture on payment.authorized failed, continuing capture flow',
           );
         }
       }
+      if (topup) {
+        await captureWalletTopup(
+          {
+            topupId: topup.id,
+            providerPaymentId: entity.id,
+            amountMinorUnits: entity.amount,
+            source: 'webhook',
+          },
+          db,
+        );
+        return 'processed';
+      }
       await capturePayment(
         {
-          paymentId: payment.id,
+          paymentId: payment!.id,
           providerPaymentId: entity.id,
           amountMinorUnits: entity.amount,
           source: 'webhook',
@@ -195,11 +215,22 @@ async function dispatchWebhookEvent(
         return 'ignored';
       }
       const payment = await db.payment.findFirst({ where: { providerOrderId: entity.order_id } });
-      if (!payment) {
+      if (payment) {
+        await markPaymentFailed(
+          payment.id,
+          entity.error_description ?? 'Payment failed at provider',
+          db,
+        );
+        return 'processed';
+      }
+      const topup = await db.driverWalletTopup.findFirst({
+        where: { providerOrderId: entity.order_id },
+      });
+      if (!topup) {
         return 'ignored';
       }
-      await markPaymentFailed(
-        payment.id,
+      await markWalletTopupFailed(
+        topup.id,
         entity.error_description ?? 'Payment failed at provider',
         db,
       );

@@ -206,3 +206,29 @@ export class SettlementNotRetryableError extends AppError {
     );
   }
 }
+
+export class NoWalletDebtOwedError extends AppError {
+  constructor() {
+    super(
+      'Your wallet balance is not negative — there is no commission debt to pay down',
+      409,
+      'WALLET_NO_DEBT_OWED',
+    );
+  }
+}
+
+export class WalletTopupExceedsDebtError extends AppError {
+  constructor(requested: string, debtOwed: string) {
+    super(
+      `Requested amount ${requested} exceeds the outstanding debt ${debtOwed}`,
+      422,
+      'WALLET_TOPUP_EXCEEDS_DEBT',
+    );
+  }
+}
+
+export class WalletTopupNotFoundError extends AppError {
+  constructor(identifier: string) {
+    super(`Wallet top-up not found: ${identifier}`, 404, 'WALLET_TOPUP_NOT_FOUND');
+  }
+}
