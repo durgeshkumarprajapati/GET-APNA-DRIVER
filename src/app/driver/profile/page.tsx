@@ -13,6 +13,7 @@ import { Input, Textarea } from '@/components/ui/input';
 import { FormField, FieldGroup } from '@/components/ui/form-field';
 import { Alert } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
+import { AvatarUploadField } from '@/components/ui/avatar-upload-field';
 
 interface DriverProfileData {
   firstName: string;
@@ -223,6 +224,15 @@ export default function DriverProfileEditPage() {
             <p className="text-on-surface-variant">Loading profile data...</p>
           ) : (
             <form onSubmit={handleSubmit} className="grid gap-5">
+              <FormField label="Profile Photo">
+                <AvatarUploadField
+                  currentUrl={form.profileImageUrl || null}
+                  uploadEndpoint="/api/driver/profile/avatar"
+                  displayName={form.displayName || form.firstName}
+                  onUploaded={(url) => setForm((prev) => ({ ...prev, profileImageUrl: url }))}
+                />
+              </FormField>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField label="First Name">
                   <Input
@@ -297,7 +307,9 @@ export default function DriverProfileEditPage() {
                 )}
 
                 {locationError && (
-                  <p className="mt-2 text-[13px] text-rose-500 dark:text-rose-400">{locationError}</p>
+                  <p className="mt-2 text-[13px] text-rose-500 dark:text-rose-400">
+                    {locationError}
+                  </p>
                 )}
 
                 {capturedCoords && (

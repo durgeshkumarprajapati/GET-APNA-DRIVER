@@ -187,6 +187,14 @@ async function main(): Promise<void> {
       isPublic: false,
     },
     {
+      key: 'profile.avatar.max_file_size_bytes',
+      value: '5242880',
+      valueType: 'INTEGER' as const,
+      category: 'profile',
+      description: 'Maximum allowed profile picture upload size in bytes (5MB)',
+      isPublic: false,
+    },
+    {
       key: 'driver.onboarding.minimum_age',
       value: '18',
       valueType: 'INTEGER' as const,

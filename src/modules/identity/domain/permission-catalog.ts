@@ -29,6 +29,7 @@ export const PERMISSIONS = {
   ADMIN_DRIVER_REVIEW: 'admin.driver.review',
   ADMIN_DRIVER_APPROVE: 'admin.driver.approve',
   ADMIN_DRIVER_SUSPEND: 'admin.driver.suspend',
+  ADMIN_DRIVER_RATE_MANAGE: 'admin.driver.rate.manage',
   ADMIN_DRIVER_DOCUMENT_READ: 'admin.driver_document.read',
   ADMIN_DRIVER_DOCUMENT_VERIFY: 'admin.driver_document.verify',
   ADMIN_DASHBOARD_READ: 'admin.dashboard.read',
@@ -242,6 +243,10 @@ export const PERMISSION_CATALOG: readonly PermissionSeedDefinition[] = [
   { code: PERMISSIONS.ADMIN_DRIVER_REVIEW, description: 'Review driver onboarding submissions.' },
   { code: PERMISSIONS.ADMIN_DRIVER_APPROVE, description: 'Approve or reject driver applications.' },
   { code: PERMISSIONS.ADMIN_DRIVER_SUSPEND, description: 'Suspend driver approval.' },
+  {
+    code: PERMISSIONS.ADMIN_DRIVER_RATE_MANAGE,
+    description: "Edit a driver's hire rates (daily/weekly/monthly).",
+  },
   { code: PERMISSIONS.ADMIN_DRIVER_DOCUMENT_READ, description: 'View uploaded driver documents.' },
   {
     code: PERMISSIONS.ADMIN_DRIVER_DOCUMENT_VERIFY,

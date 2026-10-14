@@ -7,7 +7,8 @@ import { useToast, ToastViewport } from '@/components/ui/toast';
 import { CurrentLocationButton } from '@/components/ui/current-location-button';
 import { UnifiedMap } from '@/components/maps/unified-map';
 import { SpokenLanguageSelector } from '@/components/ui/spoken-language-selector';
-import { useTheme } from '@/components/theme-provider';
+import { useTheme, type ThemeMode } from '@/components/theme-provider';
+import { AvatarUploadField } from '@/components/ui/avatar-upload-field';
 
 interface ProfileData {
   firstName: string | null;
@@ -66,7 +67,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<
     'profile' | 'people' | 'locations' | 'preferences' | 'security'
   >('profile');
-
 
   // Saved People State
   const [savedPeople, setSavedPeople] = useState<SavedPersonData[]>([]);
@@ -449,7 +449,7 @@ export default function ProfilePage() {
         throw new Error(errData.error?.message || 'Failed to update preferences');
       }
 
-      setTheme(preferences.theme as any);
+      setTheme(preferences.theme as ThemeMode);
       setPrefMessage({ type: 'success', text: 'Preferences saved successfully!' });
     } catch (err: unknown) {
       setPrefMessage({
@@ -460,7 +460,6 @@ export default function ProfilePage() {
       setPrefSaving(false);
     }
   };
-
 
   const handleSavePin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -728,6 +727,25 @@ export default function ProfilePage() {
                 onSubmit={handleSaveProfile}
                 style={{ display: 'grid', gap: '1.25rem', maxWidth: '600px' }}
               >
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      marginBottom: '0.375rem',
+                    }}
+                  >
+                    Profile Photo
+                  </label>
+                  <AvatarUploadField
+                    currentUrl={profile.avatarUrl}
+                    uploadEndpoint="/api/customer/profile/avatar"
+                    displayName={profile.displayName || profile.firstName}
+                    onUploaded={(url) => setProfile({ ...profile, avatarUrl: url })}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label
@@ -807,36 +825,6 @@ export default function ProfilePage() {
                     placeholder="How should drivers address you?"
                     value={profile.displayName || ''}
                     onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid var(--color-border)',
-                      backgroundColor: 'var(--color-background)',
-                      color: 'var(--color-text-primary)',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="avatarUrl"
-                    style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      marginBottom: '0.375rem',
-                    }}
-                  >
-                    Avatar Image URL
-                  </label>
-                  <input
-                    id="avatarUrl"
-                    type="url"
-                    placeholder="https://example.com/avatar.jpg"
-                    value={profile.avatarUrl || ''}
-                    onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.625rem 0.875rem',
@@ -936,7 +924,9 @@ export default function ProfilePage() {
             </div>
 
             {savedPeopleLoading ? (
-              <div className="text-xs text-on-surface-variant py-8 text-center">Loading saved people...</div>
+              <div className="text-xs text-on-surface-variant py-8 text-center">
+                Loading saved people...
+              </div>
             ) : savedPeople.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 bg-surface-container-high border border-dashed border-border rounded-xl text-center">
                 <span className="material-symbols-outlined text-3xl text-on-surface-variant mb-2">
@@ -1021,9 +1011,7 @@ export default function ProfilePage() {
 
                     <div className="text-xs text-on-surface-variant space-y-1 font-mono">
                       <div className="flex items-center gap-2 text-on-surface font-semibold">
-                        <span className="material-symbols-outlined text-xs text-primary">
-                          call
-                        </span>
+                        <span className="material-symbols-outlined text-xs text-primary">call</span>
                         <span>{person.phone}</span>
                       </div>
                       {person.email && (
