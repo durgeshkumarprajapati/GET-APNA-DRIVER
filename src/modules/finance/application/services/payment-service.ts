@@ -39,6 +39,15 @@ import {
 
 export { PaymentNotFoundError };
 
+/** A payment may be created any time from driver assignment through trip completion. */
+const PAYABLE_BOOKING_STATUSES = [
+  'DRIVER_ASSIGNED',
+  'DRIVER_EN_ROUTE',
+  'DRIVER_ARRIVED',
+  'TRIP_IN_PROGRESS',
+  'TRIP_COMPLETED',
+];
+
 export interface CreatePaymentForBookingInput {
   bookingId: string;
   paymentMethod?: 'UPI' | 'QR' | 'CASH' | 'ONLINE' | string;
@@ -204,13 +213,6 @@ export async function createPaymentForBooking(
   if (!booking || booking.customerId !== customerUserId) {
     throw new PaymentBookingNotFoundError(input.bookingId);
   }
-  const PAYABLE_BOOKING_STATUSES = [
-    'DRIVER_ASSIGNED',
-    'DRIVER_EN_ROUTE',
-    'DRIVER_ARRIVED',
-    'TRIP_IN_PROGRESS',
-    'TRIP_COMPLETED',
-  ];
   if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
     throw new BookingNotEligibleForPaymentError(input.bookingId, booking.status);
   }
@@ -720,10 +722,8 @@ export interface PostTripPaymentDetails {
   cashCustomerConfirmedAt: string | null;
   cashDriverConfirmedAt: string | null;
   capturedAt: string | null;
-  upiQrPayload?: {
-    upiId: string;
-    qrData: string;
-  } | null;
+  /** Real Razorpay-hosted scannable QR image — set only once the driver has generated one via createUpiQrPaymentForBooking. */
+  qrCodeImageUrl: string | null;
 }
 
 export async function confirmCashPaymentByCustomer(
@@ -735,13 +735,6 @@ export async function confirmCashPaymentByCustomer(
   if (!booking || booking.customerId !== customerUserId) {
     throw new PaymentBookingNotFoundError(bookingId);
   }
-  const PAYABLE_BOOKING_STATUSES = [
-    'DRIVER_ASSIGNED',
-    'DRIVER_EN_ROUTE',
-    'DRIVER_ARRIVED',
-    'TRIP_IN_PROGRESS',
-    'TRIP_COMPLETED',
-  ];
   if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
     throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
   }
@@ -783,6 +776,10 @@ export async function confirmCashPaymentByCustomer(
     if (payment.status === 'CAPTURED') {
       return mapPaymentToCustomerSummary(payment);
     }
+    // A still-open Razorpay QR code must not remain scannable once the
+    // booking is being settled by cash instead — otherwise someone could
+    // still pay it after the fact with no reconciliation to this booking.
+    await bestEffortCloseExistingQrCode(payment);
     payment = await db.payment.update({
       where: { id: payment.id },
       data: {
@@ -821,13 +818,6 @@ export async function confirmCashPaymentByDriver(
   if (!booking || booking.driverProfileId !== driverProfileId) {
     throw new CashPaymentConfirmationForbiddenError('Driver is not assigned to this booking');
   }
-  const PAYABLE_BOOKING_STATUSES = [
-    'DRIVER_ASSIGNED',
-    'DRIVER_EN_ROUTE',
-    'DRIVER_ARRIVED',
-    'TRIP_IN_PROGRESS',
-    'TRIP_COMPLETED',
-  ];
   if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
     throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
   }
@@ -869,6 +859,7 @@ export async function confirmCashPaymentByDriver(
     if (payment.status === 'CAPTURED') {
       return mapPaymentToSummary(payment);
     }
+    await bestEffortCloseExistingQrCode(payment);
     payment = await db.payment.update({
       where: { id: payment.id },
       data: {
@@ -1033,6 +1024,167 @@ export async function captureCashPayment(
   return result;
 }
 
+async function bestEffortCloseExistingQrCode(payment: Payment): Promise<void> {
+  if (payment.paymentMethod === 'QR' && payment.providerOrderId) {
+    try {
+      await paymentProvider.closeUpiQrCode(payment.providerOrderId);
+    } catch (err: unknown) {
+      logger.warn(
+        { err, paymentId: payment.id },
+        'Failed to close superseded Razorpay QR code (best-effort)',
+      );
+    }
+  }
+}
+
+export interface CreateUpiQrPaymentResult {
+  paymentId: string;
+  qrCodeImageUrl: string;
+  amount: string;
+  currency: string;
+}
+
+/**
+ * Driver-triggered: generates a real, single-use, fixed-amount Razorpay QR
+ * code the customer can scan to pay the exact fare for this booking. A
+ * prior version of the driver's "Show Payment QR" screen displayed a
+ * decorative, non-functional graphic tied to a hardcoded, unverified UPI
+ * VPA — not a real scannable code, and not reconciled against anything.
+ * This payment is finalized for real by the qr_code.credited webhook (see
+ * webhook-service.ts), which calls capturePayment exactly like the
+ * standard checkout and cash flows.
+ *
+ * Idempotent per booking: a second call while a QR payment is still
+ * PROCESSING returns the same already-generated code rather than minting a
+ * duplicate one at Razorpay.
+ */
+export async function createUpiQrPaymentForBooking(
+  driverProfileId: string,
+  bookingId: string,
+  db: Db = prisma,
+): Promise<CreateUpiQrPaymentResult> {
+  const booking = await db.booking.findUnique({ where: { id: bookingId } });
+  if (!booking || booking.driverProfileId !== driverProfileId) {
+    throw new CashPaymentConfirmationForbiddenError('Driver is not assigned to this booking');
+  }
+  if (!PAYABLE_BOOKING_STATUSES.includes(booking.status)) {
+    throw new BookingNotEligibleForPaymentError(bookingId, booking.status);
+  }
+
+  let payment = await db.payment.findFirst({
+    where: { bookingId, status: { notIn: [...TERMINAL_PAYMENT_STATUSES] } },
+  });
+
+  if (payment) {
+    if (payment.paymentMethod === 'QR' && payment.qrCodeImageUrl) {
+      // Idempotent: a repeated driver tap reuses the already-generated code
+      // rather than minting a duplicate one at Razorpay.
+      return {
+        paymentId: payment.id,
+        qrCodeImageUrl: payment.qrCodeImageUrl,
+        amount: payment.amount.toFixed(4),
+        currency: payment.currency,
+      };
+    }
+    if (payment.paymentMethod !== 'QR') {
+      // An active cash/online payment attempt already exists for this
+      // booking — generating a competing QR code for the same fare would
+      // let the customer pay twice. Caller should surface the existing
+      // method instead.
+      throw new PaymentAlreadyInProgressError(bookingId);
+    }
+    // payment.paymentMethod === 'QR' but qrCodeImageUrl isn't set yet — a
+    // previous attempt's provider call must have failed between row
+    // creation and the provider response. Fall through and retry against
+    // this same row rather than creating a second one.
+  }
+
+  const { amount: grossAmount } = await calculateBookingAmount(booking, db);
+  const currency = await getString('finance.currency', 'INR', db);
+  const discountAmount = booking.discountAmount
+    ? roundMoney(toDecimal(booking.discountAmount)).toFixed(4)
+    : null;
+  const chargeAmount = discountAmount
+    ? roundMoney(toDecimal(grossAmount).sub(toDecimal(discountAmount))).toFixed(4)
+    : grossAmount;
+
+  if (!payment) {
+    payment = await db.payment.create({
+      data: {
+        bookingId,
+        customerId: booking.customerId,
+        driverProfileId,
+        amount: chargeAmount,
+        currency,
+        status: 'CREATED',
+        provider: 'razorpay',
+        paymentMethod: 'QR',
+        promotionId: booking.promotionId,
+        promotionCodeSnapshot: booking.promotionCodeSnapshot,
+        discountAmount,
+      },
+    });
+  }
+
+  let qrCode;
+  try {
+    qrCode = await paymentProvider.createUpiQrCode({
+      amountMinorUnits: toMinorUnits(toDecimal(chargeAmount)),
+      description: `Get Apna Driver trip payment #${bookingId.substring(0, 8)}`,
+      notes: { bookingId, paymentId: payment.id },
+    });
+  } catch (error: unknown) {
+    const reason = error instanceof Error ? error.message : 'Unknown provider error';
+    await db.payment.update({
+      where: { id: payment.id },
+      data: { status: 'FAILED', failureReason: reason },
+    });
+    throw new PaymentProviderError(reason);
+  }
+
+  const updated = await db.$transaction(async (tx: Db) => {
+    const result = await tx.payment.update({
+      where: { id: payment!.id },
+      data: {
+        providerOrderId: qrCode.providerQrCodeId,
+        qrCodeImageUrl: qrCode.imageUrl,
+        status: 'PROCESSING',
+      },
+    });
+
+    await tx.paymentAttempt.create({
+      data: {
+        paymentId: payment!.id,
+        provider: 'razorpay',
+        providerOrderId: qrCode.providerQrCodeId,
+        status: 'INITIATED',
+      },
+    });
+
+    await insertOutboxEvent(tx, {
+      eventType: 'payment.created',
+      aggregateType: 'Payment',
+      aggregateId: payment!.id,
+      payload: {
+        paymentId: payment!.id,
+        bookingId,
+        amount: chargeAmount,
+        paymentMethod: 'QR',
+        providerQrCodeId: qrCode.providerQrCodeId,
+      },
+    });
+
+    return result;
+  });
+
+  return {
+    paymentId: updated.id,
+    qrCodeImageUrl: qrCode.imageUrl,
+    amount: updated.amount.toFixed(4),
+    currency: updated.currency,
+  };
+}
+
 export async function getPostTripPaymentForBooking(
   bookingId: string,
   userAccessCheck?: { userId?: string; driverProfileId?: string },
@@ -1070,9 +1222,6 @@ export async function getPostTripPaymentForBooking(
     orderBy: { createdAt: 'desc' },
   });
 
-  const upiVpa = env.RAZORPAY_KEY_ID ? 'getapnadriver@razorpay' : 'apnadriver@upi';
-  const qrData = `upi://pay?pa=${upiVpa}&pn=GetApnaDriver&am=${chargeAmount}&cu=${currency}&tn=Booking_${bookingId.substring(0, 8)}`;
-
   if (!payment) {
     return {
       bookingId,
@@ -1089,10 +1238,10 @@ export async function getPostTripPaymentForBooking(
       cashCustomerConfirmedAt: null,
       cashDriverConfirmedAt: null,
       capturedAt: null,
-      upiQrPayload: {
-        upiId: upiVpa,
-        qrData,
-      },
+      // No payment attempt exists yet, so no real QR code has been
+      // generated — the driver must tap "Generate Payment QR" (calls
+      // createUpiQrPaymentForBooking) before there's a real one to show.
+      qrCodeImageUrl: null,
     };
   }
 
@@ -1115,10 +1264,7 @@ export async function getPostTripPaymentForBooking(
       ? payment.cashDriverConfirmedAt.toISOString()
       : null,
     capturedAt: payment.capturedAt ? payment.capturedAt.toISOString() : null,
-    upiQrPayload: {
-      upiId: upiVpa,
-      qrData,
-    },
+    qrCodeImageUrl: payment.qrCodeImageUrl ?? null,
   };
 }
 

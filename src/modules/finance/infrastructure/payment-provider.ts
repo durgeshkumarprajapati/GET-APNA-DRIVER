@@ -52,6 +52,18 @@ export interface FetchOrderResult {
   attemptsCount?: number;
 }
 
+export interface CreateUpiQrCodeInput {
+  amountMinorUnits: number;
+  description: string;
+  notes?: Record<string, string>;
+}
+
+export interface CreateUpiQrCodeResult {
+  providerQrCodeId: string;
+  imageUrl: string;
+  status: string;
+}
+
 /**
  * Provider-independent contract for the payment gateway. All Razorpay SDK
  * calls / HTTP calls stay inside RazorpayPaymentProvider — application
@@ -72,6 +84,10 @@ export interface PaymentProvider {
   initiateRefund(input: InitiateRefundInput): Promise<InitiateRefundResult>;
   /** Verifies an incoming webhook's signature against the exact raw request body. */
   verifyWebhookSignature(rawBody: string, signature: string): boolean;
+  /** Creates a real, single-use, fixed-amount, Razorpay-hosted scannable QR code. */
+  createUpiQrCode(input: CreateUpiQrCodeInput): Promise<CreateUpiQrCodeResult>;
+  /** Best-effort: invalidates a still-open QR code (e.g. the booking was settled by cash instead). */
+  closeUpiQrCode(providerQrCodeId: string): Promise<void>;
 }
 
 const RAZORPAY_API_BASE_URL = 'https://api.razorpay.com/v1';
@@ -183,20 +199,17 @@ export class RazorpayPaymentProvider implements PaymentProvider {
   ): Promise<FetchPaymentResult> {
     const { keyId, keySecret } = getRazorpayCredentials();
 
-    const response = await fetch(
-      `${RAZORPAY_API_BASE_URL}/payments/${providerPaymentId}/capture`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: basicAuthHeader(keyId, keySecret),
-        },
-        body: JSON.stringify({
-          amount: amountMinorUnits,
-          currency,
-        }),
+    const response = await fetch(`${RAZORPAY_API_BASE_URL}/payments/${providerPaymentId}/capture`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: basicAuthHeader(keyId, keySecret),
       },
-    );
+      body: JSON.stringify({
+        amount: amountMinorUnits,
+        currency,
+      }),
+    });
 
     const body = (await response.json()) as RazorpayErrorBody & {
       id?: string;
@@ -305,6 +318,67 @@ export class RazorpayPaymentProvider implements PaymentProvider {
       .digest('hex');
     return timingSafeEqualHex(expected, signature);
   }
+
+  async createUpiQrCode(input: CreateUpiQrCodeInput): Promise<CreateUpiQrCodeResult> {
+    const { keyId, keySecret } = getRazorpayCredentials();
+
+    const response = await fetch(`${RAZORPAY_API_BASE_URL}/payments/qr_codes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: basicAuthHeader(keyId, keySecret),
+      },
+      body: JSON.stringify({
+        type: 'upi_qr',
+        name: 'Get Apna Driver Trip Payment',
+        usage: 'single_use',
+        fixed_amount: true,
+        payment_amount: input.amountMinorUnits,
+        description: input.description,
+        notes: input.notes ?? {},
+      }),
+    });
+
+    const body = (await response.json()) as RazorpayErrorBody & {
+      id?: string;
+      image_url?: string;
+      status?: string;
+    };
+
+    if (!response.ok || !body.id || !body.image_url) {
+      throw new Error(
+        `Razorpay QR code creation failed: ${body.error?.description ?? response.statusText}`,
+      );
+    }
+
+    return {
+      providerQrCodeId: body.id,
+      imageUrl: body.image_url,
+      status: body.status ?? 'active',
+    };
+  }
+
+  async closeUpiQrCode(providerQrCodeId: string): Promise<void> {
+    const { keyId, keySecret } = getRazorpayCredentials();
+
+    const response = await fetch(
+      `${RAZORPAY_API_BASE_URL}/payments/qr_codes/${providerQrCodeId}/close`,
+      {
+        method: 'POST',
+        headers: { Authorization: basicAuthHeader(keyId, keySecret) },
+      },
+    );
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => ({}))) as RazorpayErrorBody;
+      // Best-effort — a QR code that's already closed/expired on Razorpay's
+      // side (e.g. it was already used) is not a real failure here.
+      logger.warn(
+        { providerQrCodeId, error: body.error?.description },
+        'Failed to close Razorpay QR code (best-effort, ignored)',
+      );
+    }
+  }
 }
 
 /**
@@ -380,6 +454,20 @@ export class MockPaymentProvider implements PaymentProvider {
 
   verifyWebhookSignature(rawBody: string, signature: string): boolean {
     return signature === MockPaymentProvider.signMockWebhook(rawBody);
+  }
+
+  async createUpiQrCode(input: CreateUpiQrCodeInput): Promise<CreateUpiQrCodeResult> {
+    const providerQrCodeId = `qr_mock_${crypto.randomUUID()}`;
+    logger.info({ providerQrCodeId, ...input }, '[DEV ONLY] Mock Razorpay QR code created');
+    return {
+      providerQrCodeId,
+      imageUrl: `https://mock-razorpay.local/qr/${providerQrCodeId}.png`,
+      status: 'active',
+    };
+  }
+
+  async closeUpiQrCode(providerQrCodeId: string): Promise<void> {
+    logger.info({ providerQrCodeId }, '[DEV ONLY] Mock Razorpay QR code closed');
   }
 
   /** Dev/test helper: computes the signature a real checkout completion would carry. */

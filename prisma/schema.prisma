@@ -1246,6 +1246,11 @@ model Payment {
   /// Post-trip payment method chosen by customer: UPI, QR, CASH, or ONLINE.
   paymentMethod String? @map("payment_method")
 
+  /// Real Razorpay-hosted scannable QR code image (payments/qr_codes), set
+  /// only for paymentMethod='QR'. For 'QR' payments, providerOrderId holds
+  /// the Razorpay QR code id (qr_...), not an order id.
+  qrCodeImageUrl String? @map("qr_code_image_url")
+
   /// Cash payment confirmation timestamps (dual confirmation required).
   cashCustomerConfirmedAt DateTime? @map("cash_customer_confirmed_at") @db.Timestamptz(6)
   cashDriverConfirmedAt   DateTime? @map("cash_driver_confirmed_at") @db.Timestamptz(6)
