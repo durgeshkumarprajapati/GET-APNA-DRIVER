@@ -29,6 +29,7 @@ interface RazorpayWebhookPayload {
       entity?: { id?: string; order_id?: string; amount?: number; error_description?: string };
     };
     refund?: { entity?: { id?: string; payment_id?: string; amount?: number } };
+    qr_code?: { entity?: { id?: string } };
   };
 }
 
@@ -163,17 +164,17 @@ async function dispatchWebhookEvent(
       }
       const payment = await db.payment.findFirst({ where: { providerOrderId: entity.order_id } });
       if (!payment) {
-        logger.warn(
-          { providerOrderId: entity.order_id },
-          `${eventType} webhook for unknown order`,
-        );
+        logger.warn({ providerOrderId: entity.order_id }, `${eventType} webhook for unknown order`);
         return 'ignored';
       }
       if (eventType === 'payment.authorized' && paymentProvider.capturePaymentOnProvider) {
         try {
           await paymentProvider.capturePaymentOnProvider(entity.id, entity.amount, 'INR');
         } catch (err) {
-          logger.warn({ err, entityId: entity.id }, 'Auto-capture on payment.authorized failed, continuing capturePayment flow');
+          logger.warn(
+            { err, entityId: entity.id },
+            'Auto-capture on payment.authorized failed, continuing capturePayment flow',
+          );
         }
       }
       await capturePayment(
@@ -232,6 +233,37 @@ async function dispatchWebhookEvent(
         return 'ignored';
       }
       await markRefundFailed(refund.id, 'Refund failed at provider', db);
+      return 'processed';
+    }
+
+    case 'qr_code.credited': {
+      // The Payment row created by createUpiQrPaymentForBooking stores the
+      // Razorpay QR code id in providerOrderId (QR payments never have a
+      // real "order" the way checkout payments do).
+      const qrCodeEntity = payload?.qr_code?.entity;
+      const paymentEntity = payload?.payment?.entity;
+      if (!qrCodeEntity?.id || !paymentEntity?.id || paymentEntity.amount === undefined) {
+        return 'ignored';
+      }
+      const payment = await db.payment.findFirst({
+        where: { providerOrderId: qrCodeEntity.id, paymentMethod: 'QR' },
+      });
+      if (!payment) {
+        logger.warn(
+          { providerQrCodeId: qrCodeEntity.id },
+          'qr_code.credited webhook for unknown QR code',
+        );
+        return 'ignored';
+      }
+      await capturePayment(
+        {
+          paymentId: payment.id,
+          providerPaymentId: paymentEntity.id,
+          amountMinorUnits: paymentEntity.amount,
+          source: 'webhook',
+        },
+        db,
+      );
       return 'processed';
     }
 

@@ -15,10 +15,7 @@ export interface PostTripPaymentDetailsProps {
     cashCustomerConfirmedAt: string | null;
     cashDriverConfirmedAt: string | null;
     capturedAt: string | null;
-    upiQrPayload?: {
-      upiId: string;
-      qrData: string;
-    } | null;
+    qrCodeImageUrl?: string | null;
   };
   onPaymentSuccess?: () => void;
 }
@@ -58,7 +55,6 @@ export function PostTripPaymentCard({
   const [actionLoading, setActionLoading] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const fetchPaymentDetails = useCallback(async () => {
     try {
@@ -173,7 +169,6 @@ export function PostTripPaymentCard({
           if (data.checkout?.razorpayPaymentPageUrl) {
             window.open(data.checkout.razorpayPaymentPageUrl, '_blank');
           }
-          setShowQrModal(true);
           await fetchPaymentDetails();
         } else {
           setErrorMessage(data.message || 'Failed to initiate online payment.');
@@ -181,6 +176,28 @@ export function PostTripPaymentCard({
       }
     } catch {
       setErrorMessage('Action failed. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDriverShowPaymentQr = async () => {
+    try {
+      setActionLoading(true);
+      setErrorMessage(null);
+      const res = await fetch(`/api/driver/bookings/${bookingId}/payment/qr`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await fetchPaymentDetails();
+        setShowQrModal(true);
+      } else {
+        setErrorMessage(data.message || 'Failed to generate payment QR code.');
+      }
+    } catch {
+      setErrorMessage('Failed to generate payment QR code.');
     } finally {
       setActionLoading(false);
     }
@@ -205,12 +222,6 @@ export function PostTripPaymentCard({
     } finally {
       setActionLoading(false);
     }
-  };
-
-  const handleCopyUpiId = (upiId: string) => {
-    navigator.clipboard.writeText(upiId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading && !details) {
@@ -371,8 +382,11 @@ export function PostTripPaymentCard({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => setShowQrModal(true)}
-                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
+                onClick={() =>
+                  details?.qrCodeImageUrl ? setShowQrModal(true) : handleDriverShowPaymentQr()
+                }
+                disabled={actionLoading}
+                className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
               >
                 <span>📱 Show Payment QR</span>
               </button>
@@ -392,8 +406,8 @@ export function PostTripPaymentCard({
         </div>
       )}
 
-      {/* QR Code Modal / Display Card */}
-      {showQrModal && details?.upiQrPayload && (
+      {/* QR Code Modal — renders the real, scannable Razorpay-hosted QR image */}
+      {showQrModal && details?.qrCodeImageUrl && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-surface border border-border rounded-2xl max-w-sm w-full p-6 space-y-4 text-center shadow-2xl relative animate-scale-in">
             <button
@@ -405,66 +419,25 @@ export function PostTripPaymentCard({
             </button>
 
             <h4 className="text-base font-bold text-on-surface">Scan & Pay via Any UPI App</h4>
-            <p className="text-xs text-on-surface-variant">GPay, PhonePe, Paytm, BHIM, or Banking UPI App</p>
+            <p className="text-xs text-on-surface-variant">
+              GPay, PhonePe, Paytm, BHIM, or Banking UPI App
+            </p>
 
-            {/* Generated QR Card Graphic */}
             <div className="bg-white p-5 rounded-xl inline-block shadow-inner">
-              <svg
-                className="w-44 h-44 mx-auto text-slate-900"
-                viewBox="0 0 100 100"
-                fill="currentColor"
-              >
-                {/* Simulated high-fidelity QR layout */}
-                <rect x="5" y="5" width="28" height="28" fill="#0f172a" />
-                <rect x="9" y="9" width="20" height="20" fill="#ffffff" />
-                <rect x="13" y="13" width="12" height="12" fill="#0f172a" />
-
-                <rect x="67" y="5" width="28" height="28" fill="#0f172a" />
-                <rect x="71" y="9" width="20" height="20" fill="#ffffff" />
-                <rect x="75" y="13" width="12" height="12" fill="#0f172a" />
-
-                <rect x="5" y="67" width="28" height="28" fill="#0f172a" />
-                <rect x="9" y="71" width="20" height="20" fill="#ffffff" />
-                <rect x="13" y="75" width="12" height="12" fill="#0f172a" />
-
-                {/* Data modules */}
-                <rect x="40" y="10" width="8" height="8" />
-                <rect x="52" y="10" width="8" height="8" />
-                <rect x="40" y="24" width="20" height="8" />
-
-                <rect x="10" y="40" width="12" height="12" />
-                <rect x="28" y="40" width="12" height="12" />
-                <rect x="46" y="40" width="12" height="12" />
-                <rect x="64" y="40" width="12" height="12" />
-                <rect x="82" y="40" width="12" height="12" />
-
-                <rect x="40" y="58" width="12" height="12" />
-                <rect x="58" y="58" width="12" height="12" />
-                <rect x="76" y="58" width="12" height="12" />
-
-                <rect x="40" y="76" width="16" height="16" />
-                <rect x="62" y="76" width="16" height="16" />
-                <rect x="82" y="76" width="12" height="12" />
-              </svg>
-            </div>
-
-            <div className="bg-surface-container-high p-3 rounded-xl text-xs space-y-1">
-              <span className="text-on-surface-variant block">UPI VPA:</span>
-              <div className="flex items-center justify-center gap-2 font-mono text-indigo-600 dark:text-indigo-300 font-semibold">
-                <span>{details.upiQrPayload.upiId}</span>
-                <button
-                  type="button"
-                  onClick={() => handleCopyUpiId(details.upiQrPayload!.upiId)}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 underline hover:text-indigo-500"
-                >
-                  {copied ? 'Copied!' : 'Copy'}
-                </button>
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element -- externally hosted, single-use Razorpay QR image */}
+              <img
+                src={details.qrCodeImageUrl}
+                alt="Scan this QR code with any UPI app to pay"
+                className="w-44 h-44 mx-auto"
+              />
             </div>
 
             <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
               Amount to Pay: {currencySymbol} {parseFloat(amount).toFixed(2)}
             </div>
+            <p className="text-[10px] text-on-surface-variant">
+              This code updates automatically once payment is received.
+            </p>
           </div>
         </div>
       )}
