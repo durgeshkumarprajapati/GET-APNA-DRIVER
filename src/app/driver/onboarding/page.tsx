@@ -88,6 +88,12 @@ export default function DriverOnboardingPage() {
   const [bio, setBio] = useState('');
   const [drivingExperienceYears, setDrivingExperienceYears] = useState(0);
   const [primaryServiceArea, setPrimaryServiceArea] = useState('');
+  // Empty string means "no rate set / opted out of this hire type" —
+  // converted to null on submit, never sent as 0. Same convention as
+  // /driver/profile's own hire-rate fields.
+  const [dailyHireRate, setDailyHireRate] = useState('');
+  const [weeklyHireRate, setWeeklyHireRate] = useState('');
+  const [monthlyHireRate, setMonthlyHireRate] = useState('');
 
   // DriverProfile has no latitude/longitude columns — primaryServiceArea is
   // a free-text descriptor, and there is no client-facing reverse-geocoding
@@ -139,6 +145,15 @@ export default function DriverOnboardingPage() {
         setBio(data.profile.bio ?? '');
         setDrivingExperienceYears(data.profile.drivingExperienceYears ?? 0);
         setPrimaryServiceArea(data.profile.primaryServiceArea ?? '');
+        setDailyHireRate(
+          data.profile.dailyHireRate != null ? String(data.profile.dailyHireRate) : '',
+        );
+        setWeeklyHireRate(
+          data.profile.weeklyHireRate != null ? String(data.profile.weeklyHireRate) : '',
+        );
+        setMonthlyHireRate(
+          data.profile.monthlyHireRate != null ? String(data.profile.monthlyHireRate) : '',
+        );
         if (data.profile.onboardingStatus === 'NOT_STARTED' && isProfileComplete(data.profile)) {
           setStep(2);
         } else if (data.profile.onboardingStatus !== 'NOT_STARTED') {
@@ -169,6 +184,9 @@ export default function DriverOnboardingPage() {
           bio: bio || null,
           drivingExperienceYears,
           primaryServiceArea,
+          dailyHireRate: dailyHireRate.trim() === '' ? null : Number(dailyHireRate),
+          weeklyHireRate: weeklyHireRate.trim() === '' ? null : Number(weeklyHireRate),
+          monthlyHireRate: monthlyHireRate.trim() === '' ? null : Number(monthlyHireRate),
         }),
       });
       const data = await res.json();
@@ -401,6 +419,54 @@ export default function DriverOnboardingPage() {
                 className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface h-20 focus:outline-none focus:border-primary font-sans"
               />
             </label>
+
+            <div className="pt-2 border-t border-border">
+              <p className="text-xs font-bold text-on-surface font-['Space_Grotesk'] mb-1">
+                Hire Rates (₹) — optional
+              </p>
+              <ContextualTip id="driver-onboarding-hire-rates">
+                Set your own price for a full daily, weekly, or monthly hire. Customers browsing
+                drivers for these bookings will see this rate and pick you directly at it. Leave a
+                field blank to opt out of that hire type — you can change this anytime later from
+                your profile.
+              </ContextualTip>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
+                  Per Day
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="e.g. 2500"
+                    value={dailyHireRate}
+                    onChange={(e) => setDailyHireRate(e.target.value)}
+                    className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
+                  />
+                </label>
+                <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
+                  Per Week
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="e.g. 15000"
+                    value={weeklyHireRate}
+                    onChange={(e) => setWeeklyHireRate(e.target.value)}
+                    className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
+                  />
+                </label>
+                <label className="text-xs text-on-surface-variant flex flex-col gap-1 font-mono">
+                  Per Month
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="e.g. 45000"
+                    value={monthlyHireRate}
+                    onChange={(e) => setMonthlyHireRate(e.target.value)}
+                    className="px-3 py-2 rounded-lg bg-surface-container-high border border-border text-sm text-on-surface focus:outline-none focus:border-primary font-sans"
+                  />
+                </label>
+              </div>
+            </div>
+
             {profileError && <p className="text-xs text-rose-500 font-medium">{profileError}</p>}
             <button
               type="button"

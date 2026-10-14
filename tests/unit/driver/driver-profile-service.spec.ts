@@ -2,6 +2,7 @@ import {
   getOrCreateDriverProfile,
   updateDriverProfile,
   getDriverProfileById,
+  updateDriverRatesByAdmin,
 } from '@/modules/driver/application/services/driver-profile-service';
 import { DriverOnboardingStatus } from '@prisma/client';
 import { DriverProfileNotFoundError } from '@/modules/driver/domain/errors';
@@ -43,6 +44,7 @@ jest.mock('@/modules/identity/infrastructure/user-repository', () => ({
 
 import { prisma } from '@/shared/database/prisma';
 import { getContactInfoForUsers } from '@/modules/identity/infrastructure/user-repository';
+import { insertOutboxEvent } from '@/shared/outbox/outbox-service';
 
 describe('DriverProfileService', () => {
   const mockFindUnique = prisma.driverProfile.findUnique as jest.Mock;
@@ -140,6 +142,53 @@ describe('DriverProfileService', () => {
 
       expect(result.user.email).toBeNull();
       expect(result.user.phoneNumber).toBeNull();
+    });
+  });
+
+  describe('updateDriverRatesByAdmin', () => {
+    it('updates hire rates, records an audit log, and emits driver.rate_updated for the notification handler', async () => {
+      mockTx.driverProfile.findUnique.mockResolvedValue({
+        id: 'dp-1',
+        userId: 'user-1',
+        dailyHireRate: null,
+        weeklyHireRate: null,
+        monthlyHireRate: null,
+      });
+      mockTx.driverProfile.update.mockResolvedValue({
+        id: 'dp-1',
+        userId: 'user-1',
+        dailyHireRate: { toString: () => '2500' },
+        weeklyHireRate: { toString: () => '15000' },
+        monthlyHireRate: null,
+      });
+
+      const updated = await updateDriverRatesByAdmin(
+        'admin-1',
+        'dp-1',
+        { dailyHireRate: 2500, weeklyHireRate: 15000 },
+        { ipAddress: '127.0.0.1' },
+      );
+
+      expect(updated.dailyHireRate?.toString()).toBe('2500');
+      expect(insertOutboxEvent).toHaveBeenCalledWith(
+        mockTx,
+        expect.objectContaining({
+          eventType: 'driver.rate_updated',
+          payload: expect.objectContaining({
+            userId: 'user-1',
+            dailyHireRate: '2500',
+            weeklyHireRate: '15000',
+          }),
+        }),
+      );
+    });
+
+    it('throws DriverProfileNotFoundError for a driver that does not exist', async () => {
+      mockTx.driverProfile.findUnique.mockResolvedValue(null);
+
+      await expect(
+        updateDriverRatesByAdmin('admin-1', 'dp-missing', { dailyHireRate: 1000 }),
+      ).rejects.toThrow(DriverProfileNotFoundError);
     });
   });
 });

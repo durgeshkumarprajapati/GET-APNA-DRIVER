@@ -208,3 +208,73 @@ export async function getDriverProfileById(
 
   return { ...profile, user: { ...profile.user, ...contact } };
 }
+
+export interface UpdateDriverRatesByAdminInput {
+  dailyHireRate?: number | null;
+  weeklyHireRate?: number | null;
+  monthlyHireRate?: number | null;
+}
+
+/**
+ * Admin-side counterpart to the driver's own hire-rate self-edit in
+ * updateDriverProfile above, keyed by driverProfileId rather than userId
+ * (the admin acts on a driver they're viewing, not their own account).
+ * Emits driver.rate_updated so the driver is notified — see
+ * notification-event-handlers.ts.
+ */
+export async function updateDriverRatesByAdmin(
+  adminUserId: string,
+  driverProfileId: string,
+  input: UpdateDriverRatesByAdminInput,
+  requestMetadata?: Record<string, unknown> | null,
+  dbClient: Db = prisma,
+): Promise<DriverProfile> {
+  return await dbClient.$transaction(async (tx) => {
+    const current = await tx.driverProfile.findUnique({ where: { id: driverProfileId } });
+    if (!current) {
+      throw new DriverProfileNotFoundError(driverProfileId);
+    }
+
+    const updated = await tx.driverProfile.update({
+      where: { id: driverProfileId },
+      data: {
+        ...(input.dailyHireRate !== undefined && { dailyHireRate: input.dailyHireRate }),
+        ...(input.weeklyHireRate !== undefined && { weeklyHireRate: input.weeklyHireRate }),
+        ...(input.monthlyHireRate !== undefined && { monthlyHireRate: input.monthlyHireRate }),
+      },
+    });
+
+    await recordAuditLog(tx, {
+      actorUserId: adminUserId,
+      action: 'admin.driver.rate_updated',
+      entityType: 'DriverProfile',
+      entityId: driverProfileId,
+      beforeState: {
+        dailyHireRate: current.dailyHireRate?.toString() ?? null,
+        weeklyHireRate: current.weeklyHireRate?.toString() ?? null,
+        monthlyHireRate: current.monthlyHireRate?.toString() ?? null,
+      },
+      afterState: {
+        dailyHireRate: updated.dailyHireRate?.toString() ?? null,
+        weeklyHireRate: updated.weeklyHireRate?.toString() ?? null,
+        monthlyHireRate: updated.monthlyHireRate?.toString() ?? null,
+      },
+      requestMetadata: requestMetadata ?? null,
+    });
+
+    await insertOutboxEvent(tx, {
+      eventType: 'driver.rate_updated',
+      aggregateType: 'DriverProfile',
+      aggregateId: driverProfileId,
+      payload: {
+        driverProfileId,
+        userId: current.userId,
+        dailyHireRate: updated.dailyHireRate?.toString() ?? null,
+        weeklyHireRate: updated.weeklyHireRate?.toString() ?? null,
+        monthlyHireRate: updated.monthlyHireRate?.toString() ?? null,
+      },
+    });
+
+    return updated;
+  });
+}
