@@ -247,19 +247,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans antialiased flex flex-col justify-between selection:bg-[#68dba9] selection:text-[#003825]">
+    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-on-surface)] font-sans antialiased flex flex-col justify-between selection:bg-[#68dba9] selection:text-[#003825] transition-colors duration-200">
       {/* Top Bar */}
-      <header className="w-full bg-[#0a0e16]/80 backdrop-blur-xl border-b border-[#262a33] sticky top-0 z-40">
+      <header className="w-full bg-[var(--color-surface-container-lowest)]/80 backdrop-blur-xl border-b border-[var(--color-border)] sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-[#262a33] flex items-center justify-center text-[#68dba9] shadow-inner group-hover:bg-[#68dba9] group-hover:text-[#003825] transition-all duration-300">
+            <div className="w-9 h-9 rounded-xl bg-[var(--color-surface-container-high)] flex items-center justify-center text-[var(--color-primary)] shadow-inner group-hover:bg-[var(--color-primary)] group-hover:text-[var(--color-on-primary)] transition-all duration-300">
               <span className="material-symbols-outlined text-xl font-bold">local_taxi</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-base uppercase tracking-wider text-[#dfe2ee]">
+              <span className="font-bold text-base uppercase tracking-wider text-[var(--color-on-surface)]">
                 Get Apna Driver
               </span>
-              <span className="text-[10px] font-mono text-[#87948b] hidden sm:inline-block">
+              <span className="text-[10px] font-mono text-[var(--color-on-surface-variant)] hidden sm:inline-block">
                 {t('auth.login.tagline')}
               </span>
             </div>
@@ -267,11 +267,11 @@ export default function LoginPage() {
 
           {/* Language Selector Dropdown */}
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm text-[#87948b]">language</span>
+            <span className="material-symbols-outlined text-sm text-[var(--color-on-surface-variant)]">language</span>
             <select
               value={locale}
               onChange={(e) => setLocale(e.target.value as Parameters<typeof setLocale>[0])}
-              className="bg-[#181c24] border border-[#262a33] text-[#dfe2ee] text-xs font-mono py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-[#68dba9] cursor-pointer"
+              className="bg-[var(--color-surface-container-low)] border border-[var(--color-border)] text-[var(--color-on-surface)] text-xs font-mono py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
               aria-label="Select language"
             >
               <option value="en">English</option>
@@ -294,59 +294,59 @@ export default function LoginPage() {
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column: Brand Identity (Desktop Only) */}
           <div className="hidden lg:flex lg:col-span-6 flex-col justify-center space-y-6 pr-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#181c24] rounded-full border border-[#262a33] w-fit">
-              <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse"></span>
-              <span className="text-xs font-mono text-[#68dba9] font-medium uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--color-surface-container-low)] rounded-full border border-[var(--color-border)] w-fit">
+              <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
+              <span className="text-xs font-mono text-[var(--color-primary)] font-medium uppercase tracking-wider">
                 Chauffeur Mobility Terminal
               </span>
             </div>
 
-            <h1 className="font-bold text-4xl text-[#dfe2ee] tracking-tight leading-tight">
+            <h1 className="font-bold text-4xl text-[var(--color-on-surface)] tracking-tight leading-tight">
               {t('auth.login.heroTitle')}
             </h1>
 
-            <p className="text-sm text-[#87948b] leading-relaxed max-w-md">
+            <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed max-w-md">
               {t('auth.login.heroSubtitle')}
             </p>
 
-            <div className="space-y-4 pt-2 border-t border-[#262a33]/60">
+            <div className="space-y-4 pt-2 border-t border-[var(--color-border)]/60">
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-[#181c24] text-[#68dba9] border border-[#262a33]">
+                <div className="p-2 rounded-lg bg-[var(--color-surface-container-low)] text-[var(--color-primary)] border border-[var(--color-border)]">
                   <span className="material-symbols-outlined text-lg">verified_user</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-wider">
                     Verified Drivers
                   </h4>
-                  <p className="text-xs text-[#87948b]">
+                  <p className="text-xs text-[var(--color-on-surface-variant)]">
                     Aadhaar &amp; commercial RTO licensing background checked.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-[#181c24] text-[#68dba9] border border-[#262a33]">
+                <div className="p-2 rounded-lg bg-[var(--color-surface-container-low)] text-[var(--color-primary)] border border-[var(--color-border)]">
                   <span className="material-symbols-outlined text-lg">schedule</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-wider">
                     On-Demand &amp; Outstation
                   </h4>
-                  <p className="text-xs text-[#87948b]">
+                  <p className="text-xs text-[var(--color-on-surface-variant)]">
                     Hourly chauffeur services and intercity journeys.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-[#181c24] text-[#68dba9] border border-[#262a33]">
+                <div className="p-2 rounded-lg bg-[var(--color-surface-container-low)] text-[var(--color-primary)] border border-[var(--color-border)]">
                   <span className="material-symbols-outlined text-lg">security</span>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#dfe2ee] uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-wider">
                     Secure Access Rails
                   </h4>
-                  <p className="text-xs text-[#87948b]">
+                  <p className="text-xs text-[var(--color-on-surface-variant)]">
                     Encrypted session tokens &amp; zero-trust authentication.
                   </p>
                 </div>
@@ -356,22 +356,22 @@ export default function LoginPage() {
 
           {/* Right Column: Clean Authentication Card */}
           <div className="lg:col-span-6 w-full max-w-md mx-auto">
-            <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
               {/* Header */}
               <div>
-                <h2 className="font-bold text-2xl text-[#dfe2ee]">{t('auth.login.title')}</h2>
-                <p className="text-xs text-[#87948b] mt-1">{t('auth.login.tagline')}</p>
+                <h2 className="font-bold text-2xl text-[var(--color-on-surface)]">{t('auth.login.title')}</h2>
+                <p className="text-xs text-[var(--color-on-surface-variant)] mt-1">{t('auth.login.tagline')}</p>
               </div>
 
               {/* Mode Toggle Tabs */}
-              <div className="grid grid-cols-2 p-1 bg-[#0a0e16] rounded-xl border border-[#262a33]">
+              <div className="grid grid-cols-2 p-1 bg-[var(--color-surface-container-lowest)] rounded-xl border border-[var(--color-border)]">
                 <button
                   type="button"
                   onClick={() => setAuthMode('otp')}
-                  className={`min-h-[48px] py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`min-h-[48px] py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] ${
                     authMode === 'otp'
-                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm active:bg-[#454f5c]'
-                      : 'text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9]'
+                      ? 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)] shadow-sm'
+                      : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
                   }`}
                 >
                   {t('auth.login.useOtpTab', { defaultValue: 'Mobile OTP' })}
@@ -379,10 +379,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setAuthMode('email')}
-                  className={`min-h-[48px] py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] ${
+                  className={`min-h-[48px] py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] ${
                     authMode === 'email'
-                      ? 'bg-[#262a33] text-[#68dba9] shadow-sm active:bg-[#454f5c]'
-                      : 'text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9]'
+                      ? 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)] shadow-sm'
+                      : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
                   }`}
                 >
                   {t('auth.login.usePasswordTab', { defaultValue: 'Email & Password' })}
@@ -408,18 +408,18 @@ export default function LoginPage() {
                   <div className="space-y-1.5">
                     <label
                       htmlFor="inputPhone"
-                      className="text-xs font-mono text-[#87948b] uppercase tracking-wider block"
+                      className="text-xs font-mono text-[var(--color-on-surface-variant)] uppercase tracking-wider block"
                     >
                       {t('auth.login.phoneLabel')}
                     </label>
                     <div
-                      className={`flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border transition-colors ${
+                      className={`flex items-center bg-[var(--color-surface-container-lowest)] rounded-xl px-3.5 py-3 border transition-colors ${
                         phoneTouched && !isPhoneValid
                           ? 'border-red-500/60'
-                          : 'border-[#262a33] focus-within:border-[#68dba9]'
+                          : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)]'
                       }`}
                     >
-                      <span className="text-sm font-mono text-[#dfe2ee] mr-2 pr-2 border-r border-[#262a33] flex items-center gap-1.5">
+                      <span className="text-sm font-mono text-[var(--color-on-surface)] mr-2 pr-2 border-r border-[var(--color-border)] flex items-center gap-1.5">
                         <span>🇮🇳</span>
                         <span>+91</span>
                       </span>
@@ -435,10 +435,10 @@ export default function LoginPage() {
                         placeholder={t('auth.login.phonePlaceholder')}
                         aria-invalid={phoneTouched && !isPhoneValid}
                         aria-describedby="phone-validation-hint"
-                        className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]/60 disabled:opacity-60"
+                        className="bg-transparent text-[var(--color-on-surface)] font-mono text-sm focus:outline-none w-full placeholder-[var(--color-outline)]/60 disabled:opacity-60"
                       />
                       {isPhoneValid && (
-                        <span className="material-symbols-outlined text-[#68dba9] text-base shrink-0 ml-1">
+                        <span className="material-symbols-outlined text-[var(--color-primary)] text-base shrink-0 ml-1">
                           check_circle
                         </span>
                       )}
@@ -455,7 +455,7 @@ export default function LoginPage() {
                       type="button"
                       disabled={!isPhoneValid || sendingOtp}
                       onClick={() => void handleSendOtp()}
-                      className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                      className="w-full min-h-[48px] py-3 px-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:brightness-90 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-on-primary)] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                     >
                       <span>
                         {sendingOtp ? t('auth.login.sendingOtp') : t('auth.login.sendOtp')}
@@ -467,9 +467,9 @@ export default function LoginPage() {
                   {/* Step 2: OTP Entry */}
                   {otpStep === 'otp' && (
                     <div className="space-y-4 pt-2">
-                      <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] space-y-3">
+                      <div className="bg-[var(--color-surface-container-lowest)] p-4 rounded-xl border border-[var(--color-border)] space-y-3">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-mono text-[#68dba9] font-medium flex items-center gap-1">
+                          <span className="font-mono text-[var(--color-primary)] font-medium flex items-center gap-1">
                             <span className="material-symbols-outlined text-sm">
                               mark_email_read
                             </span>
@@ -478,14 +478,14 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={handleChangeNumber}
-                            className="font-mono text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
+                            className="font-mono text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] active:text-[var(--color-primary)] underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] rounded"
                           >
                             {t('auth.login.changeNumber')}
                           </button>
                         </div>
 
                         <div>
-                          <label className="text-[11px] font-mono text-[#87948b] block mb-2">
+                          <label className="text-[11px] font-mono text-[var(--color-on-surface-variant)] block mb-2">
                             Enter 6-Digit Verification Code
                           </label>
                           <div className="grid grid-cols-6 gap-2">
@@ -504,13 +504,13 @@ export default function LoginPage() {
                                 onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                                 onPaste={handleOtpPaste}
                                 aria-label={`OTP digit ${idx + 1}`}
-                                className="w-full text-center bg-[#181c24] text-[#dfe2ee] font-mono text-lg py-2.5 rounded-lg border border-[#262a33] focus:outline-none focus:border-[#68dba9] disabled:opacity-50"
+                                className="w-full text-center bg-[var(--color-surface-container-low)] text-[var(--color-on-surface)] font-mono text-lg py-2.5 rounded-lg border border-[var(--color-border)] focus:outline-none focus:border-[var(--color-primary)] disabled:opacity-50"
                               />
                             ))}
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between font-mono text-[11px] text-[#87948b]">
+                        <div className="flex items-center justify-between font-mono text-[11px] text-[var(--color-on-surface-variant)]">
                           {otpExpired ? (
                             <span className="text-red-400">{t('auth.login.otpExpired')}</span>
                           ) : (
@@ -524,7 +524,7 @@ export default function LoginPage() {
                             type="button"
                             disabled={resendCooldown > 0 || sendingOtp}
                             onClick={() => void handleSendOtp()}
-                            className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
+                            className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] active:text-[var(--color-primary)] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] rounded"
                           >
                             {resendCooldown > 0
                               ? t('auth.login.resendIn', { seconds: String(resendCooldown) })
@@ -537,7 +537,7 @@ export default function LoginPage() {
                         type="button"
                         disabled={loading || otpExpired || otpDigits.some((d) => !d)}
                         onClick={() => void handleOtpSubmit()}
-                        className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                        className="w-full min-h-[48px] py-3 px-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:brightness-90 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-on-primary)] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                       >
                         <span>
                           {loading ? t('auth.login.verifying') : t('auth.login.verifyAndEnter')}
@@ -555,12 +555,12 @@ export default function LoginPage() {
                   <div className="space-y-1.5">
                     <label
                       htmlFor="inputEmail"
-                      className="text-xs font-mono text-[#87948b] uppercase tracking-wider block"
+                      className="text-xs font-mono text-[var(--color-on-surface-variant)] uppercase tracking-wider block"
                     >
                       {t('auth.login.emailLabel')}
                     </label>
-                    <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border border-[#262a33] focus-within:border-[#68dba9]">
-                      <span className="material-symbols-outlined text-[#87948b] text-base mr-2.5">
+                    <div className="flex items-center bg-[var(--color-surface-container-lowest)] rounded-xl px-3.5 py-3 border border-[var(--color-border)] focus-within:border-[var(--color-primary)]">
+                      <span className="material-symbols-outlined text-[var(--color-outline)] text-base mr-2.5">
                         mail
                       </span>
                       <input
@@ -571,7 +571,7 @@ export default function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder={t('auth.login.emailPlaceholder')}
-                        className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]/60"
+                        className="bg-transparent text-[var(--color-on-surface)] font-mono text-sm focus:outline-none w-full placeholder-[var(--color-outline)]/60"
                       />
                     </div>
                   </div>
@@ -580,20 +580,20 @@ export default function LoginPage() {
                     <div className="flex items-center justify-between">
                       <label
                         htmlFor="inputPassword"
-                        className="text-xs font-mono text-[#87948b] uppercase tracking-wider block"
+                        className="text-xs font-mono text-[var(--color-on-surface-variant)] uppercase tracking-wider block"
                       >
                         {t('auth.login.passwordLabel')}
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowForgotModal(true)}
-                        className="text-[11px] font-mono text-[#68dba9] hover:underline active:text-[#4fc890] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
+                        className="text-[11px] font-mono text-[var(--color-primary)] hover:underline active:brightness-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] rounded"
                       >
                         {t('auth.login.forgotPassword')}
                       </button>
                     </div>
-                    <div className="flex items-center bg-[#0a0e16] rounded-xl px-3.5 py-3 border border-[#262a33] focus-within:border-[#68dba9]">
-                      <span className="material-symbols-outlined text-[#87948b] text-base mr-2.5">
+                    <div className="flex items-center bg-[var(--color-surface-container-lowest)] rounded-xl px-3.5 py-3 border border-[var(--color-border)] focus-within:border-[var(--color-primary)]">
+                      <span className="material-symbols-outlined text-[var(--color-outline)] text-base mr-2.5">
                         key
                       </span>
                       <input
@@ -603,7 +603,7 @@ export default function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t('auth.login.passwordPlaceholder')}
-                        className="bg-transparent text-[#dfe2ee] font-mono text-sm focus:outline-none w-full placeholder-[#87948b]/60"
+                        className="bg-transparent text-[var(--color-on-surface)] font-mono text-sm focus:outline-none w-full placeholder-[var(--color-outline)]/60"
                       />
                       <button
                         type="button"
@@ -611,7 +611,7 @@ export default function LoginPage() {
                         aria-label={
                           showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')
                         }
-                        className="text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] ml-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded"
+                        className="text-[var(--color-outline)] hover:text-[var(--color-on-surface)] active:text-[var(--color-primary)] ml-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] rounded"
                       >
                         <span className="material-symbols-outlined text-base">
                           {showPassword ? 'visibility_off' : 'visibility'}
@@ -621,12 +621,12 @@ export default function LoginPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-1">
-                    <label className="flex items-center gap-2 cursor-pointer text-[#87948b]">
+                    <label className="flex items-center gap-2 cursor-pointer text-[var(--color-on-surface-variant)]">
                       <input
                         type="checkbox"
                         checked={trustDevice}
                         onChange={(e) => setTrustDevice(e.target.checked)}
-                        className="w-4 h-4 rounded bg-[#0a0e16] accent-[#68dba9]"
+                        className="w-4 h-4 rounded bg-[var(--color-surface-container-lowest)] accent-[#25a475]"
                       />
                       <span>{t('auth.login.trustDevice')}</span>
                     </label>
@@ -635,7 +635,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full min-h-[48px] py-3 px-4 bg-[#68dba9] hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-40 disabled:cursor-not-allowed text-[#003825] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                    className="w-full min-h-[48px] py-3 px-4 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:brightness-90 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-on-primary)] rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(104,219,169,0.15)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
                   >
                     <span>{loading ? t('auth.login.verifying') : t('auth.login.submit')}</span>
                     <span className="material-symbols-outlined text-sm">login</span>
@@ -646,9 +646,9 @@ export default function LoginPage() {
               {/* Divider */}
               <div className="relative text-center my-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full bg-[#262a33] h-px"></div>
+                  <div className="w-full bg-[var(--color-border)] h-px"></div>
                 </div>
-                <span className="relative bg-[#181c24] px-3 font-mono text-[10px] uppercase tracking-wider text-[#87948b]">
+                <span className="relative bg-[var(--color-surface-container-low)] px-3 font-mono text-[10px] uppercase tracking-wider text-[var(--color-outline)]">
                   {t('auth.login.orDivider')}
                 </span>
               </div>
@@ -658,10 +658,10 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={connectingToGoogle}
-                className="w-full min-h-[48px] py-3 px-4 bg-[#0a0e16] hover:bg-[#262a33] active:brightness-90 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl font-mono text-xs uppercase tracking-wider text-[#dfe2ee] transition-all flex items-center justify-center gap-3 border border-[#262a33] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+                className="w-full min-h-[48px] py-3 px-4 bg-[var(--color-surface-container-lowest)] hover:bg-[var(--color-surface-container-high)] active:brightness-90 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl font-mono text-xs uppercase tracking-wider text-[var(--color-on-surface)] transition-all flex items-center justify-center gap-3 border border-[var(--color-border)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
               >
                 {connectingToGoogle ? (
-                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#dfe2ee] border-t-transparent" />
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[var(--color-on-surface)] border-t-transparent" />
                 ) : (
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                     <path
@@ -691,11 +691,11 @@ export default function LoginPage() {
 
               {/* Registration Link */}
               <div className="text-center pt-2">
-                <p className="text-xs text-[#87948b]">
+                <p className="text-xs text-[var(--color-on-surface-variant)]">
                   {t('auth.login.newHere')}{' '}
                   <Link
                     href="/register"
-                    className="text-[#68dba9] font-semibold hover:underline ml-1"
+                    className="text-[var(--color-primary)] font-semibold hover:underline ml-1"
                   >
                     {t('auth.login.createAccount')}
                   </Link>
@@ -708,10 +708,10 @@ export default function LoginPage() {
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e16]/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-md bg-[#181c24] p-6 rounded-2xl border border-[#262a33] shadow-2xl space-y-4 relative animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-[var(--color-surface-container-low)] p-6 rounded-2xl border border-[var(--color-border)] shadow-2xl space-y-4 relative animate-scale-in">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#68dba9]">
+              <div className="flex items-center gap-2 text-[var(--color-primary)]">
                 <span className="material-symbols-outlined text-base">lock_reset</span>
                 <span className="text-xs font-mono uppercase tracking-wider font-bold">
                   {t('auth.login.forgotPassword')}
@@ -721,13 +721,13 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowForgotModal(false)}
                 aria-label={t('common.actions.cancel')}
-                className="min-w-[48px] min-h-[48px] flex items-center justify-center text-[#87948b] hover:text-[#dfe2ee] active:text-[#68dba9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9] rounded-lg"
+                className="min-w-[48px] min-h-[48px] flex items-center justify-center text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] active:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] rounded-lg"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
-            <p className="text-xs text-[#87948b] leading-relaxed">
+            <p className="text-xs text-[var(--color-on-surface-variant)] leading-relaxed">
               Enter your registered email address or mobile number to receive reset instructions.
             </p>
 
@@ -738,7 +738,7 @@ export default function LoginPage() {
                 value={recoveryInput}
                 onChange={(e) => setRecoveryInput(e.target.value)}
                 placeholder="name@company.com or +91..."
-                className="w-full bg-[#0a0e16] border border-[#262a33] px-4 py-2.5 rounded-xl text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                className="w-full bg-[var(--color-surface-container-lowest)] border border-[var(--color-border)] px-4 py-2.5 rounded-xl text-sm text-[var(--color-on-surface)] focus:outline-none focus:border-[var(--color-primary)]"
               />
             </div>
 
@@ -752,7 +752,7 @@ export default function LoginPage() {
                   setResetSubmitted(false);
                 }, 1200);
               }}
-              className="w-full min-h-[48px] py-2.5 bg-[#68dba9] text-[#003825] font-mono text-xs font-bold rounded-xl uppercase tracking-wider shadow hover:bg-[#85f8c4] active:bg-[#4fc890] disabled:opacity-70 disabled:cursor-not-allowed transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#68dba9]"
+              className="w-full min-h-[48px] py-2.5 bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-xs font-bold rounded-xl uppercase tracking-wider shadow hover:bg-[var(--color-primary-hover)] active:brightness-90 disabled:opacity-70 disabled:cursor-not-allowed transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
             >
               {resetSubmitted ? 'Link Dispatched!' : 'Send Recovery Link'}
             </button>
@@ -761,13 +761,13 @@ export default function LoginPage() {
       )}
 
       {/* Footer */}
-      <footer className="w-full border-t border-[#262a33] bg-[#0a0e16]/90 py-4 px-4 sm:px-6 text-xs font-mono text-[#87948b]">
+      <footer className="w-full border-t border-[var(--color-border)] bg-[var(--color-surface-container-lowest)]/90 py-4 px-4 sm:px-6 text-xs font-mono text-[var(--color-outline)]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <span>&copy; 2026 GET APNA DRIVER. All rights reserved.</span>
           <div className="flex items-center gap-4 text-[11px]">
             <span>TLS 1.3 Encrypted</span>
             <span>•</span>
-            <span className="text-[#68dba9]">Verified Dispatch Rails</span>
+            <span className="text-[var(--color-primary)]">Verified Dispatch Rails</span>
           </div>
         </div>
       </footer>

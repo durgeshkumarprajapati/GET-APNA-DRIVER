@@ -30,6 +30,9 @@ interface DriverDetail {
   drivingLicenseNumber: string;
   drivingExperienceYears: number;
   primaryServiceArea: string | null;
+  dailyHireRate: string | null;
+  weeklyHireRate: string | null;
+  monthlyHireRate: string | null;
   onboardingStatus: string;
   verificationStatus: string;
   approvalStatus: string;
@@ -79,6 +82,10 @@ export default function AdminDriverDetailPage({
   >(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const [editingRates, setEditingRates] = useState(false);
+  const [rateForm, setRateForm] = useState({ daily: '', weekly: '', monthly: '' });
+  const [savingRates, setSavingRates] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -208,6 +215,49 @@ export default function AdminDriverDetailPage({
       }
     } catch {
       setMessage({ type: 'error', text: 'Error rejecting document.' });
+    }
+  };
+
+  const handleOpenEditRates = () => {
+    if (!driver) return;
+    setRateForm({
+      daily: driver.dailyHireRate ?? '',
+      weekly: driver.weeklyHireRate ?? '',
+      monthly: driver.monthlyHireRate ?? '',
+    });
+    setEditingRates(true);
+  };
+
+  const handleSaveRates = async () => {
+    setSavingRates(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/admin/drivers/${driverId}/rates`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dailyHireRate: rateForm.daily.trim() === '' ? null : Number(rateForm.daily),
+          weeklyHireRate: rateForm.weekly.trim() === '' ? null : Number(rateForm.weekly),
+          monthlyHireRate: rateForm.monthly.trim() === '' ? null : Number(rateForm.monthly),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error?.message || 'Failed to update hire rates.');
+      }
+      setMessage({
+        type: 'success',
+        text: 'Hire rates updated. The driver has been notified.',
+      });
+      setEditingRates(false);
+      await refreshDriver();
+    } catch (err: unknown) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to update hire rates.',
+      });
+    } finally {
+      setSavingRates(false);
     }
   };
 
@@ -395,6 +445,106 @@ export default function AdminDriverDetailPage({
               <span className="text-xs text-[#87948b] block">Availability</span>
               <span className="font-medium text-[#dfe2ee]">{driver.availabilityStatus}</span>
             </div>
+          </div>
+
+          <div className="pt-4 mt-2 border-t border-[#262a33] space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-[#dfe2ee] font-['Space_Grotesk']">
+                Hire Pricing
+              </h3>
+              {!editingRates && (
+                <button
+                  type="button"
+                  onClick={handleOpenEditRates}
+                  className="text-xs font-medium text-emerald-400 hover:text-emerald-300"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingRates ? (
+              <div className="space-y-3">
+                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                  Per Day (₹)
+                  <input
+                    type="number"
+                    min={0}
+                    value={rateForm.daily}
+                    onChange={(e) => setRateForm({ ...rateForm, daily: e.target.value })}
+                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                  Per Week (₹)
+                  <input
+                    type="number"
+                    min={0}
+                    value={rateForm.weekly}
+                    onChange={(e) => setRateForm({ ...rateForm, weekly: e.target.value })}
+                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                  Per Month (₹)
+                  <input
+                    type="number"
+                    min={0}
+                    value={rateForm.monthly}
+                    onChange={(e) => setRateForm({ ...rateForm, monthly: e.target.value })}
+                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-emerald-500"
+                  />
+                </label>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={savingRates}
+                    onClick={() => void handleSaveRates()}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold disabled:opacity-50"
+                  >
+                    {savingRates ? 'Saving…' : 'Save Rates'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={savingRates}
+                    onClick={() => setEditingRates(false)}
+                    className="px-3 py-1.5 rounded-lg border border-[#262a33] text-[#dfe2ee] text-xs font-semibold disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <p className="text-[11px] text-[#87948b]">
+                  The driver will be notified of this change.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <span className="text-xs text-[#87948b] block">Per Day</span>
+                  <span className="font-medium text-[#dfe2ee]">
+                    {driver.dailyHireRate
+                      ? `₹${Number(driver.dailyHireRate).toLocaleString()}`
+                      : '—'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-[#87948b] block">Per Week</span>
+                  <span className="font-medium text-[#dfe2ee]">
+                    {driver.weeklyHireRate
+                      ? `₹${Number(driver.weeklyHireRate).toLocaleString()}`
+                      : '—'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-[#87948b] block">Per Month</span>
+                  <span className="font-medium text-[#dfe2ee]">
+                    {driver.monthlyHireRate
+                      ? `₹${Number(driver.monthlyHireRate).toLocaleString()}`
+                      : '—'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

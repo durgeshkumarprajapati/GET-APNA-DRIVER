@@ -587,7 +587,9 @@ export function registerNotificationEventHandlers(): void {
               customerId: true,
               customer: {
                 select: {
-                  customerProfile: { select: { displayName: true, firstName: true, lastName: true } },
+                  customerProfile: {
+                    select: { displayName: true, firstName: true, lastName: true },
+                  },
                   identities: { select: { email: true } },
                 },
               },
@@ -607,8 +609,11 @@ export function registerNotificationEventHandlers(): void {
               cp?.displayName ||
               [cp?.firstName, cp?.lastName].filter(Boolean).join(' ') ||
               'Valued Customer';
-            const invoiceNum = booking.taxInvoice?.invoiceNumber || `INV-${bookingId.substring(0, 8).toUpperCase()}`;
-            const total = booking.taxInvoice?.totalAmount ? Number(booking.taxInvoice.totalAmount) : amount;
+            const invoiceNum =
+              booking.taxInvoice?.invoiceNumber || `INV-${bookingId.substring(0, 8).toUpperCase()}`;
+            const total = booking.taxInvoice?.totalAmount
+              ? Number(booking.taxInvoice.totalAmount)
+              : amount;
 
             const invoiceEmailMessage = `Hi ${customerName},\n\nThank you for your payment of ₹${total}. Your tax invoice (${invoiceNum}) for Booking ID: ${bookingId.substring(0, 8)} has been completed successfully.\n\nThank you for choosing Get Apna Driver!`;
 
@@ -915,6 +920,35 @@ export function registerNotificationEventHandlers(): void {
           client,
         );
       }
+    },
+  );
+
+  eventHandlerRegistry.register(
+    'driver.rate_updated',
+    async (event: OutboxEvent, payload: Record<string, unknown>, db?: Db) => {
+      const client = db ?? prisma;
+      const driverUserId = payload.userId as string | undefined;
+      if (!driverUserId) return;
+
+      const rateParts: string[] = [];
+      if (payload.dailyHireRate) rateParts.push(`Daily ₹${payload.dailyHireRate}`);
+      if (payload.weeklyHireRate) rateParts.push(`Weekly ₹${payload.weeklyHireRate}`);
+      if (payload.monthlyHireRate) rateParts.push(`Monthly ₹${payload.monthlyHireRate}`);
+
+      await createNotification(
+        {
+          userId: driverUserId,
+          type: NotificationType.DRIVER_RATE_UPDATED,
+          title: 'Your Hire Rates Were Updated',
+          body:
+            rateParts.length > 0
+              ? `An administrator updated your hire rates: ${rateParts.join(', ')}.`
+              : 'An administrator updated your hire rates.',
+          data: payload,
+          idempotencyKey: `${event.id}-rate-updated`,
+        },
+        client,
+      );
     },
   );
 

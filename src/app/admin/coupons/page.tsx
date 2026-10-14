@@ -35,6 +35,20 @@ interface Analytics {
   totalDiscountAmount: string;
 }
 
+interface DriverCoupon {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  creditAmount: string;
+  status: string;
+  isExpired: boolean;
+  startsAt: string;
+  endsAt: string | null;
+  totalUsageLimit: number | null;
+  totalUsageCount: number;
+}
+
 const STATUS_OPTIONS = ['', 'DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED'];
 const PAGE_SIZE = 25;
 
@@ -54,7 +68,19 @@ const emptyForm = {
   perUserUsageLimit: '1',
 };
 
+const emptyDriverCouponForm = {
+  code: '',
+  name: '',
+  description: '',
+  creditAmount: '',
+  startsAt: '',
+  endsAt: '',
+  totalUsageLimit: '',
+};
+
 export default function AdminCouponsPage() {
+  const [audience, setAudience] = useState<'CUSTOMER' | 'DRIVER'>('CUSTOMER');
+
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -166,6 +192,207 @@ export default function AdminCouponsPage() {
     }
   };
 
+  // --- Driver coupons (direct wallet-credit codes) ---------------------
+  const [driverCoupons, setDriverCoupons] = useState<DriverCoupon[]>([]);
+  const [driverCouponTotal, setDriverCouponTotal] = useState(0);
+  const [driverCouponPage, setDriverCouponPage] = useState(1);
+  const [driverCouponStatusFilter, setDriverCouponStatusFilter] = useState('');
+  const [driverCouponSearch, setDriverCouponSearch] = useState('');
+  const [driverCouponLoading, setDriverCouponLoading] = useState(false);
+  const [driverCouponError, setDriverCouponError] = useState<string | null>(null);
+  const [driverCouponBusyId, setDriverCouponBusyId] = useState<string | null>(null);
+  const [driverCouponRefreshKey, setDriverCouponRefreshKey] = useState(0);
+  const [showDriverCouponCreate, setShowDriverCouponCreate] = useState(false);
+  const [driverCouponForm, setDriverCouponForm] = useState(emptyDriverCouponForm);
+  const [creatingDriverCoupon, setCreatingDriverCoupon] = useState(false);
+
+  useEffect(() => {
+    if (audience !== 'DRIVER') return;
+    let isMounted = true;
+    const load = async () => {
+      setDriverCouponLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: String(driverCouponPage),
+          pageSize: String(PAGE_SIZE),
+        });
+        if (driverCouponStatusFilter) params.set('status', driverCouponStatusFilter);
+        if (driverCouponSearch.trim()) params.set('search', driverCouponSearch.trim());
+        const res = await fetch(`/api/admin/driver-coupons?${params.toString()}`);
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          setDriverCoupons(data.coupons ?? []);
+          setDriverCouponTotal(data.total ?? 0);
+          setDriverCouponError(null);
+        } else {
+          setDriverCouponError('Failed to load driver coupons.');
+        }
+      } catch (err) {
+        if (isMounted) {
+          setDriverCouponError(
+            err instanceof Error ? err.message : 'Failed to load driver coupons.',
+          );
+        }
+      } finally {
+        if (isMounted) setDriverCouponLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    audience,
+    driverCouponRefreshKey,
+    driverCouponPage,
+    driverCouponStatusFilter,
+    driverCouponSearch,
+  ]);
+
+  const runDriverCouponAction = async (
+    driverCouponId: string,
+    action: 'activate' | 'pause' | 'archive',
+  ) => {
+    setActionMessage(null);
+    setDriverCouponBusyId(driverCouponId);
+    try {
+      const res = await fetch(`/api/admin/driver-coupons/${driverCouponId}/${action}`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMessage(`Driver coupon now ${data.coupon.status}.`);
+        setDriverCouponRefreshKey((k) => k + 1);
+      } else {
+        setActionMessage(data.message ?? 'Action failed.');
+      }
+    } catch {
+      setActionMessage('Error connecting to server.');
+    } finally {
+      setDriverCouponBusyId(null);
+    }
+  };
+
+  const handleCreateDriverCoupon = async () => {
+    setCreatingDriverCoupon(true);
+    setActionMessage(null);
+    try {
+      const res = await fetch('/api/admin/driver-coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: driverCouponForm.code.trim(),
+          name: driverCouponForm.name.trim(),
+          description: driverCouponForm.description.trim() || null,
+          creditAmount: driverCouponForm.creditAmount,
+          startsAt: driverCouponForm.startsAt
+            ? new Date(driverCouponForm.startsAt).toISOString()
+            : null,
+          endsAt: driverCouponForm.endsAt ? new Date(driverCouponForm.endsAt).toISOString() : null,
+          totalUsageLimit: driverCouponForm.totalUsageLimit.trim()
+            ? Number(driverCouponForm.totalUsageLimit)
+            : null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMessage(`Driver coupon "${data.coupon.name}" created as DRAFT.`);
+        setDriverCouponForm(emptyDriverCouponForm);
+        setShowDriverCouponCreate(false);
+        setDriverCouponPage(1);
+        setDriverCouponRefreshKey((k) => k + 1);
+      } else {
+        setActionMessage(data.message ?? 'Failed to create driver coupon.');
+      }
+    } catch {
+      setActionMessage('Error connecting to server.');
+    } finally {
+      setCreatingDriverCoupon(false);
+    }
+  };
+
+  const driverCouponColumns: DataTableColumn<DriverCoupon>[] = [
+    { key: 'name', header: 'Coupon', render: (c) => c.name },
+    {
+      key: 'code',
+      header: 'Code',
+      render: (c) => <span className="font-mono">{c.code}</span>,
+    },
+    {
+      key: 'creditAmount',
+      header: 'Wallet Credit',
+      align: 'right',
+      render: (c) => <FinanceAmount value={c.creditAmount} />,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (c) => <PromotionStatusBadge status={c.status} isExpired={c.isExpired} />,
+    },
+    {
+      key: 'usage',
+      header: 'Usage',
+      align: 'right',
+      render: (c) => `${c.totalUsageCount}${c.totalUsageLimit ? ` / ${c.totalUsageLimit}` : ''}`,
+    },
+    {
+      key: 'window',
+      header: 'Window',
+      render: (c) =>
+        `${formatDateTime(c.startsAt)} — ${c.endsAt ? formatDateTime(c.endsAt) : 'no end'}`,
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'right',
+      render: (c) => (
+        <div className="flex items-center justify-end gap-2">
+          {c.status === 'DRAFT' && (
+            <button
+              type="button"
+              disabled={driverCouponBusyId === c.id}
+              onClick={() => void runDriverCouponAction(c.id, 'activate')}
+              className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+            >
+              Activate
+            </button>
+          )}
+          {c.status === 'ACTIVE' && (
+            <button
+              type="button"
+              disabled={driverCouponBusyId === c.id}
+              onClick={() => void runDriverCouponAction(c.id, 'pause')}
+              className="px-3 py-1.5 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+            >
+              Disable
+            </button>
+          )}
+          {c.status === 'PAUSED' && (
+            <button
+              type="button"
+              disabled={driverCouponBusyId === c.id}
+              onClick={() => void runDriverCouponAction(c.id, 'activate')}
+              className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+            >
+              Enable
+            </button>
+          )}
+          {c.status !== 'ARCHIVED' && (
+            <button
+              type="button"
+              disabled={driverCouponBusyId === c.id}
+              onClick={() => void runDriverCouponAction(c.id, 'archive')}
+              className="px-3 py-1.5 bg-[#93000a] hover:bg-[#690005] text-[#ffdad6] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   const columns: DataTableColumn<Promotion>[] = [
     {
       key: 'name',
@@ -265,19 +492,56 @@ export default function AdminCouponsPage() {
       <PageHeader
         eyebrow="Growth"
         title="Coupons & Promotions"
-        subtitle="Manage customer promotions, coupon codes, and automatic offers."
+        subtitle="Manage customer promotions and driver wallet-credit coupons."
         actions={
-          <button
-            type="button"
-            onClick={() => setShowCreate((v) => !v)}
-            className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
-          >
-            {showCreate ? 'Cancel' : '+ New Promotion'}
-          </button>
+          audience === 'CUSTOMER' ? (
+            <button
+              type="button"
+              onClick={() => setShowCreate((v) => !v)}
+              className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
+            >
+              {showCreate ? 'Cancel' : '+ New Promotion'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowDriverCouponCreate((v) => !v)}
+              className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
+            >
+              {showDriverCouponCreate ? 'Cancel' : '+ New Driver Coupon'}
+            </button>
+          )
         }
       />
 
-      {analytics && (
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-[#181c24] border border-[#262a33] w-fit">
+        <button
+          type="button"
+          onClick={() => setAudience('CUSTOMER')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
+            audience === 'CUSTOMER'
+              ? 'bg-[#68dba9] text-[#003825]'
+              : 'text-[#bccac0] hover:text-[#dfe2ee]'
+          }`}
+        >
+          Customer Coupons
+        </button>
+        <button
+          type="button"
+          onClick={() => setAudience('DRIVER')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
+            audience === 'DRIVER'
+              ? 'bg-[#68dba9] text-[#003825]'
+              : 'text-[#bccac0] hover:text-[#dfe2ee]'
+          }`}
+        >
+          Driver Coupons
+        </button>
+      </div>
+
+      {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
+
+      {audience === 'CUSTOMER' && analytics && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard label="Total Promotions" value={analytics.totalPromotions} />
           <MetricCard
@@ -293,7 +557,7 @@ export default function AdminCouponsPage() {
         </div>
       )}
 
-      {showCreate && (
+      {audience === 'CUSTOMER' && showCreate && (
         <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
           <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">New Promotion</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -412,54 +676,203 @@ export default function AdminCouponsPage() {
         </div>
       )}
 
-      {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
+      {audience === 'CUSTOMER' && (
+        <>
+          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt === '' ? 'All Statuses' : opt}
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search by name or code"
+              className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+          </div>
 
-      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt === '' ? 'All Statuses' : opt}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search by name or code"
-          className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
-        />
-      </div>
+          {error && (
+            <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+              {error}
+            </div>
+          )}
 
-      {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
-          {error}
-        </div>
+          {loading ? (
+            <LoadingState message="Loading promotions…" />
+          ) : (
+            <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+              <DataTable
+                columns={columns}
+                data={promotions}
+                keyExtractor={(p) => p.id}
+                emptyIcon="confirmation_number"
+                emptyMessage="No promotions match these filters."
+              />
+              <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+            </div>
+          )}
+        </>
       )}
 
-      {loading ? (
-        <LoadingState message="Loading promotions…" />
-      ) : (
-        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
-          <DataTable
-            columns={columns}
-            data={promotions}
-            keyExtractor={(p) => p.id}
-            emptyIcon="confirmation_number"
-            emptyMessage="No promotions match these filters."
-          />
-          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
-        </div>
+      {audience === 'DRIVER' && (
+        <>
+          {showDriverCouponCreate && (
+            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
+              <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                New Driver Coupon
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={driverCouponForm.name}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, name: e.target.value })
+                  }
+                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                />
+                <input
+                  type="text"
+                  placeholder="Code"
+                  value={driverCouponForm.code}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, code: e.target.value.toUpperCase() })
+                  }
+                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] font-mono"
+                />
+                <input
+                  type="text"
+                  placeholder="Wallet credit ₹ (e.g. 100)"
+                  value={driverCouponForm.creditAmount}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, creditAmount: e.target.value })
+                  }
+                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                />
+                <input
+                  type="datetime-local"
+                  value={driverCouponForm.startsAt}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, startsAt: e.target.value })
+                  }
+                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                />
+                <input
+                  type="datetime-local"
+                  placeholder="Ends at (optional)"
+                  value={driverCouponForm.endsAt}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, endsAt: e.target.value })
+                  }
+                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                />
+                <input
+                  type="number"
+                  placeholder="Total usage limit (blank = unlimited)"
+                  value={driverCouponForm.totalUsageLimit}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, totalUsageLimit: e.target.value })
+                  }
+                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                />
+                <textarea
+                  placeholder="Description (optional)"
+                  value={driverCouponForm.description}
+                  onChange={(e) =>
+                    setDriverCouponForm({ ...driverCouponForm, description: e.target.value })
+                  }
+                  className="md:col-span-3 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={
+                  creatingDriverCoupon ||
+                  !driverCouponForm.name.trim() ||
+                  !driverCouponForm.code.trim() ||
+                  !driverCouponForm.creditAmount.trim() ||
+                  !driverCouponForm.startsAt
+                }
+                onClick={() => void handleCreateDriverCoupon()}
+                className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+              >
+                {creatingDriverCoupon ? 'Creating…' : 'Create Driver Coupon (as Draft)'}
+              </button>
+              <p className="text-[10px] text-[#87948b]">
+                A new driver coupon is always created as DRAFT — activate it once ready. A driver
+                redeems it once for a direct, one-time credit to their wallet. Only DRAFT coupons
+                can still be edited.
+              </p>
+            </div>
+          )}
+
+          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+            <select
+              value={driverCouponStatusFilter}
+              onChange={(e) => {
+                setDriverCouponStatusFilter(e.target.value);
+                setDriverCouponPage(1);
+              }}
+              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt === '' ? 'All Statuses' : opt}
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              value={driverCouponSearch}
+              onChange={(e) => {
+                setDriverCouponSearch(e.target.value);
+                setDriverCouponPage(1);
+              }}
+              placeholder="Search by name or code"
+              className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            />
+          </div>
+
+          {driverCouponError && (
+            <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+              {driverCouponError}
+            </div>
+          )}
+
+          {driverCouponLoading ? (
+            <LoadingState message="Loading driver coupons…" />
+          ) : (
+            <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+              <DataTable
+                columns={driverCouponColumns}
+                data={driverCoupons}
+                keyExtractor={(c) => c.id}
+                emptyIcon="confirmation_number"
+                emptyMessage="No driver coupons match these filters."
+              />
+              <Pagination
+                page={driverCouponPage}
+                pageSize={PAGE_SIZE}
+                total={driverCouponTotal}
+                onPageChange={setDriverCouponPage}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

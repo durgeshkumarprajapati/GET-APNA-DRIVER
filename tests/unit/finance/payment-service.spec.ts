@@ -53,10 +53,12 @@ const mockTx = {
 
 import { Prisma } from '@prisma/client';
 import {
+  captureCashPayment,
   capturePayment,
   createPaymentForBooking,
   getPaymentById,
 } from '@/modules/finance/application/services/payment-service';
+import { applyWalletChange } from '@/modules/finance/application/services/wallet-service';
 import { prisma } from '@/shared/database/prisma';
 import { paymentProvider } from '@/modules/finance/infrastructure/payment-provider';
 import { postFinancialTransaction } from '@/modules/finance/application/services/ledger-service';
@@ -504,6 +506,182 @@ describe('capturePayment', () => {
     // TaxInvoice.bookingId's unique constraint) — this documents that
     // behavior rather than asserting a call count of zero.
     expect(createTaxInvoiceForBooking).toHaveBeenCalledWith('booking-1');
+  });
+});
+
+describe('captureCashPayment', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  // Regression: this path previously posted Dr PAYMENT_PROVIDER_CLEARING for
+  // the full cash amount, as if Razorpay held that money — it never did,
+  // the driver collected it directly. That silently and permanently
+  // overstated the clearing account for every cash trip. The correct
+  // double-entry nets the driver already having kept the cash against
+  // DRIVER_PAYABLE instead (see payment-service.ts).
+  it('books a cash trip with no discount as a DRIVER_PAYABLE debit for the commission owed, never PAYMENT_PROVIDER_CLEARING', async () => {
+    mockTx.payment.findUnique.mockResolvedValue({
+      id: 'payment-1',
+      status: 'PROCESSING',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('150.0000'), // driver collected the full gross fare in cash
+      discountAmount: null,
+      currency: 'INR',
+      provider: 'cash',
+      providerPaymentId: null,
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-1',
+      status: 'CAPTURED',
+      bookingId: 'booking-1',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('150.0000'),
+      currency: 'INR',
+      provider: 'cash',
+      createdAt: new Date(),
+    });
+
+    await captureCashPayment('payment-1');
+
+    // commissionAmount=30.0000, driverEarningsAmount=120.0000 per the
+    // module-level calculateCommission mock — net = 120 - 150 = -30.
+    expect(postFinancialTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postings: [
+          {
+            accountCode: 'PLATFORM_REVENUE_COMMISSION',
+            debitAmount: '0',
+            creditAmount: '30.0000',
+          },
+          {
+            accountCode: 'DRIVER_PAYABLE',
+            debitAmount: '30.0000',
+            creditAmount: '0',
+          },
+        ],
+      }),
+      expect.anything(),
+    );
+    expect(postFinancialTransaction).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        postings: expect.arrayContaining([
+          expect.objectContaining({ accountCode: 'PAYMENT_PROVIDER_CLEARING' }),
+        ]),
+      }),
+      expect.anything(),
+    );
+    expect(applyWalletChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        driverProfileId: 'driver-1',
+        changeType: 'CASH_TRIP_SETTLEMENT',
+        availableDelta: '-30.0000',
+        totalEarnedDelta: '120.0000',
+      }),
+      expect.anything(),
+    );
+  });
+
+  it('credits DRIVER_PAYABLE when a promotion discount exceeds the commission, still balanced', async () => {
+    mockTx.payment.findUnique.mockResolvedValue({
+      id: 'payment-2',
+      status: 'PROCESSING',
+      bookingId: 'booking-2',
+      customerId: 'customer-1',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('100.0000'), // cash actually collected (net of discount)
+      discountAmount: new Prisma.Decimal('50.0000'),
+      currency: 'INR',
+      provider: 'cash',
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-2',
+      status: 'CAPTURED',
+      bookingId: 'booking-2',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('100.0000'),
+      currency: 'INR',
+      provider: 'cash',
+      createdAt: new Date(),
+    });
+
+    await captureCashPayment('payment-2');
+
+    // net = driverEarningsAmount(120) - payment.amount(100) = +20.
+    expect(postFinancialTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postings: [
+          {
+            accountCode: 'PLATFORM_REVENUE_COMMISSION',
+            debitAmount: '0',
+            creditAmount: '30.0000',
+          },
+          {
+            accountCode: 'DRIVER_PAYABLE',
+            debitAmount: '0',
+            creditAmount: '20.0000',
+          },
+          {
+            accountCode: 'PROMOTION_DISCOUNT_EXPENSE',
+            debitAmount: '50.0000',
+            creditAmount: '0',
+          },
+        ],
+      }),
+      expect.anything(),
+    );
+    expect(applyWalletChange).toHaveBeenCalledWith(
+      expect.objectContaining({ availableDelta: '20.0000' }),
+      expect.anything(),
+    );
+  });
+
+  it('omits the DRIVER_PAYABLE leg entirely when the discount exactly offsets the commission (net zero)', async () => {
+    mockTx.payment.findUnique.mockResolvedValue({
+      id: 'payment-3',
+      status: 'PROCESSING',
+      bookingId: 'booking-3',
+      customerId: 'customer-1',
+      driverProfileId: 'driver-1',
+      amount: new Prisma.Decimal('120.0000'), // equals the mocked driverEarningsAmount exactly
+      discountAmount: new Prisma.Decimal('30.0000'),
+      currency: 'INR',
+      provider: 'cash',
+    });
+    mockTx.payment.update.mockResolvedValue({
+      id: 'payment-3',
+      status: 'CAPTURED',
+      bookingId: 'booking-3',
+      customerId: 'customer-1',
+      amount: new Prisma.Decimal('120.0000'),
+      currency: 'INR',
+      provider: 'cash',
+      createdAt: new Date(),
+    });
+
+    await captureCashPayment('payment-3');
+
+    expect(postFinancialTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postings: [
+          {
+            accountCode: 'PLATFORM_REVENUE_COMMISSION',
+            debitAmount: '0',
+            creditAmount: '30.0000',
+          },
+          {
+            accountCode: 'PROMOTION_DISCOUNT_EXPENSE',
+            debitAmount: '30.0000',
+            creditAmount: '0',
+          },
+        ],
+      }),
+      expect.anything(),
+    );
+    expect(applyWalletChange).toHaveBeenCalledWith(
+      expect.objectContaining({ availableDelta: '0.0000' }),
+      expect.anything(),
+    );
   });
 });
 

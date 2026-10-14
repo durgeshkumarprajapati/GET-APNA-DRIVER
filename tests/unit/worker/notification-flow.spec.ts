@@ -312,4 +312,52 @@ describe('Notification Integration Flow', () => {
       }),
     );
   });
+
+  it('processes driver.rate_updated outbox event and notifies the driver with the real new rates', async () => {
+    const outboxEvent = {
+      id: 'outbox-rate-updated-1',
+      eventType: 'driver.rate_updated',
+      aggregateType: 'DriverProfile',
+      aggregateId: 'driver-profile-9',
+      payload: {
+        driverProfileId: 'driver-profile-9',
+        userId: 'driver-user-9',
+        dailyHireRate: '2500',
+        weeklyHireRate: '15000',
+        monthlyHireRate: null,
+      },
+      status: OutboxEventStatus.PROCESSING,
+      attempts: 1,
+      availableAt: new Date(),
+      lastAttemptAt: null,
+      lockedAt: new Date(),
+      lockedBy: 'integration-test-worker',
+      lastError: null,
+      processedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as unknown as OutboxEvent;
+
+    const success = await dispatcher.processEvent(
+      outboxEvent,
+      { maxAttempts: 3 },
+      mockDb as unknown as Parameters<typeof dispatcher.processEvent>[2],
+    );
+
+    expect(success).toBe(true);
+    expect(mockDb.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: 'driver-user-9',
+          type: NotificationType.DRIVER_RATE_UPDATED,
+          body: expect.stringContaining('Daily ₹2500'),
+        }),
+      }),
+    );
+    expect(mockDb.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ body: expect.stringContaining('Weekly ₹15000') }),
+      }),
+    );
+  });
 });

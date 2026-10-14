@@ -35,3 +35,7 @@ export function fromMinorUnits(amountMinorUnits: number): Prisma.Decimal {
 export function isPositive(value: Prisma.Decimal): boolean {
   return value.greaterThan(ZERO);
 }
+
+export function isNegative(value: Prisma.Decimal): boolean {
+  return value.lessThan(ZERO);
+}

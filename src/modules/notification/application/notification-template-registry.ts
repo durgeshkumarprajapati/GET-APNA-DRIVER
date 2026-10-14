@@ -112,6 +112,12 @@ export const NOTIFICATION_TEMPLATE_MAP: Record<NotificationType, NotificationMet
     defaultActionUrl: '/driver/earnings',
     iconName: 'account_balance_wallet',
   },
+  DRIVER_RATE_UPDATED: {
+    category: 'FINANCE',
+    priority: NotificationPriority.HIGH,
+    defaultActionUrl: '/driver/profile',
+    iconName: 'price_change',
+  },
   SETTLEMENT_CREATED: {
     category: 'PAYMENT',
     priority: NotificationPriority.NORMAL,

@@ -18,6 +18,7 @@ export const LEDGER_ACCOUNT_CODES = {
   PROMOTION_DISCOUNT_EXPENSE: 'PROMOTION_DISCOUNT_EXPENSE',
   CUSTOMER_PAYABLE: 'CUSTOMER_PAYABLE',
   DRIVER_INCENTIVE_EXPENSE: 'DRIVER_INCENTIVE_EXPENSE',
+  DRIVER_COUPON_EXPENSE: 'DRIVER_COUPON_EXPENSE',
 } as const;
 
 export type LedgerAccountCode = (typeof LEDGER_ACCOUNT_CODES)[keyof typeof LEDGER_ACCOUNT_CODES];
@@ -91,6 +92,13 @@ export const LEDGER_ACCOUNT_CATALOG: readonly LedgerAccountSeedDefinition[] = [
     name: 'Driver Incentive Expense',
     description:
       'Platform promotional expense for driver goal and milestone incentive bonuses. Debited when a driver qualifies and earns an incentive reward.',
+    normalBalance: 'DEBIT',
+  },
+  {
+    code: LEDGER_ACCOUNT_CODES.DRIVER_COUPON_EXPENSE,
+    name: 'Driver Coupon Expense',
+    description:
+      'Platform promotional expense for admin-issued driver coupon redemptions. Debited when a driver redeems a DriverCoupon for a direct wallet credit.',
     normalBalance: 'DEBIT',
   },
 ];

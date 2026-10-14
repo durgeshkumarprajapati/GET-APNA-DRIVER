@@ -269,7 +269,23 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
         }),
       );
       expect(postFinancialTransaction).toHaveBeenCalled();
-      expect(applyWalletChange).toHaveBeenCalled();
+      // Regression: this previously only asserted applyWalletChange was
+      // called at all, never its sign/value — the one numeric case this
+      // fixture happens to produce is positive (+10, since the promotion
+      // discount here exceeds the commission), which silently never
+      // exercised the far more common real-world case of a cash trip with
+      // no discount, where the driver owes the platform's commission and
+      // the delta is negative. See payment-service.spec.ts's
+      // captureCashPayment suite for that case.
+      expect(applyWalletChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          driverProfileId,
+          changeType: 'CASH_TRIP_SETTLEMENT',
+          availableDelta: '10.0000',
+          totalEarnedDelta: '160.0000',
+        }),
+        expect.anything(),
+      );
       expect(result.status).toBe('CAPTURED');
       // Regression: the driver must be notified of the cash payment
       // immediately rather than only whenever the separate background
@@ -292,7 +308,7 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
   });
 
   describe('getPostTripPaymentForBooking', () => {
-    it('returns post-trip payment details and UPI QR payload', async () => {
+    it('returns post-trip payment details without fabricating a QR code for a cash payment', async () => {
       mockedPrisma.booking.findUnique.mockResolvedValue({
         id: bookingId,
         customerId,
@@ -312,6 +328,7 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
         provider: 'cash',
         paymentMethod: 'CASH',
         providerOrderId: 'CASH_booking-uuid-1',
+        qrCodeImageUrl: null,
         cashCustomerConfirmedAt: new Date(),
         cashDriverConfirmedAt: null,
         capturedAt: null,
@@ -326,8 +343,43 @@ describe('Phase 63 — Post-Trip Driver Payment (UPI/QR & Cash)', () => {
       expect(details.amount).toBe('180.0000');
       expect(details.grossAmount).toBe('200.0000');
       expect(details.discountAmount).toBe('20.0000');
-      expect(details.upiQrPayload).toBeDefined();
-      expect(details.upiQrPayload?.qrData).toContain('upi://pay');
+      // A prior version fabricated a upiQrPayload (hardcoded VPA + a fake
+      // deep link) for every payment regardless of method — a cash payment
+      // has no real QR code behind it at all.
+      expect(details.qrCodeImageUrl).toBeNull();
+    });
+
+    it('surfaces the real Razorpay-hosted QR image once one has been generated for this booking', async () => {
+      mockedPrisma.booking.findUnique.mockResolvedValue({
+        id: bookingId,
+        customerId,
+        driverProfileId,
+        status: 'TRIP_COMPLETED',
+        discountAmount: null,
+      });
+
+      mockedPrisma.payment.findFirst.mockResolvedValue({
+        id: 'pay-details-2',
+        bookingId,
+        customerId,
+        driverProfileId,
+        amount: new Prisma.Decimal('200.0000'),
+        currency: 'INR',
+        status: 'PROCESSING',
+        provider: 'razorpay',
+        paymentMethod: 'QR',
+        providerOrderId: 'qr_live_abc123',
+        qrCodeImageUrl: 'https://rzp.io/i/real-qr-image',
+        cashCustomerConfirmedAt: null,
+        cashDriverConfirmedAt: null,
+        capturedAt: null,
+        discountAmount: null,
+        createdAt: new Date(),
+      });
+
+      const details = await getPostTripPaymentForBooking(bookingId);
+
+      expect(details.qrCodeImageUrl).toBe('https://rzp.io/i/real-qr-image');
     });
 
     it('throws error if booking does not exist', async () => {
