@@ -41,6 +41,7 @@ jest.mock('@/modules/location/application/driver-location-service', () => ({
 
 jest.mock('@/modules/driver/application/services/driver-hire-conflict-service', () => ({
   assertNoDriverHireConflict: jest.fn().mockResolvedValue(true),
+  assertNoDriverHireConflictWithLock: jest.fn().mockResolvedValue(true),
 }));
 
 describe('Phase 60 — Intelligent Dispatch Orchestration & Concurrency Safety', () => {
@@ -142,7 +143,7 @@ describe('Phase 60 — Intelligent Dispatch Orchestration & Concurrency Safety',
           updateMany: jest.fn().mockResolvedValue({ count: 1 }),
         },
         booking: {
-          update: jest.fn().mockResolvedValue({}),
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
         },
         driverProfile: {
           update: jest.fn().mockResolvedValue({}),
@@ -162,9 +163,9 @@ describe('Phase 60 — Intelligent Dispatch Orchestration & Concurrency Safety',
 
       await acceptAssignmentOffer('user-d1', 'att-1', mockDb);
 
-      expect(mockTx.bookingAssignmentAttempt.update).toHaveBeenCalledWith(
+      expect(mockTx.bookingAssignmentAttempt.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: 'att-1' },
+          where: { id: 'att-1', status: AssignmentAttemptStatus.PENDING },
           data: expect.objectContaining({ status: AssignmentAttemptStatus.ACCEPTED }),
         }),
       );

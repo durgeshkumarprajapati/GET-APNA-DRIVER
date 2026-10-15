@@ -10,10 +10,13 @@ const mockTx = {
   bookingAssignmentAttempt: {
     findUnique: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+    findMany: jest.fn().mockResolvedValue([]),
   },
   booking: {
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn().mockResolvedValue({ count: 1 }),
     findUnique: jest.fn(),
   },
   driverProfile: {

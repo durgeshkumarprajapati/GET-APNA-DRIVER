@@ -8,6 +8,7 @@ jest.mock('@/shared/database/prisma', () => ({
     },
     driverProfile: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
   },
 }));
@@ -42,6 +43,7 @@ describe('NearbyDriverService', () => {
   const mockFindMany = prisma.driverCurrentLocation.findMany as jest.Mock;
   const mockFindUniqueLocation = prisma.driverCurrentLocation.findUnique as jest.Mock;
   const mockFindUniqueProfile = prisma.driverProfile.findUnique as jest.Mock;
+  const mockFindManyProfile = prisma.driverProfile.findMany as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -140,6 +142,24 @@ describe('NearbyDriverService', () => {
 
     expect(results).toHaveLength(0);
     expect(redis.zrem).toHaveBeenCalledWith('driver:geo:available', 'dp-stale');
+  });
+
+  // Regression: a previous "last resort" fallback grabbed every available
+  // driver company-wide with a fabricated distanceMeters: 0 whenever both
+  // the Redis geo search and the DB radius search came back empty — i.e.
+  // whenever nobody was genuinely within radius. That broke the "nearby"
+  // guarantee (a driver hundreds of km away could be offered a booking)
+  // and made them look like the closest possible candidate downstream.
+  // "Nobody nearby" must return no candidates, full stop — the caller
+  // (matching-service.ts) is responsible for widening the radius.
+  it('returns no candidates — never a nationwide fallback — when nobody is within radius', async () => {
+    (redis.call as jest.Mock).mockResolvedValue([]); // Redis empty
+    mockFindMany.mockResolvedValue([]); // DB radius search also empty
+
+    const results = await findNearbyDrivers({ latitude: 28.6139, longitude: 77.209 });
+
+    expect(results).toHaveLength(0);
+    expect(mockFindManyProfile).not.toHaveBeenCalled();
   });
 
   it('excludes ineligible drivers', async () => {

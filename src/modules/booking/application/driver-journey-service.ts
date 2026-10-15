@@ -10,6 +10,7 @@ import {
 import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
 import { addDriverToLiveIndex } from '@/modules/location/application/driver-location-service';
+import { findAndOfferNextDriver } from './matching-service';
 import {
   validateBookingStatusTransition,
   isBookingCancellable,
@@ -287,20 +288,43 @@ export async function cancelBookingByDriver(
     throw new BookingNotCancellableError(bookingId, booking.status);
   }
 
-  validateBookingStatusTransition(booking.status, BookingStatus.CANCELLED);
-
   const now = new Date();
+
+  // While the driver is only DRIVER_ASSIGNED (hasn't started moving yet), a
+  // driver backing out is recoverable exactly the way an admin-initiated
+  // reassignment is (dispatch-service.ts's reassignBookingDriver): put the
+  // booking back into SEARCHING_DRIVER with a fresh search window and let
+  // matching find a replacement, instead of cancelling the customer's trip
+  // outright. Once DRIVER_EN_ROUTE/DRIVER_ARRIVED, the state machine (by
+  // design — see booking-state-machine.ts) has no path back to
+  // SEARCHING_DRIVER, so cancellation is the only option there, same as
+  // before.
+  const canRedispatch = booking.status === BookingStatus.DRIVER_ASSIGNED;
+  const targetStatus = canRedispatch ? BookingStatus.SEARCHING_DRIVER : BookingStatus.CANCELLED;
+  validateBookingStatusTransition(booking.status, targetStatus);
+
+  const searchTimeoutSeconds = canRedispatch
+    ? await getInteger('booking.matching.search_timeout_seconds', 180, db)
+    : 0;
 
   await db.$transaction(async (tx) => {
     await tx.booking.update({
       where: { id: booking.id },
-      data: {
-        status: BookingStatus.CANCELLED,
-        cancelledAt: now,
-        cancelledBy: driverUserId,
-        cancellationReason: cancellationReason || 'Cancelled by driver',
-        driverProfileId: null,
-      },
+      data: canRedispatch
+        ? {
+            status: BookingStatus.SEARCHING_DRIVER,
+            driverProfileId: null,
+            assignedAt: null,
+            searchStartedAt: now,
+            expiresAt: new Date(now.getTime() + searchTimeoutSeconds * 1000),
+          }
+        : {
+            status: BookingStatus.CANCELLED,
+            cancelledAt: now,
+            cancelledBy: driverUserId,
+            cancellationReason: cancellationReason || 'Cancelled by driver',
+            driverProfileId: null,
+          },
     });
 
     await tx.bookingAssignmentAttempt.updateMany({
@@ -318,7 +342,7 @@ export async function cancelBookingByDriver(
         bookingId: booking.id,
         actorUserId: driverUserId,
         fromStatus: booking.status,
-        toStatus: BookingStatus.CANCELLED,
+        toStatus: targetStatus,
         action: 'booking.driver.cancelled',
         reason: cancellationReason || 'Cancelled by driver',
       },
@@ -334,6 +358,7 @@ export async function cancelBookingByDriver(
         driverProfileId: profile.id,
         cancelledAt: now.toISOString(),
         reason: cancellationReason,
+        redispatched: canRedispatch,
       },
     });
   });
@@ -349,39 +374,66 @@ export async function cancelBookingByDriver(
     entityType: 'Booking',
     entityId: bookingId,
     beforeState: { status: booking.status },
-    afterState: { status: BookingStatus.CANCELLED, cancellationReason },
+    afterState: {
+      status: targetStatus,
+      cancellationReason: canRedispatch ? null : cancellationReason,
+    },
   });
 
   realtime.publishBookingUpdate(bookingId, 'booking.driver.cancelled', {
     bookingId,
-    status: BookingStatus.CANCELLED,
+    status: targetStatus,
     cancelledBy: driverUserId,
   });
 
-  // Let the customer know their driver — not them — cancelled, distinct
-  // from the copy self-cancellation would show them.
-  await createNotification({
-    userId: booking.customerId,
-    category: 'BOOKING',
-    type: 'BOOKING_CANCELLED',
-    title: 'Trip Cancelled by Driver',
-    body: 'Your driver had to cancel this trip. We are sorry for the inconvenience — please book again to find another driver.',
-    data: { bookingId },
-  });
+  if (canRedispatch) {
+    // Let the customer know their driver backed out but we're already
+    // looking for another one — distinct from the terminal-cancellation
+    // copy below, and no refund fires since the trip is still alive.
+    await createNotification({
+      userId: booking.customerId,
+      category: 'BOOKING',
+      type: 'BOOKING_CANCELLED',
+      title: 'Finding You a New Driver',
+      body: 'Your driver had to cancel this trip. We are automatically searching for another driver for you now.',
+      data: { bookingId },
+    });
 
-  // Automatic refund if booking was paid prior to driver cancellation —
-  // shared with the customer-cancel and admin/operator-cancel paths (see
-  // refund-service.ts) so all three apply the exact same refund policy.
-  await autoRefundCapturedPaymentOnCancellation(
-    {
-      bookingId,
-      customerId: booking.customerId,
-      actorUserId: driverUserId,
-      cancellationReason,
-      defaultReason: 'Automatic refund for driver-cancelled booking',
-    },
-    db,
-  );
+    try {
+      await findAndOfferNextDriver(bookingId, db);
+    } catch {
+      // Matching continues asynchronously via the worker/next poll; never
+      // fail the driver's cancellation on this — same contract as
+      // reassignBookingDriver's own best-effort call.
+    }
+  } else {
+    // Let the customer know their driver — not them — cancelled, distinct
+    // from the copy self-cancellation would show them.
+    await createNotification({
+      userId: booking.customerId,
+      category: 'BOOKING',
+      type: 'BOOKING_CANCELLED',
+      title: 'Trip Cancelled by Driver',
+      body: 'Your driver had to cancel this trip. We are sorry for the inconvenience — please book again to find another driver.',
+      data: { bookingId },
+    });
+
+    // Automatic refund if booking was paid prior to driver cancellation —
+    // shared with the customer-cancel and admin/operator-cancel paths (see
+    // refund-service.ts) so all three apply the exact same refund policy.
+    // Skipped entirely on the redispatch path above: the booking isn't
+    // cancelled, so there is nothing to refund.
+    await autoRefundCapturedPaymentOnCancellation(
+      {
+        bookingId,
+        customerId: booking.customerId,
+        actorUserId: driverUserId,
+        cancellationReason,
+        defaultReason: 'Automatic refund for driver-cancelled booking',
+      },
+      db,
+    );
+  }
 
   const updated = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
   return mapBookingToDriverSummary(updated);
