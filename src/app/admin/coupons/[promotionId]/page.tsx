@@ -113,7 +113,7 @@ export default function AdminPromotionDetailPage() {
           <button
             type="button"
             onClick={() => router.push('/admin/coupons')}
-            className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+            className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-border text-xs font-bold text-on-surface transition-colors"
           >
             ← Back to Coupons
           </button>
@@ -121,7 +121,7 @@ export default function AdminPromotionDetailPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -131,11 +131,11 @@ export default function AdminPromotionDetailPage() {
       ) : (
         promotion && (
           <>
-            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
+            <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {promotion.code && (
-                    <span className="font-mono text-sm px-3 py-1 rounded bg-[#25a475] text-[#00311f] font-bold">
+                    <span className="font-mono text-sm px-3 py-1 rounded bg-primary-container text-on-primary-container font-bold">
                       {promotion.code}
                     </span>
                   )}
@@ -143,15 +143,15 @@ export default function AdminPromotionDetailPage() {
                     discountType={promotion.discountType}
                     discountValue={promotion.discountValue}
                     maxDiscountAmount={promotion.maxDiscountAmount}
-                    className="text-sm font-bold text-[#68dba9]"
+                    className="text-sm font-bold text-primary"
                   />
                 </div>
                 <PromotionStatusBadge status={promotion.status} isExpired={promotion.isExpired} />
               </div>
               {promotion.description && (
-                <p className="text-sm text-[#bccac0]">{promotion.description}</p>
+                <p className="text-sm text-on-surface-variant">{promotion.description}</p>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[#262a33]">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-surface-container-high">
                 <MetricCard label="Total Redemptions" value={promotion.totalUsageCount} />
                 <MetricCard label="Usage Limit" value={promotion.totalUsageLimit ?? '∞'} />
                 <MetricCard label="Per-User Limit" value={promotion.perUserUsageLimit ?? '∞'} />
@@ -166,7 +166,7 @@ export default function AdminPromotionDetailPage() {
                   }
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#87948b]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-outline">
                 <span>Starts: {formatDateTime(promotion.startsAt)}</span>
                 <span>
                   Ends: {promotion.endsAt ? formatDateTime(promotion.endsAt) : 'No expiry'}
@@ -177,10 +177,10 @@ export default function AdminPromotionDetailPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Redemption History
               </h2>
-              <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+              <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl space-y-4">
                 <DataTable
                   columns={columns}
                   data={usages}

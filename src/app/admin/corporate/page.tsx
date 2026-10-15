@@ -83,30 +83,30 @@ export default function AdminCorporatePage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <span className="text-[10px] font-mono font-bold tracking-widest text-[#68dba9] uppercase">
+        <span className="text-[10px] font-mono font-bold tracking-widest text-primary uppercase">
           ENTERPRISE ADMINISTRATION
         </span>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
           Corporate Accounts & Fleet Governance
         </h1>
-        <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
+        <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
           Platform-wide administration for business accounts, credit line allocations, and
           verification status controls.
         </p>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/50 text-red-300 text-xs">
+        <div className="p-4 rounded-xl bg-error-container/50 border border-error/50 text-on-error-container text-xs">
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="p-12 text-center text-[#bccac0] text-sm font-mono animate-pulse">
+        <div className="p-12 text-center text-on-surface-variant text-sm font-mono animate-pulse">
           Loading corporate accounts...
         </div>
       ) : (
-        <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-surface-container-lowest border border-surface-container-high rounded-2xl overflow-hidden shadow-xl">
           {organizations.length === 0 ? (
             <div className="p-12">
               <EmptyState
@@ -118,7 +118,7 @@ export default function AdminCorporatePage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#262a33] bg-[#0a0e16]/60 text-[11px] font-mono text-[#bccac0] uppercase tracking-wider">
+                  <tr className="border-b border-surface-container-high bg-surface-container-lowest/60 text-[11px] font-mono text-on-surface-variant uppercase tracking-wider">
                     <th className="p-3.5">Organization</th>
                     <th className="p-3.5">GSTIN / Tax ID</th>
                     <th className="p-3.5">Members & Bookings</th>
@@ -127,28 +127,28 @@ export default function AdminCorporatePage() {
                     <th className="p-3.5">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#262a33] text-xs font-mono">
+                <tbody className="divide-y divide-surface-container-high text-xs font-mono">
                   {organizations.map((org) => (
-                    <tr key={org.id} className="hover:bg-[#1c2028] transition-colors">
+                    <tr key={org.id} className="hover:bg-surface-container transition-colors">
                       <td className="p-3.5">
-                        <div className="font-bold text-[#dfe2ee]">{org.name}</div>
-                        <div className="text-[10px] text-[#87948b]">{org.billingEmail}</div>
+                        <div className="font-bold text-on-surface">{org.name}</div>
+                        <div className="text-[10px] text-outline">{org.billingEmail}</div>
                       </td>
-                      <td className="p-3.5 font-bold text-[#dfe2ee]">
+                      <td className="p-3.5 font-bold text-on-surface">
                         {org.gstin || 'NOT_PROVIDED'}
                       </td>
-                      <td className="p-3.5 text-[#bccac0]">
+                      <td className="p-3.5 text-on-surface-variant">
                         {org._count.members} Members / {org._count.bookings} Bookings
                       </td>
-                      <td className="p-3.5 font-bold text-[#68dba9]">
+                      <td className="p-3.5 font-bold text-primary">
                         ₹{Number(org.creditLimit).toLocaleString()}
                       </td>
                       <td className="p-3.5">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${
                             org.status === 'ACTIVE'
-                              ? 'bg-[#00311f] text-[#68dba9] border-[#25a475]'
-                              : 'bg-rose-950/60 text-rose-300 border-rose-500/40'
+                              ? 'bg-on-primary-container text-primary border-primary-container'
+                              : 'bg-error-container/60 text-on-error-container border-error/40'
                           }`}
                         >
                           {org.status}
@@ -160,7 +160,7 @@ export default function AdminCorporatePage() {
                             type="button"
                             disabled={actionId === org.id}
                             onClick={() => void handleUpdateStatus(org.id, 'SUSPENDED')}
-                            className="px-2.5 py-1 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-rose-300 rounded text-[10px] font-bold"
+                            className="px-2.5 py-1 bg-error-container/40 hover:bg-error-container/60 border border-error/30 text-on-error-container rounded text-[10px] font-bold"
                           >
                             Suspend Account
                           </button>
@@ -169,7 +169,7 @@ export default function AdminCorporatePage() {
                             type="button"
                             disabled={actionId === org.id}
                             onClick={() => void handleUpdateStatus(org.id, 'ACTIVE')}
-                            className="px-2.5 py-1 bg-[#25a475] hover:bg-[#208e65] text-[#00311f] rounded text-[10px] font-bold"
+                            className="px-2.5 py-1 bg-primary-container hover:bg-primary-container text-on-primary-container rounded text-[10px] font-bold"
                           >
                             Activate Account
                           </button>

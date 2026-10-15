@@ -427,13 +427,13 @@ export default function UnifiedOperationsCommandCenterPage() {
   const getSeverityBadgeClass = (severity: string) => {
     switch (severity) {
       case 'CRITICAL':
-        return 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]';
+        return 'bg-error-container text-error border-error-container';
       case 'HIGH':
-        return 'bg-[#3a2000] text-[#ffb957] border-[#7d4e00]';
+        return 'bg-warning-container text-on-warning-container border-warning-container';
       case 'MEDIUM':
-        return 'bg-[#2a2900] text-[#ffe662] border-[#6b6700]';
+        return 'bg-warning-container text-on-warning-container border-warning-container';
       default:
-        return 'bg-[#0f2438] text-[#82cfff] border-[#004a77]';
+        return 'bg-info-container text-on-info-container border-info-container';
     }
   };
 
@@ -442,28 +442,28 @@ export default function UnifiedOperationsCommandCenterPage() {
       case 'DETECTED':
       case 'RECOVERING':
       case 'INVESTIGATING':
-        return 'bg-[#3a2000] text-[#ffb957] border-[#7d4e00]';
+        return 'bg-warning-container text-on-warning-container border-warning-container';
       case 'RESOLVED':
-        return 'bg-[#1b2b00] text-[#a4f542] border-[#3f6300]';
+        return 'bg-on-warning-container text-warning border-primary-container';
       case 'ESCALATED':
-        return 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]';
+        return 'bg-error-container text-error border-error-container';
       case 'DISMISSED':
-        return 'bg-[#222630] text-[#87948b] border-[#363b47]';
+        return 'bg-surface-container-high text-outline border-surface-bright';
       default:
-        return 'bg-[#181c24] text-[#dfe2ee] border-[#262a33]';
+        return 'bg-surface-container-low text-on-surface border-surface-container-high';
     }
   };
 
   const getCapacityStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'CRITICAL_SHORTAGE':
-        return 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]';
+        return 'bg-error-container text-error border-error-container';
       case 'SHORTAGE':
-        return 'bg-[#3a2000] text-[#ffb957] border-[#7d4e00]';
+        return 'bg-warning-container text-on-warning-container border-warning-container';
       case 'SURPLUS':
-        return 'bg-[#1b2b00] text-[#a4f542] border-[#3f6300]';
+        return 'bg-on-warning-container text-warning border-primary-container';
       default:
-        return 'bg-[#0f2438] text-[#82cfff] border-[#004a77]';
+        return 'bg-info-container text-on-info-container border-info-container';
     }
   };
 
@@ -483,28 +483,28 @@ export default function UnifiedOperationsCommandCenterPage() {
     <>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header Control Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262a33] pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-container-high pb-5">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[#68dba9] text-2xl">terminal</span>
-              <h1 className="text-2xl font-bold text-[#dfe2ee] tracking-tight font-['Space_Grotesk']">
+              <span className="material-symbols-outlined text-primary text-2xl">terminal</span>
+              <h1 className="text-2xl font-bold text-on-surface tracking-tight font-['Space_Grotesk']">
                 Operations Command Center & Reliability Intelligence
               </h1>
             </div>
-            <p className="text-xs text-[#87948b] mt-1 font-mono">
+            <p className="text-xs text-outline mt-1 font-mono">
               Unified operational control, deterministic decision evaluation, automated reliability
               analytics & auditable manual actions
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center gap-2 font-mono text-xs">
+            <div className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high flex items-center gap-2 font-mono text-xs">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  sseConnected ? 'bg-[#68dba9] animate-pulse' : 'bg-[#ffb957]'
+                  sseConnected ? 'bg-primary animate-pulse' : 'bg-on-warning-container'
                 }`}
               />
-              <span className="text-[#dfe2ee] font-bold">
+              <span className="text-on-surface font-bold">
                 {sseConnected ? 'SSE LIVE STREAM' : 'POLLING FALLBACK'}
                 {lastSyncTime ? ` (${lastSyncTime.toLocaleTimeString()})` : ''}
               </span>
@@ -515,7 +515,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                 void fetchData();
                 void fetchIncidents();
               }}
-              className="px-3 py-1.5 rounded-lg bg-[#181c24] hover:bg-[#262a33] border border-[#262a33] text-[#dfe2ee] text-xs font-mono flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high border border-surface-container-high text-on-surface text-xs font-mono flex items-center gap-1.5 transition-colors"
             >
               <span className="material-symbols-outlined text-sm">refresh</span>
               Sync Data
@@ -524,7 +524,7 @@ export default function UnifiedOperationsCommandCenterPage() {
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-[#3b0909] border border-[#93000a] text-[#ff8e8e] text-xs font-mono flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-error-container border border-error-container text-error text-xs font-mono flex items-center justify-between">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-xs underline ml-4">
               Dismiss
@@ -533,13 +533,13 @@ export default function UnifiedOperationsCommandCenterPage() {
         )}
 
         {/* Tab Navigation Controls */}
-        <div className="flex items-center gap-2 border-b border-[#262a33] pb-2 font-mono text-xs overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-surface-container-high pb-2 font-mono text-xs overflow-x-auto">
           <button
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
               activeTab === 'overview'
-                ? 'bg-[#25a475] text-[#00311f] font-bold'
-                : 'text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+                ? 'bg-primary-container text-on-primary-container font-bold'
+                : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
             }`}
           >
             <span className="material-symbols-outlined text-base">dashboard</span>
@@ -550,14 +550,14 @@ export default function UnifiedOperationsCommandCenterPage() {
             onClick={() => setActiveTab('incidents')}
             className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
               activeTab === 'incidents'
-                ? 'bg-[#25a475] text-[#00311f] font-bold'
-                : 'text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+                ? 'bg-primary-container text-on-primary-container font-bold'
+                : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
             }`}
           >
             <span className="material-symbols-outlined text-base">warning</span>
             Incident Management
             {intelligence?.activeIncidents ? (
-              <span className="px-1.5 py-0.5 rounded-full bg-[#ff8e8e] text-[#3b0909] text-[10px] font-bold">
+              <span className="px-1.5 py-0.5 rounded-full bg-error text-error-container text-[10px] font-bold">
                 {intelligence.activeIncidents}
               </span>
             ) : null}
@@ -567,8 +567,8 @@ export default function UnifiedOperationsCommandCenterPage() {
             onClick={() => setActiveTab('reliability')}
             className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
               activeTab === 'reliability'
-                ? 'bg-[#25a475] text-[#00311f] font-bold'
-                : 'text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+                ? 'bg-primary-container text-on-primary-container font-bold'
+                : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
             }`}
           >
             <span className="material-symbols-outlined text-base">analytics</span>
@@ -579,8 +579,8 @@ export default function UnifiedOperationsCommandCenterPage() {
             onClick={() => setActiveTab('capacity')}
             className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
               activeTab === 'capacity'
-                ? 'bg-[#25a475] text-[#00311f] font-bold'
-                : 'text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+                ? 'bg-primary-container text-on-primary-container font-bold'
+                : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
             }`}
           >
             <span className="material-symbols-outlined text-base">query_stats</span>
@@ -591,8 +591,8 @@ export default function UnifiedOperationsCommandCenterPage() {
             onClick={() => setActiveTab('actions')}
             className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
               activeTab === 'actions'
-                ? 'bg-[#25a475] text-[#00311f] font-bold'
-                : 'text-[#87948b] hover:text-[#dfe2ee] hover:bg-[#181c24]'
+                ? 'bg-primary-container text-on-primary-container font-bold'
+                : 'text-outline hover:text-on-surface hover:bg-surface-container-low'
             }`}
           >
             <span className="material-symbols-outlined text-base">history</span>
@@ -602,70 +602,70 @@ export default function UnifiedOperationsCommandCenterPage() {
 
         {/* TOP METRICS SUMMARY CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-outline uppercase tracking-wider">
               System Health
             </span>
-            <div className="text-sm font-bold font-mono text-[#68dba9] mt-2">
+            <div className="text-sm font-bold font-mono text-primary mt-2">
               {summary.systemStatus}
             </div>
-            <span className="text-[10px] text-[#87948b] mt-1">
+            <span className="text-[10px] text-outline mt-1">
               Health Score: {summary.platformHealthScore}/100
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-outline uppercase tracking-wider">
               Active Incidents
             </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ff8e8e] mt-1">
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-error mt-1">
               {intelligence?.activeIncidents ?? 0}
             </div>
-            <span className="text-[10px] text-[#87948b] mt-1">Requiring Attention</span>
+            <span className="text-[10px] text-outline mt-1">Requiring Attention</span>
           </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-outline uppercase tracking-wider">
               Recovery Success
             </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#68dba9] mt-1">
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-primary mt-1">
               {intelligence?.recoverySuccessRate ?? 100}%
             </div>
-            <span className="text-[10px] text-[#87948b] mt-1">
+            <span className="text-[10px] text-outline mt-1">
               Attempts: {intelligence?.recoveryAttemptsSummary.total ?? 0}
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-outline uppercase tracking-wider">
               Avg Resolution Time
             </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#70d2ff] mt-1">
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-on-info-container mt-1">
               {intelligence?.avgResolutionTimeMinutes ?? 0} m
             </div>
-            <span className="text-[10px] text-[#87948b] mt-1">7-Day Rolling Avg</span>
+            <span className="text-[10px] text-outline mt-1">7-Day Rolling Avg</span>
           </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-outline uppercase tracking-wider">
               Dispatch Pressure
             </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#ffb957] mt-1">
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-on-warning-container mt-1">
               {summary.searchingBookingsCount}
             </div>
-            <span className="text-[10px] text-[#87948b] mt-1">
+            <span className="text-[10px] text-outline mt-1">
               Available Drivers: {summary.availableDriversCount}
             </span>
           </div>
 
-          <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col justify-between">
-            <span className="text-[10px] font-mono text-[#87948b] uppercase tracking-wider">
+          <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col justify-between">
+            <span className="text-[10px] font-mono text-outline uppercase tracking-wider">
               Active Fleet Trips
             </span>
-            <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] mt-1">
+            <div className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface mt-1">
               {summary.activeTripsCount}
             </div>
-            <span className="text-[10px] text-[#87948b] mt-1">In-Progress Rides</span>
+            <span className="text-[10px] text-outline mt-1">In-Progress Rides</span>
           </div>
         </div>
 
@@ -674,24 +674,24 @@ export default function UnifiedOperationsCommandCenterPage() {
           <div className="space-y-6">
             {/* Dispatch Pressure & Platform Telemetry Signals */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-3">
-                <div className="flex items-center justify-between border-b border-[#262a33] pb-2">
-                  <span className="text-xs font-bold text-[#dfe2ee] font-mono">
+              <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-3">
+                <div className="flex items-center justify-between border-b border-surface-container-high pb-2">
+                  <span className="text-xs font-bold text-on-surface font-mono">
                     DISPATCH SEARCH PRESSURE
                   </span>
-                  <span className="material-symbols-outlined text-[#68dba9]">radar</span>
+                  <span className="material-symbols-outlined text-primary">radar</span>
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                  <span className="text-3xl font-bold font-['Space_Grotesk'] text-on-surface">
                     {summary.searchingBookingsCount}
                   </span>
-                  <span className="text-xs font-mono text-[#87948b]">
+                  <span className="text-xs font-mono text-outline">
                     searching / {summary.availableDriversCount} available drivers
                   </span>
                 </div>
-                <div className="w-full bg-[#0f131c] h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-background h-2 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#68dba9] h-full transition-all"
+                    className="bg-primary h-full transition-all"
                     style={{
                       width: `${Math.min(
                         100,
@@ -704,61 +704,63 @@ export default function UnifiedOperationsCommandCenterPage() {
                 </div>
               </div>
 
-              <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-3">
-                <div className="flex items-center justify-between border-b border-[#262a33] pb-2">
-                  <span className="text-xs font-bold text-[#dfe2ee] font-mono">
+              <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-3">
+                <div className="flex items-center justify-between border-b border-surface-container-high pb-2">
+                  <span className="text-xs font-bold text-on-surface font-mono">
                     DELAYED SERVICES (&gt; 3 MINS)
                   </span>
-                  <span className="material-symbols-outlined text-[#ffb957]">schedule</span>
+                  <span className="material-symbols-outlined text-on-warning-container">
+                    schedule
+                  </span>
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-bold font-['Space_Grotesk'] text-[#ffb957]">
+                  <span className="text-3xl font-bold font-['Space_Grotesk'] text-on-warning-container">
                     {intelligence?.dispatchPressure.delayedBookingsCount ?? 0}
                   </span>
-                  <span className="text-xs font-mono text-[#87948b]">High customer wait risk</span>
+                  <span className="text-xs font-mono text-outline">High customer wait risk</span>
                 </div>
-                <p className="text-[11px] text-[#87948b] font-mono">
+                <p className="text-[11px] text-outline font-mono">
                   Tracked by dispatch engine sweep for assignment timeout intervention.
                 </p>
               </div>
 
-              <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-3">
-                <div className="flex items-center justify-between border-b border-[#262a33] pb-2">
-                  <span className="text-xs font-bold text-[#dfe2ee] font-mono">
+              <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-3">
+                <div className="flex items-center justify-between border-b border-surface-container-high pb-2">
+                  <span className="text-xs font-bold text-on-surface font-mono">
                     ACTIVE SAFETY CASES
                   </span>
-                  <span className="material-symbols-outlined text-[#ff8e8e]">shield</span>
+                  <span className="material-symbols-outlined text-error">shield</span>
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-3xl font-bold font-['Space_Grotesk'] text-[#ff8e8e]">
+                  <span className="text-3xl font-bold font-['Space_Grotesk'] text-error">
                     {summary.activeSafetyIncidentsCount}
                   </span>
-                  <span className="text-xs font-mono text-[#87948b]">
+                  <span className="text-xs font-mono text-outline">
                     Open support: {summary.openSupportTicketsCount}
                   </span>
                 </div>
-                <p className="text-[11px] text-[#87948b] font-mono">
+                <p className="text-[11px] text-outline font-mono">
                   Integrated with SOS Desk &amp; Customer Support Incident System.
                 </p>
               </div>
             </div>
 
             {/* Active Operations Decisions Feed */}
-            <div className="bg-[#181c24] rounded-xl border border-[#262a33] p-5 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
+            <div className="bg-surface-container-low rounded-xl border border-surface-container-high p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-container-high pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9]">psychology</span>
-                  <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                  <span className="material-symbols-outlined text-primary">psychology</span>
+                  <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                     Real-Time Operational Decisions Engine
                   </h3>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-[#87948b]">Filter Status:</span>
+                  <span className="text-xs font-mono text-outline">Filter Status:</span>
                   <select
                     value={decisionStatusFilter}
                     onChange={(e) => setDecisionStatusFilter(e.target.value)}
-                    className="bg-[#0f131c] border border-[#262a33] text-[#dfe2ee] text-xs font-mono rounded-lg px-2.5 py-1"
+                    className="bg-background border border-surface-container-high text-on-surface text-xs font-mono rounded-lg px-2.5 py-1"
                   >
                     <option value="ALL">All Statuses</option>
                     <option value="DETECTED">Detected</option>
@@ -767,11 +769,11 @@ export default function UnifiedOperationsCommandCenterPage() {
                     <option value="DISMISSED">Dismissed</option>
                     <option value="ESCALATED">Escalated</option>
                   </select>
-                  <span className="text-xs font-mono text-[#87948b]">Filter Severity:</span>
+                  <span className="text-xs font-mono text-outline">Filter Severity:</span>
                   <select
                     value={decisionSeverityFilter}
                     onChange={(e) => setDecisionSeverityFilter(e.target.value)}
-                    className="bg-[#0f131c] border border-[#262a33] text-[#dfe2ee] text-xs font-mono rounded-lg px-2.5 py-1"
+                    className="bg-background border border-surface-container-high text-on-surface text-xs font-mono rounded-lg px-2.5 py-1"
                   >
                     <option value="ALL">All Severities</option>
                     <option value="CRITICAL">Critical</option>
@@ -783,18 +785,18 @@ export default function UnifiedOperationsCommandCenterPage() {
               </div>
 
               {loading ? (
-                <div className="p-8 text-center text-xs font-mono text-[#87948b]">
+                <div className="p-8 text-center text-xs font-mono text-outline">
                   Evaluating live operational signals...
                 </div>
               ) : decisions.length === 0 ? (
                 <div className="p-8 text-center space-y-2">
-                  <span className="material-symbols-outlined text-3xl text-[#68dba9]">
+                  <span className="material-symbols-outlined text-3xl text-primary">
                     check_circle
                   </span>
-                  <p className="text-sm font-bold text-[#dfe2ee]">
+                  <p className="text-sm font-bold text-on-surface">
                     All system parameters are within nominal baselines
                   </p>
-                  <p className="text-xs text-[#87948b] font-mono">
+                  <p className="text-xs text-outline font-mono">
                     No active operations decisions require manual intervention.
                   </p>
                 </div>
@@ -803,9 +805,9 @@ export default function UnifiedOperationsCommandCenterPage() {
                   {decisions.map((decision) => (
                     <div
                       key={decision.id}
-                      className="bg-[#0f131c] p-4 rounded-xl border border-[#262a33] space-y-3"
+                      className="bg-background p-4 rounded-xl border border-surface-container-high space-y-3"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#262a33] pb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-container-high pb-2">
                         <div className="flex items-center gap-2.5">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getSeverityBadgeClass(
@@ -821,25 +823,27 @@ export default function UnifiedOperationsCommandCenterPage() {
                           >
                             {decision.status}
                           </span>
-                          <h4 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                          <h4 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                             {decision.title}
                           </h4>
                         </div>
-                        <span className="text-[11px] font-mono text-[#87948b]">
+                        <span className="text-[11px] font-mono text-outline">
                           {new Date(decision.createdAt).toLocaleTimeString()}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
                         <div className="md:col-span-2 space-y-1">
-                          <p className="text-[#bccac0]">{decision.summary || decision.why}</p>
+                          <p className="text-on-surface-variant">
+                            {decision.summary || decision.why}
+                          </p>
                           <div className="flex flex-wrap gap-2 pt-1">
                             {decision.evidence.map((ev, i) => (
                               <span
                                 key={i}
-                                className="px-2 py-0.5 rounded bg-[#181c24] border border-[#262a33] text-[10px] text-[#87948b]"
+                                className="px-2 py-0.5 rounded bg-surface-container-low border border-surface-container-high text-[10px] text-outline"
                               >
-                                <strong className="text-[#dfe2ee]">{ev.label || ev.key}:</strong>{' '}
+                                <strong className="text-on-surface">{ev.label || ev.key}:</strong>{' '}
                                 {String(ev.value)}
                               </span>
                             ))}
@@ -852,13 +856,13 @@ export default function UnifiedOperationsCommandCenterPage() {
                               <>
                                 <button
                                   onClick={() => handleAcknowledgeDecision(decision.id)}
-                                  className="px-2.5 py-1 rounded bg-[#00344d] hover:bg-[#004d73] text-[#70d2ff] border border-[#004d73] text-xs font-mono"
+                                  className="px-2.5 py-1 rounded bg-info-container hover:bg-info-container text-on-info-container border border-info-container text-xs font-mono"
                                 >
                                   Ack
                                 </button>
                                 <button
                                   onClick={() => handleDismissDecision(decision.id)}
-                                  className="px-2.5 py-1 rounded bg-[#181c24] hover:bg-[#222630] text-[#87948b] border border-[#262a33] text-xs font-mono"
+                                  className="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container-high text-outline border border-surface-container-high text-xs font-mono"
                                 >
                                   Dismiss
                                 </button>
@@ -874,7 +878,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                                       action: decision.recommendedActions[0],
                                     });
                                   }}
-                                  className="px-3 py-1 rounded bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono flex items-center gap-1"
+                                  className="px-3 py-1 rounded bg-primary-container hover:bg-primary-container text-on-primary-container font-bold text-xs font-mono flex items-center gap-1"
                                 >
                                   <span className="material-symbols-outlined text-sm">bolt</span>
                                   Execute Action
@@ -895,14 +899,14 @@ export default function UnifiedOperationsCommandCenterPage() {
         {activeTab === 'incidents' && (
           <div className="space-y-4">
             {/* Filter Toolbar */}
-            <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-[#87948b]">Status:</span>
+                  <span className="text-xs font-mono text-outline">Status:</span>
                   <select
                     value={incidentStatusFilter}
                     onChange={(e) => setIncidentStatusFilter(e.target.value)}
-                    className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee]"
+                    className="bg-background border border-surface-container-high rounded-lg px-3 py-1.5 text-xs font-mono text-on-surface"
                   >
                     <option value="">All Statuses</option>
                     <option value="DETECTED">Detected</option>
@@ -914,11 +918,11 @@ export default function UnifiedOperationsCommandCenterPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-[#87948b]">Severity:</span>
+                  <span className="text-xs font-mono text-outline">Severity:</span>
                   <select
                     value={incidentSeverityFilter}
                     onChange={(e) => setIncidentSeverityFilter(e.target.value)}
-                    className="bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee]"
+                    className="bg-background border border-surface-container-high rounded-lg px-3 py-1.5 text-xs font-mono text-on-surface"
                   >
                     <option value="">All Severities</option>
                     <option value="CRITICAL">Critical</option>
@@ -935,27 +939,27 @@ export default function UnifiedOperationsCommandCenterPage() {
                   value={incidentSearchQuery}
                   onChange={(e) => setIncidentSearchQuery(e.target.value)}
                   placeholder="Search incident #, booking ID, type..."
-                  className="w-full bg-[#0f131c] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="w-full bg-background border border-surface-container-high rounded-lg px-3 py-1.5 text-xs font-mono text-on-surface focus:outline-none focus:border-primary"
                 />
               </div>
             </div>
 
             {/* Incidents List Table */}
             {filteredIncidents.length === 0 ? (
-              <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center space-y-2">
-                <span className="material-symbols-outlined text-3xl text-[#68dba9]">
+              <div className="bg-surface-container-low p-12 rounded-xl border border-surface-container-high text-center space-y-2">
+                <span className="material-symbols-outlined text-3xl text-primary">
                   check_circle
                 </span>
-                <p className="text-sm font-bold text-[#dfe2ee]">No active incidents found</p>
-                <p className="text-xs text-[#87948b] font-mono">
+                <p className="text-sm font-bold text-on-surface">No active incidents found</p>
+                <p className="text-xs text-outline font-mono">
                   All service reliability checks are nominal.
                 </p>
               </div>
             ) : (
-              <div className="bg-[#181c24] rounded-xl border border-[#262a33] overflow-hidden">
+              <div className="bg-surface-container-low rounded-xl border border-surface-container-high overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-[#0f131c] text-[#87948b] uppercase border-b border-[#262a33]">
+                    <thead className="bg-background text-outline uppercase border-b border-surface-container-high">
                       <tr>
                         <th className="px-4 py-3">Incident Ref</th>
                         <th className="px-4 py-3">Type</th>
@@ -966,12 +970,10 @@ export default function UnifiedOperationsCommandCenterPage() {
                         <th className="px-4 py-3 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#262a33] text-[#dfe2ee]">
+                    <tbody className="divide-y divide-surface-container-high text-on-surface">
                       {filteredIncidents.map((inc) => (
-                        <tr key={inc.id} className="hover:bg-[#1f2430] transition-colors">
-                          <td className="px-4 py-3 font-bold text-[#68dba9]">
-                            {inc.incidentNumber}
-                          </td>
+                        <tr key={inc.id} className="hover:bg-surface-container transition-colors">
+                          <td className="px-4 py-3 font-bold text-primary">{inc.incidentNumber}</td>
                           <td className="px-4 py-3 font-bold">{inc.type}</td>
                           <td className="px-4 py-3">
                             <span
@@ -991,8 +993,8 @@ export default function UnifiedOperationsCommandCenterPage() {
                               {inc.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-[#87948b]">#{inc.bookingId.slice(0, 8)}</td>
-                          <td className="px-4 py-3 text-[#87948b]">
+                          <td className="px-4 py-3 text-outline">#{inc.bookingId.slice(0, 8)}</td>
+                          <td className="px-4 py-3 text-outline">
                             {new Date(inc.detectedAt).toLocaleString()}
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -1002,7 +1004,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                                 setSelectedIncidentId(inc.id);
                                 void fetchIncidentDetail(inc.id);
                               }}
-                              className="px-3 py-1 rounded bg-[#262a33] hover:bg-[#363b47] text-[#dfe2ee] font-bold text-xs"
+                              className="px-3 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-bold text-xs"
                             >
                               Inspect Case →
                             </button>
@@ -1014,23 +1016,23 @@ export default function UnifiedOperationsCommandCenterPage() {
                 </div>
 
                 {/* Pagination Controls */}
-                <div className="p-3 bg-[#0f131c] border-t border-[#262a33] flex items-center justify-between text-xs font-mono text-[#87948b]">
+                <div className="p-3 bg-background border-t border-surface-container-high flex items-center justify-between text-xs font-mono text-outline">
                   <span>
-                    Page <strong className="text-[#dfe2ee]">{incidentPage}</strong> of{' '}
-                    <strong className="text-[#dfe2ee]">{incidentTotalPages}</strong>
+                    Page <strong className="text-on-surface">{incidentPage}</strong> of{' '}
+                    <strong className="text-on-surface">{incidentTotalPages}</strong>
                   </span>
                   <div className="flex items-center gap-2">
                     <button
                       disabled={incidentPage <= 1}
                       onClick={() => setIncidentPage((p) => Math.max(1, p - 1))}
-                      className="px-3 py-1 rounded bg-[#181c24] border border-[#262a33] disabled:opacity-40"
+                      className="px-3 py-1 rounded bg-surface-container-low border border-surface-container-high disabled:opacity-40"
                     >
                       Previous
                     </button>
                     <button
                       disabled={incidentPage >= incidentTotalPages}
                       onClick={() => setIncidentPage((p) => p + 1)}
-                      className="px-3 py-1 rounded bg-[#181c24] border border-[#262a33] disabled:opacity-40"
+                      className="px-3 py-1 rounded bg-surface-container-low border border-surface-container-high disabled:opacity-40"
                     >
                       Next
                     </button>
@@ -1046,56 +1048,56 @@ export default function UnifiedOperationsCommandCenterPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Recovery Performance Breakdown */}
-              <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
-                <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9]">verified_user</span>
+              <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4">
+                <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+                  <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">verified_user</span>
                     Recovery Success Rate Analytics
                   </h3>
-                  <span className="text-xs font-mono text-[#68dba9] font-bold">
+                  <span className="text-xs font-mono text-primary font-bold">
                     {intelligence.recoverySuccessRate}% Success
                   </span>
                 </div>
 
                 <div className="space-y-3 font-mono text-xs">
                   <div>
-                    <div className="flex justify-between text-[#87948b] mb-1">
+                    <div className="flex justify-between text-outline mb-1">
                       <span>Automated &amp; Operator Recovery Attempts</span>
-                      <span className="text-[#dfe2ee]">
+                      <span className="text-on-surface">
                         {intelligence.recoveryAttemptsSummary.succeeded} /{' '}
                         {intelligence.recoveryAttemptsSummary.total} Total
                       </span>
                     </div>
-                    <div className="w-full bg-[#0f131c] h-3 rounded-full overflow-hidden">
+                    <div className="w-full bg-background h-3 rounded-full overflow-hidden">
                       <div
-                        className="bg-[#68dba9] h-full transition-all"
+                        className="bg-primary h-full transition-all"
                         style={{ width: `${intelligence.recoverySuccessRate}%` }}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-4 gap-2 pt-2 text-center font-mono">
-                    <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] block">Succeeded</span>
-                      <span className="text-lg font-bold text-[#68dba9]">
+                    <div className="bg-background p-3 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline block">Succeeded</span>
+                      <span className="text-lg font-bold text-primary">
                         {intelligence.recoveryAttemptsSummary.succeeded}
                       </span>
                     </div>
-                    <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] block">Failed</span>
-                      <span className="text-lg font-bold text-[#ff8e8e]">
+                    <div className="bg-background p-3 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline block">Failed</span>
+                      <span className="text-lg font-bold text-error">
                         {intelligence.recoveryAttemptsSummary.failed}
                       </span>
                     </div>
-                    <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] block">Processing</span>
-                      <span className="text-lg font-bold text-[#70d2ff]">
+                    <div className="bg-background p-3 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline block">Processing</span>
+                      <span className="text-lg font-bold text-on-info-container">
                         {intelligence.recoveryAttemptsSummary.processing}
                       </span>
                     </div>
-                    <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] block">Cancelled</span>
-                      <span className="text-lg font-bold text-[#87948b]">
+                    <div className="bg-background p-3 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline block">Cancelled</span>
+                      <span className="text-lg font-bold text-outline">
                         {intelligence.recoveryAttemptsSummary.cancelled}
                       </span>
                     </div>
@@ -1104,26 +1106,26 @@ export default function UnifiedOperationsCommandCenterPage() {
               </div>
 
               {/* Resolution Times & Velocity */}
-              <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
-                <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                  <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#70d2ff]">timer</span>
+              <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4">
+                <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+                  <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                    <span className="material-symbols-outlined text-on-info-container">timer</span>
                     Resolution Velocity &amp; MTTR
                   </h3>
-                  <span className="text-xs font-mono text-[#70d2ff] font-bold">
+                  <span className="text-xs font-mono text-on-info-container font-bold">
                     {intelligence.avgResolutionTimeMinutes} mins avg
                   </span>
                 </div>
 
                 <div className="space-y-3 font-mono text-xs">
-                  <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33] space-y-2">
-                    <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                  <div className="bg-background p-4 rounded-lg border border-surface-container-high space-y-2">
+                    <span className="text-[10px] text-outline uppercase tracking-wider block">
                       Mean Time to Resolution (7 Days)
                     </span>
-                    <div className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                    <div className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface">
                       {intelligence.avgResolutionTimeMinutes} minutes
                     </div>
-                    <p className="text-[11px] text-[#87948b]">
+                    <p className="text-[11px] text-outline">
                       Measured from anomaly detection timestamp (`detectedAt`) to automated or
                       operator resolution (`resolvedAt`).
                     </p>
@@ -1133,14 +1135,14 @@ export default function UnifiedOperationsCommandCenterPage() {
             </div>
 
             {/* Recurring Incident Patterns */}
-            <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2 border-b border-[#262a33] pb-3">
-                <span className="material-symbols-outlined text-[#ffb957]">repeat</span>
+            <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2 border-b border-surface-container-high pb-3">
+                <span className="material-symbols-outlined text-on-warning-container">repeat</span>
                 Top Recurring Incident Patterns (Last 7 Days)
               </h3>
 
               {intelligence.recurringIncidents.length === 0 ? (
-                <div className="text-center py-6 text-xs font-mono text-[#87948b]">
+                <div className="text-center py-6 text-xs font-mono text-outline">
                   No recurring incident patterns recorded in timeframe.
                 </div>
               ) : (
@@ -1148,22 +1150,22 @@ export default function UnifiedOperationsCommandCenterPage() {
                   {intelligence.recurringIncidents.map((pattern, i) => (
                     <div
                       key={i}
-                      className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-2 font-mono text-xs"
+                      className="bg-background p-3 rounded-lg border border-surface-container-high space-y-2 font-mono text-xs"
                     >
                       <div className="flex justify-between items-center">
-                        <span className="font-bold text-[#dfe2ee]">{pattern.type}</span>
+                        <span className="font-bold text-on-surface">{pattern.type}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-[#87948b]">
+                          <span className="text-outline">
                             {pattern.count} cases ({pattern.percentage}%)
                           </span>
-                          <span className="text-[#68dba9] font-bold">
+                          <span className="text-primary font-bold">
                             Avg resolution: {pattern.avgResolutionMinutes}m
                           </span>
                         </div>
                       </div>
-                      <div className="w-full bg-[#181c24] h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
                         <div
-                          className="bg-[#ffb957] h-full transition-all"
+                          className="bg-on-warning-container h-full transition-all"
                           style={{ width: `${Math.min(100, pattern.percentage)}%` }}
                         />
                       </div>
@@ -1174,34 +1176,32 @@ export default function UnifiedOperationsCommandCenterPage() {
             </div>
 
             {/* Failed Recovery Trends */}
-            <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2 border-b border-[#262a33] pb-3">
-                <span className="material-symbols-outlined text-[#ff8e8e]">error_medkit</span>
+            <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2 border-b border-surface-container-high pb-3">
+                <span className="material-symbols-outlined text-error">error_medkit</span>
                 Failed Recovery Root-Cause Trends
               </h3>
 
               {intelligence.failedRecoveryTrends.length === 0 ? (
-                <div className="text-center py-6 text-xs font-mono text-[#87948b]">
+                <div className="text-center py-6 text-xs font-mono text-outline">
                   Zero failed recovery attempts in timeframe.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-[#0f131c] text-[#87948b] border-b border-[#262a33]">
+                    <thead className="bg-background text-outline border-b border-surface-container-high">
                       <tr>
                         <th className="px-4 py-2.5">Failure Code</th>
                         <th className="px-4 py-2.5">Failed Attempt Count</th>
                         <th className="px-4 py-2.5">Last Occurred</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#262a33] text-[#dfe2ee]">
+                    <tbody className="divide-y divide-surface-container-high text-on-surface">
                       {intelligence.failedRecoveryTrends.map((trend, idx) => (
                         <tr key={idx}>
-                          <td className="px-4 py-2.5 font-bold text-[#ff8e8e]">
-                            {trend.failureCode}
-                          </td>
+                          <td className="px-4 py-2.5 font-bold text-error">{trend.failureCode}</td>
                           <td className="px-4 py-2.5 font-bold">{trend.count}</td>
-                          <td className="px-4 py-2.5 text-[#87948b]">
+                          <td className="px-4 py-2.5 text-outline">
                             {trend.lastOccurredAt
                               ? new Date(trend.lastOccurredAt).toLocaleString()
                               : 'N/A'}
@@ -1219,10 +1219,10 @@ export default function UnifiedOperationsCommandCenterPage() {
         {/* TAB: CAPACITY & FORECAST */}
         {activeTab === 'capacity' && (
           <div className="space-y-6">
-            <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#262a33] pb-3">
-                <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9]">query_stats</span>
+            <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-container-high pb-3">
+                <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">query_stats</span>
                   Predictive Demand vs. Supply Forecast
                 </h3>
                 <div className="flex items-center gap-1.5 font-mono text-xs">
@@ -1232,8 +1232,8 @@ export default function UnifiedOperationsCommandCenterPage() {
                       onClick={() => setForecastHorizon(h)}
                       className={`px-3 py-1.5 rounded-lg transition-colors ${
                         forecastHorizon === h
-                          ? 'bg-[#25a475] text-[#00311f] font-bold'
-                          : 'bg-[#0f131c] text-[#87948b] border border-[#262a33] hover:text-[#dfe2ee]'
+                          ? 'bg-primary-container text-on-primary-container font-bold'
+                          : 'bg-background text-outline border border-surface-container-high hover:text-on-surface'
                       }`}
                     >
                       {h}
@@ -1243,38 +1243,38 @@ export default function UnifiedOperationsCommandCenterPage() {
               </div>
 
               {!capacityForecast ? (
-                <div className="p-8 text-center text-xs font-mono text-[#87948b]">
+                <div className="p-8 text-center text-xs font-mono text-outline">
                   Computing demand/supply forecast...
                 </div>
               ) : (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
-                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                    <div className="bg-background p-4 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline uppercase tracking-wider block">
                         Forecasted Demand ({forecastHorizon})
                       </span>
-                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface">
                         {capacityForecast.overall.forecastedDemand}
                       </span>
                     </div>
-                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                    <div className="bg-background p-4 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline uppercase tracking-wider block">
                         Expected Eligible Supply
                       </span>
-                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface">
                         {capacityForecast.overall.expectedEligibleSupply}
                       </span>
                     </div>
-                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33]">
-                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                    <div className="bg-background p-4 rounded-lg border border-surface-container-high">
+                      <span className="text-[10px] text-outline uppercase tracking-wider block">
                         Capacity Gap Ratio
                       </span>
-                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">
+                      <span className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface">
                         {capacityForecast.overall.gapRatio}
                       </span>
                     </div>
-                    <div className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33] flex flex-col justify-between">
-                      <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                    <div className="bg-background p-4 rounded-lg border border-surface-container-high flex flex-col justify-between">
+                      <span className="text-[10px] text-outline uppercase tracking-wider block">
                         Overall Status
                       </span>
                       <span
@@ -1287,9 +1287,9 @@ export default function UnifiedOperationsCommandCenterPage() {
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-[#87948b] font-mono leading-relaxed">
+                  <p className="text-[11px] text-outline font-mono leading-relaxed">
                     {capacityForecast.overall.explanation} Confidence:{' '}
-                    <span className="text-[#dfe2ee] font-bold">
+                    <span className="text-on-surface font-bold">
                       {capacityForecast.overall.confidence}
                     </span>
                     .
@@ -1298,20 +1298,20 @@ export default function UnifiedOperationsCommandCenterPage() {
               )}
             </div>
 
-            <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2 border-b border-[#262a33] pb-3">
-                <span className="material-symbols-outlined text-[#ffb957]">map</span>
+            <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2 border-b border-surface-container-high pb-3">
+                <span className="material-symbols-outlined text-on-warning-container">map</span>
                 Zone-Level Capacity Breakdown
               </h3>
 
               {!capacityForecast || capacityForecast.zones.length === 0 ? (
-                <div className="text-center py-6 text-xs font-mono text-[#87948b]">
+                <div className="text-center py-6 text-xs font-mono text-outline">
                   No active marketplace zones configured — showing platform-wide forecast only.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-[#0f131c] text-[#87948b] border-b border-[#262a33]">
+                    <thead className="bg-background text-outline border-b border-surface-container-high">
                       <tr>
                         <th className="px-4 py-2.5">Zone</th>
                         <th className="px-4 py-2.5">Forecasted Demand</th>
@@ -1321,7 +1321,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                         <th className="px-4 py-2.5">Confidence</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#262a33] text-[#dfe2ee]">
+                    <tbody className="divide-y divide-surface-container-high text-on-surface">
                       {capacityForecast.zones.map((zone) => (
                         <tr key={zone.zoneId ?? zone.zoneCode}>
                           <td className="px-4 py-2.5 font-bold">{zone.zoneName}</td>
@@ -1337,7 +1337,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                               {zone.status}
                             </span>
                           </td>
-                          <td className="px-4 py-2.5 text-[#87948b]">{zone.confidence}</td>
+                          <td className="px-4 py-2.5 text-outline">{zone.confidence}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1350,16 +1350,16 @@ export default function UnifiedOperationsCommandCenterPage() {
 
         {/* TAB 4: ACTIONS & AUDIT TRAIL */}
         {activeTab === 'actions' && (
-          <div className="bg-[#181c24] p-5 rounded-xl border border-[#262a33] space-y-4 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9]">gavel</span>
+          <div className="bg-surface-container-low p-5 rounded-xl border border-surface-container-high space-y-4 font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">gavel</span>
                 Operational Actions &amp; Audit Trail
               </h3>
-              <span className="text-[#87948b]">Auditable &amp; Idempotent Execution Log</span>
+              <span className="text-outline">Auditable &amp; Idempotent Execution Log</span>
             </div>
 
-            <p className="text-[#bccac0]">
+            <p className="text-on-surface-variant">
               All manual recovery triggers, decision actions, and incident dismissals are tracked
               with strict RBAC authentication and idempotency locks.
             </p>
@@ -1368,21 +1368,21 @@ export default function UnifiedOperationsCommandCenterPage() {
               {decisions.map((d) => (
                 <div
                   key={d.id}
-                  className="bg-[#0f131c] p-4 rounded-xl border border-[#262a33] space-y-2"
+                  className="bg-background p-4 rounded-xl border border-surface-container-high space-y-2"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-[#68dba9]">{d.title}</span>
-                    <span className="text-[#87948b] text-[11px]">
+                    <span className="font-bold text-primary">{d.title}</span>
+                    <span className="text-outline text-[11px]">
                       {new Date(d.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <div className="text-[#bccac0] text-[11px]">
-                    Status: <strong className="text-[#dfe2ee]">{d.status}</strong> | Severity:{' '}
-                    <strong className="text-[#dfe2ee]">{d.severity}</strong> | Zone:{' '}
-                    <strong className="text-[#dfe2ee]">{d.zoneId || 'GLOBAL'}</strong>
+                  <div className="text-on-surface-variant text-[11px]">
+                    Status: <strong className="text-on-surface">{d.status}</strong> | Severity:{' '}
+                    <strong className="text-on-surface">{d.severity}</strong> | Zone:{' '}
+                    <strong className="text-on-surface">{d.zoneId || 'GLOBAL'}</strong>
                   </div>
                   {d.recommendedActions.length > 0 && (
-                    <div className="text-[10px] text-[#87948b] pt-1">
+                    <div className="text-[10px] text-outline pt-1">
                       Action Available: {d.recommendedActions[0].label} (Type:{' '}
                       {d.recommendedActions[0].type})
                     </div>
@@ -1397,17 +1397,19 @@ export default function UnifiedOperationsCommandCenterPage() {
       {/* SLIDE-OVER DRAWER FOR INCIDENT DETAILS */}
       {selectedIncidentId && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-sm">
-          <div className="w-full max-w-2xl bg-[#181c24] border-l border-[#262a33] h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto space-y-6">
+          <div className="w-full max-w-2xl bg-surface-container-low border-l border-surface-container-high h-full flex flex-col justify-between shadow-2xl p-6 overflow-y-auto space-y-6">
             <div>
               {/* Drawer Header */}
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-4">
+              <div className="flex items-center justify-between border-b border-surface-container-high pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#ffb957] text-2xl">warning</span>
+                  <span className="material-symbols-outlined text-on-warning-container text-2xl">
+                    warning
+                  </span>
                   <div>
-                    <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                    <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                       Incident {selectedIncidentDetail?.incidentNumber ?? selectedIncidentId}
                     </h3>
-                    <p className="text-xs text-[#87948b] font-mono">
+                    <p className="text-xs text-outline font-mono">
                       Service Reliability Incident Case Control
                     </p>
                   </div>
@@ -1417,28 +1419,28 @@ export default function UnifiedOperationsCommandCenterPage() {
                     setSelectedIncidentId(null);
                     setSelectedIncidentDetail(null);
                   }}
-                  className="text-[#87948b] hover:text-[#dfe2ee] text-sm font-mono"
+                  className="text-outline hover:text-on-surface text-sm font-mono"
                 >
                   ✕
                 </button>
               </div>
 
               {loadingDrawer ? (
-                <div className="py-12 text-center text-xs font-mono text-[#87948b]">
+                <div className="py-12 text-center text-xs font-mono text-outline">
                   Loading incident control case...
                 </div>
               ) : selectedIncidentDetail ? (
                 <div className="space-y-6 pt-4 font-mono text-xs">
                   {/* Incident Summary Metadata */}
-                  <div className="bg-[#0f131c] p-4 rounded-xl border border-[#262a33] space-y-3">
+                  <div className="bg-background p-4 rounded-xl border border-surface-container-high space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[#87948b]">Incident Type:</span>
-                      <span className="font-bold text-[#dfe2ee]">
+                      <span className="text-outline">Incident Type:</span>
+                      <span className="font-bold text-on-surface">
                         {selectedIncidentDetail.type}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#87948b]">Severity:</span>
+                      <span className="text-outline">Severity:</span>
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getSeverityBadgeClass(
                           selectedIncidentDetail.severity,
@@ -1448,7 +1450,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#87948b]">Status:</span>
+                      <span className="text-outline">Status:</span>
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusBadgeClass(
                           selectedIncidentDetail.status,
@@ -1458,29 +1460,29 @@ export default function UnifiedOperationsCommandCenterPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#87948b]">Booking ID:</span>
-                      <span className="text-[#68dba9] font-bold">
+                      <span className="text-outline">Booking ID:</span>
+                      <span className="text-primary font-bold">
                         #{selectedIncidentDetail.bookingId}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#87948b]">Detected At:</span>
-                      <span className="text-[#dfe2ee]">
+                      <span className="text-outline">Detected At:</span>
+                      <span className="text-on-surface">
                         {new Date(selectedIncidentDetail.detectedAt).toLocaleString()}
                       </span>
                     </div>
                   </div>
 
                   {/* Booking Location Details */}
-                  <div className="bg-[#0f131c] p-4 rounded-xl border border-[#262a33] space-y-2">
-                    <span className="text-[10px] font-bold text-[#87948b] uppercase tracking-wider block">
+                  <div className="bg-background p-4 rounded-xl border border-surface-container-high space-y-2">
+                    <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">
                       Booking Pickup &amp; Location
                     </span>
-                    <div className="text-[#dfe2ee]">
+                    <div className="text-on-surface">
                       <strong>Pickup:</strong> {selectedIncidentDetail.booking.pickupAddress}
                     </div>
                     {selectedIncidentDetail.booking.dropoffAddress && (
-                      <div className="text-[#dfe2ee]">
+                      <div className="text-on-surface">
                         <strong>Dropoff:</strong> {selectedIncidentDetail.booking.dropoffAddress}
                       </div>
                     )}
@@ -1488,7 +1490,7 @@ export default function UnifiedOperationsCommandCenterPage() {
 
                   {/* Recovery Attempts History */}
                   <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-[#87948b] uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">
                       Recovery Attempts History (
                       {selectedIncidentDetail.recoveryAttempts?.length || 0})
                     </span>
@@ -1499,30 +1501,30 @@ export default function UnifiedOperationsCommandCenterPage() {
                         {selectedIncidentDetail.recoveryAttempts.map((attempt) => (
                           <div
                             key={attempt.id}
-                            className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-1"
+                            className="bg-background p-3 rounded-lg border border-surface-container-high space-y-1"
                           >
                             <div className="flex justify-between items-center">
-                              <span className="font-bold text-[#68dba9]">
+                              <span className="font-bold text-primary">
                                 Attempt #{attempt.attemptNumber}: {attempt.action}
                               </span>
                               <span
                                 className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                   attempt.status === 'SUCCEEDED'
-                                    ? 'bg-[#1b2b00] text-[#a4f542]'
+                                    ? 'bg-on-warning-container text-warning'
                                     : attempt.status === 'FAILED'
-                                      ? 'bg-[#3b0909] text-[#ff8e8e]'
-                                      : 'bg-[#262a33] text-[#dfe2ee]'
+                                      ? 'bg-error-container text-error'
+                                      : 'bg-surface-container-high text-on-surface'
                                 }`}
                               >
                                 {attempt.status}
                               </span>
                             </div>
-                            <div className="text-[10px] text-[#87948b]">
+                            <div className="text-[10px] text-outline">
                               Triggered by: {attempt.triggeredBy} | Idempotency:{' '}
                               {attempt.idempotencyKey}
                             </div>
                             {attempt.failureSummary && (
-                              <div className="text-[10px] text-[#ff8e8e]">
+                              <div className="text-[10px] text-error">
                                 Failure: {attempt.failureSummary}
                               </div>
                             )}
@@ -1534,7 +1536,7 @@ export default function UnifiedOperationsCommandCenterPage() {
 
                   {/* Timeline Entries */}
                   <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-[#87948b] uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-outline uppercase tracking-wider block">
                       Incident Audit Timeline ({selectedIncidentDetail.timelineEntries?.length || 0}
                       )
                     </span>
@@ -1542,22 +1544,24 @@ export default function UnifiedOperationsCommandCenterPage() {
                       {selectedIncidentDetail.timelineEntries.map((t) => (
                         <div
                           key={t.id}
-                          className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-1"
+                          className="bg-background p-3 rounded-lg border border-surface-container-high space-y-1"
                         >
-                          <div className="flex justify-between items-center text-[#dfe2ee]">
+                          <div className="flex justify-between items-center text-on-surface">
                             <span className="font-bold">{t.action}</span>
-                            <span className="text-[10px] text-[#87948b]">
+                            <span className="text-[10px] text-outline">
                               {new Date(t.createdAt).toLocaleTimeString()}
                             </span>
                           </div>
-                          {t.notes && <div className="text-[11px] text-[#bccac0]">{t.notes}</div>}
+                          {t.notes && (
+                            <div className="text-[11px] text-on-surface-variant">{t.notes}</div>
+                          )}
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="py-8 text-center text-xs font-mono text-[#ff8e8e]">
+                <div className="py-8 text-center text-xs font-mono text-error">
                   Incident not found or error loading details.
                 </div>
               )}
@@ -1565,12 +1569,12 @@ export default function UnifiedOperationsCommandCenterPage() {
 
             {/* Action Bar Footer */}
             {selectedIncidentDetail && (
-              <div className="pt-4 border-t border-[#262a33] flex flex-wrap items-center justify-end gap-3 font-mono text-xs">
+              <div className="pt-4 border-t border-surface-container-high flex flex-wrap items-center justify-end gap-3 font-mono text-xs">
                 <button
                   onClick={() =>
                     setActionModal({ type: 'RECOVER', incidentId: selectedIncidentDetail.id })
                   }
-                  className="px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-container text-on-primary-container font-bold flex items-center gap-1.5"
                 >
                   <span className="material-symbols-outlined text-sm">bolt</span>
                   Trigger Manual Recovery
@@ -1580,7 +1584,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                   onClick={() =>
                     setActionModal({ type: 'RESOLVE', incidentId: selectedIncidentDetail.id })
                   }
-                  className="px-4 py-2 rounded-lg bg-[#00344d] hover:bg-[#004d73] text-[#70d2ff] border border-[#004d73]"
+                  className="px-4 py-2 rounded-lg bg-info-container hover:bg-info-container text-on-info-container border border-info-container"
                 >
                   Resolve Incident
                 </button>
@@ -1589,7 +1593,7 @@ export default function UnifiedOperationsCommandCenterPage() {
                   onClick={() =>
                     setActionModal({ type: 'DISMISS', incidentId: selectedIncidentDetail.id })
                   }
-                  className="px-4 py-2 rounded-lg bg-[#181c24] hover:bg-[#222630] text-[#87948b] border border-[#262a33]"
+                  className="px-4 py-2 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-outline border border-surface-container-high"
                 >
                   Dismiss
                 </button>
@@ -1602,54 +1606,58 @@ export default function UnifiedOperationsCommandCenterPage() {
       {/* DECISION ACTION EXECUTION MODAL */}
       {selectedDecisionAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="bg-[#181c24] border border-[#262a33] rounded-xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
+          <div className="bg-surface-container-low border border-surface-container-high rounded-xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#ffb957] text-xl">warning</span>
-                <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <span className="material-symbols-outlined text-on-warning-container text-xl">
+                  warning
+                </span>
+                <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                   Confirm Operational Action Execution
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedDecisionAction(null)}
-                className="text-[#87948b] hover:text-[#dfe2ee] text-sm font-mono"
+                className="text-outline hover:text-on-surface text-sm font-mono"
               >
                 ✕
               </button>
             </div>
 
             {actionSuccess ? (
-              <div className="p-4 rounded-lg bg-[#1b2b00] border border-[#3f6300] text-[#a4f542] text-xs font-mono flex items-center gap-2">
+              <div className="p-4 rounded-lg bg-on-warning-container border border-primary-container text-warning text-xs font-mono flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">check_circle</span>
                 <span>{actionSuccess}</span>
               </div>
             ) : (
               <>
                 <div className="space-y-3 text-xs font-mono">
-                  <p className="text-[#dfe2ee] font-bold">{selectedDecisionAction.action.label}</p>
-                  <p className="text-[#bccac0]">{selectedDecisionAction.action.impactSummary}</p>
-                  <div className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-1">
-                    <span className="text-[10px] text-[#87948b] uppercase tracking-wider block">
+                  <p className="text-on-surface font-bold">{selectedDecisionAction.action.label}</p>
+                  <p className="text-on-surface-variant">
+                    {selectedDecisionAction.action.impactSummary}
+                  </p>
+                  <div className="bg-background p-3 rounded-lg border border-surface-container-high space-y-1">
+                    <span className="text-[10px] text-outline uppercase tracking-wider block">
                       Lock Guard Protection
                     </span>
-                    <div className="text-[#68dba9] font-bold">
+                    <div className="text-primary font-bold">
                       {selectedDecisionAction.action.type}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#262a33]">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container-high">
                   <button
                     onClick={() => setSelectedDecisionAction(null)}
                     disabled={executingAction}
-                    className="px-4 py-2 rounded-lg bg-[#0f131c] border border-[#262a33] text-[#dfe2ee] text-xs font-mono"
+                    className="px-4 py-2 rounded-lg bg-background border border-surface-container-high text-on-surface text-xs font-mono"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleExecuteDecisionAction}
                     disabled={executingAction}
-                    className="px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono flex items-center gap-2 disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-container text-on-primary-container font-bold text-xs font-mono flex items-center gap-2 disabled:opacity-50"
                   >
                     {executingAction ? 'Executing...' : 'Authorize & Execute'}
                   </button>
@@ -1663,20 +1671,20 @@ export default function UnifiedOperationsCommandCenterPage() {
       {/* INCIDENT MANUAL ACTION MODAL */}
       {actionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="bg-[#181c24] border border-[#262a33] rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="bg-surface-container-low border border-surface-container-high rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Confirm {actionModal.type} Action
               </h3>
               <button
                 onClick={() => setActionModal(null)}
-                className="text-[#87948b] hover:text-[#dfe2ee]"
+                className="text-outline hover:text-on-surface"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-[#bccac0]">
+            <p className="text-on-surface-variant">
               {actionModal.type === 'RECOVER'
                 ? 'Trigger authorized manual recovery retry for this incident.'
                 : actionModal.type === 'RESOLVE'
@@ -1686,31 +1694,31 @@ export default function UnifiedOperationsCommandCenterPage() {
 
             {actionModal.type !== 'RECOVER' && (
               <div>
-                <label className="block text-[10px] text-[#87948b] uppercase mb-1">
+                <label className="block text-[10px] text-outline uppercase mb-1">
                   Reason / Notes:
                 </label>
                 <textarea
                   value={actionInputReason}
                   onChange={(e) => setActionInputReason(e.target.value)}
                   placeholder="Enter reason or notes..."
-                  className="w-full bg-[#0f131c] border border-[#262a33] rounded-lg p-2.5 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="w-full bg-background border border-surface-container-high rounded-lg p-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
                   rows={3}
                 />
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#262a33]">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container-high">
               <button
                 onClick={() => setActionModal(null)}
                 disabled={submittingIncidentAction}
-                className="px-4 py-2 rounded-lg bg-[#0f131c] border border-[#262a33] text-[#dfe2ee]"
+                className="px-4 py-2 rounded-lg bg-background border border-surface-container-high text-on-surface"
               >
                 Cancel
               </button>
               <button
                 onClick={handleExecuteIncidentAction}
                 disabled={submittingIncidentAction}
-                className="px-4 py-2 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-container text-on-primary-container font-bold disabled:opacity-50"
               >
                 {submittingIncidentAction ? 'Processing...' : 'Confirm & Execute'}
               </button>

@@ -59,7 +59,7 @@ export default function ReliabilityPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           {t('platformHealth.navReliability') || 'Service Level Objectives & Incident Correlation'}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-outline">
           {t('platformHealth.reliabilitySubtitle') ||
             'SLO compliance targets, error budgets & automated root cause analysis'}
         </p>
@@ -67,10 +67,10 @@ export default function ReliabilityPage() {
 
       <ObservabilityNav />
 
-      {error && <div className="p-4 mb-6 bg-rose-100 text-rose-800 rounded">{error}</div>}
+      {error && <div className="p-4 mb-6 bg-on-error-container text-error rounded">{error}</div>}
 
       {loading ? (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-outline">
           Evaluating SLO compliance and active incidents...
         </div>
       ) : (
@@ -86,7 +86,7 @@ export default function ReliabilityPage() {
                     {incident.incidentId} - {incident.primaryAlert.alertName}
                   </h3>
                 </div>
-                <span className="px-2 py-1 text-xs font-bold bg-amber-600 text-white rounded">
+                <span className="px-2 py-1 text-xs font-bold bg-warning text-white rounded">
                   CORRELATED
                 </span>
               </div>
@@ -133,26 +133,26 @@ export default function ReliabilityPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm">{slo.serviceName}</span>
                       <span
-                        className={`px-2 py-0.5 text-xs font-bold rounded ${slo.isCompliant ? 'bg-emerald-500 text-white' : 'bg-rose-600 text-white'}`}
+                        className={`px-2 py-0.5 text-xs font-bold rounded ${slo.isCompliant ? 'bg-primary text-white' : 'bg-error text-white'}`}
                       >
                         {slo.isCompliant ? 'COMPLIANT' : 'BREACHED'}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{slo.sliName}</p>
+                    <p className="text-xs text-outline mt-1">{slo.sliName}</p>
                   </div>
 
                   <div className="flex items-center gap-6 text-xs">
                     <div>
-                      <span className="text-gray-500 block">Target / Actual</span>
+                      <span className="text-outline block">Target / Actual</span>
                       <span className="font-bold">
                         {slo.targetPercent}% / {slo.actualPercent}%
                       </span>
                     </div>
 
                     <div>
-                      <span className="text-gray-500 block">Error Budget Remaining</span>
+                      <span className="text-outline block">Error Budget Remaining</span>
                       <span
-                        className={`font-bold ${slo.errorBudgetRemainingPercent > 50 ? 'text-emerald-600' : slo.errorBudgetRemainingPercent > 20 ? 'text-amber-600' : 'text-rose-600'}`}
+                        className={`font-bold ${slo.errorBudgetRemainingPercent > 50 ? 'text-primary-container' : slo.errorBudgetRemainingPercent > 20 ? 'text-warning' : 'text-error'}`}
                       >
                         {slo.errorBudgetRemainingPercent}%
                       </span>

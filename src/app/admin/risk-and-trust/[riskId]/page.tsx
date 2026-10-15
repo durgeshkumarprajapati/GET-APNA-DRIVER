@@ -94,7 +94,7 @@ export default function RiskDecisionDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-slate-400 bg-slate-950 min-h-screen">
+      <div className="p-8 text-center text-on-surface-variant bg-surface-container-lowest min-h-screen">
         Loading risk inspection details...
       </div>
     );
@@ -102,11 +102,11 @@ export default function RiskDecisionDetailPage() {
 
   if (error || !decision) {
     return (
-      <div className="p-8 space-y-4 bg-slate-950 text-slate-100 min-h-screen">
-        <Link href="/admin/risk-and-trust" className="text-xs text-emerald-400 hover:underline">
+      <div className="p-8 space-y-4 bg-surface-container-lowest text-on-surface min-h-screen">
+        <Link href="/admin/risk-and-trust" className="text-xs text-primary hover:underline">
           ← Back to Risk Console
         </Link>
-        <div className="p-4 bg-rose-950 border border-rose-800 rounded-xl text-rose-200 text-sm">
+        <div className="p-4 bg-error-container border border-error rounded-xl text-on-error-container text-sm">
           {error || 'Risk decision not found.'}
         </div>
       </div>
@@ -114,60 +114,59 @@ export default function RiskDecisionDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-surface-container-lowest text-on-surface min-h-screen">
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between">
         <Link
           href="/admin/risk-and-trust"
-          className="text-xs text-emerald-400 hover:underline flex items-center gap-1"
+          className="text-xs text-primary hover:underline flex items-center gap-1"
         >
           ← Back to Risk & Trust Console
         </Link>
-        <span className="font-mono text-xs text-slate-500">
+        <span className="font-mono text-xs text-outline">
           Correlation ID: {decision.fingerprint}
         </span>
       </div>
 
       {/* Title Header Card */}
-      <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+      <div className="p-6 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-white">{explanation?.headline}</h1>
-              <span className="px-2.5 py-0.5 text-xs font-mono font-bold bg-slate-800 text-indigo-300 border border-indigo-700/50 rounded">
+              <span className="px-2.5 py-0.5 text-xs font-mono font-bold bg-surface-container-high text-on-info-container border border-info/50 rounded">
                 {decision.status}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Subject: <strong className="text-slate-200">{decision.subjectName}</strong> (
+            <p className="text-xs text-on-surface-variant mt-1">
+              Subject: <strong className="text-on-surface">{decision.subjectName}</strong> (
               {decision.subjectType} ID: {decision.subjectId})
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-xs text-slate-400">Risk Score</div>
+              <div className="text-xs text-on-surface-variant">Risk Score</div>
               <div className="text-2xl font-extrabold text-white">
-                {decision.riskScore}{' '}
-                <span className="text-sm font-normal text-slate-500">/ 100</span>
+                {decision.riskScore} <span className="text-sm font-normal text-outline">/ 100</span>
               </div>
             </div>
-            <div className="text-right pl-4 border-l border-slate-800">
-              <div className="text-xs text-slate-400">Confidence</div>
-              <div className="text-sm font-bold text-emerald-400">{decision.confidence}</div>
+            <div className="text-right pl-4 border-l border-surface-container-high">
+              <div className="text-xs text-on-surface-variant">Confidence</div>
+              <div className="text-sm font-bold text-primary">{decision.confidence}</div>
             </div>
           </div>
         </div>
 
         {/* Quick Operator Status Bar */}
-        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-800/80">
-          <span className="text-xs text-slate-400 font-semibold mr-2">
+        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-surface-container-high/80">
+          <span className="text-xs text-on-surface-variant font-semibold mr-2">
             Operator Review Actions:
           </span>
           {decision.status !== 'ACKNOWLEDGED' && (
             <button
               onClick={() => handleStateChange('acknowledge')}
-              className="px-3 py-3 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition"
+              className="px-3 py-3 text-xs font-medium bg-surface-container-high hover:bg-border text-on-surface rounded-lg transition"
             >
               Acknowledge Risk
             </button>
@@ -175,7 +174,7 @@ export default function RiskDecisionDetailPage() {
           {decision.status !== 'DISMISSED' && (
             <button
               onClick={() => handleStateChange('dismiss')}
-              className="px-3 py-3 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition"
+              className="px-3 py-3 text-xs font-medium bg-surface-container-high hover:bg-border text-on-surface-variant rounded-lg transition"
             >
               Dismiss Risk
             </button>
@@ -183,7 +182,7 @@ export default function RiskDecisionDetailPage() {
           {decision.status !== 'ESCALATED' && (
             <button
               onClick={() => handleStateChange('escalate')}
-              className="px-3 py-3 text-xs font-medium bg-rose-950 hover:bg-rose-900 text-rose-200 border border-rose-800/60 rounded-lg transition"
+              className="px-3 py-3 text-xs font-medium bg-error-container hover:bg-error-container text-on-error-container border border-error/60 rounded-lg transition"
             >
               Escalate to Senior Ops
             </button>
@@ -194,7 +193,7 @@ export default function RiskDecisionDetailPage() {
       {actionFeedback && (
         <div
           role="status"
-          className="p-4 bg-emerald-950/70 border border-emerald-800 rounded-xl text-emerald-200 text-xs"
+          className="p-4 bg-on-primary-container/70 border border-primary-container rounded-xl text-primary text-xs"
         >
           {actionFeedback}
         </div>
@@ -205,25 +204,25 @@ export default function RiskDecisionDetailPage() {
         {/* Left Column: Evidence & Signals */}
         <div className="md:col-span-2 space-y-6">
           {/* Risk Evidence Card */}
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Risk Evidence Breakdown
             </h2>
-            <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <p className="text-xs text-on-surface-variant leading-relaxed bg-surface-container-lowest p-3 rounded-xl border border-surface-container-high">
               {decision.evidence.why}
             </p>
 
             <div className="space-y-2 pt-2">
-              <span className="text-xs font-semibold text-slate-400">
+              <span className="text-xs font-semibold text-on-surface-variant">
                 Triggered Policy Factors:
               </span>
               <ul className="space-y-2">
                 {decision.evidence.evidenceItems.map((item, idx) => (
                   <li
                     key={idx}
-                    className="flex items-start gap-2.5 text-xs text-slate-200 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800"
+                    className="flex items-start gap-2.5 text-xs text-on-surface bg-surface-container-lowest/50 p-2.5 rounded-lg border border-surface-container-high"
                   >
-                    <span className="text-amber-400 font-bold">•</span>
+                    <span className="text-on-warning-container font-bold">•</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -232,16 +231,16 @@ export default function RiskDecisionDetailPage() {
           </div>
 
           {/* Collected Signals Table */}
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Raw Telemetry & Signals
             </h2>
             {decision.signals.length === 0 ? (
-              <p className="text-xs text-slate-500">No low-level raw signals attached.</p>
+              <p className="text-xs text-outline">No low-level raw signals attached.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950 text-slate-400 text-[10px] uppercase border-b border-slate-800">
+                <table className="w-full text-left text-xs text-on-surface-variant">
+                  <thead className="bg-surface-container-lowest text-on-surface-variant text-[10px] uppercase border-b border-surface-container-high">
                     <tr>
                       <th className="p-2.5">Category</th>
                       <th className="p-2.5">Signal Name</th>
@@ -249,13 +248,13 @@ export default function RiskDecisionDetailPage() {
                       <th className="p-2.5">Weight</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-surface-container-high/60">
                     {decision.signals.map((sig) => (
                       <tr key={sig.signalId}>
-                        <td className="p-2.5 font-mono text-slate-400">{sig.category}</td>
-                        <td className="p-2.5 font-semibold text-slate-200">{sig.name}</td>
-                        <td className="p-2.5 text-slate-300">{sig.description}</td>
-                        <td className="p-2.5 font-mono text-amber-400">+{sig.weight}</td>
+                        <td className="p-2.5 font-mono text-on-surface-variant">{sig.category}</td>
+                        <td className="p-2.5 font-semibold text-on-surface">{sig.name}</td>
+                        <td className="p-2.5 text-on-surface-variant">{sig.description}</td>
+                        <td className="p-2.5 font-mono text-on-warning-container">+{sig.weight}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -268,7 +267,7 @@ export default function RiskDecisionDetailPage() {
         {/* Right Column: Recommended Actions & Timeline */}
         <div className="space-y-6">
           {/* Recommended Actions Panel */}
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div className="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Recommended Advisory Actions
             </h2>
@@ -276,32 +275,32 @@ export default function RiskDecisionDetailPage() {
               {decision.recommendedActions.map((act) => (
                 <div
                   key={act.actionId}
-                  className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2"
+                  className="p-3.5 rounded-xl bg-surface-container-lowest border border-surface-container-high space-y-2"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-white">{act.title}</h3>
                     {act.executed ? (
-                      <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800 rounded">
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-on-primary-container text-primary border border-primary-container rounded">
                         EXECUTED
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-800 text-slate-400 rounded">
+                      <span className="px-2 py-0.5 text-[10px] font-medium bg-surface-container-high text-on-surface-variant rounded">
                         PENDING
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400">{act.description}</p>
+                  <p className="text-[11px] text-on-surface-variant">{act.description}</p>
                   {!act.executed && (
                     <button
                       onClick={() => handleExecuteAction(act.actionId)}
                       disabled={executingActionId === act.actionId}
-                      className="w-full mt-2 py-1.5 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white rounded-lg transition"
+                      className="w-full mt-2 py-1.5 px-3 text-xs font-semibold bg-primary-container hover:bg-primary disabled:bg-surface-container-high text-white rounded-lg transition"
                     >
                       {executingActionId === act.actionId ? 'Executing...' : 'Execute Action'}
                     </button>
                   )}
                   {act.executed && act.resultSummary && (
-                    <p className="text-[10px] text-emerald-400/90 font-mono pt-1">
+                    <p className="text-[10px] text-primary/90 font-mono pt-1">
                       {act.resultSummary}
                     </p>
                   )}
@@ -311,39 +310,39 @@ export default function RiskDecisionDetailPage() {
           </div>
 
           {/* Audit & Lifecycle Timeline Card */}
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               Decision Audit Lifecycle
             </h2>
-            <div className="space-y-2 text-xs text-slate-300">
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Created:</span>
-                <span className="font-mono text-slate-200">
+            <div className="space-y-2 text-xs text-on-surface-variant">
+              <div className="flex justify-between py-1 border-b border-surface-container-high/60">
+                <span className="text-on-surface-variant">Created:</span>
+                <span className="font-mono text-on-surface">
                   {new Date(decision.createdAt).toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
-                <span className="text-slate-400">Last Evaluated:</span>
-                <span className="font-mono text-slate-200">
+              <div className="flex justify-between py-1 border-b border-surface-container-high/60">
+                <span className="text-on-surface-variant">Last Evaluated:</span>
+                <span className="font-mono text-on-surface">
                   {new Date(decision.updatedAt).toLocaleString()}
                 </span>
               </div>
               {decision.acknowledgedAt && (
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Acknowledged:</span>
-                  <span className="font-mono text-slate-200">{decision.acknowledgedBy}</span>
+                <div className="flex justify-between py-1 border-b border-surface-container-high/60">
+                  <span className="text-on-surface-variant">Acknowledged:</span>
+                  <span className="font-mono text-on-surface">{decision.acknowledgedBy}</span>
                 </div>
               )}
               {decision.dismissedAt && (
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Dismissed:</span>
-                  <span className="font-mono text-slate-200">{decision.dismissedBy}</span>
+                <div className="flex justify-between py-1 border-b border-surface-container-high/60">
+                  <span className="text-on-surface-variant">Dismissed:</span>
+                  <span className="font-mono text-on-surface">{decision.dismissedBy}</span>
                 </div>
               )}
               {decision.escalatedAt && (
-                <div className="flex justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400">Escalated:</span>
-                  <span className="font-mono text-slate-200">{decision.escalatedBy}</span>
+                <div className="flex justify-between py-1 border-b border-surface-container-high/60">
+                  <span className="text-on-surface-variant">Escalated:</span>
+                  <span className="font-mono text-on-surface">{decision.escalatedBy}</span>
                 </div>
               )}
             </div>

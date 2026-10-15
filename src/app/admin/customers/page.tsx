@@ -35,12 +35,14 @@ function customerDisplayName(customer: CustomerRow): string {
 }
 
 function statusBadgeClass(status: string): string {
-  if (status === 'ACTIVE') return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
-  if (status === 'PENDING') return 'bg-[#3b2b00] text-[#facc15] border border-[#856404]';
+  if (status === 'ACTIVE')
+    return 'bg-on-primary-container text-primary border border-primary-container';
+  if (status === 'PENDING')
+    return 'bg-on-warning-container text-warning border border-on-warning-container';
   if (status === 'SUSPENDED' || status === 'DELETED') {
-    return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
+    return 'bg-error-container/20 text-error border border-error-container';
   }
-  return 'bg-[#262a33] text-[#dfe2ee] border border-[#3d4a42]';
+  return 'bg-surface-container-high text-on-surface border border-border';
 }
 
 const PAGE_SIZE = 25;
@@ -135,11 +137,11 @@ export default function AdminCustomersPage() {
     <>
       <div className="flex flex-col gap-6 w-full">
         {successMsg && (
-          <div className="bg-[#00311f] border border-[#25a475] text-[#68dba9] px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
+          <div className="bg-on-primary-container border border-primary-container text-primary px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
             <span>{successMsg}</span>
             <button
               onClick={() => setSuccessMsg(null)}
-              className="text-[#68dba9] hover:text-white font-bold"
+              className="text-primary hover:text-white font-bold"
             >
               ✕
             </button>
@@ -147,27 +149,27 @@ export default function AdminCustomersPage() {
         )}
 
         {errorMsg && (
-          <div className="bg-[#93000a]/20 border border-[#93000a] text-[#ffb4ab] px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
+          <div className="bg-error-container/20 border border-error-container text-error px-4 py-3 rounded-xl text-xs font-mono flex items-center justify-between">
             <span>{errorMsg}</span>
             <button
               onClick={() => setErrorMsg(null)}
-              className="text-[#ffb4ab] hover:text-white font-bold"
+              className="text-error hover:text-white font-bold"
             >
               ✕
             </button>
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+            <div className="flex items-center gap-2 text-xs font-mono text-primary">
               <span className="material-symbols-outlined text-[16px]">groups</span>
               <span>CUSTOMER DIRECTORY</span>
             </div>
-            <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+            <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
               Customers
             </h1>
-            <p className="text-xs text-[#87948b] mt-0.5">
+            <p className="text-xs text-outline mt-0.5">
               {data ? `${data.total} customer${data.total === 1 ? '' : 's'}` : '—'}
             </p>
           </div>
@@ -181,7 +183,7 @@ export default function AdminCustomersPage() {
                 setPage(1);
               }}
               placeholder="Search by name..."
-              className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+              className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
             />
             <select
               value={accountStatus}
@@ -189,7 +191,7 @@ export default function AdminCustomersPage() {
                 setAccountStatus(e.target.value as (typeof ACCOUNT_STATUS_FILTERS)[number]);
                 setPage(1);
               }}
-              className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface focus:outline-none focus:border-primary"
             >
               {ACCOUNT_STATUS_FILTERS.map((status) => (
                 <option key={status} value={status}>
@@ -200,18 +202,18 @@ export default function AdminCustomersPage() {
           </div>
         </div>
 
-        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+        <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
           {loading ? (
-            <div className="py-16 text-center text-[#87948b] text-sm">Loading customers…</div>
+            <div className="py-16 text-center text-outline text-sm">Loading customers…</div>
           ) : !data || data.customers.length === 0 ? (
-            <div className="py-16 text-center text-[#87948b] text-sm">
+            <div className="py-16 text-center text-outline text-sm">
               No customers match the current filters.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left font-sans text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                  <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                     <th className="py-3 px-4">Customer</th>
                     <th className="py-3 px-4">Contact</th>
                     <th className="py-3 px-4">Bookings</th>
@@ -221,28 +223,31 @@ export default function AdminCustomersPage() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#262a33] font-mono">
+                <tbody className="divide-y divide-surface-container-high font-mono">
                   {data.customers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-[#181c24]/60 transition-colors">
+                    <tr
+                      key={customer.id}
+                      className="hover:bg-surface-container-low/60 transition-colors"
+                    >
                       <td className="py-3 px-4">
                         <Link
                           href={`/admin/customers/${customer.id}`}
-                          className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors"
+                          className="font-bold text-on-surface hover:text-primary transition-colors"
                         >
                           {customerDisplayName(customer)}
                         </Link>
                       </td>
-                      <td className="py-3 px-4 text-[#bccac0]">
+                      <td className="py-3 px-4 text-on-surface-variant">
                         <span className="block">{customer.user.email ?? '—'}</span>
                         {customer.user.phoneNumber && (
-                          <span className="block text-[10px] text-[#87948b]">
+                          <span className="block text-[10px] text-outline">
                             {customer.user.phoneNumber}
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-[#bccac0]">{customer.bookingCount}</td>
-                      <td className="py-3 px-4 text-[#bccac0]">{customer.paymentCount}</td>
-                      <td className="py-3 px-4 text-[#87948b]">
+                      <td className="py-3 px-4 text-on-surface-variant">{customer.bookingCount}</td>
+                      <td className="py-3 px-4 text-on-surface-variant">{customer.paymentCount}</td>
+                      <td className="py-3 px-4 text-outline">
                         {new Date(customer.createdAt).toLocaleDateString()}
                       </td>
                       <td className="py-3 px-4 text-center">
@@ -257,7 +262,7 @@ export default function AdminCustomersPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedCustomer(customer)}
-                            className="px-3 py-1 bg-[#25a475] text-[#042116] font-bold rounded text-[11px] hover:bg-[#68dba9] transition-colors"
+                            className="px-3 py-1 bg-primary-container text-on-primary-container font-bold rounded text-[11px] hover:bg-primary transition-colors"
                           >
                             Approve
                           </button>
@@ -271,7 +276,7 @@ export default function AdminCustomersPage() {
           )}
 
           {data && data.total > 0 && (
-            <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+            <div className="flex items-center justify-between mt-4 text-xs text-outline">
               <span>
                 Page {data.page} of {totalPages}
               </span>
@@ -280,7 +285,7 @@ export default function AdminCustomersPage() {
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
                 >
                   Previous
                 </button>
@@ -288,7 +293,7 @@ export default function AdminCustomersPage() {
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
                 >
                   Next
                 </button>
@@ -301,36 +306,36 @@ export default function AdminCustomersPage() {
       {/* Confirmation Modal for Admin Approval */}
       {selectedCustomer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#0a0e16] border border-[#262a33] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            <div className="flex items-center gap-3 text-[#68dba9]">
+          <div className="bg-surface-container-lowest border border-surface-container-high rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-center gap-3 text-primary">
               <span className="material-symbols-outlined text-2xl">verified_user</span>
-              <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                 Approve Customer?
               </h2>
             </div>
 
-            <div className="text-xs text-[#bccac0] space-y-3 leading-relaxed">
+            <div className="text-xs text-on-surface-variant space-y-3 leading-relaxed">
               <p>You are about to approve customer account:</p>
-              <div className="bg-[#181c24] border border-[#262a33] p-3 rounded-lg font-mono">
-                <div className="text-sm font-bold text-[#dfe2ee]">
+              <div className="bg-surface-container-low border border-surface-container-high p-3 rounded-lg font-mono">
+                <div className="text-sm font-bold text-on-surface">
                   {customerDisplayName(selectedCustomer)}
                 </div>
-                <div className="text-[11px] text-[#87948b] mt-0.5">
+                <div className="text-[11px] text-outline mt-0.5">
                   {selectedCustomer.user.email ?? selectedCustomer.user.phoneNumber ?? 'No contact'}
                 </div>
               </div>
               <p>
-                The customer will become <strong className="text-[#68dba9]">ACTIVE</strong> and may
+                The customer will become <strong className="text-primary">ACTIVE</strong> and may
                 use customer services according to current account rules.
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#262a33]">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container-high">
               <button
                 type="button"
                 disabled={approving}
                 onClick={() => setSelectedCustomer(null)}
-                className="px-4 py-2 rounded-xl bg-[#181c24] border border-[#262a33] text-xs font-semibold text-[#dfe2ee] hover:bg-[#262a33] transition-colors"
+                className="px-4 py-2 rounded-xl bg-surface-container-low border border-surface-container-high text-xs font-semibold text-on-surface hover:bg-surface-container-high transition-colors"
               >
                 Cancel
               </button>
@@ -338,7 +343,7 @@ export default function AdminCustomersPage() {
                 type="button"
                 disabled={approving}
                 onClick={handleApprove}
-                className="px-4 py-2 rounded-xl bg-[#25a475] text-[#042116] text-xs font-bold hover:bg-[#68dba9] transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-primary-container text-on-primary-container text-xs font-bold hover:bg-primary transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {approving ? 'Approving...' : 'Approve Customer'}
               </button>

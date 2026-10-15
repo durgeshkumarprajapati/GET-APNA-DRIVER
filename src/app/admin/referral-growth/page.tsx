@@ -190,25 +190,25 @@ export default function AdminReferralGrowthPage() {
     switch (status) {
       case 'ACTIVE':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#00311f] text-[#68dba9] border border-[#25a475]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-on-primary-container text-primary border border-primary-container">
             ACTIVE
           </span>
         );
       case 'PAUSED':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#3d2e00] text-[#ffc847] border border-[#8a6800]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-warning-container text-on-warning-container border border-warning-container">
             PAUSED
           </span>
         );
       case 'DRAFT':
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#1f2430] text-[#87948b] border border-[#262a33]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container text-outline border border-surface-container-high">
             DRAFT
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#341115] text-[#ffb4ab] border border-[#93000a]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container text-error border border-error-container">
             {status}
           </span>
         );
@@ -225,7 +225,7 @@ export default function AdminReferralGrowthPage() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-base">add</span>
             Create Campaign
@@ -234,12 +234,12 @@ export default function AdminReferralGrowthPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
       {message && (
-        <div className="p-4 rounded-xl border border-[#25a475] bg-[#00311f]/40 text-[#68dba9] text-sm">
+        <div className="p-4 rounded-xl border border-primary-container bg-on-primary-container/40 text-primary text-sm">
           {message}
         </div>
       )}
@@ -277,64 +277,64 @@ export default function AdminReferralGrowthPage() {
           {/* Customer vs Driver Performance Breakdown */}
           {analytics && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] flex flex-col gap-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#68dba9] font-['Space_Grotesk']">
+              <div className="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-primary font-['Space_Grotesk']">
                   Customer Referral Growth
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-center">
-                  <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-                    <span className="text-[10px] text-[#87948b] uppercase block font-bold">
+                  <div className="p-3 bg-surface-container-lowest rounded-xl border border-surface-container-high">
+                    <span className="text-[10px] text-outline uppercase block font-bold">
                       Total
                     </span>
-                    <span className="text-lg font-bold text-[#dfe2ee]">
+                    <span className="text-lg font-bold text-on-surface">
                       {analytics.customerReferrals.total}
                     </span>
                   </div>
-                  <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-                    <span className="text-[10px] text-[#87948b] uppercase block font-bold">
+                  <div className="p-3 bg-surface-container-lowest rounded-xl border border-surface-container-high">
+                    <span className="text-[10px] text-outline uppercase block font-bold">
                       Rewarded
                     </span>
-                    <span className="text-lg font-bold text-[#68dba9]">
+                    <span className="text-lg font-bold text-primary">
                       {analytics.customerReferrals.rewarded}
                     </span>
                   </div>
-                  <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-                    <span className="text-[10px] text-[#87948b] uppercase block font-bold">
+                  <div className="p-3 bg-surface-container-lowest rounded-xl border border-surface-container-high">
+                    <span className="text-[10px] text-outline uppercase block font-bold">
                       Spent
                     </span>
-                    <span className="text-lg font-bold text-[#68dba9]">
+                    <span className="text-lg font-bold text-primary">
                       {formatCurrency(analytics.customerReferrals.totalEarned)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#181c24] border border-[#262a33] flex flex-col gap-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#70baff] font-['Space_Grotesk']">
+              <div className="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-on-info-container font-['Space_Grotesk']">
                   Driver Partner Referral Growth
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-center">
-                  <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-                    <span className="text-[10px] text-[#87948b] uppercase block font-bold">
+                  <div className="p-3 bg-surface-container-lowest rounded-xl border border-surface-container-high">
+                    <span className="text-[10px] text-outline uppercase block font-bold">
                       Total
                     </span>
-                    <span className="text-lg font-bold text-[#dfe2ee]">
+                    <span className="text-lg font-bold text-on-surface">
                       {analytics.driverReferrals.total}
                     </span>
                   </div>
-                  <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-                    <span className="text-[10px] text-[#87948b] uppercase block font-bold">
+                  <div className="p-3 bg-surface-container-lowest rounded-xl border border-surface-container-high">
+                    <span className="text-[10px] text-outline uppercase block font-bold">
                       Rewarded
                     </span>
-                    <span className="text-lg font-bold text-[#70baff]">
+                    <span className="text-lg font-bold text-on-info-container">
                       {analytics.driverReferrals.rewarded}
                     </span>
                   </div>
-                  <div className="p-3 bg-[#0a0e16] rounded-xl border border-[#262a33]">
-                    <span className="text-[10px] text-[#87948b] uppercase block font-bold">
+                  <div className="p-3 bg-surface-container-lowest rounded-xl border border-surface-container-high">
+                    <span className="text-[10px] text-outline uppercase block font-bold">
                       Spent
                     </span>
-                    <span className="text-lg font-bold text-[#70baff]">
+                    <span className="text-lg font-bold text-on-info-container">
                       {formatCurrency(analytics.driverReferrals.totalEarned)}
                     </span>
                   </div>
@@ -346,7 +346,7 @@ export default function AdminReferralGrowthPage() {
           {/* Campaign Management Engine */}
           <div className="flex flex-col gap-4 mt-2">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                 Referral Growth Campaigns ({campaigns.length})
               </h2>
             </div>
@@ -357,9 +357,9 @@ export default function AdminReferralGrowthPage() {
                 message="No referral campaigns configured yet. Create a campaign to start growth acquisition incentives."
               />
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-[#262a33] bg-[#181c24]">
-                <table className="w-full text-left text-xs text-[#dfe2ee]">
-                  <thead className="bg-[#0a0e16] text-[#87948b] uppercase tracking-wider text-[10px] font-bold border-b border-[#262a33]">
+              <div className="overflow-x-auto rounded-2xl border border-surface-container-high bg-surface-container-low">
+                <table className="w-full text-left text-xs text-on-surface">
+                  <thead className="bg-surface-container-lowest text-outline uppercase tracking-wider text-[10px] font-bold border-b border-surface-container-high">
                     <tr>
                       <th className="p-4">Code</th>
                       <th className="p-4">Name</th>
@@ -370,23 +370,23 @@ export default function AdminReferralGrowthPage() {
                       <th className="p-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#262a33]">
+                  <tbody className="divide-y divide-surface-container-high">
                     {campaigns.map((camp) => (
-                      <tr key={camp.id} className="hover:bg-[#1f2430] transition-colors">
-                        <td className="p-4 font-mono font-bold text-[#68dba9]">{camp.code}</td>
+                      <tr key={camp.id} className="hover:bg-surface-container transition-colors">
+                        <td className="p-4 font-mono font-bold text-primary">{camp.code}</td>
                         <td className="p-4 font-bold">
                           <div>{camp.name}</div>
                           {camp.description && (
-                            <span className="text-[10px] text-[#87948b] font-normal">
+                            <span className="text-[10px] text-outline font-normal">
                               {camp.description}
                             </span>
                           )}
                         </td>
-                        <td className="p-4 text-[#87948b] font-mono">{camp.audience}</td>
-                        <td className="p-4 font-mono text-[#68dba9]">
+                        <td className="p-4 text-outline font-mono">{camp.audience}</td>
+                        <td className="p-4 font-mono text-primary">
                           {formatCurrency(Number(camp.referrerRewardValue))}
                         </td>
-                        <td className="p-4 text-[#87948b]">
+                        <td className="p-4 text-outline">
                           {formatCurrency(Number(camp.currentRewardSpent))} /{' '}
                           {camp.maxRewardsTotal ? `${camp.maxRewardsTotal} max` : '∞'}
                         </td>
@@ -398,7 +398,7 @@ export default function AdminReferralGrowthPage() {
                                 type="button"
                                 disabled={updatingId === camp.id}
                                 onClick={() => handleStatusChange(camp.id, 'ACTIVE')}
-                                className="px-2.5 py-1 rounded-lg bg-[#00311f] hover:bg-[#25a475]/30 text-[#68dba9] text-[10px] font-bold border border-[#25a475] disabled:opacity-50"
+                                className="px-2.5 py-1 rounded-lg bg-on-primary-container hover:bg-primary-container/30 text-primary text-[10px] font-bold border border-primary-container disabled:opacity-50"
                               >
                                 Activate
                               </button>
@@ -408,7 +408,7 @@ export default function AdminReferralGrowthPage() {
                                 type="button"
                                 disabled={updatingId === camp.id}
                                 onClick={() => handleStatusChange(camp.id, 'PAUSED')}
-                                className="px-2.5 py-1 rounded-lg bg-[#3d2e00] hover:bg-[#8a6800]/30 text-[#ffc847] text-[10px] font-bold border border-[#8a6800] disabled:opacity-50"
+                                className="px-2.5 py-1 rounded-lg bg-warning-container hover:bg-warning-container/30 text-on-warning-container text-[10px] font-bold border border-warning-container disabled:opacity-50"
                               >
                                 Pause
                               </button>
@@ -418,7 +418,7 @@ export default function AdminReferralGrowthPage() {
                                 type="button"
                                 disabled={updatingId === camp.id}
                                 onClick={() => handleStatusChange(camp.id, 'ARCHIVED')}
-                                className="px-2.5 py-1 rounded-lg bg-[#341115] hover:bg-[#93000a]/30 text-[#ffb4ab] text-[10px] font-bold border border-[#93000a] disabled:opacity-50"
+                                className="px-2.5 py-1 rounded-lg bg-error-container hover:bg-on-error-container/30 text-error text-[10px] font-bold border border-error-container disabled:opacity-50"
                               >
                                 Archive
                               </button>
@@ -438,15 +438,15 @@ export default function AdminReferralGrowthPage() {
       {/* Modal: Create Campaign */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-xl bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-2xl flex flex-col gap-5">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-4">
-              <h3 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <div className="w-full max-w-xl bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-2xl flex flex-col gap-5">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-4">
+              <h3 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                 Create Referral Campaign
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#87948b] hover:text-[#dfe2ee]"
+                className="text-outline hover:text-on-surface"
                 aria-label="Close create campaign dialog"
               >
                 <span className="material-symbols-outlined text-xl">close</span>
@@ -456,7 +456,7 @@ export default function AdminReferralGrowthPage() {
             <form onSubmit={handleCreateCampaign} className="flex flex-col gap-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                  <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                     Campaign Code *
                   </label>
                   <input
@@ -464,12 +464,12 @@ export default function AdminReferralGrowthPage() {
                     placeholder="e.g. SUMMER2026"
                     value={newCode}
                     onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] font-mono text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high font-mono text-on-surface focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                  <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                     Campaign Name *
                   </label>
                   <input
@@ -477,14 +477,14 @@ export default function AdminReferralGrowthPage() {
                     placeholder="e.g. Summer Friend Referral"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high text-on-surface focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                   Description
                 </label>
                 <input
@@ -492,13 +492,13 @@ export default function AdminReferralGrowthPage() {
                   placeholder="Short campaign rules or promo description"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high text-on-surface focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                  <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                     Target Audience
                   </label>
                   <select
@@ -506,7 +506,7 @@ export default function AdminReferralGrowthPage() {
                     onChange={(e) =>
                       setNewAudience(e.target.value as 'ALL' | 'CUSTOMER' | 'DRIVER')
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high text-on-surface focus:outline-none focus:border-primary"
                   >
                     <option value="ALL">All Users (Customer & Driver)</option>
                     <option value="CUSTOMER">Customer Only</option>
@@ -514,7 +514,7 @@ export default function AdminReferralGrowthPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                  <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                     Reward Type
                   </label>
                   <select
@@ -524,7 +524,7 @@ export default function AdminReferralGrowthPage() {
                         e.target.value as 'MONETARY' | 'LOYALTY_POINTS' | 'PROMOTION_DISCOUNT',
                       )
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high text-on-surface focus:outline-none focus:border-primary"
                   >
                     <option value="MONETARY">Monetary (Ledger & Wallet)</option>
                     <option value="LOYALTY_POINTS">Loyalty Points</option>
@@ -535,7 +535,7 @@ export default function AdminReferralGrowthPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                  <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                     Referrer Reward (₹) *
                   </label>
                   <input
@@ -545,12 +545,12 @@ export default function AdminReferralGrowthPage() {
                     placeholder="e.g. 200"
                     value={newReferrerReward}
                     onChange={(e) => setNewReferrerReward(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high text-on-surface focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[#87948b] uppercase font-bold text-[10px] mb-1">
+                  <label className="block text-outline uppercase font-bold text-[10px] mb-1">
                     Max Total Rewards Cap
                   </label>
                   <input
@@ -559,23 +559,23 @@ export default function AdminReferralGrowthPage() {
                     placeholder="e.g. 1000 (Optional)"
                     value={newMaxRewards}
                     onChange={(e) => setNewMaxRewards(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#0a0e16] border border-[#262a33] text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high text-on-surface focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#262a33]">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-surface-container-high">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-[#1f2430] hover:bg-[#262a33] text-[#dfe2ee] font-bold text-xs"
+                  className="px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-5 py-2.5 rounded-xl bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-bold text-xs font-['Space_Grotesk'] disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-on-primary font-bold text-xs font-['Space_Grotesk'] disabled:opacity-50"
                 >
                   {creating ? 'Creating…' : 'Create Campaign'}
                 </button>

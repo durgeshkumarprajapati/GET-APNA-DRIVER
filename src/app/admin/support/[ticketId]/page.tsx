@@ -186,21 +186,19 @@ export default function AdminTicketDetailPage({
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-xs font-mono text-gray-500">
-        Loading ticket detail...
-      </div>
+      <div className="p-8 text-center text-xs font-mono text-outline">Loading ticket detail...</div>
     );
   }
 
   if (error || !ticket) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
-        <div className="p-4 rounded-xl bg-red-950/30 border border-red-800/40 text-red-200 text-sm">
+        <div className="p-4 rounded-xl bg-error-container/30 border border-error/40 text-on-error-container text-sm">
           {error || 'Ticket not found.'}
         </div>
         <Link
           href="/admin/support"
-          className="mt-4 inline-block text-xs font-mono text-emerald-400 hover:underline"
+          className="mt-4 inline-block text-xs font-mono text-primary hover:underline"
         >
           ← Back to Support Queue
         </Link>
@@ -223,38 +221,38 @@ export default function AdminTicketDetailPage({
     <div className="flex flex-col w-full gap-6 max-w-[1440px] mx-auto p-4 md:p-6">
       {/* Toast Alert */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-500 text-gray-950 font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-emerald-400">
+        <div className="fixed bottom-6 right-6 z-50 bg-primary text-surface-container-lowest font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-primary">
           <span className="text-sm font-['Space_Grotesk']">{toast}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-800 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-surface-container-high pb-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-gray-400 font-mono mb-1">
-            <Link href="/admin/support" className="hover:text-emerald-400 transition-colors">
+          <div className="flex items-center gap-2 text-xs text-on-surface-variant font-mono mb-1">
+            <Link href="/admin/support" className="hover:text-primary transition-colors">
               SUPPORT QUEUE
             </Link>
             <span>/</span>
-            <span className="text-emerald-400">#{ticket.ticketNumber}</span>
+            <span className="text-primary">#{ticket.ticketNumber}</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-100 font-['Space_Grotesk']">
+          <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk']">
             {ticket.subject}
           </h1>
-          <span className="text-xs font-mono text-gray-400">
-            Category: <strong className="text-gray-200">{ticket.category}</strong> • Created{' '}
+          <span className="text-xs font-mono text-on-surface-variant">
+            Category: <strong className="text-on-surface">{ticket.category}</strong> • Created{' '}
             {new Date(ticket.createdAt).toLocaleString()}
           </span>
         </div>
 
         {/* Status Transition Control */}
         <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-gray-400">Status:</span>
+          <span className="text-xs font-mono text-on-surface-variant">Status:</span>
           <select
             value={ticket.status}
             disabled={updatingStatus}
             onChange={(e) => handleStatusChange(e.target.value)}
-            className="bg-gray-900 border border-gray-700 text-gray-200 text-xs font-mono font-bold px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="bg-surface-container-low border border-border text-on-surface text-xs font-mono font-bold px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
           >
             <option value="OPEN">OPEN</option>
             <option value="IN_PROGRESS">IN_PROGRESS</option>
@@ -270,14 +268,14 @@ export default function AdminTicketDetailPage({
         {/* Left Column: Messages & Form (8 cols) */}
         <div className="lg:col-span-8 flex flex-col gap-5">
           {/* Tabs */}
-          <div className="flex items-center gap-2 border-b border-gray-800 pb-2 overflow-x-auto">
+          <div className="flex items-center gap-2 border-b border-surface-container-high pb-2 overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab('PUBLIC')}
               className={`shrink-0 px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
                 activeTab === 'PUBLIC'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-primary/20 text-primary border border-primary/40'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               Public Conversation ({publicMessages.length})
@@ -288,8 +286,8 @@ export default function AdminTicketDetailPage({
               onClick={() => setActiveTab('INTERNAL')}
               className={`shrink-0 px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
                 activeTab === 'INTERNAL'
-                  ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-suspend/20 text-on-suspend-container border border-suspend/40'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               🔒 Private Internal Notes ({internalNotes.length})
@@ -300,8 +298,8 @@ export default function AdminTicketDetailPage({
               onClick={() => setActiveTab('AUDIT')}
               className={`shrink-0 px-4 py-2 rounded-lg text-xs font-bold font-['Space_Grotesk'] transition-colors ${
                 activeTab === 'AUDIT'
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-info/20 text-on-info-container border border-info/40'
+                  : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
               Audit Log ({auditLogs.length})
@@ -319,17 +317,19 @@ export default function AdminTicketDetailPage({
                       key={m.id}
                       className={`p-4 rounded-xl border max-w-[90%] text-xs flex flex-col gap-1.5 ${
                         isCustomer
-                          ? 'bg-gray-900 border-gray-800 self-start text-left'
-                          : 'bg-emerald-950/30 border-emerald-800/40 self-end text-right'
+                          ? 'bg-surface-container-low border-surface-container-high self-start text-left'
+                          : 'bg-on-primary-container/30 border-primary-container/40 self-end text-right'
                       }`}
                     >
-                      <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400 justify-between">
-                        <span className="font-bold text-emerald-400">
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-on-surface-variant justify-between">
+                        <span className="font-bold text-primary">
                           {isCustomer ? customerName : 'Support Operator'}
                         </span>
                         <span>{new Date(m.createdAt).toLocaleString()}</span>
                       </div>
-                      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{m.body}</p>
+                      <p className="text-on-surface whitespace-pre-wrap leading-relaxed">
+                        {m.body}
+                      </p>
                     </div>
                   );
                 })}
@@ -338,20 +338,20 @@ export default function AdminTicketDetailPage({
               {/* Reply Box */}
               <form
                 onSubmit={handlePostMessage}
-                className="flex flex-col gap-2 pt-4 border-t border-gray-800"
+                className="flex flex-col gap-2 pt-4 border-t border-surface-container-high"
               >
                 <textarea
                   rows={3}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Type official response to customer (will update status to WAITING_FOR_CUSTOMER)..."
-                  className="w-full bg-gray-950 border border-gray-800 text-gray-200 text-xs p-3 rounded-lg placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+                  className="w-full bg-surface-container-lowest border border-surface-container-high text-on-surface text-xs p-3 rounded-lg placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
                 <div className="flex justify-end">
                   <button
                     type="submit"
                     disabled={submittingReply || !replyText.trim()}
-                    className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-surface-container-lowest font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
                   >
                     {submittingReply ? 'Sending...' : 'Send Customer Response'}
                   </button>
@@ -363,29 +363,31 @@ export default function AdminTicketDetailPage({
           {/* Tab 2: Internal Notes */}
           {activeTab === 'INTERNAL' && (
             <div className="flex flex-col gap-4">
-              <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-800/30 text-xs text-purple-300">
+              <div className="p-3 rounded-lg bg-suspend-container/20 border border-suspend/30 text-xs text-on-suspend-container">
                 ⚠️ Internal notes are private to authorized support admins and are{' '}
                 <strong>never</strong> exposed to customers or customer API endpoints.
               </div>
 
               <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
                 {internalNotes.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-gray-500 font-mono">
+                  <div className="p-8 text-center text-xs text-outline font-mono">
                     No internal notes created yet for this ticket.
                   </div>
                 ) : (
                   internalNotes.map((m) => (
                     <div
                       key={m.id}
-                      className="p-4 rounded-xl bg-purple-950/20 border border-purple-800/40 text-xs flex flex-col gap-1.5"
+                      className="p-4 rounded-xl bg-suspend-container/20 border border-suspend/40 text-xs flex flex-col gap-1.5"
                     >
-                      <div className="flex items-center gap-2 text-[10px] font-mono text-purple-400 justify-between">
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-on-suspend-container justify-between">
                         <span className="font-bold">
                           {m.authorUser?.identities?.[0]?.email || 'Support Admin'} (Internal Note)
                         </span>
                         <span>{new Date(m.createdAt).toLocaleString()}</span>
                       </div>
-                      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">{m.body}</p>
+                      <p className="text-on-surface whitespace-pre-wrap leading-relaxed">
+                        {m.body}
+                      </p>
                     </div>
                   ))
                 )}
@@ -393,20 +395,20 @@ export default function AdminTicketDetailPage({
 
               <form
                 onSubmit={handlePostMessage}
-                className="flex flex-col gap-2 pt-4 border-t border-gray-800"
+                className="flex flex-col gap-2 pt-4 border-t border-surface-container-high"
               >
                 <textarea
                   rows={3}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Write confidential internal note (fraud checks, operator observations, escalation details)..."
-                  className="w-full bg-gray-950 border border-purple-800/40 text-purple-200 text-xs p-3 rounded-lg placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-purple-500 resize-none"
+                  className="w-full bg-surface-container-lowest border border-suspend/40 text-on-suspend-container text-xs p-3 rounded-lg placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-suspend resize-none"
                 />
                 <div className="flex justify-end">
                   <button
                     type="submit"
                     disabled={submittingReply || !replyText.trim()}
-                    className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-suspend hover:bg-suspend-hover text-white font-bold text-xs uppercase tracking-wider font-['Space_Grotesk'] disabled:opacity-50 transition-colors"
                   >
                     {submittingReply ? 'Saving...' : 'Save Private Note'}
                   </button>
@@ -422,16 +424,16 @@ export default function AdminTicketDetailPage({
                 {auditLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="p-3.5 rounded-lg bg-gray-900 border border-gray-800 flex flex-col gap-1"
+                    className="p-3.5 rounded-lg bg-surface-container-low border border-surface-container-high flex flex-col gap-1"
                   >
-                    <div className="flex items-center justify-between text-[#68dba9]">
+                    <div className="flex items-center justify-between text-primary">
                       <span className="font-bold">{log.action}</span>
-                      <span className="text-[10px] text-gray-500">
+                      <span className="text-[10px] text-outline">
                         {new Date(log.createdAt).toLocaleString()}
                       </span>
                     </div>
                     {log.afterState ? (
-                      <pre className="text-[10px] text-gray-400 bg-gray-950 p-2 rounded overflow-x-auto mt-1">
+                      <pre className="text-[10px] text-on-surface-variant bg-surface-container-lowest p-2 rounded overflow-x-auto mt-1">
                         {JSON.stringify(log.afterState, null, 2)}
                       </pre>
                     ) : null}
@@ -445,30 +447,31 @@ export default function AdminTicketDetailPage({
         {/* Right Column: Customer & Context Snapshot (4 cols) */}
         <div className="lg:col-span-4 flex flex-col gap-4">
           {/* Customer Snapshot */}
-          <div className="p-4 rounded-xl bg-gray-900 border border-gray-800 flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase text-gray-400 font-['Space_Grotesk']">
+          <div className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
+            <span className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
               Customer Identity
             </span>
-            <div className="text-sm font-semibold text-gray-200">{customerName}</div>
-            <div className="text-xs font-mono text-gray-400">{customerEmail}</div>
+            <div className="text-sm font-semibold text-on-surface">{customerName}</div>
+            <div className="text-xs font-mono text-on-surface-variant">{customerEmail}</div>
           </div>
 
           {/* Booking Context */}
           {ticket.booking && (
-            <div className="p-4 rounded-xl bg-gray-900 border border-gray-800 flex flex-col gap-2">
-              <span className="text-[10px] font-bold uppercase text-gray-400 font-['Space_Grotesk']">
+            <div className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
+              <span className="text-[10px] font-bold uppercase text-on-surface-variant font-['Space_Grotesk']">
                 Linked Booking
               </span>
-              <div className="flex justify-between text-xs text-gray-200 font-semibold">
+              <div className="flex justify-between text-xs text-on-surface font-semibold">
                 <span>{ticket.booking.bookingType}</span>
-                <span className="font-mono text-emerald-400">{ticket.booking.status}</span>
+                <span className="font-mono text-primary">{ticket.booking.status}</span>
               </div>
-              <div className="text-xs text-gray-400 space-y-1 mt-1">
+              <div className="text-xs text-on-surface-variant space-y-1 mt-1">
                 <p>
-                  <strong className="text-gray-300">Pickup:</strong> {ticket.booking.pickupAddress}
+                  <strong className="text-on-surface-variant">Pickup:</strong>{' '}
+                  {ticket.booking.pickupAddress}
                 </p>
                 <p>
-                  <strong className="text-gray-300">Dropoff:</strong>{' '}
+                  <strong className="text-on-surface-variant">Dropoff:</strong>{' '}
                   {ticket.booking.dropoffAddress}
                 </p>
               </div>

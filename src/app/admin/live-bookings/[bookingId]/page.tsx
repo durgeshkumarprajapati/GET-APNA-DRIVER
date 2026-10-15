@@ -41,11 +41,12 @@ interface DriverSearchResult {
 }
 
 function attemptStatusBadgeClass(status: string): string {
-  if (status === 'ACCEPTED') return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
+  if (status === 'ACCEPTED')
+    return 'bg-on-primary-container text-primary border border-primary-container';
   if (status === 'REJECTED' || status === 'EXPIRED' || status === 'CANCELLED') {
-    return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
+    return 'bg-error-container/20 text-error border border-error-container';
   }
-  return 'bg-[#3a2f00] text-[#f5c04a] border border-[#5c4a00]';
+  return 'bg-warning-container text-on-warning-container border border-warning-container';
 }
 
 export default function AdminDispatchConsolePage({
@@ -146,15 +147,15 @@ export default function AdminDispatchConsolePage({
   };
 
   if (loading) {
-    return <div className="py-24 text-center text-[#87948b] text-sm">Loading booking…</div>;
+    return <div className="py-24 text-center text-outline text-sm">Loading booking…</div>;
   }
 
   if (!booking) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="text-center space-y-4">
-          <p className="text-[#ffb4ab] font-semibold">Booking not found.</p>
-          <Link href="/admin/live-bookings" className="text-[#68dba9] hover:underline text-sm">
+          <p className="text-error font-semibold">Booking not found.</p>
+          <Link href="/admin/live-bookings" className="text-primary hover:underline text-sm">
             Return to Live Bookings
           </Link>
         </div>
@@ -176,57 +177,57 @@ export default function AdminDispatchConsolePage({
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-2 text-sm text-[#87948b]">
-        <Link href="/admin/live-bookings" className="hover:text-[#68dba9] transition-colors">
+      <div className="flex items-center gap-2 text-sm text-outline">
+        <Link href="/admin/live-bookings" className="hover:text-primary transition-colors">
           Live Bookings
         </Link>
         <span>/</span>
-        <span className="text-[#dfe2ee] font-medium font-mono">{booking.id}</span>
+        <span className="text-on-surface font-medium font-mono">{booking.id}</span>
       </div>
 
       {message && (
         <div
-          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-[#00311f]/50 border-[#25a475] text-[#68dba9]' : 'bg-[#93000a]/20 border-[#93000a] text-[#ffb4ab]'}`}
+          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-on-primary-container/50 border-primary-container text-primary' : 'bg-error-container/20 border-error-container text-error'}`}
         >
           <p className="text-sm font-medium">{message.text}</p>
         </div>
       )}
 
-      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl">
+      <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
             {booking.pickupLabel ?? booking.pickupAddress}
           </h1>
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#262a33] text-[#dfe2ee]">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-surface-container-high text-on-surface">
             {booking.status.replace(/_/g, ' ')}
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           <div>
-            <span className="text-[#87948b] uppercase font-bold block mb-1">Customer</span>
-            <span className="text-[#dfe2ee]">{booking.customer.email ?? '—'}</span>
+            <span className="text-outline uppercase font-bold block mb-1">Customer</span>
+            <span className="text-on-surface">{booking.customer.email ?? '—'}</span>
             {booking.customer.phoneNumber && (
-              <span className="block text-[#87948b]">{booking.customer.phoneNumber}</span>
+              <span className="block text-outline">{booking.customer.phoneNumber}</span>
             )}
           </div>
           <div>
-            <span className="text-[#87948b] uppercase font-bold block mb-1">Assigned Driver</span>
-            <span className="text-[#dfe2ee]">
+            <span className="text-outline uppercase font-bold block mb-1">Assigned Driver</span>
+            <span className="text-on-surface">
               {booking.assignedDriver
                 ? `${booking.assignedDriver.name} (${booking.assignedDriver.availabilityStatus})`
                 : '—'}
             </span>
           </div>
           <div>
-            <span className="text-[#87948b] uppercase font-bold block mb-1">Type</span>
-            <span className="text-[#dfe2ee]">{booking.bookingType}</span>
+            <span className="text-outline uppercase font-bold block mb-1">Type</span>
+            <span className="text-on-surface">{booking.bookingType}</span>
           </div>
         </div>
       </div>
 
       {/* Assignment Attempts */}
-      <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl">
-        <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-4">
+      <section className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl">
+        <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk'] mb-4">
           Assignment Attempts
         </h2>
         {booking.assignmentAttempts.length === 0 ? (
@@ -234,7 +235,7 @@ export default function AdminDispatchConsolePage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-mono text-xs">
-              <thead className="text-[#87948b] uppercase text-[10px] border-b border-[#262a33]">
+              <thead className="text-outline uppercase text-[10px] border-b border-surface-container-high">
                 <tr>
                   <th className="py-2 pr-4">#</th>
                   <th className="py-2 pr-4">Driver</th>
@@ -244,15 +245,15 @@ export default function AdminDispatchConsolePage({
                   <th className="py-2">Rejection Reason</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33]">
+              <tbody className="divide-y divide-surface-container-high">
                 {booking.assignmentAttempts.map((attempt) => (
                   <tr key={attempt.id}>
-                    <td className="py-2 pr-4 text-[#87948b]">{attempt.attemptNumber}</td>
-                    <td className="py-2 pr-4 text-[#dfe2ee]">{attempt.driver.name}</td>
-                    <td className="py-2 pr-4 text-[#87948b]">
+                    <td className="py-2 pr-4 text-outline">{attempt.attemptNumber}</td>
+                    <td className="py-2 pr-4 text-on-surface">{attempt.driver.name}</td>
+                    <td className="py-2 pr-4 text-outline">
                       {new Date(attempt.offeredAt).toLocaleString()}
                     </td>
-                    <td className="py-2 pr-4 text-[#87948b]">
+                    <td className="py-2 pr-4 text-outline">
                       {attempt.respondedAt ? new Date(attempt.respondedAt).toLocaleString() : '—'}
                     </td>
                     <td className="py-2 pr-4">
@@ -262,7 +263,7 @@ export default function AdminDispatchConsolePage({
                         {attempt.status}
                       </span>
                     </td>
-                    <td className="py-2 text-[#87948b]">{attempt.rejectionReason ?? '—'}</td>
+                    <td className="py-2 text-outline">{attempt.rejectionReason ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -272,13 +273,13 @@ export default function AdminDispatchConsolePage({
       </section>
 
       {/* Operator Actions */}
-      <section className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-        <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+      <section className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl space-y-4">
+        <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
           Operator Actions
         </h2>
 
         <div>
-          <label className="text-xs uppercase tracking-wider text-[#87948b] font-semibold">
+          <label className="text-xs uppercase tracking-wider text-outline font-semibold">
             Reason (required for every action below)
           </label>
           <textarea
@@ -286,7 +287,7 @@ export default function AdminDispatchConsolePage({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Explain why this operator action is being taken..."
-            className="mt-1 w-full rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            className="mt-1 w-full rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
           />
         </div>
 
@@ -302,7 +303,7 @@ export default function AdminDispatchConsolePage({
                   'Driver released; matching restarted.',
                 )
               }
-              className="px-4 py-2 bg-[#262a33] hover:bg-[#353942] disabled:opacity-50 text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors"
+              className="px-4 py-2 bg-surface-container-high hover:bg-surface-bright disabled:opacity-50 text-on-surface font-semibold text-xs rounded-lg transition-colors"
             >
               Reassign Driver (Release &amp; Re-Search)
             </button>
@@ -318,7 +319,7 @@ export default function AdminDispatchConsolePage({
                   'Search restarted.',
                 )
               }
-              className="px-4 py-2 bg-[#262a33] hover:bg-[#353942] disabled:opacity-50 text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors"
+              className="px-4 py-2 bg-surface-container-high hover:bg-surface-bright disabled:opacity-50 text-on-surface font-semibold text-xs rounded-lg transition-colors"
             >
               Restart Search
             </button>
@@ -334,21 +335,21 @@ export default function AdminDispatchConsolePage({
                   'Booking cancelled by operator; driver released.',
                 )
               }
-              className="px-4 py-2 bg-[#93000a] hover:bg-[#690005] disabled:opacity-50 text-[#ffdad6] font-semibold text-xs rounded-lg transition-colors"
+              className="px-4 py-2 bg-error-container hover:bg-on-error disabled:opacity-50 text-on-error-container font-semibold text-xs rounded-lg transition-colors"
             >
               Cancel Booking (Operator)
             </button>
           )}
           {!canReassign && !canRestartSearch && !canCancel && (
-            <p className="text-xs text-[#87948b]">
+            <p className="text-xs text-outline">
               No operator actions are valid from the current booking status.
             </p>
           )}
         </div>
 
         {canForceAssign && (
-          <div className="border-t border-[#262a33] pt-4 space-y-3">
-            <h3 className="text-sm font-bold text-[#dfe2ee]">Force Assign a Specific Driver</h3>
+          <div className="border-t border-surface-container-high pt-4 space-y-3">
+            <h3 className="text-sm font-bold text-on-surface">Force Assign a Specific Driver</h3>
             <input
               type="text"
               value={driverSearch}
@@ -357,7 +358,7 @@ export default function AdminDispatchConsolePage({
                 if (!e.target.value.trim()) setDriverResults([]);
               }}
               placeholder="Search available, approved drivers by name..."
-              className="w-full rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="w-full rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             {driverResults.length > 0 && (
               <div className="space-y-1">
@@ -373,8 +374,8 @@ export default function AdminDispatchConsolePage({
                       onClick={() => setSelectedDriverId(driver.id)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${
                         selectedDriverId === driver.id
-                          ? 'bg-[#25a475] text-[#00311f] font-bold'
-                          : 'bg-[#0a0e16] text-[#dfe2ee] hover:bg-[#262a33]'
+                          ? 'bg-primary-container text-on-primary-container font-bold'
+                          : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container-high'
                       }`}
                     >
                       {name}
@@ -385,7 +386,7 @@ export default function AdminDispatchConsolePage({
             )}
 
             {offerBypassEligibility && (
-              <label className="flex items-center gap-2 text-xs text-[#ffb4ab]">
+              <label className="flex items-center gap-2 text-xs text-error">
                 <input
                   type="checkbox"
                   checked={offerBypassEligibility}
@@ -408,7 +409,7 @@ export default function AdminDispatchConsolePage({
                   'Driver force-assigned.',
                 )
               }
-              className="px-4 py-2 bg-[#93000a] hover:bg-[#690005] disabled:opacity-40 text-[#ffdad6] font-bold text-xs rounded-lg transition-colors"
+              className="px-4 py-2 bg-error-container hover:bg-on-error disabled:opacity-40 text-on-error-container font-bold text-xs rounded-lg transition-colors"
             >
               Force Assign Selected Driver
             </button>

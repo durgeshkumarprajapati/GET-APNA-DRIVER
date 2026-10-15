@@ -214,36 +214,38 @@ export default function AdminLiveOpsConsolePage() {
       <div className="w-full px-4 sm:px-6 py-6 flex flex-col gap-6 max-w-[1800px] mx-auto">
         {/* Banner Alert Toast */}
         {actionToast && (
-          <div className="fixed bottom-6 right-6 z-50 bg-[#68dba9] text-[#003825] font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
-            <span className="material-symbols-outlined text-[#003825]">check_circle</span>
+          <div className="fixed bottom-6 right-6 z-50 bg-primary text-on-primary font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
+            <span className="material-symbols-outlined text-on-primary">check_circle</span>
             <span>{actionToast}</span>
           </div>
         )}
 
         {/* Top Header & Ops Status Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#181c24] p-5 rounded-2xl border border-[#262a33] shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low p-5 rounded-2xl border border-surface-container-high shadow-md">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3">
-              <span className="bg-[#00311f] text-[#68dba9] text-[11px] font-mono font-bold px-2.5 py-1 rounded flex items-center gap-1.5 uppercase tracking-wider border border-[#25a475]/30">
-                <span className="w-2 h-2 rounded-full bg-[#68dba9] animate-pulse"></span>
+              <span className="bg-on-primary-container text-primary text-[11px] font-mono font-bold px-2.5 py-1 rounded flex items-center gap-1.5 uppercase tracking-wider border border-primary-container/30">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 OPS CONTROL CENTER v5.0
               </span>
-              <span className="text-xs font-mono text-[#bccac0]">
+              <span className="text-xs font-mono text-on-surface-variant">
                 {data
                   ? `LAST SYNC: ${new Date(data.timestamp).toLocaleTimeString()}`
                   : 'INITIALIZING...'}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-display text-[#dfe2ee] tracking-tight mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold font-display text-on-surface tracking-tight mt-1">
               {t('admin.liveOps.title')}
             </h1>
-            <p className="text-xs sm:text-sm text-[#bccac0]">{t('admin.liveOps.subtitle')}</p>
+            <p className="text-xs sm:text-sm text-on-surface-variant">
+              {t('admin.liveOps.subtitle')}
+            </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/admin/incidents"
-              className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-mono font-semibold flex items-center gap-2 transition-colors border border-amber-500/40"
+              className="px-4 py-2 rounded-xl bg-warning/20 hover:bg-warning/30 text-on-warning-container text-xs font-mono font-semibold flex items-center gap-2 transition-colors border border-warning/40"
             >
               <span className="material-symbols-outlined text-sm">warning</span>
               Incident Control
@@ -251,7 +253,7 @@ export default function AdminLiveOpsConsolePage() {
             <button
               type="button"
               onClick={() => void fetchLiveOpsData(true)}
-              className="px-4 py-2 rounded-xl bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-mono font-semibold flex items-center gap-2 transition-colors border border-[#3d4a42]"
+              className="px-4 py-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-mono font-semibold flex items-center gap-2 transition-colors border border-border"
             >
               <span className="material-symbols-outlined text-sm">refresh</span>
               {t('common.actions.refresh')}
@@ -260,7 +262,7 @@ export default function AdminLiveOpsConsolePage() {
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm font-mono">
+          <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm font-mono">
             {error}
           </div>
         )}
@@ -271,97 +273,95 @@ export default function AdminLiveOpsConsolePage() {
           <>
             {/* Top 5 KPI Metrics Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-              <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-[#bccac0]">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col gap-1 shadow-sm">
+                <div className="flex items-center justify-between text-on-surface-variant">
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.gmv24h')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">payments</span>
+                  <span className="material-symbols-outlined text-sm text-primary">payments</span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-display text-[#dfe2ee]">
+                  <span className="text-2xl font-bold font-display text-on-surface">
                     {formatCurrency(data?.metrics.gmv24h ?? 0)}
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-[#bccac0]">Last 24h rolling cycle</span>
+                <span className="text-[10px] font-mono text-on-surface-variant">
+                  Last 24h rolling cycle
+                </span>
               </div>
 
-              <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-[#bccac0]">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col gap-1 shadow-sm">
+                <div className="flex items-center justify-between text-on-surface-variant">
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.netTakeRate')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">
-                    pie_chart
-                  </span>
+                  <span className="material-symbols-outlined text-sm text-primary">pie_chart</span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-display text-[#68dba9]">
+                  <span className="text-2xl font-bold font-display text-primary">
                     {formatCurrency(data?.metrics.netCommission24h ?? 0)}
                   </span>
-                  <span className="text-xs font-mono text-[#68dba9] font-semibold">
+                  <span className="text-xs font-mono text-primary font-semibold">
                     {data?.metrics.takeRatePercent}%
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-[#bccac0]">Platform margin</span>
+                <span className="text-[10px] font-mono text-on-surface-variant">
+                  Platform margin
+                </span>
               </div>
 
-              <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-[#bccac0]">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col gap-1 shadow-sm">
+                <div className="flex items-center justify-between text-on-surface-variant">
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.activeDispatchGrid')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">
-                    alt_route
-                  </span>
+                  <span className="material-symbols-outlined text-sm text-primary">alt_route</span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-display text-[#dfe2ee]">
+                  <span className="text-2xl font-bold font-display text-on-surface">
                     {formatNumber(data?.metrics.activeDispatchGridCount ?? 0)}
                   </span>
-                  <span className="text-xs font-mono text-[#68dba9] font-semibold">ACTIVE</span>
+                  <span className="text-xs font-mono text-primary font-semibold">ACTIVE</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#bccac0]">
+                <span className="text-[10px] font-mono text-on-surface-variant">
                   Unassigned: {formatNumber(data?.metrics.unassignedBookingsCount ?? 0)}
                 </span>
               </div>
 
-              <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-[#bccac0]">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col gap-1 shadow-sm">
+                <div className="flex items-center justify-between text-on-surface-variant">
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.onlineDrivers')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">badge</span>
+                  <span className="material-symbols-outlined text-sm text-primary">badge</span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-display text-[#dfe2ee]">
+                  <span className="text-2xl font-bold font-display text-on-surface">
                     {formatNumber(data?.metrics.driversOnlineCount ?? 0)}
                   </span>
-                  <span className="text-xs font-mono text-[#bccac0]">
+                  <span className="text-xs font-mono text-on-surface-variant">
                     / {formatNumber(data?.metrics.totalDriversCount ?? 0)} Total
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-[#68dba9] font-semibold">
+                <span className="text-[10px] font-mono text-primary font-semibold">
                   {data?.metrics.fleetUtilizationPercent}% fleet utilization
                 </span>
               </div>
 
-              <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col gap-1 shadow-sm">
-                <div className="flex items-center justify-between text-[#bccac0]">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col gap-1 shadow-sm">
+                <div className="flex items-center justify-between text-on-surface-variant">
                   <span className="text-[11px] font-mono uppercase tracking-wider">
                     {t('admin.liveOps.customerNps')}
                   </span>
-                  <span className="material-symbols-outlined text-sm text-[#68dba9]">thumb_up</span>
+                  <span className="material-symbols-outlined text-sm text-primary">thumb_up</span>
                 </div>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-bold font-display text-[#dfe2ee]">
+                  <span className="text-2xl font-bold font-display text-on-surface">
                     {data?.metrics.customerNps}
                   </span>
-                  <span className="text-xs font-mono text-[#68dba9] font-semibold">
-                    World-Class
-                  </span>
+                  <span className="text-xs font-mono text-primary font-semibold">World-Class</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#bccac0]">
+                <span className="text-[10px] font-mono text-on-surface-variant">
                   Verified customer feedback
                 </span>
               </div>
@@ -370,17 +370,17 @@ export default function AdminLiveOpsConsolePage() {
             {/* Regional Clustering Map & Dynamics */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
               {/* Regional Map Canvas Box (7 Cols) */}
-              <div className="xl:col-span-7 bg-[#181c24] rounded-2xl border border-[#262a33] p-5 flex flex-col gap-4 shadow-xl">
+              <div className="xl:col-span-7 bg-surface-container-low rounded-2xl border border-surface-container-high p-5 flex flex-col gap-4 shadow-xl">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#68dba9] text-xl">hub</span>
-                    <h3 className="font-bold font-display text-lg text-[#dfe2ee]">
+                    <span className="material-symbols-outlined text-primary text-xl">hub</span>
+                    <h3 className="font-bold font-display text-lg text-on-surface">
                       {t('admin.liveOps.regionalMesh')}
                     </h3>
                   </div>
 
                   {/* City Selection Tabs */}
-                  <div className="flex items-center bg-[#0a0e16] p-1 rounded-lg border border-[#262a33]">
+                  <div className="flex items-center bg-surface-container-lowest p-1 rounded-lg border border-surface-container-high">
                     {(['delhi', 'mumbai', 'bengaluru', 'hyderabad'] as const).map((city) => (
                       <button
                         key={city}
@@ -388,8 +388,8 @@ export default function AdminLiveOpsConsolePage() {
                         onClick={() => setActiveCityTab(city)}
                         className={`px-3 py-1 rounded text-xs font-mono transition-all ${
                           activeCityTab === city
-                            ? 'bg-[#262a33] text-[#dfe2ee] font-bold shadow'
-                            : 'text-[#bccac0] hover:text-[#dfe2ee]'
+                            ? 'bg-surface-container-high text-on-surface font-bold shadow'
+                            : 'text-on-surface-variant hover:text-on-surface'
                         }`}
                       >
                         {city === 'delhi'
@@ -402,29 +402,35 @@ export default function AdminLiveOpsConsolePage() {
 
                 {/* Mesh Indicators Bar */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                  <div className="bg-[#0a0e16] p-2.5 rounded-lg border border-[#262a33] flex items-center justify-between">
-                    <span className="text-[#bccac0]">{t('admin.liveOps.activeTrips')}</span>
-                    <span className="text-[#68dba9] font-bold">
+                  <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-high flex items-center justify-between">
+                    <span className="text-on-surface-variant">
+                      {t('admin.liveOps.activeTrips')}
+                    </span>
+                    <span className="text-primary font-bold">
                       {data?.metrics.activeDispatchGridCount ?? 0}
                     </span>
                   </div>
-                  <div className="bg-[#0a0e16] p-2.5 rounded-lg border border-[#262a33] flex items-center justify-between">
-                    <span className="text-[#bccac0]">{t('admin.liveOps.availableIdle')}</span>
-                    <span className="text-[#dfe2ee] font-bold">
+                  <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-high flex items-center justify-between">
+                    <span className="text-on-surface-variant">
+                      {t('admin.liveOps.availableIdle')}
+                    </span>
+                    <span className="text-on-surface font-bold">
                       {data?.metrics.driversAvailableCount ?? 0}
                     </span>
                   </div>
-                  <div className="bg-[#0a0e16] p-2.5 rounded-lg border border-[#262a33] flex items-center justify-between">
-                    <span className="text-[#bccac0]">{t('admin.liveOps.enRoutePickup')}</span>
-                    <span className="text-[#b4c5ff] font-bold">
+                  <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-surface-container-high flex items-center justify-between">
+                    <span className="text-on-surface-variant">
+                      {t('admin.liveOps.enRoutePickup')}
+                    </span>
+                    <span className="text-secondary font-bold">
                       {data?.metrics.driversBusyCount ?? 0}
                     </span>
                   </div>
-                  <div className="bg-[#0a0e16] p-2.5 rounded-lg border border-[#93000a]/50 flex items-center justify-between bg-red-950/20">
-                    <span className="text-[#ffb4ab]">{t('admin.liveOps.flaggedSos')}</span>
-                    <span className="text-[#ffb4ab] font-bold flex items-center gap-1">
+                  <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-error-container/50 flex items-center justify-between bg-error-container/20">
+                    <span className="text-error">{t('admin.liveOps.flaggedSos')}</span>
+                    <span className="text-error font-bold flex items-center gap-1">
                       {data && data.metrics.activeSosCount > 0 && (
-                        <span className="w-2 h-2 rounded-full bg-[#ffb4ab] animate-ping"></span>
+                        <span className="w-2 h-2 rounded-full bg-error animate-ping"></span>
                       )}
                       {formatNumber(data?.metrics.activeSosCount ?? 0)}
                     </span>
@@ -432,19 +438,19 @@ export default function AdminLiveOpsConsolePage() {
                 </div>
 
                 {/* Interactive Map Mesh Display Box */}
-                <div className="relative w-full h-[360px] rounded-xl overflow-hidden bg-[#0a0e16] border border-[#262a33] flex flex-col justify-between p-4">
-                  <div className="absolute inset-0 pointer-events-none border border-[#68dba9]/10">
+                <div className="relative w-full h-[360px] rounded-xl overflow-hidden bg-surface-container-lowest border border-surface-container-high flex flex-col justify-between p-4">
+                  <div className="absolute inset-0 pointer-events-none border border-primary/10">
                     <div className="w-full h-full bg-[linear-gradient(to_right,#31353e15_1px,transparent_1px),linear-gradient(to_bottom,#31353e15_1px,transparent_1px)] bg-[size:32px_32px]"></div>
                   </div>
 
-                  <div className="relative z-10 flex items-center justify-between bg-[#181c24]/90 backdrop-blur-md px-3 py-2 rounded-lg border border-[#262a33]">
+                  <div className="relative z-10 flex items-center justify-between bg-surface-container-low/90 backdrop-blur-md px-3 py-2 rounded-lg border border-surface-container-high">
                     <div className="flex items-center gap-2 text-xs font-mono">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#68dba9] animate-pulse"></span>
-                      <span className="text-[#dfe2ee] font-bold uppercase">
+                      <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+                      <span className="text-on-surface font-bold uppercase">
                         Telemetry Stream : Active
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono text-[#68dba9]">
+                    <span className="text-[11px] font-mono text-primary">
                       Real Fleet Data Connected
                     </span>
                   </div>
@@ -453,18 +459,18 @@ export default function AdminLiveOpsConsolePage() {
                     {data?.onlineDrivers.slice(0, 3).map((dr) => (
                       <div
                         key={dr.id}
-                        className="bg-[#181c24]/90 px-3 py-2 rounded-lg border border-[#262a33] flex items-center justify-between text-xs font-mono"
+                        className="bg-surface-container-low/90 px-3 py-2 rounded-lg border border-surface-container-high flex items-center justify-between text-xs font-mono"
                       >
                         <div className="flex items-center gap-2">
                           <span
                             className={`w-2 h-2 rounded-full ${
-                              dr.availabilityStatus === 'AVAILABLE'
-                                ? 'bg-[#68dba9]'
-                                : 'bg-[#b4c5ff]'
+                              dr.availabilityStatus === 'AVAILABLE' ? 'bg-primary' : 'bg-secondary'
                             }`}
                           ></span>
-                          <span className="text-[#dfe2ee] font-bold">{dr.name}</span>
-                          <span className="text-[10px] text-[#bccac0]">({dr.serviceArea})</span>
+                          <span className="text-on-surface font-bold">{dr.name}</span>
+                          <span className="text-[10px] text-on-surface-variant">
+                            ({dr.serviceArea})
+                          </span>
                         </div>
                         <StatusBadge
                           label={statusLabel(dr.availabilityStatus)}
@@ -474,17 +480,17 @@ export default function AdminLiveOpsConsolePage() {
                     ))}
                   </div>
 
-                  <div className="relative z-10 flex items-center justify-between text-[10px] font-mono text-[#bccac0] bg-[#0a0e16]/80 px-3 py-1.5 rounded-lg border border-[#262a33]">
+                  <div className="relative z-10 flex items-center justify-between text-[10px] font-mono text-on-surface-variant bg-surface-container-lowest/80 px-3 py-1.5 rounded-lg border border-surface-container-high">
                     <span>Zone: {activeCityTab.toUpperCase()}</span>
-                    <span className="text-[#68dba9]">OPERATIONAL</span>
+                    <span className="text-primary">OPERATIONAL</span>
                   </div>
                 </div>
               </div>
 
               {/* Fleet Dynamics / Pending KYC */}
-              <div className="xl:col-span-5 bg-[#181c24] rounded-2xl border border-[#262a33] p-5 flex flex-col gap-4 shadow-xl">
+              <div className="xl:col-span-5 bg-surface-container-low rounded-2xl border border-surface-container-high p-5 flex flex-col gap-4 shadow-xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold font-display text-lg text-[#dfe2ee]">
+                  <h3 className="font-bold font-display text-lg text-on-surface">
                     {t('admin.liveOps.kycPipelineTitle')}
                   </h3>
                 </div>
@@ -496,14 +502,16 @@ export default function AdminLiveOpsConsolePage() {
                     {data?.pendingKycDrivers.map((drv) => (
                       <div
                         key={drv.id}
-                        className="bg-[#0a0e16] p-3.5 rounded-xl border border-[#262a33] flex flex-col gap-2.5"
+                        className="bg-surface-container-lowest p-3.5 rounded-xl border border-surface-container-high flex flex-col gap-2.5"
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className="font-bold text-sm text-[#dfe2ee] block">
+                            <span className="font-bold text-sm text-on-surface block">
                               {drv.name}
                             </span>
-                            <span className="text-xs font-mono text-[#bccac0]">{drv.email}</span>
+                            <span className="text-xs font-mono text-on-surface-variant">
+                              {drv.email}
+                            </span>
                           </div>
                           <StatusBadge label={statusLabel(drv.onboardingStatus)} tone="warning" />
                         </div>
@@ -519,7 +527,7 @@ export default function AdminLiveOpsConsolePage() {
                                 targetId: drv.id,
                               })
                             }
-                            className="flex-1 py-1.5 bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] font-mono text-xs font-bold rounded-lg transition-colors text-center"
+                            className="flex-1 py-1.5 bg-primary hover:bg-primary-hover text-on-primary font-mono text-xs font-bold rounded-lg transition-colors text-center"
                           >
                             {t('common.actions.approve')}
                           </button>
@@ -532,17 +540,17 @@ export default function AdminLiveOpsConsolePage() {
             </div>
 
             {/* Live Operations Dispatch Log Table Section */}
-            <div className="bg-[#181c24] rounded-2xl border border-[#262a33] p-5 flex flex-col gap-4 shadow-xl">
+            <div className="bg-surface-container-low rounded-2xl border border-surface-container-high p-5 flex flex-col gap-4 shadow-xl">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#68dba9] text-2xl">
+                  <span className="material-symbols-outlined text-primary text-2xl">
                     local_taxi
                   </span>
                   <div>
-                    <h3 className="font-bold font-display text-lg text-[#dfe2ee]">
+                    <h3 className="font-bold font-display text-lg text-on-surface">
                       {t('admin.liveOps.dispatchLogTitle')}
                     </h3>
-                    <p className="text-xs text-[#bccac0]">
+                    <p className="text-xs text-on-surface-variant">
                       {t('admin.liveOps.dispatchLogSubtitle')}
                     </p>
                   </div>
@@ -554,7 +562,7 @@ export default function AdminLiveOpsConsolePage() {
                     placeholder={t('admin.liveOps.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-[#0a0e16] border border-[#262a33] rounded-lg px-3 py-1.5 text-xs text-[#dfe2ee] placeholder-[#bccac0] focus:outline-none focus:border-[#68dba9]"
+                    className="bg-surface-container-lowest border border-surface-container-high rounded-lg px-3 py-1.5 text-xs text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -564,8 +572,8 @@ export default function AdminLiveOpsConsolePage() {
                 <EmptyState icon="alt_route" message={t('common.labels.noResults')} />
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono text-[#dfe2ee]">
-                    <thead className="bg-[#0a0e16] text-[#bccac0] uppercase text-[10px] tracking-wider border-b border-[#262a33]">
+                  <table className="w-full text-left text-xs font-mono text-on-surface">
+                    <thead className="bg-surface-container-lowest text-on-surface-variant uppercase text-[10px] tracking-wider border-b border-surface-container-high">
                       <tr>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.bookingId')}</th>
                         <th className="px-4 py-3">{t('admin.liveOps.tableHeaders.customer')}</th>
@@ -583,24 +591,26 @@ export default function AdminLiveOpsConsolePage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#262a33]">
+                    <tbody className="divide-y divide-surface-container-high">
                       {filteredBookings.map((b) => (
                         <tr
                           key={b.id}
-                          className={`hover:bg-[#262a33]/40 transition-colors ${
-                            b.hasOpenSos ? 'bg-[#93000a]/10 border-l-4 border-l-red-500' : ''
+                          className={`hover:bg-surface-container-high/40 transition-colors ${
+                            b.hasOpenSos ? 'bg-error-container/10 border-l-4 border-l-red-500' : ''
                           }`}
                         >
                           <td className="px-4 py-3">
-                            <span className="font-bold text-[#dfe2ee]">{b.bookingNumber}</span>
-                            <span className="block text-[9px] text-[#bccac0]">{b.bookingType}</span>
+                            <span className="font-bold text-on-surface">{b.bookingNumber}</span>
+                            <span className="block text-[9px] text-on-surface-variant">
+                              {b.bookingType}
+                            </span>
                           </td>
-                          <td className="px-4 py-3 font-bold text-[#dfe2ee]">{b.customerName}</td>
+                          <td className="px-4 py-3 font-bold text-on-surface">{b.customerName}</td>
                           <td className="px-4 py-3">
                             {b.driverName ? (
-                              <span className="font-bold text-[#dfe2ee]">{b.driverName}</span>
+                              <span className="font-bold text-on-surface">{b.driverName}</span>
                             ) : (
-                              <span className="text-[#68dba9] animate-pulse">Broadcasting...</span>
+                              <span className="text-primary animate-pulse">Broadcasting...</span>
                             )}
                           </td>
                           <td className="px-4 py-3 max-w-[200px] truncate">
@@ -614,16 +624,16 @@ export default function AdminLiveOpsConsolePage() {
                               tone={STATUS_TONE[b.status] ?? 'neutral'}
                             />
                           </td>
-                          <td className="px-4 py-3 font-bold text-[#dfe2ee]">
+                          <td className="px-4 py-3 font-bold text-on-surface">
                             {formatCurrency(b.totalFareAmount || 0)}
                           </td>
                           <td className="px-4 py-3">
                             {b.hasOpenSos ? (
-                              <span className="bg-[#93000a] text-[#ffdad6] font-bold px-2 py-0.5 rounded text-[10px] animate-pulse">
+                              <span className="bg-error-container text-on-error-container font-bold px-2 py-0.5 rounded text-[10px] animate-pulse">
                                 SOS ALERT ({b.sosSeverity})
                               </span>
                             ) : (
-                              <span className="text-[#68dba9]">Normal</span>
+                              <span className="text-primary">Normal</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -640,7 +650,7 @@ export default function AdminLiveOpsConsolePage() {
                                       targetId: b.id,
                                     })
                                   }
-                                  className="px-2.5 py-1 bg-[#262a33] hover:bg-[#353942] text-[#68dba9] rounded text-[11px]"
+                                  className="px-2.5 py-1 bg-surface-container-high hover:bg-surface-bright text-primary rounded text-[11px]"
                                 >
                                   {t('admin.liveOps.actions.restartSearch')}
                                 </button>
@@ -656,7 +666,7 @@ export default function AdminLiveOpsConsolePage() {
                                       targetId: b.id,
                                     })
                                   }
-                                  className="px-2.5 py-1 bg-[#262a33] hover:bg-[#353942] text-[#b4c5ff] rounded text-[11px]"
+                                  className="px-2.5 py-1 bg-surface-container-high hover:bg-surface-bright text-secondary rounded text-[11px]"
                                 >
                                   {t('admin.liveOps.actions.reassign')}
                                 </button>
@@ -673,7 +683,7 @@ export default function AdminLiveOpsConsolePage() {
                                     targetId: b.id,
                                   })
                                 }
-                                className="px-2.5 py-1 bg-[#93000a]/80 hover:bg-[#93000a] text-[#ffdad6] rounded text-[11px]"
+                                className="px-2.5 py-1 bg-error-container/80 hover:bg-error-container text-on-error-container rounded text-[11px]"
                               >
                                 {t('common.actions.cancel')}
                               </button>

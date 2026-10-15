@@ -92,7 +92,7 @@ export default function AdminOutboxHealthPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -128,7 +128,7 @@ export default function AdminOutboxHealthPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Dead-Letter Queue
               </h2>
               {deadLetter.length === 0 ? (
@@ -138,21 +138,21 @@ export default function AdminOutboxHealthPage() {
                   {deadLetter.map((event) => (
                     <div
                       key={event.id}
-                      className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4 flex-wrap"
+                      className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high flex items-center justify-between gap-4 flex-wrap"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#dfe2ee]">
+                          <span className="text-sm font-bold text-on-surface">
                             {event.eventType}
                           </span>
-                          <span className="text-[10px] font-mono text-[#87948b]">
+                          <span className="text-[10px] font-mono text-outline">
                             {event.attempts} attempts
                           </span>
                         </div>
-                        <p className="text-xs text-[#ffb4ab] truncate">
+                        <p className="text-xs text-error truncate">
                           {event.lastError ?? 'No error recorded'}
                         </p>
-                        <span className="text-[10px] font-mono text-[#87948b]">
+                        <span className="text-[10px] font-mono text-outline">
                           {event.aggregateType}:{event.aggregateId} •{' '}
                           {formatDateTime(event.createdAt)}
                         </span>
@@ -161,7 +161,7 @@ export default function AdminOutboxHealthPage() {
                         type="button"
                         disabled={requeuing === event.id}
                         onClick={() => void handleRequeue(event.id)}
-                        className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] disabled:opacity-50 transition-colors shrink-0"
+                        className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-border text-xs font-bold text-on-surface disabled:opacity-50 transition-colors shrink-0"
                       >
                         {requeuing === event.id ? 'Requeuing…' : 'Requeue'}
                       </button>

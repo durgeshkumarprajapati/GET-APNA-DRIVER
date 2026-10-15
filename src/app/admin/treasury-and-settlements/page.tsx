@@ -72,13 +72,13 @@ export default function AdminTreasuryAndSettlementsPage() {
           <>
             <Link
               href="/admin/settlements"
-              className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+              className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-border text-xs font-bold text-on-surface transition-colors"
             >
               Manage Settlements →
             </Link>
             <Link
               href="/admin/vault"
-              className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+              className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-border text-xs font-bold text-on-surface transition-colors"
             >
               View Ledger Vault →
             </Link>
@@ -87,7 +87,7 @@ export default function AdminTreasuryAndSettlementsPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -127,7 +127,7 @@ export default function AdminTreasuryAndSettlementsPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Settlement Pipeline
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

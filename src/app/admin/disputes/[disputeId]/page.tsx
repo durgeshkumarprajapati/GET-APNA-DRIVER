@@ -150,7 +150,7 @@ export default function AdminDisputeDetailPage({
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-slate-500">
+      <div className="p-12 text-center text-outline">
         <span className="material-symbols-outlined animate-spin text-3xl">progress_activity</span>
       </div>
     );
@@ -158,11 +158,11 @@ export default function AdminDisputeDetailPage({
 
   if (!dispute) {
     return (
-      <div className="p-12 text-center text-slate-400">
+      <div className="p-12 text-center text-on-surface-variant">
         <p>Dispute not found.</p>
         <Link
           href="/admin/sos-and-disputes"
-          className="text-emerald-400 hover:underline mt-4 inline-block"
+          className="text-primary hover:underline mt-4 inline-block"
         >
           ← Back to Console
         </Link>
@@ -175,7 +175,7 @@ export default function AdminDisputeDetailPage({
       <div className="flex items-center justify-between">
         <Link
           href="/admin/sos-and-disputes"
-          className="text-sm font-semibold text-slate-400 hover:text-white flex items-center gap-1"
+          className="text-sm font-semibold text-on-surface-variant hover:text-white flex items-center gap-1"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Back to SOS & Dispute Console
@@ -183,21 +183,21 @@ export default function AdminDisputeDetailPage({
       </div>
 
       {toastMsg && (
-        <div className="bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-on-primary-container/80 border border-primary/50 text-primary px-4 py-3 rounded-xl text-sm">
           {toastMsg}
         </div>
       )}
 
       {/* Dispute Details Card */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="bg-surface-container-low/80 border border-surface-container-high rounded-2xl p-6 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-container-high pb-4">
           <div>
-            <div className="text-xs uppercase tracking-wider font-mono text-emerald-400 font-semibold">
+            <div className="text-xs uppercase tracking-wider font-mono text-primary font-semibold">
               Booking Dispute Ticket
             </div>
             <h1 className="text-2xl font-bold font-mono text-white flex items-center gap-3 mt-1">
               {dispute.disputeNumber}
-              <span className="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full font-sans font-semibold">
+              <span className="bg-surface-container-high text-on-surface-variant text-xs px-3 py-1 rounded-full font-sans font-semibold">
                 Status: {dispute.status}
               </span>
             </h1>
@@ -207,13 +207,13 @@ export default function AdminDisputeDetailPage({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleStatusChange('UNDER_REVIEW')}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm transition"
+                className="px-3 py-2 bg-surface-container-high hover:bg-border text-on-surface font-semibold rounded-xl text-sm transition"
               >
                 Under Review
               </button>
               <button
                 onClick={() => handleStatusChange('ESCALATED')}
-                className="px-3 py-2 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 font-semibold rounded-xl text-sm transition"
+                className="px-3 py-2 bg-suspend/30 hover:bg-suspend/50 text-on-suspend-container border border-suspend/40 font-semibold rounded-xl text-sm transition"
               >
                 Escalate
               </button>
@@ -223,39 +223,37 @@ export default function AdminDisputeDetailPage({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
           <div className="space-y-1">
-            <span className="text-slate-500 text-xs uppercase font-semibold">Category</span>
-            <p className="text-slate-200 font-medium">{dispute.category.replace(/_/g, ' ')}</p>
+            <span className="text-outline text-xs uppercase font-semibold">Category</span>
+            <p className="text-on-surface font-medium">{dispute.category.replace(/_/g, ' ')}</p>
           </div>
           <div className="space-y-1">
-            <span className="text-slate-500 text-xs uppercase font-semibold">Created At</span>
-            <p className="text-slate-200 font-mono text-xs">
+            <span className="text-outline text-xs uppercase font-semibold">Created At</span>
+            <p className="text-on-surface font-mono text-xs">
               {new Date(dispute.createdAt).toLocaleString()}
             </p>
           </div>
           <div className="space-y-1">
-            <span className="text-slate-500 text-xs uppercase font-semibold">Booking ID</span>
-            <p className="text-slate-200 font-mono text-xs">{dispute.bookingId}</p>
+            <span className="text-outline text-xs uppercase font-semibold">Booking ID</span>
+            <p className="text-on-surface font-mono text-xs">{dispute.bookingId}</p>
           </div>
         </div>
 
-        <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-          <span className="text-slate-500 text-xs uppercase font-semibold block mb-1">
+        <div className="bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high">
+          <span className="text-outline text-xs uppercase font-semibold block mb-1">
             Dispute Reason
           </span>
-          <p className="text-slate-300 text-sm">{dispute.reason}</p>
+          <p className="text-on-surface-variant text-sm">{dispute.reason}</p>
         </div>
 
         {/* Existing Financial Result if Resolved */}
         {dispute.resolutionSummary && (
-          <div className="bg-emerald-950/40 p-4 rounded-xl border border-emerald-500/30 space-y-2">
-            <span className="text-emerald-400 text-xs uppercase font-semibold block">
+          <div className="bg-on-primary-container/40 p-4 rounded-xl border border-primary/30 space-y-2">
+            <span className="text-primary text-xs uppercase font-semibold block">
               Resolution Outcome
             </span>
-            <p className="text-slate-200 text-sm">{dispute.resolutionSummary}</p>
+            <p className="text-on-surface text-sm">{dispute.resolutionSummary}</p>
             {dispute.financialAdjustmentSummary && (
-              <p className="text-emerald-300 text-xs font-mono">
-                {dispute.financialAdjustmentSummary}
-              </p>
+              <p className="text-primary text-xs font-mono">{dispute.financialAdjustmentSummary}</p>
             )}
           </div>
         )}
@@ -265,16 +263,16 @@ export default function AdminDisputeDetailPage({
       {dispute.status !== 'RESOLVED' && (
         <form
           onSubmit={handleResolve}
-          className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4"
+          className="bg-surface-container-low/80 border border-surface-container-high rounded-2xl p-6 space-y-4"
         >
-          <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-400">payments</span>
+          <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">payments</span>
             Financial Resolution & Settlement Form
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-slate-400 font-semibold block mb-1">
+              <label className="text-xs text-on-surface-variant font-semibold block mb-1">
                 Customer Refund Amount (₹ INR) — Optional
               </label>
               <input
@@ -284,16 +282,16 @@ export default function AdminDisputeDetailPage({
                 placeholder="e.g. 250.00 (Leave empty if zero refund)"
                 value={refundRupees}
                 onChange={(e) => setRefundRupees(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 font-mono"
+                className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary font-mono"
               />
-              <span className="text-xs text-slate-500 mt-1 block">
+              <span className="text-xs text-outline mt-1 block">
                 Submitting a refund amount invokes existing finance double-entry refund services
                 safely.
               </span>
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 font-semibold block mb-1">
+              <label className="text-xs text-on-surface-variant font-semibold block mb-1">
                 Resolution Summary (Required)
               </label>
               <textarea
@@ -302,14 +300,14 @@ export default function AdminDisputeDetailPage({
                 placeholder="Describe the final decision, customer support explanation, and financial adjustments..."
                 value={resolutionSummary}
                 onChange={(e) => setResolutionSummary(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary"
               />
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-emerald-900/40"
+                className="px-6 py-2.5 bg-primary-container hover:bg-primary text-white font-bold rounded-xl text-sm transition shadow-lg shadow-emerald-900/40"
               >
                 Confirm & Resolve Dispute
               </button>
@@ -319,21 +317,25 @@ export default function AdminDisputeDetailPage({
       )}
 
       {/* Dispute Logs */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-          <span className="material-symbols-outlined text-slate-400">format_list_bulleted</span>
+      <div className="bg-surface-container-low/80 border border-surface-container-high rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+          <span className="material-symbols-outlined text-on-surface-variant">
+            format_list_bulleted
+          </span>
           Dispute Audit & Activity History
         </h2>
 
-        <div className="relative border-l-2 border-slate-800 pl-6 ml-3 space-y-6">
+        <div className="relative border-l-2 border-surface-container-high pl-6 ml-3 space-y-6">
           {dispute.logs.map((entry) => (
             <div key={entry.id} className="relative">
-              <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-emerald-500 border-4 border-slate-900" />
-              <div className="text-xs font-mono text-slate-500">
+              <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-primary border-4 border-surface-container-low" />
+              <div className="text-xs font-mono text-outline">
                 {new Date(entry.createdAt).toLocaleString()}
               </div>
-              <div className="text-sm font-semibold text-slate-200 mt-0.5">{entry.action}</div>
-              {entry.notes && <div className="text-xs text-slate-400 mt-1">{entry.notes}</div>}
+              <div className="text-sm font-semibold text-on-surface mt-0.5">{entry.action}</div>
+              {entry.notes && (
+                <div className="text-xs text-on-surface-variant mt-1">{entry.notes}</div>
+              )}
             </div>
           ))}
         </div>

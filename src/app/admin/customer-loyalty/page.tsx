@@ -171,29 +171,29 @@ export default function AdminCustomerLoyaltyPage() {
       {/* TOP HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono font-bold tracking-widest text-[#68dba9] uppercase">
+          <span className="text-[10px] font-mono font-bold tracking-widest text-primary uppercase">
             {t('admin.loyalty.eyebrow')}
           </span>
-          <h1 className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+          <h1 className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
             {t('admin.loyalty.title')}
           </h1>
-          <p className="text-xs text-[#bccac0] mt-1">{t('admin.loyalty.subtitle')}</p>
+          <p className="text-xs text-on-surface-variant mt-1">{t('admin.loyalty.subtitle')}</p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setAdjustModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-[#1c2028] hover:bg-[#262a33] border border-[#262a33] text-[#dfe2ee] text-xs font-mono font-bold transition-colors flex items-center gap-2"
+            className="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high border border-surface-container-high text-on-surface text-xs font-mono font-bold transition-colors flex items-center gap-2"
           >
-            <span className="material-symbols-outlined text-sm text-[#68dba9]">tune</span>
+            <span className="material-symbols-outlined text-sm text-primary">tune</span>
             <span>{t('admin.loyalty.adjustPoints')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setCreateModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#208e65] text-[#00311f] text-xs font-mono font-bold transition-all flex items-center gap-2 shadow-lg shadow-[#25a475]/20"
+            className="px-4 py-2 rounded-xl bg-primary-container hover:bg-primary-container text-on-primary-container text-xs font-mono font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary-container/20"
           >
             <span className="material-symbols-outlined text-sm">add</span>
             <span>{t('admin.loyalty.createReward')}</span>
@@ -202,7 +202,7 @@ export default function AdminCustomerLoyaltyPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-950/50 border border-red-500/50 text-red-300 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-error-container/50 border border-error/50 text-on-error-container text-xs flex items-center justify-between">
           <span className="flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">warning</span>
             <span>{error}</span>
@@ -213,7 +213,7 @@ export default function AdminCustomerLoyaltyPage() {
               setError(null);
               setRefreshKey((k) => k + 1);
             }}
-            className="px-3 py-1 bg-red-900/60 hover:bg-red-800/80 text-white rounded font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
+            className="px-3 py-1 bg-error-container/60 hover:bg-error/80 text-white rounded font-mono text-[11px] font-bold transition-colors flex items-center gap-1"
           >
             <span className="material-symbols-outlined text-xs">refresh</span>
             <span>{t('common.actions.retry') || 'Retry'}</span>
@@ -222,34 +222,34 @@ export default function AdminCustomerLoyaltyPage() {
       )}
 
       {/* REWARDS CATALOG TABLE */}
-      <div className="bg-[#141822] border border-[#262a33] rounded-2xl overflow-hidden shadow-2xl">
-        <div className="px-6 py-4 border-b border-[#262a33] flex items-center justify-between">
-          <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+      <div className="bg-surface-container-lowest border border-surface-container-high rounded-2xl overflow-hidden shadow-2xl">
+        <div className="px-6 py-4 border-b border-surface-container-high flex items-center justify-between">
+          <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
             Customer Reward Catalog
           </h2>
-          <span className="text-xs text-[#bccac0] font-mono">
+          <span className="text-xs text-on-surface-variant font-mono">
             {rewards.length} rewards configured
           </span>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-[#bccac0] text-xs font-mono animate-pulse flex items-center justify-center gap-2">
+          <div className="p-12 text-center text-on-surface-variant text-xs font-mono animate-pulse flex items-center justify-center gap-2">
             <span className="material-symbols-outlined animate-spin text-sm">sync</span>
             <span>{t('common.labels.loading')}</span>
           </div>
         ) : error ? (
-          <div className="p-12 text-center text-red-400 text-xs font-mono">
+          <div className="p-12 text-center text-on-error-container text-xs font-mono">
             Failed to load rewards. Please click Retry above.
           </div>
         ) : rewards.length === 0 ? (
-          <div className="p-12 text-center text-[#bccac0] text-xs font-mono">
+          <div className="p-12 text-center text-on-surface-variant text-xs font-mono">
             {t('admin.loyalty.noRewards')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#262a33] bg-[#0a0e16]/60 text-[11px] font-mono text-[#bccac0] uppercase tracking-wider">
+                <tr className="border-b border-surface-container-high bg-surface-container-lowest/60 text-[11px] font-mono text-on-surface-variant uppercase tracking-wider">
                   <th className="p-4">Reward Code</th>
                   <th className="p-4">Title</th>
                   <th className="p-4">Type & Discount</th>
@@ -259,28 +259,28 @@ export default function AdminCustomerLoyaltyPage() {
                   <th className="p-4">Redemptions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] text-xs font-mono">
+              <tbody className="divide-y divide-surface-container-high text-xs font-mono">
                 {rewards.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#1c2028] transition-colors">
-                    <td className="p-4 font-bold text-[#68dba9] select-all">{r.rewardCode}</td>
-                    <td className="p-4 text-[#dfe2ee]">
+                  <tr key={r.id} className="hover:bg-surface-container transition-colors">
+                    <td className="p-4 font-bold text-primary select-all">{r.rewardCode}</td>
+                    <td className="p-4 text-on-surface">
                       <div className="font-bold">{r.title}</div>
                       {r.description && (
-                        <div className="text-[11px] text-[#87948b] truncate max-w-xs">
+                        <div className="text-[11px] text-outline truncate max-w-xs">
                           {r.description}
                         </div>
                       )}
                     </td>
-                    <td className="p-4 text-[#bccac0]">
-                      <span className="px-2 py-0.5 rounded bg-[#1e2330] border border-[#262a33] text-[10px] font-bold">
+                    <td className="p-4 text-on-surface-variant">
+                      <span className="px-2 py-0.5 rounded bg-surface-container border border-surface-container-high text-[10px] font-bold">
                         {r.discountType === 'PERCENTAGE'
                           ? `${r.discountValue}% OFF`
                           : `₹${r.discountValue} OFF`}
                       </span>
                     </td>
-                    <td className="p-4 font-bold text-[#dfe2ee]">{r.pointsCost} PTS</td>
+                    <td className="p-4 font-bold text-on-surface">{r.pointsCost} PTS</td>
                     <td className="p-4">
-                      <span className="px-2 py-0.5 rounded bg-purple-950/40 border border-purple-500/30 text-purple-300 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded bg-suspend-container/40 border border-suspend/30 text-on-suspend-container text-[10px] font-bold">
                         {r.minTierCode}
                       </span>
                     </td>
@@ -288,14 +288,16 @@ export default function AdminCustomerLoyaltyPage() {
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                           r.active
-                            ? 'bg-emerald-950/60 border border-emerald-500/50 text-emerald-300'
-                            : 'bg-rose-950/60 border border-rose-500/50 text-rose-300'
+                            ? 'bg-on-primary-container/60 border border-primary/50 text-primary'
+                            : 'bg-error-container/60 border border-error/50 text-on-error-container'
                         }`}
                       >
                         {r.active ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
-                    <td className="p-4 text-[#bccac0]">{r.currentRedemptionsCount} redemptions</td>
+                    <td className="p-4 text-on-surface-variant">
+                      {r.currentRedemptionsCount} redemptions
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -306,31 +308,31 @@ export default function AdminCustomerLoyaltyPage() {
 
       {/* MANUAL ADJUSTMENT MODAL */}
       {adjustModalOpen && (
-        <div className="fixed inset-0 bg-[#0a0e16]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9]">tune</span>
+        <div className="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest border border-surface-container-high rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">tune</span>
                 {t('admin.loyalty.adjustPoints')}
               </h3>
               <button
                 type="button"
                 onClick={() => setAdjustModalOpen(false)}
-                className="text-[#bccac0] hover:text-[#dfe2ee]"
+                className="text-on-surface-variant hover:text-on-surface"
               >
                 ✕
               </button>
             </div>
 
             {adjustSuccess && (
-              <div className="p-3 bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs rounded-xl font-mono">
+              <div className="p-3 bg-on-primary-container/60 border border-primary/50 text-primary text-xs rounded-xl font-mono">
                 {adjustSuccess}
               </div>
             )}
 
             <form onSubmit={handleAdjustPoints} className="space-y-4">
               <div>
-                <label className="block text-xs font-mono text-[#bccac0] mb-1">
+                <label className="block text-xs font-mono text-on-surface-variant mb-1">
                   {t('admin.loyalty.customerEmail')}
                 </label>
                 <input
@@ -339,12 +341,12 @@ export default function AdminCustomerLoyaltyPage() {
                   value={adjustCustomer}
                   onChange={(e) => setAdjustCustomer(e.target.value)}
                   placeholder="User ID or email address"
-                  className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
+                  className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-[#bccac0] mb-1">
+                <label className="block text-xs font-mono text-on-surface-variant mb-1">
                   {t('admin.loyalty.amount')}
                 </label>
                 <input
@@ -353,12 +355,12 @@ export default function AdminCustomerLoyaltyPage() {
                   value={adjustPoints}
                   onChange={(e) => setAdjustPoints(Number(e.target.value))}
                   placeholder="e.g. 500 or -200"
-                  className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
+                  className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-[#bccac0] mb-1">
+                <label className="block text-xs font-mono text-on-surface-variant mb-1">
                   {t('admin.loyalty.reason')}
                 </label>
                 <input
@@ -367,7 +369,7 @@ export default function AdminCustomerLoyaltyPage() {
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
                   placeholder="e.g. Compensation for service delay"
-                  className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:ring-2 focus:ring-[#68dba9]"
+                  className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
@@ -375,14 +377,14 @@ export default function AdminCustomerLoyaltyPage() {
                 <button
                   type="button"
                   onClick={() => setAdjustModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#181c24] border border-[#262a33] text-xs font-mono text-[#bccac0] hover:text-[#dfe2ee]"
+                  className="px-4 py-2 rounded-xl bg-surface-container-low border border-surface-container-high text-xs font-mono text-on-surface-variant hover:text-on-surface"
                 >
                   {t('common.actions.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={adjusting}
-                  className="px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#208e65] text-[#00311f] text-xs font-mono font-bold transition-all disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-primary-container hover:bg-primary-container text-on-primary-container text-xs font-mono font-bold transition-all disabled:opacity-50"
                 >
                   {adjusting ? t('admin.loyalty.adjusting') : t('admin.loyalty.submitAdjustment')}
                 </button>
@@ -394,17 +396,17 @@ export default function AdminCustomerLoyaltyPage() {
 
       {/* CREATE REWARD MODAL */}
       {createModalOpen && (
-        <div className="fixed inset-0 bg-[#0a0e16]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#141822] border border-[#262a33] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-              <h3 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9]">add_card</span>
+        <div className="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest border border-surface-container-high rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+              <h3 className="text-base font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">add_card</span>
                 {t('admin.loyalty.createReward')}
               </h3>
               <button
                 type="button"
                 onClick={() => setCreateModalOpen(false)}
-                className="text-[#bccac0] hover:text-[#dfe2ee]"
+                className="text-on-surface-variant hover:text-on-surface"
               >
                 ✕
               </button>
@@ -413,7 +415,7 @@ export default function AdminCustomerLoyaltyPage() {
             <form onSubmit={handleCreateReward} className="space-y-4 text-xs font-mono">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#bccac0] mb-1">Reward Code</label>
+                  <label className="block text-on-surface-variant mb-1">Reward Code</label>
                   <input
                     type="text"
                     required
@@ -422,12 +424,12 @@ export default function AdminCustomerLoyaltyPage() {
                       setRewardForm({ ...rewardForm, rewardCode: e.target.value.toUpperCase() })
                     }
                     placeholder="e.g. REWARD_100_OFF"
-                    className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#bccac0] mb-1">
+                  <label className="block text-on-surface-variant mb-1">
                     {t('admin.loyalty.rewardTitle')}
                   </label>
                   <input
@@ -436,25 +438,25 @@ export default function AdminCustomerLoyaltyPage() {
                     value={rewardForm.title}
                     onChange={(e) => setRewardForm({ ...rewardForm, title: e.target.value })}
                     placeholder="e.g. ₹100 Off Chauffeur Booking"
-                    className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#bccac0] mb-1">Description</label>
+                <label className="block text-on-surface-variant mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={rewardForm.description}
                   onChange={(e) => setRewardForm({ ...rewardForm, description: e.target.value })}
                   placeholder="Short description for customer catalog..."
-                  className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                  className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#bccac0] mb-1">
+                  <label className="block text-on-surface-variant mb-1">
                     {t('admin.loyalty.pointsCost')}
                   </label>
                   <input
@@ -465,16 +467,18 @@ export default function AdminCustomerLoyaltyPage() {
                     onChange={(e) =>
                       setRewardForm({ ...rewardForm, pointsCost: Number(e.target.value) })
                     }
-                    className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#bccac0] mb-1">{t('admin.loyalty.minTier')}</label>
+                  <label className="block text-on-surface-variant mb-1">
+                    {t('admin.loyalty.minTier')}
+                  </label>
                   <select
                     value={rewardForm.minTierCode}
                     onChange={(e) => setRewardForm({ ...rewardForm, minTierCode: e.target.value })}
-                    className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                   >
                     <option value="BRONZE">BRONZE</option>
                     <option value="SILVER">SILVER</option>
@@ -486,11 +490,11 @@ export default function AdminCustomerLoyaltyPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#bccac0] mb-1">Discount Type</label>
+                  <label className="block text-on-surface-variant mb-1">Discount Type</label>
                   <select
                     value={rewardForm.discountType}
                     onChange={(e) => setRewardForm({ ...rewardForm, discountType: e.target.value })}
-                    className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                   >
                     <option value="FLAT_AMOUNT">FLAT AMOUNT (₹)</option>
                     <option value="PERCENTAGE">PERCENTAGE (%)</option>
@@ -498,7 +502,7 @@ export default function AdminCustomerLoyaltyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#bccac0] mb-1">
+                  <label className="block text-on-surface-variant mb-1">
                     {t('admin.loyalty.discountValue')}
                   </label>
                   <input
@@ -509,7 +513,7 @@ export default function AdminCustomerLoyaltyPage() {
                     onChange={(e) =>
                       setRewardForm({ ...rewardForm, discountValue: Number(e.target.value) })
                     }
-                    className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl px-3.5 py-2 text-[#dfe2ee] focus:ring-2 focus:ring-[#68dba9]"
+                    className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl px-3.5 py-2 text-on-surface focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -520,9 +524,9 @@ export default function AdminCustomerLoyaltyPage() {
                   id="singleUse"
                   checked={rewardForm.singleUse}
                   onChange={(e) => setRewardForm({ ...rewardForm, singleUse: e.target.checked })}
-                  className="rounded border-[#262a33] text-[#25a475] focus:ring-0"
+                  className="rounded border-surface-container-high text-primary-container focus:ring-0"
                 />
-                <label htmlFor="singleUse" className="text-[#dfe2ee]">
+                <label htmlFor="singleUse" className="text-on-surface">
                   Single-use per customer
                 </label>
               </div>
@@ -531,14 +535,14 @@ export default function AdminCustomerLoyaltyPage() {
                 <button
                   type="button"
                   onClick={() => setCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#181c24] border border-[#262a33] text-[#bccac0] hover:text-[#dfe2ee]"
+                  className="px-4 py-2 rounded-xl bg-surface-container-low border border-surface-container-high text-on-surface-variant hover:text-on-surface"
                 >
                   {t('common.actions.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-4 py-2 rounded-xl bg-[#25a475] hover:bg-[#208e65] text-[#00311f] font-bold transition-all disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-primary-container hover:bg-primary-container text-on-primary-container font-bold transition-all disabled:opacity-50"
                 >
                   {creating ? t('common.labels.saving') : t('common.actions.save')}
                 </button>

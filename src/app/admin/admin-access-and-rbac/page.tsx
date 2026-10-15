@@ -119,67 +119,67 @@ export default function AdminAccessAndRBACPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
-        <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+      <div className="bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high">
+        <div className="flex items-center gap-2 text-xs font-mono text-primary">
           <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
           <span>ROLE-BASED ACCESS CONTROL</span>
         </div>
-        <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+        <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
           Admin Access &amp; RBAC
         </h1>
       </div>
 
       {message && (
         <div
-          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-[#00311f]/50 border-[#25a475] text-[#68dba9]' : 'bg-[#93000a]/20 border-[#93000a] text-[#ffb4ab]'}`}
+          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-on-primary-container/50 border-primary-container text-primary' : 'bg-error-container/20 border-error-container text-error'}`}
         >
           <p className="text-sm font-medium">{message.text}</p>
         </div>
       )}
 
       {/* Role Catalog */}
-      <section className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
-        <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk'] mb-1">
+      <section className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
+        <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk'] mb-1">
           Role Catalog
         </h2>
-        <p className="text-xs text-[#87948b] mb-4">
+        <p className="text-xs text-outline mb-4">
           Read-only. Which permissions each role grants is fixed at seed time, not editable through
           this screen.
         </p>
         {!catalog ? (
-          <p className="text-[#87948b] text-sm">Loading roles…</p>
+          <p className="text-outline text-sm">Loading roles…</p>
         ) : (
           <div className="space-y-2">
             {catalog.roles.map((role) => (
               <div
                 key={role.code}
-                className="rounded-lg border border-[#262a33] bg-[#181c24] overflow-hidden"
+                className="rounded-lg border border-surface-container-high bg-surface-container-low overflow-hidden"
               >
                 <button
                   type="button"
                   onClick={() => setExpandedRole(expandedRole === role.code ? null : role.code)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#1c2028] transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-container transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#dfe2ee] text-sm">{role.name}</span>
-                    <span className="text-[10px] font-mono text-[#87948b]">{role.code}</span>
+                    <span className="font-bold text-on-surface text-sm">{role.name}</span>
+                    <span className="text-[10px] font-mono text-outline">{role.code}</span>
                     {role.isSystem && (
-                      <span className="px-1.5 py-0.5 rounded bg-[#262a33] text-[#68dba9] text-[9px] font-bold">
+                      <span className="px-1.5 py-0.5 rounded bg-surface-container-high text-primary text-[9px] font-bold">
                         SYSTEM
                       </span>
                     )}
                   </div>
-                  <span className="text-xs font-mono text-[#87948b]">
+                  <span className="text-xs font-mono text-outline">
                     {role.permissions.length} permission{role.permissions.length === 1 ? '' : 's'}
                   </span>
                 </button>
                 {expandedRole === role.code && (
-                  <div className="px-4 py-3 border-t border-[#262a33] bg-[#0a0e16] flex flex-wrap gap-1.5">
+                  <div className="px-4 py-3 border-t border-surface-container-high bg-surface-container-lowest flex flex-wrap gap-1.5">
                     {role.permissions.map((permission) => (
                       <span
                         key={permission.code}
                         title={permission.description ?? undefined}
-                        className="px-2 py-0.5 rounded bg-[#262a33] text-[#bccac0] font-mono text-[10px]"
+                        className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono text-[10px]"
                       >
                         {permission.code}
                       </span>
@@ -193,9 +193,9 @@ export default function AdminAccessAndRBACPage() {
       </section>
 
       {/* User Role Assignment */}
-      <section className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+      <section className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+          <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
             User Role Assignment
           </h2>
           <input
@@ -206,51 +206,51 @@ export default function AdminAccessAndRBACPage() {
               setPage(1);
             }}
             placeholder="Search by email or phone..."
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
           />
         </div>
 
         {loadingUsers ? (
-          <p className="text-[#87948b] text-sm py-8 text-center">Loading users…</p>
+          <p className="text-outline text-sm py-8 text-center">Loading users…</p>
         ) : !users || users.users.length === 0 ? (
           <EmptyState icon="group" message="No users found." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs border-collapse">
               <thead>
-                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                   <th className="py-3 px-4">User</th>
                   <th className="py-3 px-4">Account</th>
                   <th className="py-3 px-4">Roles</th>
                   <th className="py-3 px-4 text-right">Assign</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] font-mono">
+              <tbody className="divide-y divide-surface-container-high font-mono">
                 {users.users.map((user) => (
-                  <tr key={user.id} className="hover:bg-[#181c24]/60 transition-colors">
+                  <tr key={user.id} className="hover:bg-surface-container-low/60 transition-colors">
                     <td className="py-3 px-4">
-                      <span className="text-[#dfe2ee]">{user.email ?? '—'}</span>
+                      <span className="text-on-surface">{user.email ?? '—'}</span>
                       {user.phoneNumber && (
-                        <span className="block text-[10px] text-[#87948b]">{user.phoneNumber}</span>
+                        <span className="block text-[10px] text-outline">{user.phoneNumber}</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-[#87948b]">{user.accountStatus}</td>
+                    <td className="py-3 px-4 text-outline">{user.accountStatus}</td>
                     <td className="py-3 px-4">
                       <div className="flex flex-wrap gap-1.5">
                         {user.roles.length === 0 ? (
-                          <span className="text-[#87948b]">—</span>
+                          <span className="text-outline">—</span>
                         ) : (
                           user.roles.map((role) => (
                             <span
                               key={role.code}
-                              className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#262a33] text-[#68dba9] text-[10px] font-bold"
+                              className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-primary text-[10px] font-bold"
                             >
                               {role.name}
                               <button
                                 type="button"
                                 onClick={() => revokeRole(user.id, role.code)}
                                 title={`Revoke ${role.name}`}
-                                className="text-[#ffb4ab] hover:text-[#ffdad6]"
+                                className="text-error hover:text-on-error-container"
                               >
                                 ×
                               </button>
@@ -266,7 +266,7 @@ export default function AdminAccessAndRBACPage() {
                           onChange={(e) =>
                             setSelectedRole((prev) => ({ ...prev, [user.id]: e.target.value }))
                           }
-                          className="h-8 px-2 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] text-xs focus:outline-none focus:border-[#68dba9]"
+                          className="h-8 px-2 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface text-xs focus:outline-none focus:border-primary"
                         >
                           <option value="">Select role…</option>
                           {catalog?.roles.map((role) => (
@@ -279,7 +279,7 @@ export default function AdminAccessAndRBACPage() {
                           type="button"
                           disabled={!selectedRole[user.id]}
                           onClick={() => assignRole(user.id)}
-                          className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-40 text-[#00311f] font-bold rounded-lg text-[11px]"
+                          className="px-3 py-1.5 bg-primary-container hover:bg-primary disabled:opacity-40 text-on-primary-container font-bold rounded-lg text-[11px]"
                         >
                           Assign
                         </button>
@@ -293,7 +293,7 @@ export default function AdminAccessAndRBACPage() {
         )}
 
         {users && users.total > 0 && (
-          <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+          <div className="flex items-center justify-between mt-4 text-xs text-outline">
             <span>
               Page {users.page} of {totalPages}
             </span>
@@ -302,7 +302,7 @@ export default function AdminAccessAndRBACPage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Previous
               </button>
@@ -310,7 +310,7 @@ export default function AdminAccessAndRBACPage() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Next
               </button>

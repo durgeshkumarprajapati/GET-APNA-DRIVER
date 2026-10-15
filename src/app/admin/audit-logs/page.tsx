@@ -59,16 +59,16 @@ export default function AuditLogsPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+          <div className="flex items-center gap-2 text-xs font-mono text-primary">
             <span className="material-symbols-outlined text-[16px]">history_edu</span>
             <span>IMMUTABLE SYSTEM AUDIT TRAIL</span>
           </div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
             Audit Logs
           </h1>
-          <p className="text-xs text-[#87948b] mt-0.5">
+          <p className="text-xs text-outline mt-0.5">
             {data ? `${data.total} record${data.total === 1 ? '' : 's'}` : '—'} · append-only,
             read-only
           </p>
@@ -83,7 +83,7 @@ export default function AuditLogsPage() {
               setPage(1);
             }}
             placeholder="Entity type (e.g. DriverProfile)"
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
           />
           <input
             type="text"
@@ -93,29 +93,29 @@ export default function AuditLogsPage() {
               setPage(1);
             }}
             placeholder="Action (e.g. driver.profile.updated)"
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
           />
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+      <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">Loading audit log…</div>
+          <div className="py-16 text-center text-outline text-sm">Loading audit log…</div>
         ) : !data || data.entries.length === 0 ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">
+          <div className="py-16 text-center text-outline text-sm">
             No audit records match the current filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs border-collapse">
               <thead>
-                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                   <th className="py-3 px-4">Timestamp</th>
                   <th className="py-3 px-4">Action</th>
                   <th className="py-3 px-4">Entity</th>
@@ -123,24 +123,24 @@ export default function AuditLogsPage() {
                   <th className="py-3 px-4"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] font-mono">
+              <tbody className="divide-y divide-surface-container-high font-mono">
                 {data.entries.map((entry) => (
                   <Fragment key={entry.id}>
-                    <tr className="hover:bg-[#181c24]/60 transition-colors">
-                      <td className="py-3 px-4 text-[#bccac0]">
+                    <tr className="hover:bg-surface-container-low/60 transition-colors">
+                      <td className="py-3 px-4 text-on-surface-variant">
                         {new Date(entry.createdAt).toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-[#dfe2ee] font-bold">{entry.action}</td>
-                      <td className="py-3 px-4 text-[#bccac0]">
+                      <td className="py-3 px-4 text-on-surface font-bold">{entry.action}</td>
+                      <td className="py-3 px-4 text-on-surface-variant">
                         {entry.entityType}
-                        <span className="block text-[10px] text-[#87948b]">{entry.entityId}</span>
+                        <span className="block text-[10px] text-outline">{entry.entityId}</span>
                       </td>
-                      <td className="py-3 px-4 text-[#87948b]">{entry.actorUserId ?? 'system'}</td>
+                      <td className="py-3 px-4 text-outline">{entry.actorUserId ?? 'system'}</td>
                       <td className="py-3 px-4 text-right">
                         <button
                           type="button"
                           onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                          className="px-2.5 py-1 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] rounded text-[11px]"
+                          className="px-2.5 py-1 bg-surface-container-high hover:bg-surface-bright text-on-surface rounded text-[11px]"
                         >
                           {expandedId === entry.id ? 'Hide' : 'Details'}
                         </button>
@@ -148,23 +148,23 @@ export default function AuditLogsPage() {
                     </tr>
                     {expandedId === entry.id && (
                       <tr>
-                        <td colSpan={5} className="bg-[#181c24] p-4">
+                        <td colSpan={5} className="bg-surface-container-low p-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
                             <div>
-                              <span className="text-[#87948b] uppercase font-bold block mb-1">
+                              <span className="text-outline uppercase font-bold block mb-1">
                                 Before
                               </span>
-                              <pre className="whitespace-pre-wrap text-[#bccac0] bg-[#0a0e16] rounded-lg p-3 border border-[#262a33] max-h-64 overflow-auto">
+                              <pre className="whitespace-pre-wrap text-on-surface-variant bg-surface-container-lowest rounded-lg p-3 border border-surface-container-high max-h-64 overflow-auto">
                                 {entry.beforeState
                                   ? JSON.stringify(entry.beforeState, null, 2)
                                   : '—'}
                               </pre>
                             </div>
                             <div>
-                              <span className="text-[#87948b] uppercase font-bold block mb-1">
+                              <span className="text-outline uppercase font-bold block mb-1">
                                 After
                               </span>
-                              <pre className="whitespace-pre-wrap text-[#bccac0] bg-[#0a0e16] rounded-lg p-3 border border-[#262a33] max-h-64 overflow-auto">
+                              <pre className="whitespace-pre-wrap text-on-surface-variant bg-surface-container-lowest rounded-lg p-3 border border-surface-container-high max-h-64 overflow-auto">
                                 {entry.afterState ? JSON.stringify(entry.afterState, null, 2) : '—'}
                               </pre>
                             </div>
@@ -180,7 +180,7 @@ export default function AuditLogsPage() {
         )}
 
         {data && data.total > 0 && (
-          <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+          <div className="flex items-center justify-between mt-4 text-xs text-outline">
             <span>
               Page {data.page} of {totalPages}
             </span>
@@ -189,7 +189,7 @@ export default function AuditLogsPage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Previous
               </button>
@@ -197,7 +197,7 @@ export default function AuditLogsPage() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Next
               </button>

@@ -41,15 +41,15 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, subtext, icon, href }: KpiCardProps) {
   const content = (
-    <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] flex flex-col gap-1 shadow-sm h-full">
-      <div className="flex items-center justify-between text-[#bccac0]">
+    <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high flex flex-col gap-1 shadow-sm h-full">
+      <div className="flex items-center justify-between text-on-surface-variant">
         <span className="text-[11px] font-mono uppercase tracking-wider">{label}</span>
-        <span className="material-symbols-outlined text-sm text-[#68dba9]">{icon}</span>
+        <span className="material-symbols-outlined text-sm text-primary">{icon}</span>
       </div>
       <div className="flex items-baseline gap-2 mt-1">
-        <span className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee]">{value}</span>
+        <span className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface">{value}</span>
       </div>
-      {subtext && <span className="text-[10px] font-mono text-[#bccac0]">{subtext}</span>}
+      {subtext && <span className="text-[10px] font-mono text-on-surface-variant">{subtext}</span>}
     </div>
   );
 
@@ -94,34 +94,34 @@ export default function MissionDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#181c24] p-5 rounded-2xl border border-[#262a33] shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low p-5 rounded-2xl border border-surface-container-high shadow-md">
         <div>
-          <h1 className="text-2xl font-bold font-['Space_Grotesk'] text-[#dfe2ee] tracking-tight">
+          <h1 className="text-2xl font-bold font-['Space_Grotesk'] text-on-surface tracking-tight">
             Mission Dashboard
           </h1>
-          <p className="text-xs sm:text-sm text-[#bccac0] mt-1">
+          <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
             Real-time marketplace, fleet, and financial operations summary.
           </p>
         </div>
         {metrics && (
-          <span className="text-[10px] font-mono text-[#87948b]">
+          <span className="text-[10px] font-mono text-outline">
             Last updated {new Date(metrics.generatedAt).toLocaleTimeString()}
           </span>
         )}
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
 
       {loading && !metrics ? (
-        <div className="py-16 text-center text-[#87948b] text-sm">Loading metrics…</div>
+        <div className="py-16 text-center text-outline text-sm">Loading metrics…</div>
       ) : metrics ? (
         <>
           <div>
-            <h2 className="text-xs font-bold text-[#87948b] uppercase tracking-wider mb-3 font-['Space_Grotesk']">
+            <h2 className="text-xs font-bold text-outline uppercase tracking-wider mb-3 font-['Space_Grotesk']">
               Booking Operations
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -146,7 +146,7 @@ export default function MissionDashboardPage() {
           </div>
 
           <div>
-            <h2 className="text-xs font-bold text-[#87948b] uppercase tracking-wider mb-3 font-['Space_Grotesk']">
+            <h2 className="text-xs font-bold text-outline uppercase tracking-wider mb-3 font-['Space_Grotesk']">
               Fleet
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -178,7 +178,7 @@ export default function MissionDashboardPage() {
           </div>
 
           <div>
-            <h2 className="text-xs font-bold text-[#87948b] uppercase tracking-wider mb-3 font-['Space_Grotesk']">
+            <h2 className="text-xs font-bold text-outline uppercase tracking-wider mb-3 font-['Space_Grotesk']">
               Finance
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

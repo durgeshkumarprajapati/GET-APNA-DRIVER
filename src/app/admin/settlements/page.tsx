@@ -141,7 +141,7 @@ export default function AdminSettlementsPage() {
       key: 'id',
       header: 'Settlement',
       render: (s) => (
-        <Link href={`/admin/settlements/${s.id}`} className="text-[#68dba9] hover:underline">
+        <Link href={`/admin/settlements/${s.id}`} className="text-primary hover:underline">
           {s.id.slice(0, 12)}
         </Link>
       ),
@@ -171,7 +171,7 @@ export default function AdminSettlementsPage() {
               type="button"
               disabled={busyId === s.id}
               onClick={() => void runAction(s.id, 'process')}
-              className="px-3 py-1.5 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Start Processing
             </button>
@@ -182,7 +182,7 @@ export default function AdminSettlementsPage() {
                 type="button"
                 disabled={busyId === s.id}
                 onClick={() => void runAction(s.id, 'complete')}
-                className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 bg-primary-container hover:bg-primary text-on-primary-container font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
               >
                 Mark Paid
               </button>
@@ -190,7 +190,7 @@ export default function AdminSettlementsPage() {
                 type="button"
                 disabled={busyId === s.id}
                 onClick={() => void runAction(s.id, 'fail')}
-                className="px-3 py-1.5 bg-[#93000a] hover:bg-[#690005] text-[#ffdad6] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 bg-error-container hover:bg-on-error text-on-error-container font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
               >
                 Mark Failed
               </button>
@@ -201,7 +201,7 @@ export default function AdminSettlementsPage() {
               type="button"
               disabled={busyId === s.id}
               onClick={() => void runAction(s.id, 'retry')}
-              className="px-3 py-1.5 bg-[#262a33] hover:bg-[#3d4a42] text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-surface-container-high hover:bg-border text-on-surface font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
               title="Creates a brand-new settlement for this driver via the normal settlement path — the failed settlement itself stays terminal."
             >
               Retry
@@ -220,8 +220,8 @@ export default function AdminSettlementsPage() {
         subtitle="Driver payout reservations, settlement lifecycle, and retries."
       />
 
-      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-        <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+      <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl space-y-4">
+        <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
           Create Settlement
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -230,35 +230,35 @@ export default function AdminSettlementsPage() {
             value={driverProfileId}
             onChange={(e) => setDriverProfileId(e.target.value)}
             placeholder="Driver profile ID"
-            className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
           />
           <input
             type="text"
             value={createAmount}
             onChange={(e) => setCreateAmount(e.target.value)}
             placeholder="Amount (blank = full available)"
-            className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
           />
           <button
             type="button"
             onClick={() => void createSettlement()}
             disabled={creating}
-            className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+            className="px-5 py-2 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary-container font-bold text-sm rounded-lg shadow transition-colors"
           >
             {creating ? 'Creating...' : 'Create'}
           </button>
         </div>
-        {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
+        {actionMessage && <p className="text-sm text-on-surface-variant">{actionMessage}</p>}
       </div>
 
-      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+      <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
         <select
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
@@ -274,12 +274,12 @@ export default function AdminSettlementsPage() {
             setPage(1);
           }}
           placeholder="Filter by driver profile ID"
-          className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+          className="flex-1 min-w-[220px] rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
         />
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -287,7 +287,7 @@ export default function AdminSettlementsPage() {
       {loading ? (
         <LoadingState message="Loading settlements…" />
       ) : (
-        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+        <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl space-y-4">
           <DataTable
             columns={columns}
             data={settlements}

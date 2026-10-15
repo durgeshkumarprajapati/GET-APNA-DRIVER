@@ -212,7 +212,7 @@ export default function AdminIncidentDetailPage({
   if (error || !incident) {
     return (
       <>
-        <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
+        <div className="p-4 rounded-xl bg-error-container/40 border border-error text-on-error-container text-sm">
           {error || 'Incident record not found'}
         </div>
       </>
@@ -227,17 +227,17 @@ export default function AdminIncidentDetailPage({
           <div className="flex items-center gap-3">
             <Link
               href="/admin/incidents"
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+              className="p-2 rounded-lg bg-surface-container-high hover:bg-border text-on-surface-variant transition-colors"
             >
               ← Back to Control Center
             </Link>
             <div>
-              <h1 className="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+              <h1 className="text-xl font-extrabold text-on-surface flex items-center gap-2">
                 Incident Control Case: {incident.incidentNumber}
               </h1>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-on-surface-variant mt-0.5">
                 Fingerprint ID:{' '}
-                <code className="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono text-[11px]">
+                <code className="bg-surface-container-high px-1.5 py-0.5 rounded text-on-warning-container font-mono text-[11px]">
                   {incident.fingerprint}
                 </code>
               </p>
@@ -254,11 +254,11 @@ export default function AdminIncidentDetailPage({
         </div>
 
         {actionToast && (
-          <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center justify-between">
+          <div className="p-3 rounded-xl bg-on-primary-container/60 border border-primary-container text-primary text-xs font-semibold flex items-center justify-between">
             <span>{actionToast}</span>
             <button
               onClick={() => setActionToast(null)}
-              className="text-emerald-400 hover:text-emerald-200"
+              className="text-primary hover:text-primary"
             >
               ✕
             </button>
@@ -266,10 +266,10 @@ export default function AdminIncidentDetailPage({
         )}
 
         {/* Action Controls Toolbar */}
-        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-surface-container-low/80 border border-surface-container-high flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-slate-200">Operator Recovery Actions</h2>
-            <p className="text-xs text-slate-400">
+            <h2 className="text-sm font-bold text-on-surface">Operator Recovery Actions</h2>
+            <p className="text-xs text-on-surface-variant">
               Trigger authorized recovery routines or escalate for human intervention
             </p>
           </div>
@@ -278,7 +278,7 @@ export default function AdminIncidentDetailPage({
             <button
               onClick={handleTriggerRecovery}
               disabled={actionPending || incident.status === 'RESOLVED'}
-              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
+              className="px-4 py-2 rounded-xl bg-warning hover:bg-warning-hover disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
             >
               🔄 Trigger Auto Recovery
             </button>
@@ -286,7 +286,7 @@ export default function AdminIncidentDetailPage({
             <button
               onClick={handleEscalate}
               disabled={actionPending || incident.status === 'ESCALATED'}
-              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
+              className="px-4 py-2 rounded-xl bg-error hover:bg-error-hover disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
             >
               🚨 Escalate Incident
             </button>
@@ -294,7 +294,7 @@ export default function AdminIncidentDetailPage({
             <button
               onClick={handleResolve}
               disabled={actionPending || incident.status === 'RESOLVED'}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
+              className="px-4 py-2 rounded-xl bg-primary-container hover:bg-primary disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
             >
               ✅ Mark Resolved
             </button>
@@ -302,7 +302,7 @@ export default function AdminIncidentDetailPage({
             <button
               onClick={handleDismiss}
               disabled={actionPending || incident.status === 'DISMISSED'}
-              className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
+              className="px-4 py-2 rounded-xl bg-border hover:bg-outline disabled:opacity-50 text-white font-bold text-xs shadow-md transition-colors"
             >
               🚫 Dismiss (False Positive)
             </button>
@@ -311,31 +311,37 @@ export default function AdminIncidentDetailPage({
 
         {/* Incident Summary Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-            <span className="text-xs font-bold uppercase text-slate-400">Booking Reference</span>
-            <p className="text-sm font-bold text-slate-100">Booking ID #{incident.booking.id}</p>
-            <p className="text-xs text-slate-400">Status: {incident.booking.status}</p>
+          <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-2">
+            <span className="text-xs font-bold uppercase text-on-surface-variant">
+              Booking Reference
+            </span>
+            <p className="text-sm font-bold text-on-surface">Booking ID #{incident.booking.id}</p>
+            <p className="text-xs text-on-surface-variant">Status: {incident.booking.status}</p>
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => setMapOpen(true)}
-                className="w-full py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700"
+                className="w-full py-1.5 px-3 rounded-lg bg-surface-container-high hover:bg-border text-on-surface font-medium text-xs border border-border"
               >
                 🗺️ View Incident Map
               </button>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-            <span className="text-xs font-bold uppercase text-slate-400">Customer Identity</span>
-            <p className="text-sm font-bold text-slate-100">
+          <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-2">
+            <span className="text-xs font-bold uppercase text-on-surface-variant">
+              Customer Identity
+            </span>
+            <p className="text-sm font-bold text-on-surface">
               Customer ID: {incident.customer?.id || incident.booking.id}
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-            <span className="text-xs font-bold uppercase text-slate-400">Driver Partner</span>
-            <p className="text-sm font-bold text-slate-100">
+          <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-2">
+            <span className="text-xs font-bold uppercase text-on-surface-variant">
+              Driver Partner
+            </span>
+            <p className="text-sm font-bold text-on-surface">
               {incident.driverProfile
                 ? `Driver Profile #${incident.driverProfile.id}`
                 : 'Unassigned / searching'}
@@ -344,26 +350,30 @@ export default function AdminIncidentDetailPage({
         </div>
 
         {/* Audit & Action Timeline */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h2 className="text-base font-bold text-slate-100">Incident Lifecycle & Audit Log</h2>
+        <div className="p-6 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-4">
+          <h2 className="text-base font-bold text-on-surface">Incident Lifecycle & Audit Log</h2>
 
-          <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-800">
+          <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-surface-container-high">
             {incident.timelineEntries.map((entry) => (
               <div key={entry.id} className="relative flex items-start gap-4 pl-8">
-                <span className="absolute left-2 top-1.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-slate-900"></span>
-                <div className="flex-1 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                <span className="absolute left-2 top-1.5 w-3 h-3 rounded-full bg-on-warning-container border-2 border-surface-container-low"></span>
+                <div className="flex-1 p-3 rounded-xl bg-surface-container-high/60 border border-border/60">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-300">{entry.action}</span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-xs font-bold text-on-warning-container">
+                      {entry.action}
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant">
                       {new Date(entry.createdAt).toLocaleString('en-IN', {
                         timeZone: 'Asia/Kolkata',
                       })}
                     </span>
                   </div>
                   {entry.notes && (
-                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">{entry.notes}</p>
+                    <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                      {entry.notes}
+                    </p>
                   )}
-                  <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-400">
+                  <div className="flex items-center gap-2 mt-2 text-[10px] text-on-surface-variant">
                     <span>
                       Actor Role: <strong>{entry.actorRole}</strong>
                     </span>
@@ -380,15 +390,15 @@ export default function AdminIncidentDetailPage({
         </div>
 
         {/* Recovery Attempt History */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h2 className="text-base font-bold text-slate-100">Recovery Attempt History</h2>
+        <div className="p-6 rounded-2xl bg-surface-container-low border border-surface-container-high space-y-4">
+          <h2 className="text-base font-bold text-on-surface">Recovery Attempt History</h2>
           {incident.recoveryAttempts.length === 0 ? (
             <EmptyState icon="history" message="No recovery attempts recorded yet." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="text-slate-400 border-b border-slate-800">
+                  <tr className="text-on-surface-variant border-b border-surface-container-high">
                     <th className="py-2 pr-4">#</th>
                     <th className="py-2 pr-4">Action</th>
                     <th className="py-2 pr-4">Status</th>
@@ -399,25 +409,25 @@ export default function AdminIncidentDetailPage({
                 </thead>
                 <tbody>
                   {incident.recoveryAttempts.map((attempt) => (
-                    <tr key={attempt.id} className="border-b border-slate-800/60">
-                      <td className="py-2 pr-4 text-slate-300">{attempt.attemptNumber}</td>
-                      <td className="py-2 pr-4 text-slate-200 font-mono">{attempt.action}</td>
+                    <tr key={attempt.id} className="border-b border-surface-container-high/60">
+                      <td className="py-2 pr-4 text-on-surface-variant">{attempt.attemptNumber}</td>
+                      <td className="py-2 pr-4 text-on-surface font-mono">{attempt.action}</td>
                       <td className="py-2 pr-4">
                         <StatusBadge
                           label={attempt.status}
                           tone={ATTEMPT_STATUS_TONE[attempt.status] || 'neutral'}
                         />
                       </td>
-                      <td className="py-2 pr-4 text-slate-300">
+                      <td className="py-2 pr-4 text-on-surface-variant">
                         {attempt.triggeredBy}
                         {attempt.driverResponse ? ` (${attempt.driverResponse})` : ''}
                       </td>
-                      <td className="py-2 pr-4 text-slate-400">
+                      <td className="py-2 pr-4 text-on-surface-variant">
                         {new Date(attempt.startedAt).toLocaleString('en-IN', {
                           timeZone: 'Asia/Kolkata',
                         })}
                       </td>
-                      <td className="py-2 pr-4 text-slate-400">
+                      <td className="py-2 pr-4 text-on-surface-variant">
                         {attempt.failureSummary || attempt.failureCode || '—'}
                       </td>
                     </tr>

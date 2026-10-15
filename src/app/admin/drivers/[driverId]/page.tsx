@@ -61,6 +61,24 @@ interface DriverDetail {
   }[];
 }
 
+/** Mirrors the seeded default for driver.onboarding.required_documents —
+ * also the exact set approveDriver (driver-onboarding-service.ts)
+ * authoritatively re-checks server-side; this is a UI hint only, computed
+ * so "Approve Driver" can be disabled up front instead of only erroring
+ * after the admin clicks it. */
+const REQUIRED_DOCUMENT_TYPES = ['DRIVING_LICENSE', 'AADHAAR_CARD'] as const;
+
+function missingOrUnverifiedRequiredDocs(driver: DriverDetail): string[] {
+  const now = new Date();
+  return REQUIRED_DOCUMENT_TYPES.filter((type) => {
+    const doc = driver.documents.find((d) => d.documentType === type && d.isCurrent);
+    if (!doc) return true;
+    if (doc.status !== 'VERIFIED') return true;
+    if (doc.expiresAt && new Date(doc.expiresAt) < now) return true;
+    return false;
+  });
+}
+
 function driverDisplayName(driver: DriverDetail): string {
   if (driver.displayName) return driver.displayName;
   const combined = [driver.firstName, driver.lastName].filter(Boolean).join(' ');
@@ -174,6 +192,14 @@ export default function AdminDriverDetailPage({
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Action failed.';
       setMessage({ type: 'error', text: msg });
+      // Regression: the modal previously only closed on the success path,
+      // so a rejected action (e.g. approving before required documents are
+      // verified) left "Confirm ... Action" stuck open forever with no
+      // visible explanation — the real error was rendered as a page-level
+      // banner behind it. Closing here too surfaces that banner right
+      // away and lets the admin immediately retry (e.g. verify documents,
+      // then approve again) instead of looking stuck.
+      setActiveModal(null);
     } finally {
       setSubmitting(false);
     }
@@ -279,8 +305,8 @@ export default function AdminDriverDetailPage({
     return (
       <div className="flex items-center justify-center py-24">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#68dba9] border-t-transparent mb-4" />
-          <p className="text-[#bccac0]">Loading driver detail inspection...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent mb-4" />
+          <p className="text-on-surface-variant">Loading driver detail inspection...</p>
         </div>
       </div>
     );
@@ -290,8 +316,8 @@ export default function AdminDriverDetailPage({
     return (
       <div className="flex items-center justify-center py-24">
         <div className="text-center space-y-4">
-          <p className="text-[#ffb4ab] font-semibold">Driver application not found.</p>
-          <Link href="/admin/drivers" className="text-[#68dba9] hover:underline text-sm">
+          <p className="text-error font-semibold">Driver application not found.</p>
+          <Link href="/admin/drivers" className="text-primary hover:underline text-sm">
             Return to Driver Directory
           </Link>
         </div>
@@ -300,31 +326,32 @@ export default function AdminDriverDetailPage({
   }
 
   const name = driverDisplayName(driver);
+  const missingDocsForApproval = missingOrUnverifiedRequiredDocs(driver);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Navigation & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#262a33] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-container-high pb-6">
         <div>
-          <div className="flex items-center gap-2 text-sm text-[#87948b] mb-1">
-            <Link href="/admin/drivers" className="hover:text-[#68dba9] transition-colors">
+          <div className="flex items-center gap-2 text-sm text-outline mb-1">
+            <Link href="/admin/drivers" className="hover:text-primary transition-colors">
               Driver Directory
             </Link>
             <span>/</span>
-            <span className="text-[#dfe2ee] font-medium">{name}</span>
+            <span className="text-on-surface font-medium">{name}</span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-[#dfe2ee] font-['Space_Grotesk']">
+            <h1 className="text-3xl font-bold tracking-tight text-on-surface font-['Space_Grotesk']">
               {name} Application Review
             </h1>
             {performance && performance.totalReviews > 0 && (
               <div className="flex items-center gap-1.5">
                 <RatingStars value={performance.averageRating} size="sm" />
-                <span className="text-xs text-[#87948b]">({performance.totalReviews})</span>
+                <span className="text-xs text-outline">({performance.totalReviews})</span>
               </div>
             )}
           </div>
-          <p className="text-[#bccac0] mt-1">
+          <p className="text-on-surface-variant mt-1">
             DL: {driver.drivingLicenseNumber} • Account: {driver.user.email ?? 'No email on file'}
           </p>
         </div>
@@ -332,7 +359,7 @@ export default function AdminDriverDetailPage({
         <div className="flex items-center gap-3">
           <Link
             href="/admin/drivers"
-            className="px-4 py-2 bg-[#181c24] hover:bg-[#262a33] text-[#bccac0] text-sm font-medium rounded-lg border border-[#262a33] transition-colors"
+            className="px-4 py-2 bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant text-sm font-medium rounded-lg border border-surface-container-high transition-colors"
           >
             Back to List
           </Link>
@@ -341,27 +368,27 @@ export default function AdminDriverDetailPage({
 
       {message && (
         <div
-          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-[#00311f]/50 border-[#25a475] text-[#68dba9]' : 'bg-[#93000a]/20 border-[#93000a] text-[#ffb4ab]'}`}
+          className={`p-4 rounded-xl border ${message.type === 'success' ? 'bg-on-primary-container/50 border-primary-container text-primary' : 'bg-error-container/20 border-error-container text-error'}`}
         >
           <p className="text-sm font-medium">{message.text}</p>
         </div>
       )}
 
       {/* Action Panel */}
-      <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <span className="text-xs uppercase font-semibold text-[#87948b] tracking-wider">
+          <span className="text-xs uppercase font-semibold text-outline tracking-wider">
             Status Summary
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#262a33] text-[#dfe2ee]">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-container-high text-on-surface">
               Onboarding: {driver.onboardingStatus}
             </span>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#262a33] text-[#dfe2ee]">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-surface-container-high text-on-surface">
               Verification: {driver.verificationStatus}
             </span>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-bold ${driver.approvalStatus === 'APPROVED' ? 'bg-[#00311f] text-[#68dba9] border border-[#25a475]' : 'bg-[#3a2f00] text-[#f5c04a] border border-[#5c4a00]'}`}
+              className={`px-3 py-1 rounded-full text-xs font-bold ${driver.approvalStatus === 'APPROVED' ? 'bg-on-primary-container text-primary border border-primary-container' : 'bg-warning-container text-on-warning-container border border-warning-container'}`}
             >
               Approval: {driver.approvalStatus}
             </span>
@@ -371,16 +398,27 @@ export default function AdminDriverDetailPage({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
+            disabled={missingDocsForApproval.length > 0}
+            title={
+              missingDocsForApproval.length > 0
+                ? `Verify required document(s) first: ${missingDocsForApproval.join(', ')}`
+                : undefined
+            }
             onClick={() => setActiveModal('approve')}
-            className="px-4 py-2 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+            className="px-4 py-2 bg-primary-container hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary-container text-on-primary-container font-bold text-sm rounded-lg shadow transition-colors"
           >
             Approve Driver
           </button>
+          {missingDocsForApproval.length > 0 && (
+            <span className="text-[10px] text-outline font-mono">
+              Verify {missingDocsForApproval.join(', ')} below to enable approval.
+            </span>
+          )}
 
           <button
             type="button"
             onClick={() => setActiveModal('changes')}
-            className="px-4 py-2 bg-[#5c4a00] hover:bg-[#7a6300] text-[#f5c04a] font-medium text-sm rounded-lg shadow transition-colors"
+            className="px-4 py-2 bg-warning-container hover:bg-on-warning-container hover:text-warning-container text-on-warning-container font-medium text-sm rounded-lg shadow transition-colors"
           >
             Request Changes
           </button>
@@ -388,7 +426,7 @@ export default function AdminDriverDetailPage({
           <button
             type="button"
             onClick={() => setActiveModal('reject')}
-            className="px-4 py-2 bg-[#93000a] hover:bg-[#690005] text-[#ffdad6] font-medium text-sm rounded-lg shadow transition-colors"
+            className="px-4 py-2 bg-error-container hover:bg-on-error text-on-error-container font-medium text-sm rounded-lg shadow transition-colors"
           >
             Reject Application
           </button>
@@ -396,7 +434,7 @@ export default function AdminDriverDetailPage({
           <button
             type="button"
             onClick={() => setActiveModal('suspend')}
-            className="px-4 py-2 bg-[#3d2b5e] hover:bg-[#4e3878] text-[#dcc9ff] font-medium text-sm rounded-lg shadow transition-colors"
+            className="px-4 py-2 bg-suspend-container hover:bg-suspend text-on-suspend-container font-medium text-sm rounded-lg shadow transition-colors"
           >
             Suspend Driver
           </button>
@@ -406,57 +444,57 @@ export default function AdminDriverDetailPage({
       {/* Profile & Document Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Overview */}
-        <div className="lg:col-span-1 bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-lg font-semibold text-[#dfe2ee] border-b border-[#262a33] pb-3 font-['Space_Grotesk']">
+        <div className="lg:col-span-1 bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl space-y-4">
+          <h2 className="text-lg font-semibold text-on-surface border-b border-surface-container-high pb-3 font-['Space_Grotesk']">
             Personal &amp; Professional Info
           </h2>
 
           <div className="space-y-3 text-sm">
             <div>
-              <span className="text-xs text-[#87948b] block">Full Name</span>
-              <span className="font-medium text-[#dfe2ee]">{name}</span>
+              <span className="text-xs text-outline block">Full Name</span>
+              <span className="font-medium text-on-surface">{name}</span>
             </div>
             <div>
-              <span className="text-xs text-[#87948b] block">Contact</span>
-              <span className="font-medium text-[#dfe2ee]">
+              <span className="text-xs text-outline block">Contact</span>
+              <span className="font-medium text-on-surface">
                 {driver.user.email ?? 'No email on file'}
               </span>
               {driver.user.phoneNumber && (
-                <span className="block text-xs text-[#87948b]">{driver.user.phoneNumber}</span>
+                <span className="block text-xs text-outline">{driver.user.phoneNumber}</span>
               )}
             </div>
             <div>
-              <span className="text-xs text-[#87948b] block">Driving License</span>
-              <span className="font-medium text-[#dfe2ee]">{driver.drivingLicenseNumber}</span>
+              <span className="text-xs text-outline block">Driving License</span>
+              <span className="font-medium text-on-surface">{driver.drivingLicenseNumber}</span>
             </div>
             <div>
-              <span className="text-xs text-[#87948b] block">Experience</span>
-              <span className="font-medium text-[#dfe2ee]">
+              <span className="text-xs text-outline block">Experience</span>
+              <span className="font-medium text-on-surface">
                 {driver.drivingExperienceYears} Years
               </span>
             </div>
             <div>
-              <span className="text-xs text-[#87948b] block">Primary Service Area</span>
-              <span className="font-medium text-[#dfe2ee]">
+              <span className="text-xs text-outline block">Primary Service Area</span>
+              <span className="font-medium text-on-surface">
                 {driver.primaryServiceArea || 'Not specified'}
               </span>
             </div>
             <div>
-              <span className="text-xs text-[#87948b] block">Availability</span>
-              <span className="font-medium text-[#dfe2ee]">{driver.availabilityStatus}</span>
+              <span className="text-xs text-outline block">Availability</span>
+              <span className="font-medium text-on-surface">{driver.availabilityStatus}</span>
             </div>
           </div>
 
-          <div className="pt-4 mt-2 border-t border-[#262a33] space-y-3">
+          <div className="pt-4 mt-2 border-t border-surface-container-high space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h3 className="text-sm font-semibold text-on-surface font-['Space_Grotesk']">
                 Hire Pricing
               </h3>
               {!editingRates && (
                 <button
                   type="button"
                   onClick={handleOpenEditRates}
-                  className="text-xs font-medium text-emerald-400 hover:text-emerald-300"
+                  className="text-xs font-medium text-primary hover:text-primary"
                 >
                   Edit
                 </button>
@@ -465,34 +503,34 @@ export default function AdminDriverDetailPage({
 
             {editingRates ? (
               <div className="space-y-3">
-                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                <label className="text-xs text-outline flex flex-col gap-1">
                   Per Day (₹)
                   <input
                     type="number"
                     min={0}
                     value={rateForm.daily}
                     onChange={(e) => setRateForm({ ...rateForm, daily: e.target.value })}
-                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-emerald-500"
+                    className="px-3 py-2 rounded-lg bg-surface-container-lowest border border-surface-container-high text-sm text-on-surface focus:outline-none focus:border-primary"
                   />
                 </label>
-                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                <label className="text-xs text-outline flex flex-col gap-1">
                   Per Week (₹)
                   <input
                     type="number"
                     min={0}
                     value={rateForm.weekly}
                     onChange={(e) => setRateForm({ ...rateForm, weekly: e.target.value })}
-                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-emerald-500"
+                    className="px-3 py-2 rounded-lg bg-surface-container-lowest border border-surface-container-high text-sm text-on-surface focus:outline-none focus:border-primary"
                   />
                 </label>
-                <label className="text-xs text-[#87948b] flex flex-col gap-1">
+                <label className="text-xs text-outline flex flex-col gap-1">
                   Per Month (₹)
                   <input
                     type="number"
                     min={0}
                     value={rateForm.monthly}
                     onChange={(e) => setRateForm({ ...rateForm, monthly: e.target.value })}
-                    className="px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-emerald-500"
+                    className="px-3 py-2 rounded-lg bg-surface-container-lowest border border-surface-container-high text-sm text-on-surface focus:outline-none focus:border-primary"
                   />
                 </label>
                 <div className="flex items-center gap-2 pt-1">
@@ -500,7 +538,7 @@ export default function AdminDriverDetailPage({
                     type="button"
                     disabled={savingRates}
                     onClick={() => void handleSaveRates()}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold disabled:opacity-50"
+                    className="px-3 py-1.5 rounded-lg bg-primary-container hover:bg-primary text-white text-xs font-semibold disabled:opacity-50"
                   >
                     {savingRates ? 'Saving…' : 'Save Rates'}
                   </button>
@@ -508,36 +546,36 @@ export default function AdminDriverDetailPage({
                     type="button"
                     disabled={savingRates}
                     onClick={() => setEditingRates(false)}
-                    className="px-3 py-1.5 rounded-lg border border-[#262a33] text-[#dfe2ee] text-xs font-semibold disabled:opacity-50"
+                    className="px-3 py-1.5 rounded-lg border border-surface-container-high text-on-surface text-xs font-semibold disabled:opacity-50"
                   >
                     Cancel
                   </button>
                 </div>
-                <p className="text-[11px] text-[#87948b]">
+                <p className="text-[11px] text-outline">
                   The driver will be notified of this change.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
-                  <span className="text-xs text-[#87948b] block">Per Day</span>
-                  <span className="font-medium text-[#dfe2ee]">
+                  <span className="text-xs text-outline block">Per Day</span>
+                  <span className="font-medium text-on-surface">
                     {driver.dailyHireRate
                       ? `₹${Number(driver.dailyHireRate).toLocaleString()}`
                       : '—'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-xs text-[#87948b] block">Per Week</span>
-                  <span className="font-medium text-[#dfe2ee]">
+                  <span className="text-xs text-outline block">Per Week</span>
+                  <span className="font-medium text-on-surface">
                     {driver.weeklyHireRate
                       ? `₹${Number(driver.weeklyHireRate).toLocaleString()}`
                       : '—'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-xs text-[#87948b] block">Per Month</span>
-                  <span className="font-medium text-[#dfe2ee]">
+                  <span className="text-xs text-outline block">Per Month</span>
+                  <span className="font-medium text-on-surface">
                     {driver.monthlyHireRate
                       ? `₹${Number(driver.monthlyHireRate).toLocaleString()}`
                       : '—'}
@@ -549,8 +587,8 @@ export default function AdminDriverDetailPage({
         </div>
 
         {/* Verification Documents */}
-        <div className="lg:col-span-2 bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-lg font-semibold text-[#dfe2ee] border-b border-[#262a33] pb-3 font-['Space_Grotesk']">
+        <div className="lg:col-span-2 bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl space-y-4">
+          <h2 className="text-lg font-semibold text-on-surface border-b border-surface-container-high pb-3 font-['Space_Grotesk']">
             Verification Documents
           </h2>
 
@@ -561,26 +599,26 @@ export default function AdminDriverDetailPage({
               {driver.documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="p-4 rounded-xl bg-[#0a0e16] border border-[#262a33] flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className="p-4 rounded-xl bg-surface-container-lowest border border-surface-container-high flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[#dfe2ee]">
+                      <span className="font-semibold text-on-surface">
                         {doc.documentType.replace('_', ' ')}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${doc.status === 'VERIFIED' ? 'bg-[#00311f] text-[#68dba9] border border-[#25a475]' : doc.status === 'REJECTED' ? 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]' : 'bg-[#3a2f00] text-[#f5c04a] border border-[#5c4a00]'}`}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${doc.status === 'VERIFIED' ? 'bg-on-primary-container text-primary border border-primary-container' : doc.status === 'REJECTED' ? 'bg-error-container/20 text-error border border-error-container' : 'bg-warning-container text-on-warning-container border border-warning-container'}`}
                       >
                         {doc.status}
                       </span>
-                      <span className="text-xs text-[#87948b]">v{doc.version}</span>
+                      <span className="text-xs text-outline">v{doc.version}</span>
                     </div>
-                    <div className="text-xs text-[#87948b] space-x-3">
+                    <div className="text-xs text-outline space-x-3">
                       <span>File: {doc.originalFileName}</span>
                       {doc.documentNumber && <span>Doc #: {doc.documentNumber}</span>}
                     </div>
                     {doc.rejectionReason && (
-                      <p className="text-xs text-[#ffb4ab]">Rejection: {doc.rejectionReason}</p>
+                      <p className="text-xs text-error">Rejection: {doc.rejectionReason}</p>
                     )}
                   </div>
 
@@ -588,7 +626,7 @@ export default function AdminDriverDetailPage({
                     <button
                       type="button"
                       onClick={() => handleDownloadDoc(doc.id)}
-                      className="px-3 py-1.5 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] text-xs font-medium rounded-md border border-[#262a33] transition-colors"
+                      className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-medium rounded-md border border-surface-container-high transition-colors"
                     >
                       View File
                     </button>
@@ -597,7 +635,7 @@ export default function AdminDriverDetailPage({
                       <button
                         type="button"
                         onClick={() => handleDocumentVerify(doc.id)}
-                        className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] text-xs font-bold rounded-md transition-colors"
+                        className="px-3 py-1.5 bg-primary-container hover:bg-primary text-on-primary-container text-xs font-bold rounded-md transition-colors"
                       >
                         Verify
                       </button>
@@ -607,7 +645,7 @@ export default function AdminDriverDetailPage({
                       <button
                         type="button"
                         onClick={() => handleDocumentReject(doc.id)}
-                        className="px-3 py-1.5 bg-[#93000a]/80 hover:bg-[#690005] text-[#ffdad6] text-xs font-medium rounded-md transition-colors"
+                        className="px-3 py-1.5 bg-error-container/80 hover:bg-on-error text-on-error-container text-xs font-medium rounded-md transition-colors"
                       >
                         Reject
                       </button>
@@ -622,8 +660,8 @@ export default function AdminDriverDetailPage({
 
       {/* Performance & Ratings */}
       {performance && (
-        <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-lg font-semibold text-[#dfe2ee] border-b border-[#262a33] pb-3 font-['Space_Grotesk']">
+        <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 shadow-xl space-y-4">
+          <h2 className="text-lg font-semibold text-on-surface border-b border-surface-container-high pb-3 font-['Space_Grotesk']">
             Performance &amp; Ratings
           </h2>
           <RatingSummary
@@ -655,14 +693,14 @@ export default function AdminDriverDetailPage({
       {/* Modal Dialog for Actions */}
       {activeModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-[#dfe2ee] uppercase tracking-wider font-['Space_Grotesk']">
+          <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 className="text-lg font-bold text-on-surface uppercase tracking-wider font-['Space_Grotesk']">
               Confirm {activeModal.toUpperCase()} Action
             </h3>
 
             {activeModal !== 'approve' && (
               <div>
-                <label className="block text-sm font-medium text-[#bccac0] mb-1">
+                <label className="block text-sm font-medium text-on-surface-variant mb-1">
                   Reason for {activeModal} *
                 </label>
                 <textarea
@@ -670,13 +708,13 @@ export default function AdminDriverDetailPage({
                   value={actionReason}
                   onChange={(e) => setActionReason(e.target.value)}
                   placeholder="Provide clear rationale for the driver..."
-                  className="w-full bg-[#0a0e16] border border-[#262a33] rounded-lg p-2.5 text-[#dfe2ee] text-sm focus:ring-2 focus:ring-[#68dba9] focus:outline-none"
+                  className="w-full bg-surface-container-lowest border border-surface-container-high rounded-lg p-2.5 text-on-surface text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
             )}
 
             {activeModal === 'approve' && (
-              <p className="text-[#bccac0] text-sm">
+              <p className="text-on-surface-variant text-sm">
                 Are you sure you want to approve driver <strong>{name}</strong>? Once approved and
                 documents verified, the driver can go AVAILABLE to accept bookings.
               </p>
@@ -686,7 +724,7 @@ export default function AdminDriverDetailPage({
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2 bg-[#262a33] hover:bg-[#353942] text-[#bccac0] text-sm font-medium rounded-lg"
+                className="px-4 py-2 bg-surface-container-high hover:bg-surface-bright text-on-surface-variant text-sm font-medium rounded-lg"
               >
                 Cancel
               </button>
@@ -694,10 +732,10 @@ export default function AdminDriverDetailPage({
                 type="button"
                 disabled={submitting || (activeModal !== 'approve' && !actionReason.trim())}
                 onClick={handleAction}
-                className="px-4 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] text-sm font-bold rounded-lg flex items-center gap-2"
+                className="px-4 py-2 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary-container text-sm font-bold rounded-lg flex items-center gap-2"
               >
                 {submitting && (
-                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-[#00311f] border-t-transparent" />
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-on-primary-container border-t-transparent" />
                 )}
                 Confirm
               </button>

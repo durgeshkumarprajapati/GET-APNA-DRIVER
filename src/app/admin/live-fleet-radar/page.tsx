@@ -81,13 +81,13 @@ export default function AdminLiveFleetRadarPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by driver name..."
-            className="h-9 px-3 rounded-lg bg-[#0a0e16] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-lowest border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
           />
         }
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -109,23 +109,23 @@ export default function AdminLiveFleetRadarPage() {
           {filtered.length === 0 ? (
             <EmptyState icon="satellite_alt" message="No drivers currently online." />
           ) : (
-            <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl overflow-x-auto">
+            <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl overflow-x-auto">
               <table className="w-full text-left font-sans text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                  <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                     <th className="py-3 px-4">Driver</th>
                     <th className="py-3 px-4">Availability</th>
                     <th className="py-3 px-4">Location</th>
                     <th className="py-3 px-4 text-right">Last Update</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#262a33] font-mono">
+                <tbody className="divide-y divide-surface-container-high font-mono">
                   {filtered.map((driver) => (
                     <tr
                       key={driver.driverProfileId}
-                      className="hover:bg-[#181c24]/60 transition-colors"
+                      className="hover:bg-surface-container-low/60 transition-colors"
                     >
-                      <td className="py-3 px-4 text-[#dfe2ee] font-bold">{driver.displayName}</td>
+                      <td className="py-3 px-4 text-on-surface font-bold">{driver.displayName}</td>
                       <td className="py-3 px-4">
                         <StatusBadge
                           label={driver.availabilityStatus}
@@ -139,8 +139,8 @@ export default function AdminLiveFleetRadarPage() {
                         <span
                           className={
                             driver.staleSeconds > STALE_THRESHOLD_SECONDS
-                              ? 'text-[#ffb4ab]'
-                              : 'text-[#87948b]'
+                              ? 'text-error'
+                              : 'text-outline'
                           }
                         >
                           {formatAge(driver.staleSeconds)}

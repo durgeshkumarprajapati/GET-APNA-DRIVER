@@ -46,14 +46,15 @@ const STATUS_FILTERS: (BookingStatus | 'ALL')[] = [
 ];
 
 function statusBadgeClass(status: string): string {
-  if (status === 'TRIP_COMPLETED') return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
+  if (status === 'TRIP_COMPLETED')
+    return 'bg-on-primary-container text-primary border border-primary-container';
   if (status === 'CANCELLED' || status === 'EXPIRED') {
-    return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
+    return 'bg-error-container/20 text-error border border-error-container';
   }
   if (status === 'SEARCHING_DRIVER') {
-    return 'bg-[#3a2f00] text-[#f5c04a] border border-[#5c4a00]';
+    return 'bg-warning-container text-on-warning-container border border-warning-container';
   }
-  return 'bg-[#262a33] text-[#dfe2ee] border border-[#3d4a42]';
+  return 'bg-surface-container-high text-on-surface border border-border';
 }
 
 const PAGE_SIZE = 25;
@@ -94,16 +95,16 @@ export default function AdminLiveBookingsPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+          <div className="flex items-center gap-2 text-xs font-mono text-primary">
             <span className="material-symbols-outlined text-[16px]">local_taxi</span>
             <span>LIVE BOOKING OPERATIONS</span>
           </div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
             Live Bookings
           </h1>
-          <p className="text-xs text-[#87948b] mt-0.5">
+          <p className="text-xs text-outline mt-0.5">
             {data ? `${data.total} booking${data.total === 1 ? '' : 's'}` : '—'}
           </p>
         </div>
@@ -117,7 +118,7 @@ export default function AdminLiveBookingsPage() {
               setPage(1);
             }}
             placeholder="Search customer email/phone..."
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
           />
           <select
             value={bookingTypeFilter}
@@ -125,7 +126,7 @@ export default function AdminLiveBookingsPage() {
               setBookingTypeFilter(e.target.value);
               setPage(1);
             }}
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface focus:outline-none focus:border-primary"
           >
             <option value="ALL">All Hire Types</option>
             <option value="POINT_TO_POINT">Point to Point</option>
@@ -144,7 +145,7 @@ export default function AdminLiveBookingsPage() {
               setStatus(e.target.value as (typeof STATUS_FILTERS)[number]);
               setPage(1);
             }}
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface focus:outline-none focus:border-primary"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s} value={s}>
@@ -155,18 +156,18 @@ export default function AdminLiveBookingsPage() {
         </div>
       </div>
 
-      <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+      <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">Loading bookings…</div>
+          <div className="py-16 text-center text-outline text-sm">Loading bookings…</div>
         ) : !data || data.bookings.length === 0 ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">
+          <div className="py-16 text-center text-outline text-sm">
             No bookings match the current filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs border-collapse">
               <thead>
-                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                   <th className="py-3 px-4">Customer</th>
                   <th className="py-3 px-4">Pickup</th>
                   <th className="py-3 px-4">Type</th>
@@ -176,25 +177,30 @@ export default function AdminLiveBookingsPage() {
                   <th className="py-3 px-4 text-right"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] font-mono">
+              <tbody className="divide-y divide-surface-container-high font-mono">
                 {data.bookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-[#181c24]/60 transition-colors">
-                    <td className="py-3 px-4 text-[#bccac0]">
+                  <tr
+                    key={booking.id}
+                    className="hover:bg-surface-container-low/60 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-on-surface-variant">
                       <span className="block">{booking.customer.email ?? '—'}</span>
                       {booking.customer.phoneNumber && (
-                        <span className="block text-[10px] text-[#87948b]">
+                        <span className="block text-[10px] text-outline">
                           {booking.customer.phoneNumber}
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-[#dfe2ee] max-w-[220px] truncate">
+                    <td className="py-3 px-4 text-on-surface max-w-[220px] truncate">
                       {booking.pickupAddress}
                     </td>
-                    <td className="py-3 px-4 text-[#87948b]">{booking.bookingType}</td>
-                    <td className="py-3 px-4 text-[#bccac0]">
+                    <td className="py-3 px-4 text-outline">{booking.bookingType}</td>
+                    <td className="py-3 px-4 text-on-surface-variant">
                       {booking.assignedDriver?.name ?? '—'}
                     </td>
-                    <td className="py-3 px-4 text-[#bccac0]">{booking.pendingAttemptCount}</td>
+                    <td className="py-3 px-4 text-on-surface-variant">
+                      {booking.pendingAttemptCount}
+                    </td>
                     <td className="py-3 px-4">
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass(booking.status)}`}
@@ -205,7 +211,7 @@ export default function AdminLiveBookingsPage() {
                     <td className="py-3 px-4 text-right">
                       <Link
                         href={`/admin/live-bookings/${booking.id}`}
-                        className="text-[#68dba9] hover:underline text-xs font-semibold"
+                        className="text-primary hover:underline text-xs font-semibold"
                       >
                         Inspect →
                       </Link>
@@ -218,7 +224,7 @@ export default function AdminLiveBookingsPage() {
         )}
 
         {data && data.total > 0 && (
-          <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+          <div className="flex items-center justify-between mt-4 text-xs text-outline">
             <span>
               Page {data.page} of {totalPages}
             </span>
@@ -227,7 +233,7 @@ export default function AdminLiveBookingsPage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Previous
               </button>
@@ -235,7 +241,7 @@ export default function AdminLiveBookingsPage() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Next
               </button>

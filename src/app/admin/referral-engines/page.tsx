@@ -107,12 +107,12 @@ export default function AdminReferralEnginesPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
       {message && (
-        <div className="p-4 rounded-xl border border-[#25a475] bg-[#00311f]/40 text-[#68dba9] text-sm">
+        <div className="p-4 rounded-xl border border-primary-container bg-on-primary-container/40 text-primary text-sm">
           {message}
         </div>
       )}
@@ -138,24 +138,24 @@ export default function AdminReferralEnginesPage() {
           )}
 
           <div className="flex flex-col gap-3">
-            <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
               Reward Configuration
             </h2>
             {configs.map((config) => (
               <div
                 key={config.key}
-                className="p-4 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between gap-4 flex-wrap"
+                className="p-4 rounded-xl bg-surface-container-low border border-surface-container-high flex items-center justify-between gap-4 flex-wrap"
               >
                 <div>
-                  <p className="text-sm font-bold text-[#dfe2ee]">
+                  <p className="text-sm font-bold text-on-surface">
                     {CONFIG_LABELS[config.key] ?? config.key}
                   </p>
                   {config.description && (
-                    <p className="text-[10px] text-[#87948b] mt-0.5">{config.description}</p>
+                    <p className="text-[10px] text-outline mt-0.5">{config.description}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#87948b] text-sm">₹</span>
+                  <span className="text-outline text-sm">₹</span>
                   <input
                     type="number"
                     min={0}
@@ -164,13 +164,13 @@ export default function AdminReferralEnginesPage() {
                     onChange={(e) =>
                       setEditValues((prev) => ({ ...prev, [config.key]: e.target.value }))
                     }
-                    className="w-28 px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                    className="w-28 px-3 py-2 rounded-lg bg-surface-container-lowest border border-surface-container-high text-sm text-on-surface focus:outline-none focus:border-primary"
                   />
                   <button
                     type="button"
                     disabled={savingKey === config.key}
                     onClick={() => void handleSave(config)}
-                    className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-on-primary text-xs font-bold disabled:opacity-50 transition-colors"
                   >
                     {savingKey === config.key ? 'Saving…' : 'Save'}
                   </button>
