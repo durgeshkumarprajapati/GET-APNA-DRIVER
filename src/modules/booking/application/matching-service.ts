@@ -19,10 +19,7 @@ import {
 } from '@/modules/dispatch/application/dispatch-search-service';
 import { isDriverHireBooking, isRateSelectableHireBooking } from '../domain/booking-policy';
 import { findConflictingDriverIds } from './driver-hire-availability-service';
-import {
-  isDriverDispatchEligible,
-  ensureDevDriverApproved,
-} from '@/modules/driver/application/services/driver-eligibility-service';
+import { isDriverDispatchEligible } from '@/modules/driver/application/services/driver-eligibility-service';
 
 export interface MatchingResult {
   attemptId: string | null;
@@ -196,9 +193,6 @@ export async function findAndOfferNextDriver(
   const targetTime = booking.hireStartAt || booking.requestedStartTime || now;
   const chosenDriverId = booking.preferredDriverProfileId;
   if (chosenDriverId && !attemptedDriverIds.has(chosenDriverId)) {
-    if (process.env.NODE_ENV !== 'production') {
-      await ensureDevDriverApproved(chosenDriverId, db);
-    }
     let isStillAvailable = false;
     const driverProfile = await db.driverProfile.findUnique({ where: { id: chosenDriverId } });
     isStillAvailable =

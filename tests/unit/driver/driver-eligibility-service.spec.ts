@@ -12,6 +12,11 @@ jest.mock('@/shared/database/prisma', () => ({
   prisma: {
     driverProfile: {
       findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    driverDocument: {
+      create: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
@@ -29,6 +34,8 @@ import { prisma } from '@/shared/database/prisma';
 
 describe('DriverEligibilityService', () => {
   const mockFindUnique = prisma.driverProfile.findUnique as jest.Mock;
+  const mockProfileUpdate = prisma.driverProfile.update as jest.Mock;
+  const mockDocumentCreate = prisma.driverDocument.create as jest.Mock;
 
   const validBaseProfile = {
     id: 'driver-1',
@@ -82,6 +89,40 @@ describe('DriverEligibilityService', () => {
 
     expect(result.isEligible).toBe(false);
     expect(result.reasons).toContain('User account is not active (status: SUSPENDED).');
+  });
+
+  // Regression: a dev-convenience auto-heal (ensureDevDriverApproved) used
+  // to silently rewrite onboardingStatus -> COMPLETED, verificationStatus
+  // -> VERIFIED, approvalStatus -> APPROVED, and fabricate two VERIFIED
+  // DriverDocument rows (driving license + Aadhaar the driver never
+  // uploaded) for ANY driver whenever NODE_ENV !== 'production' — which is
+  // true for a normal `next dev` session, so a brand-new real signup's
+  // very first page load corrupted their profile into looking fully
+  // verified and approved. This must never fabricate anything: a fresh
+  // driver with no documents and no approval must be reported ineligible,
+  // and nothing here may write to the database at all (this function is a
+  // pure read-only evaluator).
+  it('never fabricates approval/verification data for a brand-new driver with zero documents', async () => {
+    mockFindUnique.mockResolvedValue({
+      id: 'driver-1',
+      firstName: null,
+      lastName: null,
+      dateOfBirth: null,
+      primaryServiceArea: null,
+      drivingExperienceYears: 0,
+      onboardingStatus: DriverOnboardingStatus.NOT_STARTED,
+      approvalStatus: DriverApprovalStatus.PENDING,
+      verificationStatus: DriverVerificationStatus.NOT_VERIFIED,
+      user: { accountStatus: AccountStatus.ACTIVE },
+      documents: [],
+    });
+
+    const result = await evaluateDriverEligibility('driver-1');
+
+    expect(result.isEligible).toBe(false);
+    expect(result.reasons).toContain('Driver application is not approved (status: PENDING).');
+    expect(mockProfileUpdate).not.toHaveBeenCalled();
+    expect(mockDocumentCreate).not.toHaveBeenCalled();
   });
 
   it('returns false when approval status is not APPROVED', async () => {
