@@ -15,6 +15,7 @@ import { registerDriverEngagementEventHandlers } from './jobs/driver-engagement-
 import { processDueScheduledRides } from '@/modules/scheduled-rides/application/scheduled-ride-generator';
 import { runRetentionCleanupJob } from './jobs/cleanup-jobs';
 import { runAssignmentExpirySweep } from './jobs/assignment-expiry-sweep-job';
+import { runStalledSearchSweep } from './jobs/stalled-search-sweep-job';
 import { runTripReliabilitySweep } from './jobs/trip-reliability-sweep-job';
 import { runOperationsExecutionReconciliation } from './jobs/operations-execution-reconciliation-job';
 import { runNotificationRetrySweep } from './jobs/notification-retry-sweep-job';
@@ -74,6 +75,15 @@ async function bootstrapWorker(): Promise<void> {
       // the response-timeout window meaningful even when the outbox is
       // otherwise idle.
       await runAssignmentExpirySweep();
+
+      // A booking whose latest matching attempt came back with zero
+      // eligible candidates (no driver nearby yet) is left in
+      // SEARCHING_DRIVER with no PENDING attempt at all — the sweep above
+      // only catches a driver who was offered and never responded, not
+      // "nobody has been offered this at all" (see
+      // stalled-search-sweep-job.ts). Self-gated on its own short interval
+      // and a Redis lock, so this is safe to call every iteration.
+      await runStalledSearchSweep();
 
       // Proactively scans active bookings for service disruptions instead
       // of only detecting them reactively when a customer/driver happens to

@@ -79,6 +79,28 @@ body {
   --color-error-container: #fee2e2;
   --color-on-error-container: #991b1b;
 
+  /* Phase 150 — status-pill tokens (warning/info/suspend), added to replace
+     hardcoded dark-only hex colors scattered across admin pages (e.g.
+     bg-[#3a2f00] text-[#f5c04a] for a "pending" pill). Same
+     container/on-container pattern as --color-error above. */
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-on-warning: #ffffff;
+  --color-warning-container: #fef3c7;
+  --color-on-warning-container: #92400e;
+
+  --color-info: #0284c7;
+  --color-info-hover: #0369a1;
+  --color-on-info: #ffffff;
+  --color-info-container: #e0f2fe;
+  --color-on-info-container: #075985;
+
+  --color-suspend: #7c3aed;
+  --color-suspend-hover: #6d28d9;
+  --color-on-suspend: #ffffff;
+  --color-suspend-container: #ede9fe;
+  --color-on-suspend-container: #5b21b6;
+
   --color-border: #e2e8f0;
   --color-outline: #94a3b8;
   --color-outline-variant: #cbd5e1;
@@ -148,6 +170,27 @@ html.dark,
   --color-error-container: #93000a;
   --color-on-error-container: #ffdad6;
 
+  /* Dark values chosen to match the most common ad-hoc hex pair each
+     admin page was already hand-picking, so migrating those pages onto
+     these tokens changes nothing visually in dark mode. */
+  --color-warning: #f5c04a;
+  --color-warning-hover: #ffe08a;
+  --color-on-warning: #3a2f00;
+  --color-warning-container: #3a2f00;
+  --color-on-warning-container: #f5c04a;
+
+  --color-info: #7fd8ff;
+  --color-info-hover: #b3e8ff;
+  --color-on-info: #0f2438;
+  --color-info-container: #0f2438;
+  --color-on-info-container: #7fd8ff;
+
+  --color-suspend: #dcc9ff;
+  --color-suspend-hover: #ecdfff;
+  --color-on-suspend: #3d2b5e;
+  --color-suspend-container: #3d2b5e;
+  --color-on-suspend-container: #dcc9ff;
+
   --color-border: #3d4a42;
   --color-outline: #87948b;
   --color-outline-variant: #3d4a42;
@@ -208,6 +251,24 @@ html.dark,
   --color-error-container: var(--color-error-container);
   --color-on-error-container: var(--color-on-error-container);
 
+  --color-warning: var(--color-warning);
+  --color-warning-hover: var(--color-warning-hover);
+  --color-on-warning: var(--color-on-warning);
+  --color-warning-container: var(--color-warning-container);
+  --color-on-warning-container: var(--color-on-warning-container);
+
+  --color-info: var(--color-info);
+  --color-info-hover: var(--color-info-hover);
+  --color-on-info: var(--color-on-info);
+  --color-info-container: var(--color-info-container);
+  --color-on-info-container: var(--color-on-info-container);
+
+  --color-suspend: var(--color-suspend);
+  --color-suspend-hover: var(--color-suspend-hover);
+  --color-on-suspend: var(--color-on-suspend);
+  --color-suspend-container: var(--color-suspend-container);
+  --color-on-suspend-container: var(--color-on-suspend-container);
+
   --color-border: var(--color-border);
   --color-outline: var(--color-outline);
   --color-outline-variant: var(--color-outline-variant);
@@ -218,7 +279,9 @@ body {
   color: var(--color-on-surface);
   font-family: var(--font-geist);
   overscroll-behavior: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 h1,

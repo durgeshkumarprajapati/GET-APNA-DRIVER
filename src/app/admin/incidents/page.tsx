@@ -97,16 +97,16 @@ export default function AdminIncidentsListPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">
+            <h1 className="text-2xl font-bold text-on-surface">
               Service Reliability Incident Management
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-on-surface-variant mt-1">
               Real-time operational anomaly tracking and automated recovery control.
             </p>
           </div>
           <Link
             href="/admin/live-ops-console"
-            className="py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition-colors"
+            className="py-2 px-4 rounded-xl bg-surface-container-high hover:bg-border text-on-surface font-semibold text-xs border border-border transition-colors"
           >
             ← Live Ops Console
           </Link>
@@ -115,27 +115,41 @@ export default function AdminIncidentsListPage() {
         {/* Metrics Grid */}
         {metrics && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold text-slate-400">Active Anomaly Cases</span>
-              <p className="text-2xl font-extrabold text-amber-400 mt-1">{metrics.totalActive}</p>
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high">
+              <span className="text-xs font-semibold text-on-surface-variant">
+                Active Anomaly Cases
+              </span>
+              <p className="text-2xl font-extrabold text-on-warning-container mt-1">
+                {metrics.totalActive}
+              </p>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold text-slate-400">Critical Severity</span>
-              <p className="text-2xl font-extrabold text-rose-400 mt-1">{metrics.totalCritical}</p>
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high">
+              <span className="text-xs font-semibold text-on-surface-variant">
+                Critical Severity
+              </span>
+              <p className="text-2xl font-extrabold text-on-error-container mt-1">
+                {metrics.totalCritical}
+              </p>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold text-slate-400">In Active Recovery</span>
-              <p className="text-2xl font-extrabold text-sky-400 mt-1">{metrics.totalRecovering}</p>
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high">
+              <span className="text-xs font-semibold text-on-surface-variant">
+                In Active Recovery
+              </span>
+              <p className="text-2xl font-extrabold text-on-info-container mt-1">
+                {metrics.totalRecovering}
+              </p>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold text-slate-400">Human Escalations</span>
-              <p className="text-2xl font-extrabold text-purple-400 mt-1">
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high">
+              <span className="text-xs font-semibold text-on-surface-variant">
+                Human Escalations
+              </span>
+              <p className="text-2xl font-extrabold text-on-suspend-container mt-1">
                 {metrics.totalEscalated}
               </p>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-xs font-semibold text-slate-400">Resolved Today</span>
-              <p className="text-2xl font-extrabold text-emerald-400 mt-1">
+            <div className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high">
+              <span className="text-xs font-semibold text-on-surface-variant">Resolved Today</span>
+              <p className="text-2xl font-extrabold text-primary mt-1">
                 {metrics.totalResolvedToday}
               </p>
             </div>
@@ -143,12 +157,12 @@ export default function AdminIncidentsListPage() {
         )}
 
         {/* Filters Toolbar */}
-        <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <span className="text-xs font-bold text-slate-300">Filter Incidents:</span>
+        <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-surface-container-low/80 border border-surface-container-high">
+          <span className="text-xs font-bold text-on-surface-variant">Filter Incidents:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none"
+            className="bg-surface-container-high border border-border text-on-surface text-xs rounded-xl px-3 py-1.5 focus:outline-none"
           >
             <option value="">All Statuses</option>
             <option value="DETECTED">Detected</option>
@@ -161,7 +175,7 @@ export default function AdminIncidentsListPage() {
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none"
+            className="bg-surface-container-high border border-border text-on-surface text-xs rounded-xl px-3 py-1.5 focus:outline-none"
           >
             <option value="">All Severities</option>
             <option value="CRITICAL">Critical</option>
@@ -175,7 +189,7 @@ export default function AdminIncidentsListPage() {
         {loading ? (
           <LoadingState message="Fetching active service reliability incidents..." />
         ) : error ? (
-          <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
+          <div className="p-4 rounded-xl bg-error-container/40 border border-error text-on-error-container text-sm">
             {error}
           </div>
         ) : incidents.length === 0 ? (
@@ -188,11 +202,11 @@ export default function AdminIncidentsListPage() {
             {incidents.map((incident) => (
               <div
                 key={incident.id}
-                className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md"
+                className="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high hover:border-border transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-100">
+                    <span className="font-bold text-sm text-on-surface">
                       {incident.incidentNumber}
                     </span>
                     <StatusBadge
@@ -204,11 +218,11 @@ export default function AdminIncidentsListPage() {
                       tone={STATUS_TONE[incident.status] || 'neutral'}
                     />
                   </div>
-                  <p className="text-xs text-slate-300">
-                    Incident Type: <strong className="text-slate-100">{incident.type}</strong> •
+                  <p className="text-xs text-on-surface-variant">
+                    Incident Type: <strong className="text-on-surface">{incident.type}</strong> •
                     Booking #{incident.bookingId}
                   </p>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-on-surface-variant">
                     Detected:{' '}
                     {new Date(incident.detectedAt).toLocaleString('en-IN', {
                       timeZone: 'Asia/Kolkata',
@@ -219,7 +233,7 @@ export default function AdminIncidentsListPage() {
                 <div className="flex items-center gap-3">
                   <Link
                     href={`/admin/incidents/${incident.id}`}
-                    className="py-2 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md transition-colors"
+                    className="py-2 px-4 rounded-xl bg-warning hover:bg-warning-hover text-white font-bold text-xs shadow-md transition-colors"
                   >
                     View Control Case →
                   </Link>

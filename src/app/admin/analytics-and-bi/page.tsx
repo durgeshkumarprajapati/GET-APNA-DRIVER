@@ -104,19 +104,19 @@ export default function AnalyticsAndBIPage() {
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-[#0a0e16] p-4 rounded-xl border border-[#262a33] gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+          <div className="flex items-center gap-2 text-xs font-mono text-primary">
             <span className="material-symbols-outlined text-[16px]">insights</span>
             <span>{t('admin.analytics.eyebrow')}</span>
           </div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
             {t('admin.analytics.title')}
           </h1>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center bg-[#181c24] p-1 rounded-xl border border-[#262a33]">
+          <div className="flex items-center bg-surface-container-low p-1 rounded-xl border border-surface-container-high">
             {(['today', '7d', '30d', '90d'] as const).map((r) => (
               <button
                 key={r}
@@ -127,8 +127,8 @@ export default function AnalyticsAndBIPage() {
                 }}
                 className={`px-3 py-1 text-xs font-mono rounded-lg transition-colors ${
                   range === r
-                    ? 'bg-[#25a475] text-[#00311f] font-bold'
-                    : 'text-[#bccac0] hover:text-[#dfe2ee]'
+                    ? 'bg-primary-container text-on-primary-container font-bold'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
                 {t(`admin.analytics.dateRanges.${r}`)}
@@ -140,7 +140,7 @@ export default function AnalyticsAndBIPage() {
             type="button"
             onClick={handleExport}
             disabled={loading || !data}
-            className="px-3.5 py-1.5 rounded-lg bg-[#25a475] hover:bg-[#208b63] text-[#00311f] font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            className="px-3.5 py-1.5 rounded-lg bg-primary-container hover:bg-primary-container text-on-primary-container font-bold text-xs font-['Space_Grotesk'] transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-sm">download</span>
             <span>{t('admin.analytics.exportReport')}</span>
@@ -150,10 +150,10 @@ export default function AnalyticsAndBIPage() {
 
       {/* LOADING & ERROR STATES */}
       {loading && (
-        <div className="flex items-center justify-center p-12 bg-[#0a0e16] rounded-xl border border-[#262a33]">
+        <div className="flex items-center justify-center p-12 bg-surface-container-lowest rounded-xl border border-surface-container-high">
           <div className="flex flex-col items-center gap-3">
-            <span className="w-8 h-8 rounded-full border-2 border-[#68dba9] border-t-transparent animate-spin" />
-            <span className="text-xs font-mono text-[#bccac0]">
+            <span className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <span className="text-xs font-mono text-on-surface-variant">
               Loading authoritative telemetry metrics...
             </span>
           </div>
@@ -161,7 +161,7 @@ export default function AnalyticsAndBIPage() {
       )}
 
       {error && !loading && (
-        <div className="p-4 bg-red-950/40 border border-red-500/30 rounded-xl text-xs text-red-300 font-mono flex items-center justify-between">
+        <div className="p-4 bg-error-container/40 border border-error/30 rounded-xl text-xs text-on-error-container font-mono flex items-center justify-between">
           <span>{error}</span>
           <button
             type="button"
@@ -169,7 +169,7 @@ export default function AnalyticsAndBIPage() {
               setLoading(true);
               setRange((prev) => prev);
             }}
-            className="px-3 py-1 bg-red-900/60 rounded text-red-100 font-bold hover:bg-red-800"
+            className="px-3 py-1 bg-error-container/60 rounded text-on-error-container font-bold hover:bg-error"
           >
             Retry
           </button>
@@ -179,62 +179,63 @@ export default function AnalyticsAndBIPage() {
       {!loading && data && (
         <>
           {/* DATE RANGE BAR */}
-          <div className="px-4 py-2 bg-[#181c24] rounded-xl border border-[#262a33] text-xs font-mono text-[#bccac0] flex items-center justify-between">
+          <div className="px-4 py-2 bg-surface-container-low rounded-xl border border-surface-container-high text-xs font-mono text-on-surface-variant flex items-center justify-between">
             <span>
-              Window: <strong className="text-[#dfe2ee]">{formatDate(data.dateRange.start)}</strong>{' '}
-              — <strong className="text-[#dfe2ee]">{formatDate(data.dateRange.end)}</strong>
+              Window:{' '}
+              <strong className="text-on-surface">{formatDate(data.dateRange.start)}</strong> —{' '}
+              <strong className="text-on-surface">{formatDate(data.dateRange.end)}</strong>
             </span>
             <span>
-              Range: <strong className="text-[#68dba9] uppercase">{data.dateRange.rangeKey}</strong>
+              Range: <strong className="text-primary uppercase">{data.dateRange.rangeKey}</strong>
             </span>
           </div>
 
           {/* KEY FINANCIAL CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[11px] font-mono text-[#87948b] uppercase tracking-wider">
+            <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container-high flex flex-col justify-between">
+              <span className="text-[11px] font-mono text-outline uppercase tracking-wider">
                 {t('admin.analytics.metrics.gmv')}
               </span>
-              <div className="text-2xl font-bold text-[#68dba9] font-['Space_Grotesk'] mt-2">
+              <div className="text-2xl font-bold text-primary font-['Space_Grotesk'] mt-2">
                 {formatCurrency(data.financial.grossMerchandiseValue)}
               </div>
-              <span className="text-[11px] font-mono text-[#bccac0] mt-1">
+              <span className="text-[11px] font-mono text-on-surface-variant mt-1">
                 Discounts: {formatCurrency(data.financial.totalDiscounts)}
               </span>
             </div>
 
-            <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[11px] font-mono text-[#87948b] uppercase tracking-wider">
+            <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container-high flex flex-col justify-between">
+              <span className="text-[11px] font-mono text-outline uppercase tracking-wider">
                 {t('admin.analytics.metrics.netPlatformRevenue')}
               </span>
-              <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-2">
+              <div className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-2">
                 {formatCurrency(data.financial.netPlatformRevenue)}
               </div>
-              <span className="text-[11px] font-mono text-[#68dba9] mt-1">
+              <span className="text-[11px] font-mono text-primary mt-1">
                 Take-Rate: {data.financial.takeRate}%
               </span>
             </div>
 
-            <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[11px] font-mono text-[#87948b] uppercase tracking-wider">
+            <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container-high flex flex-col justify-between">
+              <span className="text-[11px] font-mono text-outline uppercase tracking-wider">
                 {t('admin.analytics.metrics.driverPayouts')}
               </span>
-              <div className="text-2xl font-bold text-[#b4c5ff] font-['Space_Grotesk'] mt-2">
+              <div className="text-2xl font-bold text-secondary font-['Space_Grotesk'] mt-2">
                 {formatCurrency(data.financial.driverPayouts)}
               </div>
-              <span className="text-[11px] font-mono text-[#bccac0] mt-1">
+              <span className="text-[11px] font-mono text-on-surface-variant mt-1">
                 Earned by Chauffeurs
               </span>
             </div>
 
-            <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] flex flex-col justify-between">
-              <span className="text-[11px] font-mono text-[#87948b] uppercase tracking-wider">
+            <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container-high flex flex-col justify-between">
+              <span className="text-[11px] font-mono text-outline uppercase tracking-wider">
                 {t('admin.analytics.metrics.totalBookings')}
               </span>
-              <div className="text-2xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-2">
+              <div className="text-2xl font-bold text-on-surface font-['Space_Grotesk'] mt-2">
                 {formatNumber(data.bookings.total)}
               </div>
-              <span className="text-[11px] font-mono text-[#68dba9] mt-1">
+              <span className="text-[11px] font-mono text-primary mt-1">
                 Completed: {formatNumber(data.bookings.completed)} ({data.bookings.completionRate}
                 %)
               </span>
@@ -244,53 +245,53 @@ export default function AnalyticsAndBIPage() {
           {/* DETAILED DOMAIN METRICS GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* BOOKINGS & DISPATCH PERFORMANCE */}
-            <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">radar</span>
+            <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container-high space-y-4">
+              <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+                <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-base">radar</span>
                   Dispatch &amp; Mission Performance
                 </h3>
-                <span className="text-[11px] font-mono text-[#bccac0]">
+                <span className="text-[11px] font-mono text-on-surface-variant">
                   Active: {data.bookings.active}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Completion Rate</span>
-                  <span className="text-lg font-bold text-[#68dba9]">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Completion Rate</span>
+                  <span className="text-lg font-bold text-primary">
                     {data.bookings.completionRate}%
                   </span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     {data.bookings.completed} completed bookings
                   </span>
                 </div>
 
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Cancellation Rate</span>
-                  <span className="text-lg font-bold text-[#ffb4ab]">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Cancellation Rate</span>
+                  <span className="text-lg font-bold text-error">
                     {data.bookings.cancellationRate}%
                   </span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     {data.bookings.cancelled} cancelled bookings
                   </span>
                 </div>
 
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Dispatch Success Rate</span>
-                  <span className="text-lg font-bold text-[#68dba9]">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Dispatch Success Rate</span>
+                  <span className="text-lg font-bold text-primary">
                     {data.dispatch.assignmentSuccessRate}%
                   </span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     {data.dispatch.successfulAssignments} / {data.dispatch.totalAttempts} offers
                     accepted
                   </span>
                 </div>
 
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Active In-Progress</span>
-                  <span className="text-lg font-bold text-[#b4c5ff]">{data.bookings.active}</span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Active In-Progress</span>
+                  <span className="text-lg font-bold text-secondary">{data.bookings.active}</span>
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     Bookings currently active
                   </span>
                 </div>
@@ -298,50 +299,48 @@ export default function AnalyticsAndBIPage() {
             </div>
 
             {/* FLEET & USER RETENTION */}
-            <div className="bg-[#0a0e16] p-5 rounded-xl border border-[#262a33] space-y-4">
-              <div className="flex items-center justify-between border-b border-[#262a33] pb-3">
-                <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#68dba9] text-base">groups</span>
+            <div className="bg-surface-container-lowest p-5 rounded-xl border border-surface-container-high space-y-4">
+              <div className="flex items-center justify-between border-b border-surface-container-high pb-3">
+                <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-base">groups</span>
                   Chauffeur Fleet &amp; Customer Base
                 </h3>
-                <span className="text-[11px] font-mono text-[#bccac0]">
+                <span className="text-[11px] font-mono text-on-surface-variant">
                   Registered: {data.customers.total} Users
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Total Chauffeurs</span>
-                  <span className="text-lg font-bold text-[#dfe2ee]">{data.drivers.total}</span>
-                  <span className="text-[10px] text-[#68dba9] block mt-0.5">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Total Chauffeurs</span>
+                  <span className="text-lg font-bold text-on-surface">{data.drivers.total}</span>
+                  <span className="text-[10px] text-primary block mt-0.5">
                     {data.drivers.approved} KYC approved
                   </span>
                 </div>
 
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Online Fleet</span>
-                  <span className="text-lg font-bold text-[#68dba9]">{data.drivers.online}</span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Online Fleet</span>
+                  <span className="text-lg font-bold text-primary">{data.drivers.online}</span>
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     {data.drivers.available} available idle
                   </span>
                 </div>
 
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Safety SOS Incidents</span>
-                  <span className="text-lg font-bold text-[#ffb4ab]">
-                    {data.safety.totalIncidents}
-                  </span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Safety SOS Incidents</span>
+                  <span className="text-lg font-bold text-error">{data.safety.totalIncidents}</span>
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     {data.safety.openIncidents} open incidents
                   </span>
                 </div>
 
-                <div className="bg-[#181c24] p-3 rounded-lg border border-[#262a33]">
-                  <span className="text-[#87948b] block mb-1">Support Tickets</span>
-                  <span className="text-lg font-bold text-[#b4c5ff]">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
+                  <span className="text-outline block mb-1">Support Tickets</span>
+                  <span className="text-lg font-bold text-secondary">
                     {data.support.totalTickets}
                   </span>
-                  <span className="text-[10px] text-[#bccac0] block mt-0.5">
+                  <span className="text-[10px] text-on-surface-variant block mt-0.5">
                     {data.support.openTickets} pending tickets
                   </span>
                 </div>

@@ -91,39 +91,39 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
   const getSeverityClass = (sev: string) => {
     switch (sev) {
       case 'CRITICAL':
-        return 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]';
+        return 'bg-error-container text-error border-error-container';
       case 'HIGH':
-        return 'bg-[#3a2000] text-[#ffb957] border-[#7d4e00]';
+        return 'bg-warning-container text-on-warning-container border-warning-container';
       case 'MEDIUM':
-        return 'bg-[#2a2900] text-[#ffe662] border-[#6b6700]';
+        return 'bg-warning-container text-on-warning-container border-warning-container';
       default:
-        return 'bg-[#0f2438] text-[#82cfff] border-[#004a77]';
+        return 'bg-info-container text-on-info-container border-info-container';
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Navigation Back Header */}
-      <div className="flex items-center justify-between border-b border-[#262a33] pb-4">
+      <div className="flex items-center justify-between border-b border-surface-container-high pb-4">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/operations-command-center"
-            className="p-2 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#dfe2ee] transition-all flex items-center justify-center"
+            className="p-2 rounded-lg bg-surface-container-low border border-surface-container-high hover:border-primary text-on-surface transition-all flex items-center justify-center"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk']">
               Decision Record: {decisionId}
             </h1>
-            <p className="text-xs text-[#87948b] font-mono mt-0.5">
+            <p className="text-xs text-outline font-mono mt-0.5">
               Detailed evidence trail, raw signal values, and action dispatch logs
             </p>
           </div>
         </div>
         <button
           onClick={() => void fetchDecisionDetail()}
-          className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] hover:border-[#68dba9] text-[#dfe2ee] text-xs font-mono flex items-center gap-2"
+          className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high hover:border-primary text-on-surface text-xs font-mono flex items-center gap-2"
         >
           <span className="material-symbols-outlined text-sm">refresh</span>
           Refresh Record
@@ -131,24 +131,24 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-[#3b0909] border border-[#93000a] text-[#ff8e8e] text-xs font-mono">
+        <div className="p-4 rounded-xl bg-error-container border border-error-container text-error text-xs font-mono">
           {error}
         </div>
       )}
 
       {actionMessage && (
-        <div className="p-4 rounded-xl bg-[#1b2b00] border border-[#3f6300] text-[#a4f542] text-xs font-mono flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-on-warning-container border border-primary-container text-warning text-xs font-mono flex items-center gap-2">
           <span className="material-symbols-outlined text-base">check_circle</span>
           <span>{actionMessage}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
+        <div className="bg-surface-container-low p-12 rounded-xl border border-surface-container-high text-center text-xs font-mono text-outline">
           Loading decision record details...
         </div>
       ) : !decision ? (
-        <div className="bg-[#181c24] p-12 rounded-xl border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
+        <div className="bg-surface-container-low p-12 rounded-xl border border-surface-container-high text-center text-xs font-mono text-outline">
           Decision record not found or expired.
         </div>
       ) : (
@@ -156,8 +156,8 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
           {/* Left Column — Summary & Evidence */}
           <div className="lg:col-span-2 space-y-6">
             {/* Overview Card */}
-            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#262a33] pb-4">
+            <div className="bg-surface-container-low p-6 rounded-xl border border-surface-container-high space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-container-high pb-4">
                 <div className="flex items-center gap-2">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${getSeverityClass(
@@ -166,49 +166,47 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                   >
                     {decision.severity}
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#0f131c] text-[#68dba9] border border-[#262a33]">
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-background text-primary border border-surface-container-high">
                     STATUS: {decision.status}
                   </span>
                 </div>
-                <div className="text-xs font-mono text-[#87948b]">
+                <div className="text-xs font-mono text-outline">
                   Evaluated At:{' '}
-                  <strong className="text-[#dfe2ee]">
+                  <strong className="text-on-surface">
                     {new Date(decision.createdAt).toLocaleString()}
                   </strong>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-lg font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+                <h2 className="text-lg font-bold text-on-surface font-['Space_Grotesk']">
                   {decision.title}
                 </h2>
-                <p className="text-xs font-mono text-[#bccac0] leading-relaxed">
+                <p className="text-xs font-mono text-on-surface-variant leading-relaxed">
                   {decision.summary || decision.why}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#262a33] text-xs font-mono">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-surface-container-high text-xs font-mono">
                 <div>
-                  <span className="text-[#87948b] block text-[10px] uppercase">Decision Type</span>
-                  <strong className="text-[#dfe2ee]">{decision.decisionType}</strong>
+                  <span className="text-outline block text-[10px] uppercase">Decision Type</span>
+                  <strong className="text-on-surface">{decision.decisionType}</strong>
                 </div>
                 <div>
-                  <span className="text-[#87948b] block text-[10px] uppercase">Zone ID</span>
-                  <strong className="text-[#dfe2ee]">{decision.zoneId ?? 'SYSTEM'}</strong>
+                  <span className="text-outline block text-[10px] uppercase">Zone ID</span>
+                  <strong className="text-on-surface">{decision.zoneId ?? 'SYSTEM'}</strong>
                 </div>
                 <div>
-                  <span className="text-[#87948b] block text-[10px] uppercase">Confidence</span>
-                  <strong className="text-[#68dba9]">{decision.confidence}</strong>
+                  <span className="text-outline block text-[10px] uppercase">Confidence</span>
+                  <strong className="text-primary">{decision.confidence}</strong>
                 </div>
               </div>
             </div>
 
             {/* Evidence Breakdown Card */}
-            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-4">
-              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9] text-base">
-                  fact_check
-                </span>
+            <div className="bg-surface-container-low p-6 rounded-xl border border-surface-container-high space-y-4">
+              <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-base">fact_check</span>
                 Evidence Metric Trail
               </h3>
 
@@ -216,18 +214,18 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                 {decision.evidence.map((ev, idx) => (
                   <div
                     key={idx}
-                    className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33] flex items-center justify-between text-xs font-mono"
+                    className="bg-background p-4 rounded-lg border border-surface-container-high flex items-center justify-between text-xs font-mono"
                   >
                     <div className="space-y-1">
-                      <span className="text-[#dfe2ee] font-bold block">{ev.label || ev.key}</span>
+                      <span className="text-on-surface font-bold block">{ev.label || ev.key}</span>
                       {ev.expected && (
-                        <span className="text-[11px] text-[#87948b]">
+                        <span className="text-[11px] text-outline">
                           Threshold / Target: {String(ev.expected)}
                         </span>
                       )}
                     </div>
                     <div className="text-right space-y-1">
-                      <span className="text-[#68dba9] font-bold text-sm block">
+                      <span className="text-primary font-bold text-sm block">
                         {String(ev.value)}
                       </span>
                     </div>
@@ -237,28 +235,30 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
             </div>
 
             {/* Impact Card */}
-            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-2">
-              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#70d2ff] text-base">
+            <div className="bg-surface-container-low p-6 rounded-xl border border-surface-container-high space-y-2">
+              <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-on-info-container text-base">
                   analytics
                 </span>
                 Expected Impact
               </h3>
-              <p className="text-xs font-mono text-[#bccac0]">{decision.expectedImpact}</p>
+              <p className="text-xs font-mono text-on-surface-variant">{decision.expectedImpact}</p>
             </div>
           </div>
 
           {/* Right Column — Recommended Actions & Lifecycle History */}
           <div className="space-y-6">
             {/* Actions Section */}
-            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-4">
-              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#ffb957] text-base">bolt</span>
+            <div className="bg-surface-container-low p-6 rounded-xl border border-surface-container-high space-y-4">
+              <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-on-warning-container text-base">
+                  bolt
+                </span>
                 Available Orchestration Actions
               </h3>
 
               {decision.recommendedActions.length === 0 ? (
-                <div className="p-4 rounded-lg bg-[#0f131c] border border-[#262a33] text-center text-xs font-mono text-[#87948b]">
+                <div className="p-4 rounded-lg bg-background border border-surface-container-high text-center text-xs font-mono text-outline">
                   No executable actions prescribed for this decision.
                 </div>
               ) : (
@@ -266,20 +266,20 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                   {decision.recommendedActions.map((action) => (
                     <div
                       key={action.id}
-                      className="bg-[#0f131c] p-4 rounded-lg border border-[#262a33] space-y-3 text-xs font-mono"
+                      className="bg-background p-4 rounded-lg border border-surface-container-high space-y-3 text-xs font-mono"
                     >
                       <div>
-                        <span className="text-[#68dba9] font-bold block">{action.label}</span>
-                        <span className="text-[#87948b] text-[11px] mt-1 block">
+                        <span className="text-primary font-bold block">{action.label}</span>
+                        <span className="text-outline text-[11px] mt-1 block">
                           {action.impactSummary}
                         </span>
                       </div>
 
-                      <div className="p-2 rounded bg-[#181c24] border border-[#262a33]">
-                        <span className="text-[10px] text-[#87948b] uppercase block">
+                      <div className="p-2 rounded bg-surface-container-low border border-surface-container-high">
+                        <span className="text-[10px] text-outline uppercase block">
                           Action Category
                         </span>
-                        <span className="text-[#dfe2ee] font-bold">{action.category}</span>
+                        <span className="text-on-surface font-bold">{action.category}</span>
                       </div>
 
                       <button
@@ -289,11 +289,11 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                           decision.status === 'RESOLVED' ||
                           decision.status === 'DISMISSED'
                         }
-                        className="w-full py-2 px-3 rounded-lg bg-[#25a475] hover:bg-[#1f8760] text-[#00311f] font-bold text-xs font-mono transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-2 px-3 rounded-lg bg-primary-container hover:bg-primary-container text-on-primary-container font-bold text-xs font-mono transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {executingActionId === action.id ? (
                           <>
-                            <span className="w-3 h-3 border-2 border-[#00311f] border-t-transparent rounded-full animate-spin" />
+                            <span className="w-3 h-3 border-2 border-on-primary-container border-t-transparent rounded-full animate-spin" />
                             Dispatching Action...
                           </>
                         ) : decision.status === 'RESOLVED' || decision.status === 'DISMISSED' ? (
@@ -312,9 +312,11 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
             </div>
 
             {/* Execution History */}
-            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-4">
-              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#70d2ff] text-base">history</span>
+            <div className="bg-surface-container-low p-6 rounded-xl border border-surface-container-high space-y-4">
+              <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-on-info-container text-base">
+                  history
+                </span>
                 Execution History
               </h3>
 
@@ -325,32 +327,32 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
                   {decision.executions.map((execution) => (
                     <div
                       key={execution.id}
-                      className="bg-[#0f131c] p-3 rounded-lg border border-[#262a33] space-y-1.5 text-xs font-mono"
+                      className="bg-background p-3 rounded-lg border border-surface-container-high space-y-1.5 text-xs font-mono"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[#dfe2ee] font-bold">
+                        <span className="text-on-surface font-bold">
                           #{execution.attemptNumber} — {execution.actionType}
                         </span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
                             execution.status === 'SUCCEEDED'
-                              ? 'bg-[#1b2b00] text-[#a4f542] border-[#3f6300]'
+                              ? 'bg-on-warning-container text-warning border-primary-container'
                               : execution.status === 'FAILED'
-                                ? 'bg-[#3b0909] text-[#ff8e8e] border-[#93000a]'
-                                : 'bg-[#0f2438] text-[#82cfff] border-[#004a77]'
+                                ? 'bg-error-container text-error border-error-container'
+                                : 'bg-info-container text-on-info-container border-info-container'
                           }`}
                         >
                           {execution.status}
                         </span>
                       </div>
-                      <div className="text-[11px] text-[#87948b]">
+                      <div className="text-[11px] text-outline">
                         {new Date(execution.startedAt).toLocaleString()}
                       </div>
                       {execution.resultMessage && (
-                        <p className="text-[#68dba9]">{execution.resultMessage}</p>
+                        <p className="text-primary">{execution.resultMessage}</p>
                       )}
                       {execution.failureSummary && (
-                        <p className="text-[#ff8e8e]">{execution.failureSummary}</p>
+                        <p className="text-error">{execution.failureSummary}</p>
                       )}
                     </div>
                   ))}
@@ -359,16 +361,16 @@ export default function DecisionDetailPage({ params }: DecisionDetailPageProps) 
             </div>
 
             {/* Lifecycle & Safety Guard Notice */}
-            <div className="bg-[#181c24] p-6 rounded-xl border border-[#262a33] space-y-3 text-xs font-mono">
-              <h3 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#68dba9] text-base">shield</span>
+            <div className="bg-surface-container-low p-6 rounded-xl border border-surface-container-high space-y-3 text-xs font-mono">
+              <h3 className="text-sm font-bold text-on-surface font-['Space_Grotesk'] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-base">shield</span>
                 Orchestrator Safety Guard
               </h3>
-              <p className="text-[#87948b] leading-relaxed">
+              <p className="text-outline leading-relaxed">
                 All action dispatches acquire distributed Redis locks before mutating domain state.
                 High & Critical actions require explicit human operator confirmation.
               </p>
-              <div className="pt-2 border-t border-[#262a33] text-[11px] text-[#68dba9]">
+              <div className="pt-2 border-t border-surface-container-high text-[11px] text-primary">
                 ✓ Domain DB Direct Mutation Blocked
                 <br />✓ Domain Layer Orchestration Enforced
               </div>

@@ -34,9 +34,9 @@ interface AuditEntry {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-[#262a33] last:border-0">
-      <span className="text-xs text-[#87948b]">{label}</span>
-      <span className="text-sm text-[#dfe2ee] font-mono">{value}</span>
+    <div className="flex items-center justify-between py-2.5 border-b border-surface-container-high last:border-0">
+      <span className="text-xs text-outline">{label}</span>
+      <span className="text-sm text-on-surface font-mono">{value}</span>
     </div>
   );
 }
@@ -85,7 +85,7 @@ export default function AdminSettlementDetailPage() {
           <button
             type="button"
             onClick={() => router.push('/admin/settlements')}
-            className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] transition-colors"
+            className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-border text-xs font-bold text-on-surface transition-colors"
           >
             ← Back to Settlements
           </button>
@@ -93,7 +93,7 @@ export default function AdminSettlementDetailPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -103,7 +103,7 @@ export default function AdminSettlementDetailPage() {
       ) : (
         settlement && (
           <>
-            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33]">
+            <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high">
               <div className="flex items-center justify-between mb-4">
                 <FinanceAmount value={settlement.amount} className="text-2xl font-bold" />
                 <SettlementStatusBadge status={settlement.status} />
@@ -120,7 +120,7 @@ export default function AdminSettlementDetailPage() {
               {settlement.failureReason && (
                 <DetailRow
                   label="Failure Reason"
-                  value={<span className="text-[#ffb4ab]">{settlement.failureReason}</span>}
+                  value={<span className="text-error">{settlement.failureReason}</span>}
                 />
               )}
               <DetailRow label="Created" value={formatDateTime(settlement.createdAt)} />
@@ -135,7 +135,7 @@ export default function AdminSettlementDetailPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+              <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
                 Audit Trail
               </h2>
               {auditTrail.length === 0 ? (
@@ -145,10 +145,10 @@ export default function AdminSettlementDetailPage() {
                   {auditTrail.map((entry) => (
                     <div
                       key={entry.id}
-                      className="p-4 rounded-lg bg-[#181c24] border border-[#262a33] flex items-center justify-between"
+                      className="p-4 rounded-lg bg-surface-container-low border border-surface-container-high flex items-center justify-between"
                     >
-                      <span className="text-xs font-mono text-[#dfe2ee]">{entry.action}</span>
-                      <span className="text-xs font-mono text-[#87948b]">
+                      <span className="text-xs font-mono text-on-surface">{entry.action}</span>
+                      <span className="text-xs font-mono text-outline">
                         {formatDateTime(entry.createdAt)}
                       </span>
                     </div>

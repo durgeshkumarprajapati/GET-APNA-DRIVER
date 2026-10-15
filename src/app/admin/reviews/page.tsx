@@ -85,7 +85,7 @@ export default function AdminReviewsPage() {
                 setPage(1);
               }}
               placeholder="Search comment text..."
-              className="h-9 px-3 rounded-lg bg-[#0a0e16] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+              className="h-9 px-3 rounded-lg bg-surface-container-lowest border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
             />
             <select
               value={status}
@@ -94,7 +94,7 @@ export default function AdminReviewsPage() {
                 setStatus(e.target.value as (typeof STATUS_FILTERS)[number]);
                 setPage(1);
               }}
-              className="h-9 px-3 rounded-lg bg-[#0a0e16] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="h-9 px-3 rounded-lg bg-surface-container-lowest border border-surface-container-high text-xs text-on-surface focus:outline-none focus:border-primary"
             >
               {STATUS_FILTERS.map((option) => (
                 <option key={option} value={option}>
@@ -106,7 +106,7 @@ export default function AdminReviewsPage() {
         }
       />
 
-      <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+      <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
         {loading ? (
           <LoadingState message="Loading reviews…" />
         ) : !data || data.reviews.length === 0 ? (
@@ -115,7 +115,7 @@ export default function AdminReviewsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs border-collapse">
               <thead>
-                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                   <th className="py-3 px-4">Rating</th>
                   <th className="py-3 px-4">Driver</th>
                   <th className="py-3 px-4">Customer</th>
@@ -124,25 +124,28 @@ export default function AdminReviewsPage() {
                   <th className="py-3 px-4 text-right">Submitted</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] font-mono">
+              <tbody className="divide-y divide-surface-container-high font-mono">
                 {data.reviews.map((review) => (
-                  <tr key={review.id} className="hover:bg-[#181c24]/60 transition-colors">
+                  <tr
+                    key={review.id}
+                    className="hover:bg-surface-container-low/60 transition-colors"
+                  >
                     <td className="py-3 px-4">
                       <RatingStars value={review.rating} size="sm" />
                     </td>
                     <td className="py-3 px-4">
                       <Link
                         href={`/admin/drivers/${review.driver.id}`}
-                        className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors"
+                        className="font-bold text-on-surface hover:text-primary transition-colors"
                       >
                         {review.driver.name}
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-[#bccac0]">
+                    <td className="py-3 px-4 text-on-surface-variant">
                       {review.customer.email ?? review.customer.phoneNumber ?? '—'}
                     </td>
-                    <td className="py-3 px-4 text-[#bccac0] max-w-xs truncate">
-                      {review.comment ?? <span className="text-[#87948b]">No comment</span>}
+                    <td className="py-3 px-4 text-on-surface-variant max-w-xs truncate">
+                      {review.comment ?? <span className="text-outline">No comment</span>}
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge
@@ -150,10 +153,10 @@ export default function AdminReviewsPage() {
                         tone={STATUS_TONE[review.status] ?? 'neutral'}
                       />
                     </td>
-                    <td className="py-3 px-4 text-right text-[#87948b]">
+                    <td className="py-3 px-4 text-right text-outline">
                       <Link
                         href={`/admin/reviews/${review.id}`}
-                        className="hover:text-[#68dba9] transition-colors"
+                        className="hover:text-primary transition-colors"
                       >
                         {formatDate(review.createdAt)}
                       </Link>

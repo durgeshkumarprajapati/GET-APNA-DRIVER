@@ -353,7 +353,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={driverCouponBusyId === c.id}
               onClick={() => void runDriverCouponAction(c.id, 'activate')}
-              className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-primary-container hover:bg-primary text-on-primary-container font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Activate
             </button>
@@ -363,7 +363,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={driverCouponBusyId === c.id}
               onClick={() => void runDriverCouponAction(c.id, 'pause')}
-              className="px-3 py-1.5 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Disable
             </button>
@@ -373,7 +373,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={driverCouponBusyId === c.id}
               onClick={() => void runDriverCouponAction(c.id, 'activate')}
-              className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-primary-container hover:bg-primary text-on-primary-container font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Enable
             </button>
@@ -383,7 +383,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={driverCouponBusyId === c.id}
               onClick={() => void runDriverCouponAction(c.id, 'archive')}
-              className="px-3 py-1.5 bg-[#93000a] hover:bg-[#690005] text-[#ffdad6] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-error-container hover:bg-on-error text-on-error-container font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Delete
             </button>
@@ -398,7 +398,7 @@ export default function AdminCouponsPage() {
       key: 'name',
       header: 'Promotion',
       render: (p) => (
-        <Link href={`/admin/coupons/${p.id}`} className="text-[#68dba9] hover:underline">
+        <Link href={`/admin/coupons/${p.id}`} className="text-primary hover:underline">
           {p.name}
         </Link>
       ),
@@ -406,7 +406,7 @@ export default function AdminCouponsPage() {
     {
       key: 'code',
       header: 'Code',
-      render: (p) => p.code ?? <span className="text-[#87948b]">Automatic</span>,
+      render: (p) => p.code ?? <span className="text-outline">Automatic</span>,
     },
     {
       key: 'discount',
@@ -447,7 +447,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={busyId === p.id}
               onClick={() => void runAction(p.id, 'activate')}
-              className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-primary-container hover:bg-primary text-on-primary-container font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Activate
             </button>
@@ -457,7 +457,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={busyId === p.id}
               onClick={() => void runAction(p.id, 'pause')}
-              className="px-3 py-1.5 bg-[#262a33] hover:bg-[#353942] text-[#dfe2ee] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Pause
             </button>
@@ -467,7 +467,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={busyId === p.id}
               onClick={() => void runAction(p.id, 'activate')}
-              className="px-3 py-1.5 bg-[#25a475] hover:bg-[#68dba9] text-[#00311f] font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-primary-container hover:bg-primary text-on-primary-container font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Resume
             </button>
@@ -477,7 +477,7 @@ export default function AdminCouponsPage() {
               type="button"
               disabled={busyId === p.id}
               onClick={() => void runAction(p.id, 'archive')}
-              className="px-3 py-1.5 bg-[#93000a] hover:bg-[#690005] text-[#ffdad6] font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-error-container hover:bg-on-error text-on-error-container font-semibold text-xs rounded-lg transition-colors disabled:opacity-50"
             >
               Archive
             </button>
@@ -498,7 +498,7 @@ export default function AdminCouponsPage() {
             <button
               type="button"
               onClick={() => setShowCreate((v) => !v)}
-              className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
+              className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-on-primary text-xs font-bold transition-colors"
             >
               {showCreate ? 'Cancel' : '+ New Promotion'}
             </button>
@@ -506,7 +506,7 @@ export default function AdminCouponsPage() {
             <button
               type="button"
               onClick={() => setShowDriverCouponCreate((v) => !v)}
-              className="px-4 py-2 rounded-lg bg-[#68dba9] hover:bg-[#85f8c4] text-[#003825] text-xs font-bold transition-colors"
+              className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-on-primary text-xs font-bold transition-colors"
             >
               {showDriverCouponCreate ? 'Cancel' : '+ New Driver Coupon'}
             </button>
@@ -514,14 +514,14 @@ export default function AdminCouponsPage() {
         }
       />
 
-      <div className="flex items-center gap-1 p-1 rounded-xl bg-[#181c24] border border-[#262a33] w-fit">
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-container-low border border-surface-container-high w-fit">
         <button
           type="button"
           onClick={() => setAudience('CUSTOMER')}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
             audience === 'CUSTOMER'
-              ? 'bg-[#68dba9] text-[#003825]'
-              : 'text-[#bccac0] hover:text-[#dfe2ee]'
+              ? 'bg-primary text-on-primary'
+              : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           Customer Coupons
@@ -531,15 +531,15 @@ export default function AdminCouponsPage() {
           onClick={() => setAudience('DRIVER')}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
             audience === 'DRIVER'
-              ? 'bg-[#68dba9] text-[#003825]'
-              : 'text-[#bccac0] hover:text-[#dfe2ee]'
+              ? 'bg-primary text-on-primary'
+              : 'text-on-surface-variant hover:text-on-surface'
           }`}
         >
           Driver Coupons
         </button>
       </div>
 
-      {actionMessage && <p className="text-sm text-[#bccac0]">{actionMessage}</p>}
+      {actionMessage && <p className="text-sm text-on-surface-variant">{actionMessage}</p>}
 
       {audience === 'CUSTOMER' && analytics && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -558,27 +558,29 @@ export default function AdminCouponsPage() {
       )}
 
       {audience === 'CUSTOMER' && showCreate && (
-        <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
-          <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">New Promotion</h2>
+        <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-4">
+          <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
+            New Promotion
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input
               type="text"
               placeholder="Name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             <input
               type="text"
               placeholder="Code (blank = automatic)"
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] font-mono"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary font-mono"
             />
             <select
               value={form.discountType}
               onChange={(e) => setForm({ ...form, discountType: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             >
               <option value="PERCENTAGE">Percentage</option>
               <option value="FIXED">Fixed Amount</option>
@@ -592,28 +594,28 @@ export default function AdminCouponsPage() {
               }
               value={form.discountValue}
               onChange={(e) => setForm({ ...form, discountValue: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             <input
               type="text"
               placeholder="Max discount ₹ (optional cap)"
               value={form.maxDiscountAmount}
               onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             <input
               type="text"
               placeholder="Minimum booking value (optional)"
               value={form.minBookingValue}
               onChange={(e) => setForm({ ...form, minBookingValue: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
-            <label className="flex items-center gap-2 text-xs text-[#bccac0]">
+            <label className="flex items-center gap-2 text-xs text-on-surface-variant">
               <input
                 type="datetime-local"
                 value={form.startsAt}
                 onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
-                className="flex-1 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                className="flex-1 rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
               />
             </label>
             <input
@@ -621,29 +623,29 @@ export default function AdminCouponsPage() {
               placeholder="Ends at (optional)"
               value={form.endsAt}
               onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             <input
               type="number"
               placeholder="Total usage limit (blank = unlimited)"
               value={form.totalUsageLimit}
               onChange={(e) => setForm({ ...form, totalUsageLimit: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             <input
               type="number"
               placeholder="Per-user usage limit"
               value={form.perUserUsageLimit}
               onChange={(e) => setForm({ ...form, perUserUsageLimit: e.target.value })}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
             <textarea
               placeholder="Description (optional)"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="md:col-span-3 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="md:col-span-3 rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
             />
-            <label className="flex items-center gap-2 text-xs text-[#bccac0]">
+            <label className="flex items-center gap-2 text-xs text-on-surface-variant">
               <input
                 type="checkbox"
                 checked={form.firstRideOnly}
@@ -651,7 +653,7 @@ export default function AdminCouponsPage() {
               />
               First booking only
             </label>
-            <label className="flex items-center gap-2 text-xs text-[#bccac0]">
+            <label className="flex items-center gap-2 text-xs text-on-surface-variant">
               <input
                 type="checkbox"
                 checked={form.isAutomatic}
@@ -664,11 +666,11 @@ export default function AdminCouponsPage() {
             type="button"
             disabled={creating || !form.name.trim() || !form.discountValue.trim() || !form.startsAt}
             onClick={() => void handleCreate()}
-            className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+            className="px-5 py-2 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary-container font-bold text-sm rounded-lg shadow transition-colors"
           >
             {creating ? 'Creating…' : 'Create Promotion (as Draft)'}
           </button>
-          <p className="text-[10px] text-[#87948b]">
+          <p className="text-[10px] text-outline">
             A new promotion is always created as DRAFT — activate it once ready. Only DRAFT
             promotions can still be edited; once activated, its terms are locked to keep historical
             redemptions correct.
@@ -678,14 +680,14 @@ export default function AdminCouponsPage() {
 
       {audience === 'CUSTOMER' && (
         <>
-          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+          <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
             <select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -701,12 +703,12 @@ export default function AdminCouponsPage() {
                 setPage(1);
               }}
               placeholder="Search by name or code"
-              className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="flex-1 min-w-[220px] rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
             />
           </div>
 
           {error && (
-            <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+            <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
               {error}
             </div>
           )}
@@ -714,7 +716,7 @@ export default function AdminCouponsPage() {
           {loading ? (
             <LoadingState message="Loading promotions…" />
           ) : (
-            <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+            <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl space-y-4">
               <DataTable
                 columns={columns}
                 data={promotions}
@@ -731,8 +733,8 @@ export default function AdminCouponsPage() {
       {audience === 'DRIVER' && (
         <>
           {showDriverCouponCreate && (
-            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-4">
-              <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-4">
+              <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                 New Driver Coupon
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -743,7 +745,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, name: e.target.value })
                   }
-                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 />
                 <input
                   type="text"
@@ -752,7 +754,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, code: e.target.value.toUpperCase() })
                   }
-                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9] font-mono"
+                  className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary font-mono"
                 />
                 <input
                   type="text"
@@ -761,7 +763,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, creditAmount: e.target.value })
                   }
-                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 />
                 <input
                   type="datetime-local"
@@ -769,7 +771,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, startsAt: e.target.value })
                   }
-                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 />
                 <input
                   type="datetime-local"
@@ -778,7 +780,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, endsAt: e.target.value })
                   }
-                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 />
                 <input
                   type="number"
@@ -787,7 +789,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, totalUsageLimit: e.target.value })
                   }
-                  className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 />
                 <textarea
                   placeholder="Description (optional)"
@@ -795,7 +797,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) =>
                     setDriverCouponForm({ ...driverCouponForm, description: e.target.value })
                   }
-                  className="md:col-span-3 rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-sm text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+                  className="md:col-span-3 rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
                 />
               </div>
               <button
@@ -808,11 +810,11 @@ export default function AdminCouponsPage() {
                   !driverCouponForm.startsAt
                 }
                 onClick={() => void handleCreateDriverCoupon()}
-                className="px-5 py-2 bg-[#25a475] hover:bg-[#68dba9] disabled:opacity-50 text-[#00311f] font-bold text-sm rounded-lg shadow transition-colors"
+                className="px-5 py-2 bg-primary-container hover:bg-primary disabled:opacity-50 text-on-primary-container font-bold text-sm rounded-lg shadow transition-colors"
               >
                 {creatingDriverCoupon ? 'Creating…' : 'Create Driver Coupon (as Draft)'}
               </button>
-              <p className="text-[10px] text-[#87948b]">
+              <p className="text-[10px] text-outline">
                 A new driver coupon is always created as DRAFT — activate it once ready. A driver
                 redeems it once for a direct, one-time credit to their wallet. Only DRAFT coupons
                 can still be edited.
@@ -820,14 +822,14 @@ export default function AdminCouponsPage() {
             </div>
           )}
 
-          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+          <div className="bg-surface-container-low border border-surface-container-high rounded-2xl p-4 shadow-xl flex flex-wrap items-center gap-3">
             <select
               value={driverCouponStatusFilter}
               onChange={(e) => {
                 setDriverCouponStatusFilter(e.target.value);
                 setDriverCouponPage(1);
               }}
-              className="rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -843,12 +845,12 @@ export default function AdminCouponsPage() {
                 setDriverCouponPage(1);
               }}
               placeholder="Search by name or code"
-              className="flex-1 min-w-[220px] rounded-lg bg-[#0a0e16] border border-[#262a33] px-3 py-2 text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+              className="flex-1 min-w-[220px] rounded-lg bg-surface-container-lowest border border-surface-container-high px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
             />
           </div>
 
           {driverCouponError && (
-            <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+            <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
               {driverCouponError}
             </div>
           )}
@@ -856,7 +858,7 @@ export default function AdminCouponsPage() {
           {driverCouponLoading ? (
             <LoadingState message="Loading driver coupons…" />
           ) : (
-            <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl space-y-4">
+            <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl space-y-4">
               <DataTable
                 columns={driverCouponColumns}
                 data={driverCoupons}

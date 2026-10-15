@@ -40,7 +40,7 @@ export default function DependenciesHealthPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           {t('platformHealth.navDependencies') || 'External Dependencies Health'}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-outline">
           {t('platformHealth.dependenciesSubtitle') ||
             'Google Maps, Payment Gateways & Notification Infrastructure'}
         </p>
@@ -48,10 +48,10 @@ export default function DependenciesHealthPage() {
 
       <ObservabilityNav />
 
-      {error && <div className="p-4 mb-6 bg-rose-100 text-rose-800 rounded">{error}</div>}
+      {error && <div className="p-4 mb-6 bg-on-error-container text-error rounded">{error}</div>}
 
       {loading ? (
-        <div className="p-8 text-center text-gray-500">Loading dependency health...</div>
+        <div className="p-8 text-center text-outline">Loading dependency health...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {dependencies.map((dep, idx) => (
@@ -62,9 +62,9 @@ export default function DependenciesHealthPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-bold text-base">{dep.name}</h3>
-                  <span className="text-xs text-gray-500">Type: {dep.type}</span>
+                  <span className="text-xs text-outline">Type: {dep.type}</span>
                 </div>
-                <span className="px-2 py-1 text-xs font-bold rounded bg-emerald-500 text-white">
+                <span className="px-2 py-1 text-xs font-bold rounded bg-primary text-white">
                   {dep.status}
                 </span>
               </div>

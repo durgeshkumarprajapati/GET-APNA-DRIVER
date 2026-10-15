@@ -121,7 +121,7 @@ export default function AdminReviewDetailPage({
         actions={
           <Link
             href="/admin/reviews"
-            className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] hover:bg-[#262a33] transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface hover:bg-surface-container-high transition-colors"
           >
             ← Back to Reviews
           </Link>
@@ -129,7 +129,7 @@ export default function AdminReviewDetailPage({
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -139,7 +139,7 @@ export default function AdminReviewDetailPage({
       ) : (
         review && (
           <>
-            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
+            <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-3">
                   <RatingStars value={review.rating} size="lg" />
@@ -148,40 +148,38 @@ export default function AdminReviewDetailPage({
                     tone={STATUS_TONE[review.status] ?? 'neutral'}
                   />
                 </div>
-                <span className="font-mono text-xs text-[#87948b]">
+                <span className="font-mono text-xs text-outline">
                   {formatDateTime(review.createdAt)}
                 </span>
               </div>
-              <p className="text-sm text-[#dfe2ee] italic">
-                {review.comment ?? <span className="text-[#87948b]">No comment provided.</span>}
+              <p className="text-sm text-on-surface italic">
+                {review.comment ?? <span className="text-outline">No comment provided.</span>}
               </p>
-              <div className="grid grid-cols-2 gap-4 text-xs pt-2 border-t border-[#262a33]">
+              <div className="grid grid-cols-2 gap-4 text-xs pt-2 border-t border-surface-container-high">
                 <div>
-                  <span className="block text-[10px] uppercase text-[#87948b] font-bold">
-                    Driver
-                  </span>
+                  <span className="block text-[10px] uppercase text-outline font-bold">Driver</span>
                   <Link
                     href={`/admin/drivers/${review.driver.id}`}
-                    className="text-[#68dba9] hover:underline"
+                    className="text-primary hover:underline"
                   >
                     {review.driver.name}
                   </Link>
                 </div>
                 <div>
-                  <span className="block text-[10px] uppercase text-[#87948b] font-bold">
+                  <span className="block text-[10px] uppercase text-outline font-bold">
                     Customer
                   </span>
-                  <span className="text-[#dfe2ee]">
+                  <span className="text-on-surface">
                     {review.customer.email ?? review.customer.phoneNumber ?? '—'}
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[10px] uppercase text-[#87948b] font-bold">
+                  <span className="block text-[10px] uppercase text-outline font-bold">
                     Booking
                   </span>
                   <Link
                     href={`/admin/live-bookings/${review.bookingId}`}
-                    className="text-[#68dba9] hover:underline font-mono text-[10px]"
+                    className="text-primary hover:underline font-mono text-[10px]"
                   >
                     {review.bookingId}
                   </Link>
@@ -189,15 +187,15 @@ export default function AdminReviewDetailPage({
               </div>
             </div>
 
-            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
-              <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-3">
+              <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                 Moderation Action
               </h2>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Reason for this moderation action (required)…"
-                className="w-full h-20 px-3 py-2 rounded-lg bg-[#0a0e16] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+                className="w-full h-20 px-3 py-2 rounded-lg bg-surface-container-lowest border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
               />
               <div className="flex flex-wrap gap-2">
                 {MODERATION_ACTIONS.filter((action) => action.targetStatus !== review.status).map(
@@ -207,7 +205,7 @@ export default function AdminReviewDetailPage({
                       type="button"
                       disabled={submitting}
                       onClick={() => void handleModerate(action.targetStatus)}
-                      className="px-4 py-2 rounded-lg bg-[#262a33] hover:bg-[#3d4a42] text-xs font-bold text-[#dfe2ee] disabled:opacity-50 transition-colors"
+                      className="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-border text-xs font-bold text-on-surface disabled:opacity-50 transition-colors"
                     >
                       {action.label}
                     </button>
@@ -216,8 +214,8 @@ export default function AdminReviewDetailPage({
               </div>
             </div>
 
-            <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-3">
-              <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+            <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-3">
+              <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
                 Audit History
               </h2>
               {auditLogs.length === 0 ? (
@@ -227,10 +225,10 @@ export default function AdminReviewDetailPage({
                   {auditLogs.map((entry) => (
                     <div
                       key={entry.id}
-                      className="p-3 rounded-lg bg-[#0a0e16] border border-[#262a33] flex items-center justify-between"
+                      className="p-3 rounded-lg bg-surface-container-lowest border border-surface-container-high flex items-center justify-between"
                     >
-                      <span className="text-[#dfe2ee]">{entry.action}</span>
-                      <span className="text-[#87948b]">{formatDateTime(entry.createdAt)}</span>
+                      <span className="text-on-surface">{entry.action}</span>
+                      <span className="text-outline">{formatDateTime(entry.createdAt)}</span>
                     </div>
                   ))}
                 </div>

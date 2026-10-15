@@ -109,26 +109,17 @@ export async function findNearbyDrivers(
     candidates.sort((a, b) => a.distanceMeters - b.distanceMeters);
   }
 
-  if (candidates.length === 0) {
-    const availableProfiles = await db.driverProfile.findMany({
-      where: {
-        availabilityStatus: 'AVAILABLE',
-        approvalStatus: 'APPROVED',
-        user: { accountStatus: 'ACTIVE' },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    for (const p of availableProfiles) {
-      candidates.push({
-        driverProfileId: p.id,
-        distanceMeters: 0,
-      });
-    }
-  }
-
+  // Regression: a previous "last resort" fallback here grabbed every
+  // AVAILABLE/APPROVED/ACTIVE driver company-wide with a fabricated
+  // distanceMeters: 0 whenever both the Redis geo search and the DB radius
+  // search came back empty — i.e. whenever nobody was genuinely within
+  // `searchRadius`. That silently broke the "nearby" guarantee entirely (a
+  // driver hundreds of km away could be offered a booking they could never
+  // reach), and the fake zero distance made them look like the *closest*
+  // candidate to the ranking/scoring logic downstream, ahead of any real
+  // nearby driver. "No candidates within radius" must mean exactly that —
+  // the caller (matching-service.ts) is responsible for widening the
+  // radius on the next attempt, not this function for silently ignoring it.
   if (candidates.length === 0) {
     return [];
   }

@@ -64,7 +64,7 @@ export default function AdminVaultPage() {
       />
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
@@ -72,7 +72,7 @@ export default function AdminVaultPage() {
       {loading ? (
         <LoadingState message="Loading ledger balances…" />
       ) : (
-        <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+        <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
           <DataTable
             columns={columns}
             data={accounts}

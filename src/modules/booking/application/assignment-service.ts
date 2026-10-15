@@ -15,7 +15,7 @@ import {
   BookingAlreadyAssignedError,
 } from '../domain/errors';
 import { DriverNotEligibleError } from '@/modules/driver/domain/errors';
-import { assertNoDriverHireConflict } from '@/modules/driver/application/services/driver-hire-conflict-service';
+import { assertNoDriverHireConflictWithLock } from '@/modules/driver/application/services/driver-hire-conflict-service';
 
 export interface AssignmentAttemptDetail {
   id: string;
@@ -106,10 +106,13 @@ export async function acceptAssignmentOffer(
     }
 
     if (now > attempt.expiresAt) {
-      if (tx.bookingAssignmentAttempt?.update) {
-        await tx.bookingAssignmentAttempt.update({
-          where: { id: attemptId },
-          data: { status: AssignmentAttemptStatus.EXPIRED },
+      if (tx.bookingAssignmentAttempt?.updateMany) {
+        // Conditional on status — if the expiry sweep (or anything else)
+        // already resolved this row, this is a harmless no-op rather than
+        // clobbering whatever it was changed to.
+        await tx.bookingAssignmentAttempt.updateMany({
+          where: { id: attemptId, status: AssignmentAttemptStatus.PENDING },
+          data: { status: AssignmentAttemptStatus.EXPIRED, respondedAt: now },
         });
       }
       throw new AssignmentOfferExpiredError(attemptId);
@@ -141,7 +144,7 @@ export async function acceptAssignmentOffer(
         ? booking.hireEndAt
         : new Date(hireStart.getTime() + hireMins * 60 * 1000);
 
-    await assertNoDriverHireConflict(
+    await assertNoDriverHireConflictWithLock(
       {
         driverProfileId: profile.id,
         hireStartAt: hireStart,
@@ -153,14 +156,25 @@ export async function acceptAssignmentOffer(
 
     validateBookingStatusTransition(booking.status, BookingStatus.DRIVER_ASSIGNED);
 
-    // Update assignment attempt status to ACCEPTED
-    await tx.bookingAssignmentAttempt.update({
-      where: { id: attemptId },
+    // Regression: this was previously an unconditional update keyed only on
+    // `id`, with the PENDING check above only a plain (non-locking) read.
+    // Two concurrent accept calls for two different PENDING attempts on the
+    // *same booking* could both pass that read before either committed,
+    // then both reach this point — conditioning the write itself on
+    // `status: PENDING` is what actually serializes them: PostgreSQL blocks
+    // the second UPDATE on the first's row lock, then re-evaluates this
+    // WHERE clause once unblocked, so the loser's count comes back 0
+    // instead of silently overwriting an already-ACCEPTED/EXPIRED row.
+    const attemptUpdate = await tx.bookingAssignmentAttempt.updateMany({
+      where: { id: attemptId, status: AssignmentAttemptStatus.PENDING },
       data: {
         status: AssignmentAttemptStatus.ACCEPTED,
         respondedAt: now,
       },
     });
+    if (attemptUpdate.count === 0) {
+      throw new AssignmentAlreadyRespondedError(attemptId, attempt.status);
+    }
 
     // Supersede / Cancel any other pending parallel assignment offers for this booking
     const pendingOtherAttempts = tx.bookingAssignmentAttempt?.findMany
@@ -204,15 +218,26 @@ export async function acceptAssignmentOffer(
       }
     }
 
-    // Update booking status and assigned driver reference
-    await tx.booking.update({
-      where: { id: booking.id },
+    // Same reasoning as the attempt update above: two different PENDING
+    // attempts for this same booking (which should not normally coexist,
+    // but matching-service.ts has no hard DB guarantee against it — see
+    // findAndOfferNextDriver) racing to accept must not both "succeed" at
+    // the app layer. Conditioning on `status: SEARCHING_DRIVER` means only
+    // the first committer's write actually matches; the loser's count
+    // comes back 0 and the whole transaction (including its own attempt
+    // update above) rolls back instead of silently overwriting the
+    // winner's driverProfileId.
+    const bookingUpdate = await tx.booking.updateMany({
+      where: { id: booking.id, status: BookingStatus.SEARCHING_DRIVER },
       data: {
         status: BookingStatus.DRIVER_ASSIGNED,
         driverProfileId: profile.id,
         assignedAt: now,
       },
     });
+    if (bookingUpdate.count === 0) {
+      throw new BookingAlreadyAssignedError(booking.id);
+    }
 
     // Mark driver availability status as BUSY
     await tx.driverProfile.update({

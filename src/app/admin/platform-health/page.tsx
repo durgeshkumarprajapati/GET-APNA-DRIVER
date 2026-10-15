@@ -72,15 +72,15 @@ export default function PlatformHealthOverviewPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'HEALTHY':
-        return 'bg-emerald-500 text-white';
+        return 'bg-primary text-white';
       case 'DEGRADED':
-        return 'bg-blue-500 text-white';
+        return 'bg-info text-white';
       case 'WARNING':
-        return 'bg-amber-500 text-white';
+        return 'bg-warning text-white';
       case 'CRITICAL':
-        return 'bg-rose-600 text-white';
+        return 'bg-error text-white';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-outline text-white';
     }
   };
 
@@ -109,13 +109,13 @@ export default function PlatformHealthOverviewPage() {
               type="checkbox"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="rounded border-on-surface-variant text-info focus:ring-info"
             />
             {t('platformHealth.autoRefresh10s') || 'Auto-refresh (10s)'}
           </label>
           <button
             onClick={handleManualRefresh}
-            className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
+            className="px-3 py-1.5 text-sm bg-info hover:bg-info-hover text-white rounded-md transition-colors"
           >
             {t('platformHealth.refreshNow') || 'Refresh'}
           </button>
@@ -131,7 +131,7 @@ export default function PlatformHealthOverviewPage() {
       )}
 
       {loading && !data ? (
-        <div className="p-12 text-center text-gray-500">
+        <div className="p-12 text-center text-outline">
           {t('platformHealth.loading') || 'Evaluating platform metrics...'}
         </div>
       ) : data ? (
@@ -139,7 +139,7 @@ export default function PlatformHealthOverviewPage() {
           {/* Top Score Banner */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-outline">
                 {t('platformHealth.overallScore') || 'Platform Health Score'}
               </span>
               <div
@@ -150,7 +150,7 @@ export default function PlatformHealthOverviewPage() {
             </div>
 
             <div className="p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-outline">
                 {t('platformHealth.overallStatus') || 'Overall Status'}
               </span>
               <div className="mt-2">
@@ -163,7 +163,7 @@ export default function PlatformHealthOverviewPage() {
             </div>
 
             <div className="p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-outline">
                 {t('platformHealth.activeAlerts') || 'Active Alerts'}
               </span>
               <div className="text-3xl font-bold mt-2 text-amber-600 dark:text-amber-400">
@@ -172,7 +172,7 @@ export default function PlatformHealthOverviewPage() {
             </div>
 
             <div className="p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-outline">
                 {t('platformHealth.criticalAlerts') || 'Critical Alerts'}
               </span>
               <div className="text-3xl font-bold mt-2 text-rose-600 dark:text-rose-400">
@@ -201,7 +201,7 @@ export default function PlatformHealthOverviewPage() {
                         {comp.status}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500 space-y-1 mt-1">
+                    <div className="text-xs text-outline space-y-1 mt-1">
                       <div>Category: {comp.category}</div>
                       <div>Weight: {Math.round(comp.weight * 100)}%</div>
                       {comp.latencyMs !== undefined && <div>Latency: {comp.latencyMs}ms</div>}
@@ -211,7 +211,7 @@ export default function PlatformHealthOverviewPage() {
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-xs">
-                    <span className="text-gray-500">Score</span>
+                    <span className="text-outline">Score</span>
                     <span className="font-bold">{comp.score}/100</span>
                   </div>
                 </div>

@@ -41,12 +41,12 @@ function driverDisplayName(driver: DriverRow): string {
 
 function statusBadgeClass(status: string): string {
   if (status === 'APPROVED' || status === 'AVAILABLE') {
-    return 'bg-[#00311f] text-[#68dba9] border border-[#25a475]';
+    return 'bg-on-primary-container text-primary border border-primary-container';
   }
   if (status === 'REJECTED' || status === 'SUSPENDED') {
-    return 'bg-[#93000a]/20 text-[#ffb4ab] border border-[#93000a]';
+    return 'bg-error-container/20 text-error border border-error-container';
   }
-  return 'bg-[#262a33] text-[#dfe2ee] border border-[#3d4a42]';
+  return 'bg-surface-container-high text-on-surface border border-border';
 }
 
 const PAGE_SIZE = 25;
@@ -88,16 +88,16 @@ export default function AdminDriverDirectoryPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0a0e16] p-4 rounded-xl border border-[#262a33]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl border border-surface-container-high">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#68dba9]">
+          <div className="flex items-center gap-2 text-xs font-mono text-primary">
             <span className="material-symbols-outlined text-[16px]">id_card</span>
             <span>CHAUFFEUR DIRECTORY &amp; ROSTER</span>
           </div>
-          <h1 className="text-xl font-bold text-[#dfe2ee] font-['Space_Grotesk'] mt-1">
+          <h1 className="text-xl font-bold text-on-surface font-['Space_Grotesk'] mt-1">
             Driver Directory
           </h1>
-          <p className="text-xs text-[#87948b] mt-0.5">
+          <p className="text-xs text-outline mt-0.5">
             {data ? `${data.total} driver application${data.total === 1 ? '' : 's'}` : '—'}
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function AdminDriverDirectoryPage() {
               setPage(1);
             }}
             placeholder="Search by name..."
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] placeholder:text-[#87948b] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
           />
           <select
             value={approvalStatus}
@@ -119,7 +119,7 @@ export default function AdminDriverDirectoryPage() {
               setApprovalStatus(e.target.value as (typeof APPROVAL_FILTERS)[number]);
               setPage(1);
             }}
-            className="h-9 px-3 rounded-lg bg-[#181c24] border border-[#262a33] text-xs text-[#dfe2ee] focus:outline-none focus:border-[#68dba9]"
+            className="h-9 px-3 rounded-lg bg-surface-container-low border border-surface-container-high text-xs text-on-surface focus:outline-none focus:border-primary"
           >
             {APPROVAL_FILTERS.map((status) => (
               <option key={status} value={status}>
@@ -130,18 +130,18 @@ export default function AdminDriverDirectoryPage() {
         </div>
       </div>
 
-      <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+      <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
         {loading ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">Loading drivers…</div>
+          <div className="py-16 text-center text-outline text-sm">Loading drivers…</div>
         ) : !data || data.drivers.length === 0 ? (
-          <div className="py-16 text-center text-[#87948b] text-sm">
+          <div className="py-16 text-center text-outline text-sm">
             No drivers match the current filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-sans text-xs border-collapse">
               <thead>
-                <tr className="bg-[#181c24] text-[#87948b] font-['Space_Grotesk'] uppercase border-b border-[#262a33]">
+                <tr className="bg-surface-container-low text-outline font-['Space_Grotesk'] uppercase border-b border-surface-container-high">
                   <th className="py-3 px-4">Driver</th>
                   <th className="py-3 px-4">Contact</th>
                   <th className="py-3 px-4">License</th>
@@ -153,42 +153,47 @@ export default function AdminDriverDirectoryPage() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#262a33] font-mono">
+              <tbody className="divide-y divide-surface-container-high font-mono">
                 {data.drivers.map((driver) => (
-                  <tr key={driver.id} className="hover:bg-[#181c24]/60 transition-colors">
+                  <tr
+                    key={driver.id}
+                    className="hover:bg-surface-container-low/60 transition-colors"
+                  >
                     <td className="py-3 px-4">
                       <Link
                         href={`/admin/drivers/${driver.id}`}
-                        className="font-bold text-[#dfe2ee] hover:text-[#68dba9] transition-colors flex items-center gap-1.5 group"
+                        className="font-bold text-on-surface hover:text-primary transition-colors flex items-center gap-1.5 group"
                       >
                         <span>{driverDisplayName(driver)}</span>
-                        <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity text-[#68dba9]">
+                        <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity text-primary">
                           open_in_new
                         </span>
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-[#bccac0]">
+                    <td className="py-3 px-4 text-on-surface-variant">
                       <span className="block">{driver.user.email ?? '—'}</span>
                       {driver.user.phoneNumber && (
-                        <span className="block text-[10px] text-[#87948b]">
+                        <span className="block text-[10px] text-outline">
                           {driver.user.phoneNumber}
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-[#bccac0]">{driver.drivingLicenseNumber}</td>
-                    <td className="py-3 px-4 text-[#bccac0]">
+                    <td className="py-3 px-4 text-on-surface-variant">
+                      {driver.drivingLicenseNumber}
+                    </td>
+                    <td className="py-3 px-4 text-on-surface-variant">
                       {driver.drivingExperienceYears} yrs
                     </td>
                     <td className="py-3 px-4">
                       {driver.rating.totalReviews > 0 ? (
                         <div className="flex items-center gap-1.5">
                           <RatingStars value={driver.rating.averageRating} size="sm" />
-                          <span className="text-[10px] text-[#87948b]">
+                          <span className="text-[10px] text-outline">
                             ({driver.rating.totalReviews})
                           </span>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-[#87948b]">No reviews</span>
+                        <span className="text-[10px] text-outline">No reviews</span>
                       )}
                     </td>
                     <td className="py-3 px-4">
@@ -216,7 +221,7 @@ export default function AdminDriverDirectoryPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/admin/drivers/${driver.id}`}
-                          className="px-2.5 py-1 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] hover:border-[#68dba9] hover:text-[#68dba9] transition-all text-[11px] font-mono flex items-center gap-1"
+                          className="px-2.5 py-1 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface hover:border-primary hover:text-primary transition-all text-[11px] font-mono flex items-center gap-1"
                         >
                           <span className="material-symbols-outlined text-xs">visibility</span>
                           <span>Review</span>
@@ -255,7 +260,7 @@ export default function AdminDriverDirectoryPage() {
                                 alert('Approval failed. Please check driver documents.');
                               }
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-[#25a475] text-[#00311f] font-bold hover:bg-[#208b63] transition-all text-[11px] font-mono flex items-center gap-1 shadow-sm"
+                            className="px-2.5 py-1 rounded-lg bg-primary-container text-on-primary-container font-bold hover:bg-primary-container transition-all text-[11px] font-mono flex items-center gap-1 shadow-sm"
                           >
                             <span className="material-symbols-outlined text-xs">check_circle</span>
                             <span>Approve</span>
@@ -271,7 +276,7 @@ export default function AdminDriverDirectoryPage() {
         )}
 
         {data && data.total > 0 && (
-          <div className="flex items-center justify-between mt-4 text-xs text-[#87948b]">
+          <div className="flex items-center justify-between mt-4 text-xs text-outline">
             <span>
               Page {data.page} of {totalPages}
             </span>
@@ -280,7 +285,7 @@ export default function AdminDriverDirectoryPage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Previous
               </button>
@@ -288,7 +293,7 @@ export default function AdminDriverDirectoryPage() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg bg-[#181c24] border border-[#262a33] text-[#dfe2ee] disabled:opacity-40 hover:bg-[#262a33] transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-high text-on-surface disabled:opacity-40 hover:bg-surface-container-high transition-colors"
               >
                 Next
               </button>

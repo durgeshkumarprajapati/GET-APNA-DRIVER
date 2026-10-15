@@ -45,7 +45,7 @@ export default function PerformanceMetricsPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           {t('platformHealth.navPerformance') || 'Performance & Telemetry Metrics'}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-outline">
           {t('platformHealth.performanceSubtitle') ||
             '24-Hour throughput, response latency distributions & error rates'}
         </p>
@@ -53,37 +53,35 @@ export default function PerformanceMetricsPage() {
 
       <ObservabilityNav />
 
-      {error && <div className="p-4 mb-6 bg-rose-100 text-rose-800 rounded">{error}</div>}
+      {error && <div className="p-4 mb-6 bg-on-error-container text-error rounded">{error}</div>}
 
       {loading || !data ? (
-        <div className="p-8 text-center text-gray-500">
-          Loading performance metric aggregates...
-        </div>
+        <div className="p-8 text-center text-outline">Loading performance metric aggregates...</div>
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <span className="text-xs text-gray-500">Total API Requests (24h)</span>
+              <span className="text-xs text-outline">Total API Requests (24h)</span>
               <div className="text-3xl font-bold mt-1">{data.count}</div>
             </div>
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <span className="text-xs text-gray-500">Avg Response Latency</span>
-              <div className="text-3xl font-bold mt-1 text-indigo-600">{data.avgDurationMs} ms</div>
+              <span className="text-xs text-outline">Avg Response Latency</span>
+              <div className="text-3xl font-bold mt-1 text-info">{data.avgDurationMs} ms</div>
             </div>
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <span className="text-xs text-gray-500">Error Count</span>
-              <div className="text-3xl font-bold mt-1 text-rose-600">{data.errorCount}</div>
+              <span className="text-xs text-outline">Error Count</span>
+              <div className="text-3xl font-bold mt-1 text-error">{data.errorCount}</div>
             </div>
             <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <span className="text-xs text-gray-500">Error Rate</span>
-              <div className="text-3xl font-bold mt-1 text-amber-600">{data.errorRatePercent}%</div>
+              <span className="text-xs text-outline">Error Rate</span>
+              <div className="text-3xl font-bold mt-1 text-warning">{data.errorRatePercent}%</div>
             </div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-bold mb-4">Aggregated Metric Buckets (Recent)</h3>
             {data.buckets.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-outline">
                 No telemetry buckets recorded in the selected window.
               </p>
             ) : (
@@ -102,7 +100,7 @@ export default function PerformanceMetricsPage() {
                           Requests: <strong>{b.count}</strong>
                         </span>
                         <span>
-                          Errors: <strong className="text-rose-600">{b.errorCount}</strong>
+                          Errors: <strong className="text-error">{b.errorCount}</strong>
                         </span>
                         <span>
                           Total Time: <strong>{Math.round(b.totalDurationMs)}ms</strong>

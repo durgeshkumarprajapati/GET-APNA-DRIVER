@@ -78,36 +78,38 @@ export default function AdminPayoutRailsPage() {
         subtitle="Disbursement provider status and recent payout activity."
       />
 
-      <div className="p-6 rounded-xl bg-[#181c24] border border-[#262a33] space-y-2">
-        <h2 className="text-sm font-bold text-[#dfe2ee] font-['Space_Grotesk']">Active Provider</h2>
+      <div className="p-6 rounded-xl bg-surface-container-low border border-surface-container-high space-y-2">
+        <h2 className="text-sm font-bold text-on-surface font-['Space_Grotesk']">
+          Active Provider
+        </h2>
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-full bg-[#262a33] text-[#f5c542] text-[10px] font-bold uppercase tracking-wider">
+          <span className="px-2.5 py-1 rounded-full bg-surface-container-high text-on-warning-container text-[10px] font-bold uppercase tracking-wider">
             Development / Test Provider
           </span>
         </div>
-        <p className="text-xs text-[#87948b]">
+        <p className="text-xs text-outline">
           No real IMPS/UPI/bank-rail integration exists yet — settlements are processed through a
           clearly-labeled development provider that never moves real money. It issues deterministic
-          references (prefixed <code className="text-[#dfe2ee]">DEV-PAYOUT-</code>) through the same
-          provider interface a real payout rail would implement, so switching to a live provider
-          later requires no change to settlement-service.ts.
+          references (prefixed <code className="text-on-surface">DEV-PAYOUT-</code>) through the
+          same provider interface a real payout rail would implement, so switching to a live
+          provider later requires no change to settlement-service.ts.
         </p>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl border border-[#93000a] bg-[#93000a]/20 text-[#ffb4ab] text-sm">
+        <div className="p-4 rounded-xl border border-error-container bg-error-container/20 text-error text-sm">
           {error}
         </div>
       )}
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-base font-bold text-[#dfe2ee] font-['Space_Grotesk']">
+        <h2 className="text-base font-bold text-on-surface font-['Space_Grotesk']">
           Recent Payout Activity
         </h2>
         {loading ? (
           <LoadingState message="Loading payout activity…" />
         ) : (
-          <div className="bg-[#0a0e16] rounded-xl border border-[#262a33] p-5 shadow-xl">
+          <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high p-5 shadow-xl">
             <DataTable
               columns={columns}
               data={settlements}

@@ -83,6 +83,13 @@ jest.mock('@/modules/location/application/driver-location-service', () => ({
 jest.mock('@/shared/config/configuration-service', () => ({
   ...jest.requireActual('@/shared/config/configuration-service'),
   getBoolean: jest.fn().mockResolvedValue(true),
+  getInteger: jest.fn().mockResolvedValue(180),
+}));
+
+jest.mock('@/modules/booking/application/matching-service', () => ({
+  findAndOfferNextDriver: jest
+    .fn()
+    .mockResolvedValue({ attemptId: 'attempt-1', status: 'OFFERED' }),
 }));
 
 jest.mock('@/modules/finance/application/services/refund-service', () => ({
@@ -133,6 +140,7 @@ import { insertOutboxEvent, triggerImmediateOutboxDispatch } from '@/shared/outb
 import { getBoolean } from '@/shared/config/configuration-service';
 import { autoRefundCapturedPaymentOnCancellation } from '@/modules/finance/application/services/refund-service';
 import { createNotification } from '@/modules/notification/application/notification-service';
+import { findAndOfferNextDriver } from '@/modules/booking/application/matching-service';
 
 describe('DriverJourneyService', () => {
   const mockGetOrCreateProfile = getOrCreateDriverProfile as jest.Mock;
@@ -360,10 +368,73 @@ describe('DriverJourneyService', () => {
   });
 
   describe('cancelBookingByDriver', () => {
-    it('cancels an assigned booking, restores driver availability, notifies the customer, triggers auto-refund, and fires the booking.driver.cancelled outbox event', async () => {
+    // Regression: a driver backing out while only DRIVER_ASSIGNED (hasn't
+    // started moving yet) previously cancelled the customer's trip
+    // outright, forcing them to rebook from scratch. It must instead put
+    // the booking back into SEARCHING_DRIVER and immediately re-trigger
+    // matching for a replacement driver — no refund, since the trip isn't
+    // actually cancelled.
+    it('redispatches an assigned (not-yet-moving) booking instead of cancelling it, restores driver availability, and never refunds', async () => {
       mockFindUniqueBooking.mockResolvedValue(mockBookingAssigned);
       mockFindUniqueOrThrowBooking.mockResolvedValue({
         ...mockBookingAssigned,
+        status: BookingStatus.SEARCHING_DRIVER,
+        driverProfileId: null,
+      });
+
+      const result = await cancelBookingByDriver('user-drv-1', 'bk-100', 'Vehicle breakdown');
+
+      expect(result.status).toBe(BookingStatus.SEARCHING_DRIVER);
+      expect(mockTx.booking.update).toHaveBeenCalledWith({
+        where: { id: 'bk-100' },
+        data: expect.objectContaining({
+          status: BookingStatus.SEARCHING_DRIVER,
+          driverProfileId: null,
+          assignedAt: null,
+        }),
+      });
+      expect(mockTx.booking.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: BookingStatus.CANCELLED }),
+        }),
+      );
+      expect(mockTx.bookingAssignmentAttempt.updateMany).toHaveBeenCalledWith({
+        where: { bookingId: 'bk-100', status: 'PENDING' },
+        data: { status: 'CANCELLED' },
+      });
+      expect(mockTx.driverProfile.update).toHaveBeenCalledWith({
+        where: { id: 'drv-prof-1' },
+        data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
+      });
+      expect(insertOutboxEvent).toHaveBeenCalledWith(
+        mockTx,
+        expect.objectContaining({
+          eventType: 'booking.driver.cancelled',
+          payload: expect.objectContaining({
+            bookingId: 'bk-100',
+            customerId: 'cust-1',
+            driverProfileId: 'drv-prof-1',
+            redispatched: true,
+          }),
+        }),
+      );
+      expect(mockCreateNotification).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'cust-1', category: 'BOOKING' }),
+      );
+      expect(findAndOfferNextDriver).toHaveBeenCalledWith('bk-100', expect.anything());
+      expect(mockAutoRefund).not.toHaveBeenCalled();
+    });
+
+    // Once the driver is already en route or has arrived, the booking state
+    // machine deliberately has no path back to SEARCHING_DRIVER (a swap
+    // mid-journey is a bigger disruption than this auto-redispatch is meant
+    // to handle) — this must still fall back to the original
+    // cancel-and-refund behavior.
+    it('still cancels outright (with refund) once the driver is already en route', async () => {
+      const mockEnRouteBooking = { ...mockBookingAssigned, status: BookingStatus.DRIVER_EN_ROUTE };
+      mockFindUniqueBooking.mockResolvedValue(mockEnRouteBooking);
+      mockFindUniqueOrThrowBooking.mockResolvedValue({
+        ...mockEnRouteBooking,
         status: BookingStatus.CANCELLED,
         cancelledAt: new Date(),
         cancelledBy: 'user-drv-1',
@@ -382,28 +453,7 @@ describe('DriverJourneyService', () => {
           driverProfileId: null,
         }),
       });
-      expect(mockTx.bookingAssignmentAttempt.updateMany).toHaveBeenCalledWith({
-        where: { bookingId: 'bk-100', status: 'PENDING' },
-        data: { status: 'CANCELLED' },
-      });
-      expect(mockTx.driverProfile.update).toHaveBeenCalledWith({
-        where: { id: 'drv-prof-1' },
-        data: { availabilityStatus: DriverAvailabilityStatus.AVAILABLE },
-      });
-      expect(insertOutboxEvent).toHaveBeenCalledWith(
-        mockTx,
-        expect.objectContaining({
-          eventType: 'booking.driver.cancelled',
-          payload: expect.objectContaining({
-            bookingId: 'bk-100',
-            customerId: 'cust-1',
-            driverProfileId: 'drv-prof-1',
-          }),
-        }),
-      );
-      expect(mockCreateNotification).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'cust-1', category: 'BOOKING' }),
-      );
+      expect(findAndOfferNextDriver).not.toHaveBeenCalled();
       expect(mockAutoRefund).toHaveBeenCalledWith(
         expect.objectContaining({
           bookingId: 'bk-100',

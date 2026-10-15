@@ -54,6 +54,8 @@ jest.mock('@/modules/driver/application/services/driver-eligibility-service', ()
 }));
 
 import { evaluateDriverEligibility } from '@/modules/driver/application/services/driver-eligibility-service';
+import { getOrCreateDriverProfile } from '@/modules/driver/application/services/driver-profile-service';
+import { prisma } from '@/shared/database/prisma';
 
 describe('DriverAvailabilityService', () => {
   beforeEach(() => {
@@ -71,6 +73,33 @@ describe('DriverAvailabilityService', () => {
 
       expect(res.availabilityStatus).toBe(DriverAvailabilityStatus.OFFLINE);
       expect(res.isEligible).toBe(true);
+    });
+
+    // Regression: a dev-convenience auto-heal previously fired right here,
+    // on every call to this endpoint (polled by driver-layout.tsx on every
+    // /driver/* page load), silently flipping a PENDING driver to
+    // APPROVED/COMPLETED/VERIFIED and fabricating verified documents —
+    // corrupting a brand-new real signup's profile the moment they opened
+    // any driver page. This must now be a pure read: never write to the
+    // profile just because availability was checked.
+    it('never auto-approves a PENDING driver just by checking their availability', async () => {
+      (getOrCreateDriverProfile as jest.Mock).mockResolvedValueOnce({
+        id: 'dp-1',
+        userId: 'user-1',
+        availabilityStatus: 'OFFLINE',
+        onboardingStatus: 'NOT_STARTED',
+        verificationStatus: 'NOT_VERIFIED',
+        approvalStatus: 'PENDING',
+      });
+      (evaluateDriverEligibility as jest.Mock).mockResolvedValue({
+        isEligible: false,
+        reasons: ['Driver application is not approved (status: PENDING).'],
+      });
+
+      const res = await getDriverAvailability('user-1');
+
+      expect(res.isEligible).toBe(false);
+      expect(prisma.driverProfile.update).not.toHaveBeenCalled();
     });
   });
 

@@ -113,33 +113,33 @@ export default function AdminSosAndDisputesPage() {
   const getSeverityBadgeClass = (severity: string) => {
     switch (severity) {
       case 'CRITICAL':
-        return 'bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse';
+        return 'bg-error/20 text-on-error-container border border-error/40 animate-pulse';
       case 'HIGH':
-        return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+        return 'bg-warning/20 text-on-warning-container border border-warning/30';
       case 'MEDIUM':
-        return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        return 'bg-warning/20 text-on-warning-container border border-warning/30';
       default:
-        return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        return 'bg-primary/20 text-primary border border-primary/30';
     }
   };
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'OPEN':
-        return 'bg-red-500/20 text-red-400';
+        return 'bg-error/20 text-on-error-container';
       case 'ACKNOWLEDGED':
-        return 'bg-blue-500/20 text-blue-400';
+        return 'bg-info/20 text-on-info-container';
       case 'INVESTIGATING':
       case 'UNDER_REVIEW':
-        return 'bg-amber-500/20 text-amber-400';
+        return 'bg-warning/20 text-on-warning-container';
       case 'ESCALATED':
-        return 'bg-purple-500/20 text-purple-400';
+        return 'bg-suspend/20 text-on-suspend-container';
       case 'RESOLVED':
-        return 'bg-emerald-500/20 text-emerald-400';
+        return 'bg-primary/20 text-primary';
       case 'CANCELLED':
-        return 'bg-slate-500/20 text-slate-400';
+        return 'bg-outline/20 text-on-surface-variant';
       default:
-        return 'bg-slate-500/20 text-slate-400';
+        return 'bg-outline/20 text-on-surface-variant';
     }
   };
 
@@ -152,20 +152,22 @@ export default function AdminSosAndDisputesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <span className="material-symbols-outlined text-red-500 text-3xl">emergency</span>
+          <h1 className="text-2xl font-bold text-on-surface flex items-center gap-2">
+            <span className="material-symbols-outlined text-error text-3xl">emergency</span>
             SOS Safety & Dispute Resolution Console
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-on-surface-variant mt-1">
             Real-time emergency incident monitoring, response dispatch, and booking dispute center.
           </p>
         </div>
 
         {criticalOpenCount > 0 && (
-          <div className="flex items-center gap-3 bg-red-950/60 border border-red-500/50 rounded-xl px-4 py-2 text-red-200 animate-pulse">
-            <span className="material-symbols-outlined text-red-400 text-2xl">warning</span>
+          <div className="flex items-center gap-3 bg-error-container/60 border border-error/50 rounded-xl px-4 py-2 text-on-error-container animate-pulse">
+            <span className="material-symbols-outlined text-on-error-container text-2xl">
+              warning
+            </span>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-red-400">
+              <div className="text-xs font-semibold uppercase tracking-wider text-on-error-container">
                 Critical SOS Alerts
               </div>
               <div className="text-sm font-bold">{criticalOpenCount} Unacknowledged Emergency</div>
@@ -176,21 +178,18 @@ export default function AdminSosAndDisputesPage() {
 
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+        <div className="bg-on-primary-container/80 border border-primary/50 text-primary px-4 py-3 rounded-xl text-sm flex items-center justify-between">
           <span>{toastMsg}</span>
-          <button
-            onClick={() => setToastMsg(null)}
-            className="text-emerald-400 hover:text-emerald-200"
-          >
+          <button onClick={() => setToastMsg(null)} className="text-primary hover:text-primary">
             ✕
           </button>
         </div>
       )}
 
       {/* Console Navigation Tabs & Filter Bar */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-4 backdrop-blur-md">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+      <div className="bg-surface-container-low/60 border border-surface-container-high rounded-2xl p-4 space-y-4 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-surface-container-high pb-4">
+          <div className="flex flex-wrap items-center gap-2 bg-surface-container-lowest p-1.5 rounded-xl border border-surface-container-high">
             <button
               onClick={() => {
                 setActiveTab('SOS');
@@ -198,14 +197,14 @@ export default function AdminSosAndDisputesPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'SOS'
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-900/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-error text-white shadow-lg shadow-red-900/30'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
               }`}
             >
               <span className="material-symbols-outlined text-lg">sos</span>
               SOS Incidents
               {incidents.length > 0 && (
-                <span className="bg-red-950 text-red-300 text-xs px-2 py-0.5 rounded-full border border-red-500/30">
+                <span className="bg-error-container text-on-error-container text-xs px-2 py-0.5 rounded-full border border-error/30">
                   {incidents.length}
                 </span>
               )}
@@ -218,14 +217,14 @@ export default function AdminSosAndDisputesPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'DISPUTES'
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-primary-container text-white shadow-lg shadow-emerald-900/30'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low'
               }`}
             >
               <span className="material-symbols-outlined text-lg">gavel</span>
               Booking Disputes
               {disputes.length > 0 && (
-                <span className="bg-emerald-950 text-emerald-300 text-xs px-2 py-0.5 rounded-full border border-emerald-500/30">
+                <span className="bg-on-primary-container text-primary text-xs px-2 py-0.5 rounded-full border border-primary/30">
                   {disputes.length}
                 </span>
               )}
@@ -235,7 +234,7 @@ export default function AdminSosAndDisputesPage() {
           {/* Filter controls */}
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-500 text-lg">
+              <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-lg">
                 search
               </span>
               <input
@@ -243,14 +242,14 @@ export default function AdminSosAndDisputesPage() {
                 placeholder="Search reference or keywords..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-surface-container-lowest border border-surface-container-high rounded-xl pl-9 pr-4 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
               />
             </div>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-emerald-500"
+              className="bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 py-2 text-sm text-on-surface-variant focus:outline-none focus:border-primary"
             >
               <option value="ALL">All Statuses</option>
               <option value="OPEN">Open</option>
@@ -263,7 +262,7 @@ export default function AdminSosAndDisputesPage() {
 
             <button
               onClick={fetchData}
-              className="p-2 bg-slate-950 border border-slate-800 text-slate-300 hover:text-white rounded-xl transition"
+              className="p-2 bg-surface-container-lowest border border-surface-container-high text-on-surface-variant hover:text-white rounded-xl transition"
               title="Refresh queue"
             >
               <span className="material-symbols-outlined text-lg">refresh</span>
@@ -273,7 +272,7 @@ export default function AdminSosAndDisputesPage() {
 
         {/* Table Container */}
         {loading ? (
-          <div className="p-12 text-center text-slate-500 flex items-center justify-center gap-2">
+          <div className="p-12 text-center text-outline flex items-center justify-center gap-2">
             <span className="material-symbols-outlined animate-spin text-2xl">
               progress_activity
             </span>
@@ -281,8 +280,8 @@ export default function AdminSosAndDisputesPage() {
           </div>
         ) : activeTab === 'SOS' ? (
           incidents.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">
-              <span className="material-symbols-outlined text-4xl block mb-2 text-slate-600">
+            <div className="p-12 text-center text-outline">
+              <span className="material-symbols-outlined text-4xl block mb-2 text-outline">
                 shield
               </span>
               No safety incidents matched the selected query.
@@ -291,7 +290,7 @@ export default function AdminSosAndDisputesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold bg-slate-950/40">
+                  <tr className="border-b border-surface-container-high text-on-surface-variant font-semibold bg-surface-container-lowest/40">
                     <th className="py-3 px-4">Incident Ref</th>
                     <th className="py-3 px-4">Severity</th>
                     <th className="py-3 px-4">Status</th>
@@ -301,13 +300,13 @@ export default function AdminSosAndDisputesPage() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-surface-container-high/60">
                   {incidents.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
+                    <tr key={item.id} className="hover:bg-surface-container-high/40 transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-on-surface">
                         <Link
                           href={`/admin/sos-and-disputes/${item.id}`}
-                          className="hover:text-emerald-400 underline decoration-emerald-500/40"
+                          className="hover:text-primary underline decoration-primary/40"
                         >
                           {item.incidentNumber}
                         </Link>
@@ -330,29 +329,29 @@ export default function AdminSosAndDisputesPage() {
                           {item.status}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300 font-medium">
+                      <td className="py-3.5 px-4 text-on-surface-variant font-medium">
                         {item.type.replace(/_/g, ' ')}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-400 text-xs">
+                      <td className="py-3.5 px-4 text-on-surface-variant text-xs">
                         {item.latitude && item.longitude ? (
-                          <span className="flex items-center gap-1 font-mono text-slate-300">
-                            <span className="material-symbols-outlined text-emerald-400 text-sm">
+                          <span className="flex items-center gap-1 font-mono text-on-surface-variant">
+                            <span className="material-symbols-outlined text-primary text-sm">
                               location_on
                             </span>
                             {item.latitude.toFixed(4)}, {item.longitude.toFixed(4)}
                           </span>
                         ) : (
-                          <span className="text-slate-600">No telemetry</span>
+                          <span className="text-outline">No telemetry</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-400 text-xs">
+                      <td className="py-3.5 px-4 text-on-surface-variant text-xs">
                         {new Date(item.createdAt).toLocaleString()}
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-2">
                         {item.status === 'OPEN' && (
                           <button
                             onClick={() => handleIncidentAction(item.id, 'ACKNOWLEDGE')}
-                            className="px-3 py-1 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 rounded-lg text-xs font-semibold transition"
+                            className="px-3 py-1 bg-info/30 hover:bg-info/50 text-on-info-container border border-info/40 rounded-lg text-xs font-semibold transition"
                           >
                             Acknowledge
                           </button>
@@ -360,14 +359,14 @@ export default function AdminSosAndDisputesPage() {
                         {item.status !== 'RESOLVED' && (
                           <button
                             onClick={() => handleIncidentAction(item.id, 'ESCALATE')}
-                            className="px-3 py-1 bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 rounded-lg text-xs font-semibold transition"
+                            className="px-3 py-1 bg-suspend/30 hover:bg-suspend/50 text-on-suspend-container border border-suspend/40 rounded-lg text-xs font-semibold transition"
                           >
                             Escalate
                           </button>
                         )}
                         <Link
                           href={`/admin/sos-and-disputes/${item.id}`}
-                          className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition inline-block"
+                          className="px-3 py-1 bg-surface-container-high hover:bg-border text-on-surface rounded-lg text-xs font-semibold transition inline-block"
                         >
                           View
                         </Link>
@@ -384,7 +383,7 @@ export default function AdminSosAndDisputesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-semibold bg-slate-950/40">
+                <tr className="border-b border-surface-container-high text-on-surface-variant font-semibold bg-surface-container-lowest/40">
                   <th className="py-3 px-4">Dispute Ref</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Status</th>
@@ -394,18 +393,18 @@ export default function AdminSosAndDisputesPage() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-surface-container-high/60">
                 {disputes.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
+                  <tr key={item.id} className="hover:bg-surface-container-high/40 transition">
+                    <td className="py-3.5 px-4 font-mono font-bold text-on-surface">
                       <Link
                         href={`/admin/disputes/${item.id}`}
-                        className="hover:text-emerald-400 underline decoration-emerald-500/40"
+                        className="hover:text-primary underline decoration-primary/40"
                       >
                         {item.disputeNumber}
                       </Link>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-300">
+                    <td className="py-3.5 px-4 font-medium text-on-surface-variant">
                       {item.category.replace(/_/g, ' ')}
                     </td>
                     <td className="py-3.5 px-4">
@@ -417,19 +416,21 @@ export default function AdminSosAndDisputesPage() {
                         {item.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-300 max-w-xs truncate">{item.reason}</td>
-                    <td className="py-3.5 px-4 font-mono text-emerald-400 font-semibold">
+                    <td className="py-3.5 px-4 text-on-surface-variant max-w-xs truncate">
+                      {item.reason}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-primary font-semibold">
                       {item.refundAmountMinorUnits
                         ? `₹${(item.refundAmountMinorUnits / 100).toFixed(2)}`
                         : '-'}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400 text-xs">
+                    <td className="py-3.5 px-4 text-on-surface-variant text-xs">
                       {new Date(item.createdAt).toLocaleString()}
                     </td>
                     <td className="py-3.5 px-4 text-right space-x-2">
                       <Link
                         href={`/admin/disputes/${item.id}`}
-                        className="px-3 py-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold transition inline-block"
+                        className="px-3 py-1 bg-primary-container/30 hover:bg-primary-container/50 text-primary border border-primary/40 rounded-lg text-xs font-semibold transition inline-block"
                       >
                         Resolve / Review
                       </Link>
